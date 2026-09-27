@@ -22,6 +22,8 @@
 
 具体方式は、P04の資料・SDK契約比較→P05/P06の限定した探索実装→P07の実機／実ファイル比較→採用候補と残制約の記録→P08以降の検証実装へ進む。実録画が必要な比較を方式確定前に行えるよう、探索用adapterを交換可能にする。探索成功はPRD達成ではなく、探索版の動画を後の版の証拠として流用するときは変更影響と再試験要否を記録する。
 
+2026-09-27の本人指示により、実機接続を後回しにしてP04資料比較、P05純粋契約・単体試験、P06の限定実装とSimulator確認を先行する。前提は確認済みの開発構成とP03の静的schema。P02/P03全体の完了やG01/G02の実機実施前提を満たしたとは扱わない。P06の実機起動・P07録画前には実環境・既存データ・媒体保管先・試験値を確認し、G03の実機比較前に方式を採用済みにしない。G04品質事前合意と全受入条件は維持する。
+
 | 比較ID | 候補と観点 | 判断に必要な証拠・停止条件 |
 | --- | --- | --- |
 | D01 記録出力 | 高水準の動画出力／sampleデータ＋writer等の標準API候補。LT/422/Proxy、実Log、4K24/30、補正、手動値、録画中切替、音声監視、開始終端、負荷を比較 | 使用SDKの契約＋同条件の実機保存動画。最初／最後の記録フレームや音声書込が取得できる範囲を明記。一方式の失敗で端末全体非対応にしない |
@@ -31,6 +33,31 @@
 | D05 観測・検査 | 標準APIによる媒体検査・再生と時刻対応。直接観測、callback、推定の粒度／計測負荷を比較 | 保存ファイルと設定の対応を失わないこと。取得不能なら未観測と影響を明示。外部解析ツール追加は前提にしない |
 
 不成立・証拠不足が見つかったら、比較した方式、他候補へ影響する契約、追加確認と必要な要求判断を残す。標準LTを別形式へ黙示変更せず、代替試験は別のケースIDとする。必要な依存判断を解決できなければ該当タスクをblockedにし、独立した準備・観測だけを進める。
+
+### P04資料比較（2026-09-27、実機未確認）
+
+対象はXcode 27.0（27A266a）・iPhoneOS 27.0 SDK・Swift 6.4、既存言語モード5.0。以下は限定探索を実装するための契約比較であり、D01〜D05の採用判断ではない。各候補は既存App targetとApple標準framework内に留める。
+
+| 比較 | 資料から確認した契約・候補 | P06の窓口／P07以降の実証残件 |
+| --- | --- | --- |
+| D01 高水準出力 | `AVCaptureMovieFileOutput`は映像・音声のmovie出力。codec一覧は構成依存で、入力format構成後に対象codecを照合する。開始delegateの`startPTS`と終了delegateを観測できるが、UI受付や通知到着時刻とは別 | 音声接続・形式・実適用の照合、開始PTS・終了・原本検査。iOSのfile delegateでは全記録sampleの直接観測を保証できず、WB終端・音声書込の観測不足を明記する |
+| D01 sample＋writer | `AVCaptureVideoDataOutput`＋`AVCaptureAudioDataOutput`＋`AVAssetWriter`で到着と書込受付を別に観測。videoのcodec指定の推奨設定、writerの`canApply`／`canAdd`を確認する。現SDKは`SampleBufferReceiver`によるappendを候補とし、旧appendの非推奨を無視しない | 同一条件・同一音声で高水準出力と有限比較。backpressure／失敗と最初・最後の映像／音声PTSを残す。append受付≠ファイル確定≠検査成功。負荷と全組合せ成立は未確認 |
+| D02 Log／表示 | `.appleLog`はBT.2020、`.appleLog2`はApple Gamutと別の色契約。列挙された実Logとsample色特性を保持する。Core Image／Metalの表示専用経路を比較候補とする | 標準変換の由来・入力との適合が確定するまでRec.709成立にしない。色metadataの変更や出力色空間の指定だけで変換成立としない。変換済み表示bufferをwriterへ渡さない。変換係数・実Log・二重変換・描画負荷は残件 |
+| D03 カメラ／補正／倍率 | format・fps・Log・補正は実能力ごとに照合。希望補正が利用不能ならactiveがOFFになる契約があるため、設定後のactive値を照会する。可変絞りAPIの存在を端末対応と同一視しない | 全物理／論理カメラ・実動作カメラ、有向切替経路、倍率、補正維持、手動値維持を実機で列挙する。未確認の経路は許可しない。初回標準候補・速度・ISO基準を製品の既定値にしない |
+| D04 Core Data＋SQLite案 | 操作ID・対象参照・期待世代を一つの永続storeで更新する第一候補。context所定queueでfetch・世代照合・saveし、楽観競合を上書き成功にしない。子contextだけのsaveは永続commitではない | freshな検証用storeで再読込、重複／古い世代、競合・保存失敗・中断を確認。原本ファイルとの一括原子性はない。保存不能／破損を空storeで置換しない |
+| D04 最小ファイルstore案 | 単一の版付きsnapshotを専用直列領域で読取・期待世代照合・atomic writeする候補。単一ファイル置換の境界とアプリ規則の検査を分離する | 複数ファイルや媒体との一括原子性を仮定しない。未知schema・破損・重複更新・再openを使い捨て領域で比較。記録量増加・クラッシュ境界とCore Data案の差を残す |
+| D05 検査／時計 | `AVURLAsset`等による非同期track／format読取、`AVAssetReader`の新Providerでsample検査する候補。媒体PTS、captureの同期clock、hostの単調時刻、実施日時を別に記録する | コールバック到着時刻から保存フレームを断定しない。clock対応点・分解能／誤差・直接／推定／取得不能を値へ変換。映像／音声track存在だけで全編再生・同期品質を合格にしない |
+| D05 対象同一性 | 不透明原本参照・操作IDとmetadata、必要な複製は逐次SHA-256等の同一内容照合を候補とする | 全体をメモリへ載せない。複製対象・保管先を確認してから実行する。hash一致を映像品質・Mac保存検証・PRD達成に転用しない |
+
+P05にはSDK型を出さず、ID・世代・観測時刻／由来・能力の未確認理由・音声4軸・保存段階・型付き結果を渡す。実機未確認の能力fixtureはテスト専用とし、Appで対応済みへ変換しない。P06は交換可能な探索adapterを用意し、実行票の未束縛・未選択をエラーとして返す。P07は同条件で出力候補・表示併用・store境界を比較し、未実施と観測不能を残して方式判断する。
+
+SDK固有の観測制約: Movieの`startPTS`は最初に書かれたbufferの時刻で、映像・音声それぞれの先頭とは限らない。WB固定completionはdevice clock、capture sampleはsessionの`synchronizationClock`基準なので、clock間の変換とwriterのtimeline offsetを保持する。録画中の`activeColorSpace`変更はmovieを終了させ得るため探索の通常操作へ入れない。ズームramp cancelは即時停止を保証せず、virtual cameraの切替可能倍率も実切替を保証しない。音声・映像のserial callbackでdropを観測し、無制限buffer保持をしない。
+
+ローカル出典の基点はiPhoneOS27.0.sdk。`System/Library/Frameworks/AVFoundation.framework/Headers/`内の`AVCaptureFileOutput.h:230,316,342,440,478`（出力・開始PTS・終了・iOS非対応のsample delegate）、`AVCaptureDevice.h:430,830,870,925,1609,1923,2071,2306,2329,3298,3463`（手動値・camera・WB・Log・補正・絞り）、`AVCaptureSession.h:605,1200`（clock・active補正）、`AVVideoSettings.h:49,139,190`（codecとLog attachment）、`AVAssetWriter.h:158,213,230,269`（適用・timeline・終了）、`AVAssetReaderOutput.h:89,97`（sample順・新Providerへの移行）を確認した。同SDK `usr/lib/swift/AVFoundation.swiftmodule/arm64e-apple-ios.swiftinterface:94,108,513,1943`が新Reader Provider／Writer ReceiverのSwift契約。`CoreData.framework/Headers/NSManagedObjectContext.h:96,166`・`NSMergePolicy.h:18`、`Foundation.framework/Headers/NSData.h:36,43,131`、`CoreMedia.framework/Headers/CMSync.h:903,922`・`CMSampleBuffer.h:1209,1222,1321`も照合した。これらの行番号は当該SDK版に限る。Core Dataの期待世代／重複拒否はアプリ規則であり、DBの名称やatomic file置換だけで電源断耐久性を保証しない。
+
+公式資料の確認先（2026-09-27）: [ProResの出力候補と構成依存](https://developer.apple.com/documentation/technotes/tn3104-recording-video-in-apple-prores)、[MovieFileOutput](https://developer.apple.com/documentation/avfoundation/avcapturemoviefileoutput)、[sample receiver](https://developer.apple.com/documentation/avfoundation/avassetwriterinput/samplebufferreceiver)、[appendの受付](https://developer.apple.com/documentation/avfoundation/avassetwriterinput/samplebufferreceiver/appendimmediately(_:))、[Apple Log](https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog)、[Apple Log 2](https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog2)、[補正の希望とactive値](https://developer.apple.com/documentation/avfoundation/avcaptureconnection/preferredvideostabilizationmode)。ローカルSDKの版・symbol出典と実施証拠はtasklistへ記録する。
+
+D02追加確認（2026-09-27）: [Final Cut ProのApple公式説明](https://support.apple.com/ja-jp/guide/final-cut-pro/ver24f966423/mac)でLog1／Log2別のApple製Rec.709 3D LUTの存在を確認した。ローカル`CVImageBuffer.h:265`が案内する[Developer DownloadsのWhite Paper検索](https://developer.apple.com/download/all/?q=Apple%20log%20profile)は今回のweb取得ではInternal Errorで、ログイン必須かは未確認。LUT本体・版・数値域・tone mapping／gamut処理・利用条件は未取得。推測URLや非公式LUTで補完しない。P06は入力Logと変換版・未確認理由の窓口を用意し、表示併用ケースを依存未達とする。記録単独の比較ケースは独立に準備できるが、CF-05や標準統合条件の成立を意味しない。
 
 ## 最小検証画面と所有する状態
 
@@ -209,7 +236,7 @@ P02で確認したproject・scheme・configuration・destination・Build/Test ac
 | `FrameRelay/Features/Capture/`、必要最小限の`Features/Playback/` | 検証操作・表示・1件の原本確認。App target |
 | `FrameRelay/Application/Capture/`、`Recovery/`、`Ports/` | 調停、保存照合、値とI/O契約。App target |
 | `FrameRelay/Domain/Capture/`、必要範囲の`Domain/Media/`・`Operations/` | 希望／実値・条件・撮影／保存結果・操作IDの純粋規則。App target |
-| `FrameRelay/Platform/Capture/`、`Render/`、`LocalStore/`、`OriginalStore/`、`Playback/`、`Diagnostics/` | 選定後の端末・記録・表示・保存・検査・診断adapter。App target |
+| `FrameRelay/Platform/Capture/`、`Render/`、`LocalStore/`、`OriginalStore/`、`Playback/`、`Diagnostics/` | P06の限定探索候補と、選定後の端末・記録・表示・保存・検査・診断adapter。App target |
 | `FrameRelayTests/{Domain,Application,Presentation,Platform,Integration,Support}/` | U01〜U04、Swift Testing。単体target。fake／fixtureはAppへ含めない |
 | `FrameRelayUITests/{Flows,Support}/` | U05、XCTest。UI target |
 | `FrameRelay.xcodeproj/project.pbxproj` | camera/microphone用途説明など必要最小設定と所属確認。Team等は実在構成確認後に必要性を判断 |
