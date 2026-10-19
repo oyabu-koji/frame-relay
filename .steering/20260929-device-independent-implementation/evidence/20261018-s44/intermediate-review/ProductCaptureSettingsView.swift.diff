@@ -1,0 +1,84 @@
+--- baseline/FrameRelay/Features/Capture/ProductCaptureSettingsView.swift
++++ FrameRelay/Features/Capture/ProductCaptureSettingsView.swift
+@@ -83,10 +83,13 @@
+                     Picker("手ブレ補正", selection: $draft.stabilization) {
+                         Text("選択してください").tag("")
+                         ForEach(stabilizationChoices, id: \.self) { mode in
+-                            Text(ProductCaptureText.stabilization(mode)).tag(mode)
+-                        }
+-                    }
+-                    Text("補正の品質・動作の評価は未完了です。選んだ条件が使えるかを適用時に確認します。")
++                            Text(stabilizationLabel(mode)).tag(mode)
++                        }
++                    }
++                    .accessibilityIdentifier("capture.settings.stabilization")
++                    Text(stabilizationDescription)
++                        .accessibilityIdentifier("capture.settings.stabilizationStatus")
++                    Text("初回の標準はSDK候補です。補正効果・品質の評価は未完了です。記録形式・記録方式との組合せは保存して適用するときに確認します。")
+                         .font(.footnote)
+                 }
+                 Section("記録方式") {
+@@ -121,7 +124,7 @@
+             .navigationTitle("撮影設定")
+             .navigationBarTitleDisplayMode(.inline)
+             .toolbar {
+-                ToolbarItem(placement: .cancellationAction) { Button("閉じる") { dismiss() }.disabled(isApplying) }
++                ToolbarItem(placement: .cancellationAction) { Button("閉じる") { dismiss() }.disabled(isApplying).accessibilityIdentifier("capture.settings.close") }
+             }
+             .interactiveDismissDisabled(isApplying)
+         }
+@@ -130,9 +133,36 @@
+     private var selectedCamera: ExplorationCameraDescription? { model.cameras.first { $0.id == draft.camera } }
+ 
+     private var stabilizationChoices: [String] {
+-        var modes = Set(selectedCamera?.formats.flatMap(\.stabilizationModes) ?? [])
+-        if !draft.stabilization.isEmpty { modes.insert(draft.stabilization) }
+-        return modes.sorted()
++        var modes = ProductCaptureConfigurationMatcher.stabilizationModes(camera: selectedCamera,
++            framesPerSecond: draft.framesPerSecond, log: CaptureLogEncoding(rawValue: draft.log))
++        if !draft.stabilization.isEmpty, !modes.contains(draft.stabilization) { modes.append(draft.stabilization) }
++        return modes
++    }
++
++    private func stabilizationAvailability(_ mode: String) -> CaptureStabilizationAvailability {
++        ProductCaptureConfigurationMatcher.stabilizationAvailability(mode: mode, camera: draft.camera,
++            framesPerSecond: draft.framesPerSecond, log: CaptureLogEncoding(rawValue: draft.log), cameras: model.cameras)
++    }
++
++    private func stabilizationLabel(_ mode: String) -> String {
++        let suffix: String
++        switch stabilizationAvailability(mode) {
++        case .formatCandidate: suffix = "候補・出力は未確認"
++        case .unconfirmed: suffix = "未確認"
++        case .unsupported: suffix = "非対応"
++        }
++        return "\(ProductCaptureText.stabilization(mode))（\(suffix)）"
++    }
++
++    private var stabilizationDescription: String {
++        guard !draft.stabilization.isEmpty else { return "補正を選択してください。" }
++        switch stabilizationAvailability(draft.stabilization) {
++        case .formatCandidate:
++            return "選択したカメラ・4K・fps・Logの形式に補正候補があります。記録形式・記録方式の支持と実適用はまだ未確認です。"
++        case .unconfirmed(let reason): return reason
++        case .unsupported(let reason):
++            return reason + " 希望は保持します。OFFまたは対応候補を本人が選択してください。"
++        }
+     }
+ 
+     private var supportsAperture: Bool {
+@@ -179,12 +209,12 @@
+     }
+ }
+ 
+-private struct ProductCaptureSettingsDraft {
++struct ProductCaptureSettingsDraft {
+     var camera = ""
+     var framesPerSecond = 0
+     var codec = ""
+     var log = ""
+-    var stabilization = ""
++    var stabilization = CaptureStabilizationCatalog.initialCandidate
+     var output = ""
+     var shutterTicks = ""
+     var shutterTimescale = ""

@@ -1,0 +1,686 @@
+{
+  "errors" : [
+
+  ],
+  "values" : [
+    {
+      "disabledTests" : [
+        {
+          "identifier" : "FrameRelayTests/BackendContractBoundaryTests/invalidationCannotAckBeforeCommitAndRemainsInvalidAfterLostResponse()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendContractBoundaryTests/invalidationFirstBlocksCleanupAndRemovalFirstDefersAckThroughRecovery()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendContractBoundaryTests/lostCommitResponseMustBeLookedUpAndOutboxIsAtomic()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendContractBoundaryTests/registrationRecoveryUsesOnlyLoadedIntentAndRegistrationProofs()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendContractBoundaryTests/requestedStopActualStopAndHandleReleaseAreThreeDifferentBoundaries()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendContractBoundaryTests/unknownSchemaAndCorruptionNeverLoadAsAnEmptyStore()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendContractBoundaryTests/verificationCommitCanBeLoadedAndRetainsServerAndLocalProofBoundaries()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendEvidenceRulesTests/allReaderReleaseReceiptExpiresOnNewReaderAndNewEpoch()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendEvidenceRulesTests/cleanupUsesLastMatchingProofWithoutNetworkOrPhotosRequirement()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendEvidenceRulesTests/completeCoverageIdentityAndUsageAreRequiredForPhotoHandoff()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendEvidenceRulesTests/mismatchedPlaybackSessionRegistrationAndReceiptDoNotCommit()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendEvidenceRulesTests/oldTokenAndLocalReplayCannotRestoreCommittedInvalidation()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendEvidenceRulesTests/preparedPlayerAndUncommittedDistributionCannotConfirm()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/batchRejectsEmptyDuplicateAndChangedTargetsWithoutPartialStart()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/completedTransportIsExcludedFromPauseAllWithoutInventingSaveSuccess()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/delayedStatusCannotRollInProgressBackToNotExecuted()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/endedPlaybackNeverRestartsWhenConditionsRecover()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/fixedBatchRequiresWiFiAndBothRegistrationCommits()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/lateRemoteSuccessCannotUndoCancellationOrBecomeANewOperationResult()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/mismatchedRegistrationResultOrCommitNeverBecomesUsableRegistration()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/overlappingWaitsDoNotEraseUserPauseAndEveryWaitMustClear()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/partialUnknownMissingAndUncommittedOriginalsCannotEnterBatch()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/pauseAllIncludesQueuedAndEnvironmentalWaitsAndPreservesCancellation()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/registrationResponseLossKeepsSameLookupUntilBothCommitsCanBeReplayed()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/requestNeedsExactStartCommitAndKnownRemoteResultBeforeAttempt()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/resultsFromOtherRegistrationContentRenditionOrSessionCannotMutateRequest()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/resumeWaitsForMatchingRealStopAndReconciliationBeforeNewAttempt()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendOperationRulesTests/unknownCapabilityVersionAndDestinationDoNotAuthorizeOperations()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendPublicationRulesTests/distributionBeforePublicationRequiresInvalidationEvenWithoutConfirmationSync()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendPublicationRulesTests/mismatchedDistributionCommitCannotAddRecipientOrConsumeRevision()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendPublicationRulesTests/missingOldRegistrationAcknowledgementBlocksOnlyItsReplacement()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendPublicationRulesTests/publicationBeforeDistributionRejectsEveryDelayedOldVersionEntry()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendPublicationRulesTests/receivedButUncommittedStaleAndForeignAcknowledgementsDoNotAuthorizePublication()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendPublicationRulesTests/recipientAddedWhileWaitingMustAcknowledgeBeforePublicationCanCommit()"
+        },
+        {
+          "identifier" : "FrameRelayTests/BackendPublicationRulesTests/stalePublicationGenerationAndDifferentOriginalCannotBeginReplacement()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureAudioRecoveryTests/finiteRecoveryRejectsOldResponsesAndExhausts()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureAudioRecoveryTests/successfulRecoveryOnlyReturnsReadyForUserREC()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureLifecycleTests/STOPBeforeDidStartKeepsWBFixedUntilConfirmedEnd()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureLifecycleTests/confirmedInputOrWriterFailureStopsButZeroLevelDoesNot(writerFailure:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureLifecycleTests/explicitWBRefreshCannotRelockAfterSTOPCompletion()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureLifecycleTests/immediateSTOPPreventsLatePrerequisitesFromStartingRecorder()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureLifecycleTests/inputIsRecheckedAfterDelayedWBAndStore()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureLifecycleTests/intentFailureOrUnknownEndsWithoutStartingAndKeepsPersistenceTruth(unknown:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureLifecycleTests/nextClipMeasuresNewWBAndRejectsOldClipAndGeneration()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureLifecycleTests/requiresIntentCommitAndCurrentWBInEitherCompletionOrder(wbFirst:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureRationalTimeTests/exactFractionsHaveEqualHashesWithoutChangingTheirRepresentation()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureRationalTimeTests/invalidDecodedScaleDoesNotNormalizeIntoValidTime()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureRationalTimeTests/zeroNegativeAndMinimumIntegerHaveNoAbsoluteValueOverflow()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureReadinessTests/anotherCamerasManualRangesCannotAuthorizeThisCamera()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureReadinessTests/invalidAndDifferentTimelineValuesAreNotSilentlyNormalized()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureReadinessTests/requestedOrSupportedDoesNotMeanApplied()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureReadinessTests/restoredSettingsMustMatchCurrentCapabilitiesAndGeneration()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureReadinessTests/silenceAndUnfinishedAnalysisDoNotBlockRECButResourcesDo()"
+        },
+        {
+          "identifier" : "FrameRelayTests/CaptureReadinessTests/unqueriedUnsupportedAndUnavailableRemainDifferent()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationCoordinatorTests/D02UnverifiedOnlyBlocksDisplayAlongsideRecording()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationCoordinatorTests/diagnosticFailurePersistsAndBlocksNewRECWithoutDiscardingAnEarlyEnd(startActive:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationCoordinatorTests/earlyWBRejectionOrSTOPRetainsEndUntilLateIntentCommit(rejectWB:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationCoordinatorTests/initializationAndSimulatorPreparationCannotCreateMediaOrRequestCapture()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationCoordinatorTests/malformedDecodedNumbersAndNewInvalidImportDoNotReuseOldTicket()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationCoordinatorTests/preparationFreezesCandidatesAndDoesNotTreatCapabilityAsRecording()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationCoordinatorTests/receivedObservationsPersistInReceiveOrderWithOriginalTimes()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationCoordinatorTests/ticketTransportFailureUnbindsThePreviousTicketAndCandidates()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationDiagnosticsStoreTests/appendReadbackAndReopenPreserveMoreThanDisplayHistory()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationDiagnosticsStoreTests/distinctOwnersAppendWithoutLostRecords()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationDiagnosticsStoreTests/explicitOpenCreateAndExistingFilesRemainProtected()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationDiagnosticsStoreTests/tamperedSequenceAndInvalidEventAreRejected()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationDiagnosticsStoreTests/unknownSchemaAndCorruptionAreNotReinitialized()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationWBCommandOrderTests/pendingLockSupersededByAutoCannotApplyLater()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ExplorationWBCommandOrderTests/twoClipsRestartOrdinalsWithoutAcceptingTheOldClip()"
+        },
+        {
+          "identifier" : "FrameRelayTests/FrameRelayTests/example()"
+        },
+        {
+          "identifier" : "FrameRelayTests/KeychainRegistrationTests/concurrentAtomicAddsChooseOneOperationAndSecret()"
+        },
+        {
+          "identifier" : "FrameRelayTests/KeychainRegistrationTests/corruptExistingKeychainRecordNeverBecomesNewRegistration()"
+        },
+        {
+          "identifier" : "FrameRelayTests/KeychainRegistrationTests/differentStoreCannotReadAdoptOrReplaceBoundCredentials()"
+        },
+        {
+          "identifier" : "FrameRelayTests/KeychainRegistrationTests/duplicateConnectionCannotReplaceCredentials()"
+        },
+        {
+          "identifier" : "FrameRelayTests/KeychainRegistrationTests/legacyUnboundRecordsArePreservedAndNeverAdopted(credentialOnly:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/KeychainRegistrationTests/missingAndMismatchedIntentCredentialAreNotRegenerated()"
+        },
+        {
+          "identifier" : "FrameRelayTests/KeychainRegistrationTests/realKeychainReopenRetainsCredentialBeforeAnyIntentCommit()"
+        },
+        {
+          "identifier" : "FrameRelayTests/KeychainRegistrationTests/transportRefusesAStoreMismatchBeforeReleasingAuthorization()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LegacyServerPlaybackProbeTests/actualHTTPRejectsMissingTokenAndReturnsTheFixedShortRange()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LegacyServerPlaybackProbeTests/actualPlayerAdvancesThenSDKLoaderAndNetworkReachTerminal()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryModelTests/discardRequiresTargetRiskAcknowledgementEvenWithAvailableHandler()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryModelTests/failedLoadKeepsPriorRowsAndNeverAppearsAsEmptySuccess()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryModelTests/fixedTargetsAndDoubleInputDoNotChangeSelectionIntoIntent(action:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryModelTests/perVideoResultsComeOnlyFromReadSnapshotAndSurviveModelRecreation()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryModelTests/playbackHandoffDoesNotWaitForAPersistentMediaOperationResult()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryModelTests/singleActionsRejectMultipleTargets(action:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryModelTests/unconnectedActionsExplainWhyAndNeverCreateSuccess()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryModelTests/unknownAcceptanceBlocksRetryUntilRecordedResolution()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryModelTests/unresolvedVideoDoesNotBlockAnotherVideoOrOriginalPlayback()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryProjectionTests/mismatchedBindingCannotSupplyOriginalOrDeletionSuccess()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryProjectionTests/onlyResolvedRemovalAndObservedAbsenceCanBeSuccessful(purpose:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryProjectionTests/presenceNeverChangesHistoricalSaveResult(result:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryProjectionTests/unfinishedSaveAndInaccessibleOriginalStayUncertain()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryProjectionTests/unresolvedRemovalNeverHidesItem(purpose:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryStoreReaderTests/changingRevisionsAreBoundedlyRejectedInsteadOfMixingStates()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryStoreReaderTests/commitDuringFileScanInvalidatesEarlierStoreRead()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryStoreReaderTests/intentWithoutResultIsAnUncertainItemRatherThanEmptyLibrary()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryStoreReaderTests/missingReservationRemainsUnavailableInsteadOfProvingOriginalAbsence()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryStoreReaderTests/originalStoreFailureCannotTurnDiscardHistoryIntoOrdinaryMissingFiles()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryStoreReaderTests/realMovieUnknownSaveAndBindingSurviveStoreReopenWithoutMutation()"
+        },
+        {
+          "identifier" : "FrameRelayTests/LibraryStoreReaderTests/storeFailureIsNotAnEmptyLibrary(failure:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/ManagedOriginalStoreTests/arbitraryBytesNeverBecomeVerifiedMedia()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ManagedOriginalStoreTests/boundedHashIdentifiesBytesAndRejectsInaccessibleOriginal()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ManagedOriginalStoreTests/rejectsEscapeReferencesAndPersistentReservationReuse()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ManagedOriginalStoreTests/rejectsSymlinksAndExistingMediaWithoutChangingThem()"
+        },
+        {
+          "identifier" : "FrameRelayTests/MediaOperationStoreTests/acceptedDistributionRequiresAckEvenWithoutAConfirmation()"
+        },
+        {
+          "identifier" : "FrameRelayTests/MediaOperationStoreTests/confirmationFaultAndExactLookupSurviveInstanceReplacement(candidate:fault:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/MediaOperationStoreTests/decodedNestedValuesAndMergedJournalReceiptsAreRevalidated(corruption:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/MediaOperationStoreTests/fixedBatchEvidenceConfirmationAndCleanupUseOneWriter(candidate:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/MediaOperationStoreTests/invalidationFaultKeepsReservationOrCommitsTombstoneAndAckTogether(candidate:afterCommit:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/MediaOperationStoreTests/invalidationRequiresExactReaderReleaseAndCurrentEpochAndRetainsTombstone()"
+        },
+        {
+          "identifier" : "FrameRelayTests/MediaOperationStoreTests/nonRecipientCanAdoptNewPublicationButWrongReservationsLeaveNoState()"
+        },
+        {
+          "identifier" : "FrameRelayTests/MediaOperationStoreTests/rejectedOldRetrievalDoesNotBecomeARecipientOrBlockNewPublicationForever()"
+        },
+        {
+          "identifier" : "FrameRelayTests/MediaOperationStoreTests/remoteIdentityMergesWithActualUnknownMovieAndKeepsReaders()"
+        },
+        {
+          "identifier" : "FrameRelayTests/MediaOperationStoreTests/unsupportedAndAssemblyEvidenceRemainFactsWithoutCleanupAuthority()"
+        },
+        {
+          "identifier" : "FrameRelayTests/MediaStoreRequestPersistenceTests/admissionAndExactCommandsRejectCallerStateWrongIdentityAndStaleGlobalRevision()"
+        },
+        {
+          "identifier" : "FrameRelayTests/MediaStoreRequestPersistenceTests/cancellationAndRemoteObservationOrderSurviveLateSuccessAndAnotherReopen()"
+        },
+        {
+          "identifier" : "FrameRelayTests/MediaStoreRequestPersistenceTests/overlappingWaitsAndAttemptsSurviveReopenWithoutTreatingCompletionAsVerification()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalBindingStoreTests/actualContentBindingSurvivesReopenAndCommitInterruption(fault:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalBindingStoreTests/contentReplacementRevisionConflictAndForgedSaveReceiptAreRejected()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalBindingStoreTests/malformedDecodedBindingDigestDoesNotBypassValidation()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalBindingStoreTests/schemaTwoRetainsResultsAndDoesNotInventContentBindings()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalInspectionReaderTests/newReaderInspectsSyntheticTracksWithoutQualityPromotion(withAudio:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalPlaybackTests/backwardSeekUpdatesCurrentPositionAndResumeShowsActualPlayback()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalPlaybackTests/invalidMovieFailsWithoutSavingOrConfirmingAndClosesReader()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalPlaybackTests/presentationClosedBeforeItsStartTaskRunsDoesNotCreateAReader()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalPlaybackTests/realPlayerAdvancesDecodesFrameAndReleasesTheOnlyOriginalReader()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalPlaybackTests/stopBeforeAttachmentWaitsForOutstandingOriginalOpen()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalPlaybackTests/stopDuringDelayedSDKReadWaitsForRealDrainBeforeReleasingLease()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalPlaybackTests/stopRequestStopsBufferedPlayerAndAnOldSessionCannotStopTheNextOne()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalPlaybackTests/thirtySecondProductConfigurationAdvancesWithoutVideoOutputAndReleases()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalPlaybackTests/unresolvedDurableReleasePreservesLeaseButDoesNotTrapPresentation()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalPresentationSpanTests/missingPerSampleTimesAndEpochMismatchNeverGuessEndpoints()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalPresentationSpanTests/tracksPresentationExtremaAcrossDecodeOrderAndTimescales()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalSaveRecoveryTests/brokenMovieCommitsUnknownWithoutClaimingPlaybackOrCompleteness()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalSaveRecoveryTests/fileBeforeEndAndWrongByteCountCannotCommit()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalSaveRecoveryTests/inaccessibleReservationIsNotReportedAsMissingOriginal()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalSaveRecoveryTests/interruptedRealMovieResultCommitIsResolvedOnlyByReopen(fault:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalSaveRecoveryTests/realMovieRecoveryNeverPromotesUnknown(interruption:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalSaveRecoveryTests/snapshotAndRecoveryPreserveAllFourContractClassifications()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ProductCompositionTests/compositionKeepsModelsAndDoesNotAutoResumeAfterBackground()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ProductCompositionTests/factoryReturnsOneWriterAndReopensFixedProductDirectory()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ProductCompositionTests/invalidExistingRootIsPreserved(kind:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/ProductCompositionTests/thirtySecondMovieCompletesBothTracksAndFullReaderInspection()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ProductLibrarySeedTests/seedNormalAppContainer()"
+        },
+        {
+          "identifier" : "FrameRelayTests/ProductLibrarySeedTests/verifySeedIdentityAndReleasedReadersAfterUI()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingSaveLifecycleTests/fileAndInspectionAreNotSavedBeforeMatchingResultCommit()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingSaveLifecycleTests/inspectionForAnotherOriginalAndOldCommitAreRejected()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingSaveLifecycleTests/unknownAudioOrMissingAudioCannotBecomeNormalSavedFile()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingStoreDecodeTests/danglingStoreAndSQLiteSidecarLinksCannotCreateTheirTargets()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingStoreDecodeTests/decodedInvalidValuesAndTargetsAreRejected()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingStoreDecodeTests/incompatibleSQLiteModelIsRejected()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingStoreDecodeTests/unknownFileSchemaIsNotReset()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingStorePersistenceTests/commitsSurviveExplicitReopen(candidate:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingStorePersistenceTests/distinctOwnersRejectStaleAndDuplicateUpdates(candidate:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingStorePersistenceTests/mismatchedTargetAndFabricatedResultDoNotCommit(candidate:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingStorePersistenceTests/openingNeverCreatesOrReplacesAnExistingStore(candidate:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingStorePersistenceTests/successfulTechnicalResultIsNotUnfinished(candidate:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingStoreTransactionBoundaryTests/currentSchemaRequiresItsTransactionRevision()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingStoreTransactionBoundaryTests/interruptedIntentIsReconciledFromDisk(candidate:fault:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingStoreTransactionBoundaryTests/interruptedResultRetainsIntentAndOnlyCommittedResult(candidate:fault:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/RecordingStoreTransactionBoundaryTests/legacySchemaPreservesRecordingEvidenceAndMigratesOnNextCommit(candidate:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationCompositionTests/productCompositionUsesLibraryWriterAndRetainsModels()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationCompositionTests/unavailableCredentialsHideInitialInputAndLeaveLibraryAvailable()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationCoordinatorTests/concurrentExplicitInputsCoalesceAtCoordinatorBoundary()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationCoordinatorTests/credentialOnlyCrashRequiresExplicitContinuationBeforePOST()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationCoordinatorTests/identityCommitMustFinishBeforeKeychainOrNetwork(fault:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationCoordinatorTests/lostServerResponseReconcilesSameIntentWithoutSecondPOST()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationCoordinatorTests/mismatchedReceiptIsNotCommitted()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationCoordinatorTests/missingPersistedCredentialKeepsRegistrationAndDoesNotPOST()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationCoordinatorTests/newStoreCannotReuseRetainedKeychainAtAnyEntry(registered:samePath:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationCoordinatorTests/realSQLiteFaultBeforeOrAfterIntentAndResultCommitRecovers(fault:atRegistration:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationCoordinatorTests/registrationAndNormalRestartUseOneWriterAndNeverDuplicatePOST()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationCoordinatorTests/replacementDuringAwaitCannotCommitIntentIntoNewStoreAtSameRevision()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationCoordinatorTests/unavailableLookupCannotTurnUnknownIntoASecondRegistration()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationServerProbeTests/testLostResponseAndLocalCommitRecovery()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationServerProbeTests/testRegistrationCommitAndReopenUsesSameIdentity()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationServerProbeTests/testWrongDestinationAndSecretAreRejected()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationTransportProbeTests/testCancellationAfterResponseTerminatesTaskAndSession()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationTransportProbeTests/testOversizeMetadataIsBoundedAndSessionTerminates()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationTransportProbeTests/testRedirectIsRefusedAndSessionTerminates()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationWireTests/capabilityDiscoveryDoesNotAdvertiseUnimplementedMediaOperations()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationWireTests/descriptionsRedactOriginAndCredentials()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationWireTests/exactReceiptPreserves63BitGenerationAndTarget()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationWireTests/onlyExactAuthenticatedAbsenceCanAuthorizeSameIntentRetry()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationWireTests/productEndpointRejectsAmbiguousOrUnprotectedOrigins()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationWireTests/rejectsChangedIdentityUnknownFieldsAndNonCanonicalGenerations()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationWireTests/timestampsMustBeRealCanonicalUTCInstants()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RenditionFixtureGenerationTests/generateDisposableMovieAndManifest()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RenditionHTTPFixtureTests/authenticatedStreamingAdvancesBeforeFullFileAndActuallyTerminates()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RenditionHTTPFixtureTests/authenticationFailureAndGateLossDuringResponseDoNotDeliverBytes()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RenditionHTTPFixtureTests/exactRangeGateChangeAndStopDuringResponse()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RenditionHTTPFixtureTests/httpRetrievalVerifiesWholeFileBeforePhotoUse()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RenditionHTTPFixtureTests/rejectsMalformedFixedRangeAndWaitsForTerminal(mode:)"
+        }
+      ],
+      "enabledTests" : [
+        {
+          "identifier" : "FrameRelayTests/MediaStoreLegacyMigrationTests/firstMediaCommitMigratesSchemaThreeWithoutLosingLegacyEvidence(candidate:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/MediaStoreLegacyMigrationTests/schemaThreeReadsPreserveCleanupHistoryAndUnresolvedReaders(candidate:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalLeaseOrderingTests/delayedOpeningCannotBeReleasedBeforeItsActualCompletion(cancelTask:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalLeaseOrderingTests/newAdapterCannotTreatOldPersistedReadersAsReleased()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalLeaseOrderingTests/recordingWithoutCommittedEndCannotBindContent()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalLeaseOrderingTests/removalAndInvalidationReservationsPersistAndRejectBothConflictOrders()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalLeaseOrderingTests/resolvedRemovalRetainsIdentityAndPurposeUntilNextReservation()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalLeaseOrderingTests/sameSizeContentReplacementIsRejectedBeforeAnyBytesAreExposed()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalLeaseOrderingTests/sameSizeInPlaceChangeAfterOpeningIsRejectedByFingerprint()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalLeaseOrderingTests/staleAllReleasedReceiptCannotAuthorizeRemovalAfterNewReaderGeneration()"
+        },
+        {
+          "identifier" : "FrameRelayTests/OriginalLeaseOrderingTests/unknownMovieProvidesBoundedFDReadsButIsNotTransferEligible()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationStoreIdentityTests/boundJournalRejectsMissingOrSubstitutedDocumentIdentity()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationStoreIdentityTests/containerRelocationRetainsIdentityAndOldOpenWriterStops()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationStoreIdentityTests/identityCommitFaultIsReconciledOnlyFromDisk(fault:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationStoreIdentityTests/identityCommitPersistsWithoutInventingJournalRevision()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationStoreIdentityTests/legacyReadIsBytePreservingAndOnlyExplicitIdentityCommitMigrates(schema:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationStoreIdentityTests/replacementAtSamePathRejectsOldIdentityEvenAtSameRevision()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RegistrationStoreIdentityTests/sameWriterAndSeparateAdaptersConvergeOnOneDurableIdentity()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RenditionPlaybackTests/completeTemporaryFilePlaysOfflineThenDetachesAndClosesItsUse()"
+        },
+        {
+          "identifier" : "FrameRelayTests/RenditionPlaybackTests/invalidationStopsAlreadyBufferedLocalPlayerAndKeepsOriginalCaptureTime(concurrentEnd:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/RenditionPlaybackTests/setupFailureJoinsMonitorBeforeScopeReportsTerminal()"
+        },
+        {
+          "identifier" : "FrameRelayTests/TemporaryMediaRecoveryTests/acquireAndReleaseFailuresCannotSplitUsageFromLease(afterCommit:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/TemporaryMediaRecoveryTests/heldReaderRejectsLeafReplacementAndDoesNotUnlinkReplacement()"
+        },
+        {
+          "identifier" : "FrameRelayTests/TemporaryMediaRecoveryTests/photoTerminalDetectsTruncationAndRetainsOtherUsageAndReconciliationState()"
+        },
+        {
+          "identifier" : "FrameRelayTests/TemporaryMediaRecoveryTests/reopensAndFinishesCommittedReclamationAfterUnlinkWithoutReleasingOldActiveUses()"
+        },
+        {
+          "identifier" : "FrameRelayTests/TemporaryMediaRecoveryTests/scopeClosesAdmissionButWaitsForPhotoCallbackAndReleasesRootOnlyAfterAllOwnersTerminate()"
+        },
+        {
+          "identifier" : "FrameRelayTests/TemporaryMediaTests/completeFileMultipleUsesRetainUntilPhotoCallbackAndFinalClose(candidate:)"
+        },
+        {
+          "identifier" : "FrameRelayTests/TemporaryMediaTests/partialReadAndReusedUsageIDAreRejectedWithoutRemovingFirstUse()"
+        },
+        {
+          "identifier" : "FrameRelayTests/TemporaryMediaTests/rangeHoleAndWholeHashMismatchNeverProducePhotoHandoff()"
+        },
+        {
+          "identifier" : "FrameRelayTests/TemporaryMediaTests/reopenPreservesOldUsageAndRejectsOldEpochReleaseAndSameLengthTamper()"
+        }
+      ],
+      "testPlan" : "FrameRelay"
+    }
+  ]
+}

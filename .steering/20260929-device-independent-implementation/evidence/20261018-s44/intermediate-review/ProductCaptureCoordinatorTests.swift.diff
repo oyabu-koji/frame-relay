@@ -1,0 +1,50 @@
+--- baseline/FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift
++++ FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift
+@@ -625,6 +625,9 @@
+     private(set) var sessionActive = false
+     private let stream: AsyncStream<ExplorationDeviceEvent>
+     private let continuation: AsyncStream<ExplorationDeviceEvent>.Continuation
++    private let stabilizationPair = AsyncStream<CaptureStabilizationSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(8))
++    private var stabilizationEnabled = false
++    private var stabilizationActive: String?
+     private let audioPair = AsyncStream<ProductCaptureAudioSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
+     private var recoveryOutcomes: [CaptureAudioRecoveryOutcome] = [.validInput(route: "recovered test mic")]
+     private var heldRecovery: CheckedContinuation<CaptureAudioRecoveryOutcome, Never>?
+@@ -652,6 +655,26 @@
+     func events() -> AsyncStream<CaptureIOEvent> { AsyncStream { $0.finish() } }
+     func productEvents() -> AsyncStream<ExplorationDeviceEvent> { stream }
+     func audioSnapshots() -> AsyncStream<ProductCaptureAudioSnapshot> { audioPair.stream }
++    func stabilizationSnapshots() -> AsyncStream<CaptureStabilizationSnapshot> { stabilizationPair.stream }
++    func configureStabilization(active: String?) { stabilizationEnabled = true; stabilizationActive = active }
++    func emitStabilization(sequence: UInt64, active: String?, generation override: CaptureGeneration? = nil,
++                           zoom: Double = 1, physicalCamera: String? = "synthetic-wide",
++                           formatID: String = "synthetic-format", connection: CaptureStabilizationConnection = .ready) {
++        guard let generation = override ?? generation else { return }
++        stabilizationPair.continuation.yield(stabilization(generation: generation, sequence: sequence, active: active,
++            zoom: zoom, physicalCamera: physicalCamera, formatID: formatID, connection: connection))
++    }
++    private func stabilization(generation: CaptureGeneration, sequence: UInt64, active: String?, zoom: Double = 1,
++                               physicalCamera: String? = "synthetic-wide", formatID: String = "synthetic-format",
++                               connection: CaptureStabilizationConnection = .ready) -> CaptureStabilizationSnapshot {
++        let c = fixture.desired.configuration
++        return .init(generation: generation, sequence: sequence, output: .sampleWriter,
++            requestedMode: c.stabilizationMode, preferredMode: c.stabilizationMode,
++            activeMode: active.map { .observed($0, at: fixture.time, method: .direct(source: "synthetic")) }
++                ?? .unavailable(.notMeasured), connection: connection, camera: c.camera,
++            activePhysicalCamera: physicalCamera, formatID: formatID, width: c.width, height: c.height,
++            zoom: zoom, uncorrectedFieldOfView: 70)
++    }
+     func emitAudio(_ state: CaptureAudioState, sequence: UInt64, capture: CaptureID? = nil,
+                    generation override: CaptureGeneration? = nil) {
+         guard let generation = override ?? generation else { return }
+@@ -703,7 +726,9 @@
+             whiteBalanceLock: c.whiteBalanceLock, whiteBalanceRefresh: .supported(refreshSupported)),
+             applied: .init(generation: request.generation, operation: request.operation,
+                 values: .observed(.init(configuration: request.desired.configuration, exposure: exposure, zoom: request.desired.zoom),
+-                    at: fixture.time, method: .direct(source: "synthetic"))), audio: fixture.audio)
++                    at: fixture.time, method: .direct(source: "synthetic"))), audio: fixture.audio,
++            stabilization: stabilizationEnabled ? stabilization(generation: request.generation,
++                sequence: 1, active: stabilizationActive) : nil)
+     }
+     func submit(_ command: CaptureIOCommand) -> CaptureCommandAcceptance {
+         commands.append(command)

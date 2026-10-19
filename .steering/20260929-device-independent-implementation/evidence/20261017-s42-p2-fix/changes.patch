@@ -1,0 +1,369 @@
+--- a/.steering/20260929-device-independent-implementation/tasklist.md
++++ b/.steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,7 +12,9 @@
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-17、S41独立検証合格・S42実装完了）
++## 現在の再開点（2026-10-17、S42独立検証P2の限定修正完了）
++
++- **S42 P2修正 / done**: 本人の明示 `$implement-steering` により、WB再測定開始失敗の理由がSTOP・記録終端へ引き継がれない独立検証指摘1件を修正。Nativeで失敗通知前に理由を保持し、本人STOP先行時も停止時の再固定成功で理由を消さない。関連Unit43宣言/65展開ケース（新規7ケース含む）＋UI1件とgeneric iOS署名なしbuildが成功、失敗/skip/runtimeWarnings 0。開始時347file/4,097,161bytesを `/private/tmp/fr-s42-p2-fix-20261017-pp27gwwf/baseline/` に保全し、既存2file変更/345不変、新規2ソースだけを加算（追加証跡を除く）。E-S42-02と `evidence/20261017-s42-p2-fix/` に実行版・結果・差分を記録。修正後の独立検証は未実施で、次工程は同steeringの明示 `$validate-implementation` によるS42限定再検証。実機/DV-03の既知未確認、S27詳細・S43以降未着手を維持する。以下は修正前の履歴。
+ 
+ - **S41独立検証合格**: 本人の明示validateにより `implementation_validator` がS41修正後をread-only検証し、指摘なし・限定合格。E-S41-03の173入力と検証時現物hashは全一致、E-S41-02の実MOV→共通保存→再open→一覧→AVPlayer成功は関連依存不変を照合して継承。追加build/test不要と判定、検証中347fileとgit status不変。実機D01/G2B/Log/ProRes/画質・既知未完了を保持する。
+ - **S42実装完了 / done**: 続く本人の条件付き明示implementに従い、通常撮影のWB固定・本人再固定・記録終端を接続。最終Unit64宣言/89展開ケース＋UI1件、Simulator testのbuildとgeneric iOS署名なしbuildが成功、失敗/skip/runtimeWarnings 0。173入力は実行版と一致。開始時347file/4,063,807bytesを `/private/tmp/fr-s42-20261017-9w3w5h1m/baseline/` に保全し、今回13file変更/334不変、新規/欠落/所有外変更0（追加証跡を除く）。証跡は `evidence/20261017-s42/`。実機色・継続性・最終フレーム品質は未確認。S42の独立最終検証は未実施で、次工程は同steeringの明示 `$validate-implementation` によるS42限定検証。S27詳細検証・S43以降は開始していない。
+@@ -570,6 +572,12 @@
+ ### S42 WB固定・再固定・記録終端を完成
+ 
+ - [x] Status: done
++  - E-S42-02 / 2026-10-17 P2修正完了: Nativeのrefresh開始throwをcommandFailed通知前に現在録画contextへ記録し、adapterFailure STOPも保持する。本番共用のNativeRecordingTerminationでMovie/sample writer終端へ渡し、STOP時の固定成功で失敗を.completedへ戻さない。本人STOPが先行してLifecycleから追加のadapterFailure STOPが出ない場合も保持する。初回REC/旧clip/非activeのcommand失敗を混入させず、リセット位置と既存音声/SDK終端失敗優先を維持した。
++  - E-S42-02 / 関連検証: 実Lifecycle→本番WB順序→本番共用終端→実SaveLifecycleで両方式×本人STOP先行有無を確認。完全な合成検査でも部分保存(元理由)、次clipは通常保存。新規3宣言/7ケースを含む関連Unit43宣言/65展開＋UI1成功、失敗/skip/runtimeWarnings 0。Simulator test buildとgeneric iOS署名なしbuild成功、compiler/analyzer診断0、既存AppIntents metadata警告あり。Xcode27.0(27A266a)/Swift6.4・言語5.0・iOS27.0、FrameRelay.xcodeproj / scheme・plan FrameRelay / Debug、実在Simulator `DFE46693-E8DD-4814-8957-4F327699F719` と3target/Test actionを再確認。
++  - E-S42-02 / 証跡・main差分: `evidence/20261017-s42-p2-fix/`。test-01/ios-build-01の各175入力が実行中不変・現物hash一致。Native1fileと本tasklistだけ既存変更、新規NativeRecordingTermination/Testsの2file、開始時の残り345fileと旧証跡は不変。project/設定/共有Ports/保存契約/UI/docs/designへの変更なし。git diff --check成功。実SDK throw/KVO・実機色/継続性/最終フレームは未確認、修正後独立検証は未実施。
++  - 2026-10-17 P2限定修正開始: 独立検証で要修正1件。再測定開始時のSDKロック取得失敗→adapterFailure STOP→停止時の固定成功で、失敗理由が失われ`.completed`終端を生成する。現行実検査adapterは結果不明を維持するが、完全な検査証拠では正常保存へ分類され得る。既存failure fakeは自ら中断を生成するため該当分岐の証拠にならない。
++  - 所有: main＝tasklist・証跡・構成確認・build/test実行・差分統合。`s42_p2_test_seam` explorerの最小境界調査を完了し、`s42_p2_fix` workerへNativeExplorationCapture・新規NativeRecordingTermination・対応testを割当。STOP理由保持/終端生成だけを本番とtestで共有し、実Lifecycleの開始失敗→固定後停止→完全検査でも部分保存を検証する。旧成果を戻さず、仕様/UI/共有保存契約は変更しない。
++  - substatus: 原因追跡/限定修正/回帰試験/実行検証/main差分確認は完了。実機色/継続性/最終フレームと既知残件は維持。修正後の独立検証は別明示工程。以下E-S42-01は修正前の実装・検証履歴。
+   - E-S42-01 / 完了状態: 通常撮影にWB状態/未確認理由/本人合わせ直しを接続。現在能力が確認できた録画中だけ有効とし、連打・開始中・停止中・離脱後を拒否。Nativeのone-shot測定→Locked観測→現在値固定の適用と実gain読戻しを接続。STOP/離脱/音声障害は測定を失効して固定適用後に記録停止、固定失敗は中断を保持する。初回RECは安定待ちなし、記録終端後Auto、次clipは新測定。旧KVO/固定callbackをcontext/tokenで拒否し他露出設定APIは変更しない。
+   - E-S42-01 / 最終検証: Xcode27.0(27A266a)/Swift6.4・言語5.0・iOS27.0、FrameRelay.xcodeproj / scheme・test plan FrameRelay / Debug、実在Simulator `DFE46693-E8DD-4814-8957-4F327699F719` を再確認。test-02はUnit64宣言/89展開ケース＋UI1件成功、失敗/skip/runtimeWarnings 0。本人再固定・測定/適用待ちSTOP・離脱・音声障害・固定失敗・旧/逆順通知・二本・他手動値維持・未確認能力decodeを確認。S41開始拒否/遅延準備の回帰、実MOV→共通保存→再open→一覧→実AVPlayerも成功。Simulator testのbuildとgeneric iOS署名なしbuild-02成功、compiler/analyzer診断0、既存AppIntents metadata警告あり。
+   - E-S42-01 / 証跡・main差分: `evidence/20261017-s42/` に実行command/log/summary/source hash、初回compile失敗、S41独立検証報告、開始時manifest、今回差分と変更前後copyを保全。最終2実行の173入力と現物hash一致、13file変更/334不変、所有外/欠落/新規ソース0、`git diff --check`成功。既存のproject/Ports/保存/store/Composition/S27差分は不変。code9file、永続docs2file、design/tasklist2fileだけを加算した。
+@@ -784,7 +792,7 @@
+ | FR-03 | AC-FR-03-04 | 補正画角・予告・切替保持 | P05/P06/P13;CF-06 | EC:能力/適用契約 | S44,S47 | dep(S44,S47)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04、DV-08、DV-09 |
+ | FR-03 | AC-FR-03-05 | 標準不成立の制約と相談 | P05/P06/P13;CF-06 | EC:能力/適用契約 | S44 | dep(S44)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04 |
+ | FR-04 | AC-FR-04-01 | 安定前RECと固定 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | 安定待ちなしの既存固定・製品接続済 | Unit89/UI1・iOS build成功、早期STOP/旧callback回帰 | D0 | 制御の部分証拠・実色/記録開始未確認 | DV-03 |
+-| FR-04 | AC-FR-04-02 | 本人再固定・他設定維持・品質 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | 対応能力確認/SDK再測定/固定/本人UI接続済 | Unit89/UI1・iOS build成功、重複/STOP/離脱/失敗/他手動値保持 | D0 | 本体/制御の部分証拠・実機色/継続性未確認 | DV-03 |
++| FR-04 | AC-FR-04-02 | 本人再固定・他設定維持・品質 | P05/P06/P10;CF-03 | EC,E-S42-01,E-S42-V01,E-S42-02 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | 対応能力確認/SDK再測定/固定/本人UI接続済、開始失敗理由の終端保持P2修正済 | E-S42-01 Unit89/UI1＋P2修正Unit65/UI1・iOS build成功、本人STOP競合/完全検査でも部分保存 | D0 | 本体/制御の部分証拠・修正後独立検証/実機色/継続性未確認 | DV-03 |
+ | FR-04 | AC-FR-04-03 | 最終フレーム・待機Auto・二本 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42,S46 | dep(S42,S46)＋対応A/Q01 | O-CAPTURE | 終端後Auto/二本新測定/旧通知拒否接続済、NDはS46 | Unit89/UI1・iOS build成功、測定/固定待ちSTOP/二本/逆順 | D0 | 終端制御の部分証拠・実最終フレーム/ND統合未確認 | DV-03、DV-07 |
+ | FR-05 | AC-FR-05-01 | 複数露出対象と単一主役・意図 | P05のREC非依存のみ;CF-09部分/後続必須 | E0（旧計画の後続要求のみ） | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | I0 | A0 | D0 | R0 | DV-06 |
+ | FR-05 | AC-FR-05-02 | 見失い保持・同一再捕捉・再指定 | P05のREC非依存のみ;CF-09部分/後続必須 | E0（旧計画の後続要求のみ） | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | I0 | A0 | D0 | R0 | DV-06 |
+@@ -1126,6 +1134,8 @@
+ | E-S41-03 | 2026-10-17、explorer/worker/main | S41独立指摘P1/P2修正・限定回帰 | final-tests/final-buildの173入力file一致、Xcode27/Debug/iOS27 Simulator＋generic iOS | commands.txt、Native開始前拒否の終端、遅延load/discover/prepare/取消/再入場/旧shutdown/設定保存、既存保存・UI | 最終Unit50宣言/71展開ケース（新規23）・UI1成功、失敗0/skip0/runtimeWarnings0、Simulator/iOS build成功 | `evidence/20261017-s41-fixes/`。実機D01/G2B/画質・既知未完了事項保持。独立validation未実施 |
+ | E-S41-V01 | 2026-10-17、implementation_validator/main | S41修正後限定独立検証 | E-S41-03の173入力、S42開始前347file不変 | 保存証拠/現物hash・構成/差分・故障境界を照合、旧保存再生証拠継承 | 合格・指摘なし、追加build/testなし | `evidence/20261017-s42/s41-validation-report.txt`。S41限定、実機/全体/S42は判定外 |
+ | E-S42-01 | 2026-10-17、explorer/worker/document_author/main | S42、AC-FR-04-01〜03/AC-CF-03、限定回帰 | test-02/ios-build-02の173入力一致、Xcode27/Debug/iOS27 Simulator＋generic iOS | `*-run.json`、WB測定/STOP/遅延/二本/失敗、S41回帰、実MOV保存→一覧→AVPlayer、UI | Unit64宣言/89展開＋UI1成功、失敗/skip/runtimeWarnings0、build成功。初回test compile失敗0実行は保持 | `evidence/20261017-s42/`。実機/DV-03/既知残件/S42独立validation未確認 |
++| E-S42-V01 | 2026-10-17、implementation_validator/main | S42修正前限定独立検証 | E-S42-01の173入力/最終13fileと元xcresult一致、検証前後5307file不変 | WB固定/再固定/終端、通知順序、S41回帰、例外経路をread-only照合 | 要修正P2 1件、再測定開始失敗理由の終端引継ぎ漏れ。追加build/testなし | `evidence/20261017-s42-p2-fix/validation-report.txt`。実機品質/既知残件は別管理 |
++| E-S42-02 | 2026-10-17、explorer/worker/main | S42 P2限定修正・関連回帰 | test-01/ios-build-01の175入力一致、Xcode27/Debug/iOS27 Simulator＋generic iOS | Native共用理由保持/終端、両方式×先行本人STOP、完全検査の部分保存/次clip成功、旧通知/S41/保存再生/UI | Unit43宣言/65展開＋UI1成功、新規7ケース、失敗/skip/runtimeWarnings0、Simulator/iOS build成功 | `evidence/20261017-s42-p2-fix/`。実SDK throw/実機品質/修正後独立validation未確認 |
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+ 
+@@ -1149,6 +1159,8 @@
+ | V-REVIEW-S41修正 | E-S41-03のfinal-tests-sources173file、既存6file変更/339不変＋新規2ソース | main | Native本番と同じ終端producer、保存非成功、画面visit/取消/SDK owner解放、旧処理の混入防止、遅延設定変更時の再準備、既存差分/所有範囲を確認 | E-S41-03、`evidence/20261017-s41-fixes/main-scope-review.json`。S41修正done、独立validationではない |
+ | V-INDEPENDENT-S41 | E-S41-V01、S42開始前のS41修正版 | implementation_validator/main | 開始拒否終端・未開始非正常保存、visit/取消/旧shutdown、保存/一覧/再生回帰を確認 | E-S41-V01、限定合格・指摘なし。validation中変更0 |
+ | V-REVIEW-S42 | E-S42-01の173入力、今回13file差分 | main | 本人操作/能力未知保持、SDK one-shot/実gain、STOP時固定→終端、旧通知拒否、S41保持、他露出API未変更、旧docs保持を照合 | E-S42-01、`evidence/20261017-s42/main-scope-review.json`。S42実装done、独立validationではない |
++| V-INDEPENDENT-S42 | E-S42-V01、P2修正前のS42版 | implementation_validator/main | 6観点をread-only確認し、再測定開始失敗から終端への理由漏れ1件を検出 | E-S42-V01、要修正P2 1件。修正後は別明示validation |
++| V-REVIEW-S42-P2 | E-S42-02の175入力、既存2file変更/新規2file | main | 通知前の故障保持、本人STOP競合、STOP理由/両終端の本番共用、旧clip除外、次clip reset、完全検査でも部分保存、所有範囲を照合 | E-S42-02、`evidence/20261017-s42-p2-fix/main-scope-review.json`。修正・関連検証完了、独立validationではない |
+ 
+ ## 振り返り・引渡し
+ 
+--- a/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
++++ b/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
+@@ -48,7 +48,7 @@
+     private var audioArrivalCount: UInt64 = 0
+     private var audioSequence: UInt64 = 0
+     private var isFinishing = false
+-    private var stopFailure: CaptureUnavailableReason?
++    private var termination = NativeRecordingTermination()
+     private var durationTask: Task<Void, Never>?
+ 
+     init(candidate: ExplorationOutputCandidate, originals: any ExplorationOriginalDestinationPort) {
+@@ -375,14 +375,16 @@
+                 try startRecording(url: url, token: token, intent: intent)
+             case .stopRecording(_, let reason):
+                 guard activeToken == token else { return .rejected(token, .evidenceMismatch) }
+-                if case .audioFailure = reason { stopFailure = .interrupted }
++                termination.recordStop(reason)
+                 stopRecording()
+             }
+             return .accepted(token)
+         } catch {
+-            emit(.commandFailed(token, .adapterFailure(code: "capture_command_failed")))
++            let reason = CaptureUnavailableReason.adapterFailure(code: "capture_command_failed")
++            termination.recordCommandFailure(command, activeToken: activeToken, reason: reason)
++            emit(.commandFailed(token, reason))
+             if activeToken == token, writer == nil, movie?.isRecording != true { completeNeverStarted(token: token) }
+-            return .rejected(token, .adapterFailure(code: "capture_command_failed"))
++            return .rejected(token, reason)
+         }
+     }
+ 
+@@ -435,7 +437,7 @@
+     private func whiteBalanceFailedDuringRecording(_ token: CaptureCommandToken) {
+         clearWhiteBalanceObservation()
+         let reason = CaptureUnavailableReason.adapterFailure(code: "wb_refix_failed")
+-        stopFailure = reason
++        termination.recordFailure(reason)
+         emit(.commandFailed(token, reason))
+         // A failed camera lock must not strand recording behind a missing callback.
+         finishStopRecording()
+@@ -449,7 +451,7 @@
+                                                         blue: Double(actual.blueGain)) else {
+             let reason = CaptureUnavailableReason.adapterFailure(code: "wb_lock_readback_unconfirmed")
+             emit(.commandFailed(token, reason))
+-            if activeToken != nil { stopFailure = reason; finishStopRecording() }
++            if activeToken != nil { termination.recordFailure(reason); finishStopRecording() }
+             return
+         }
+         let applied = ExplorationCaptureValues.time(time, clock: .captureDevice(camera: preparation.desired.configuration.camera), source: "WB-completion")
+@@ -519,7 +521,7 @@
+         firstAudioArrival = nil
+         lastAudioArrival = nil
+         audioArrivalCount = 0
+-        stopFailure = nil
++        termination.beginRecording()
+         writerURL = url
+         if let movie {
+             if let trial = preparation.trial {
+@@ -687,14 +689,14 @@
+             throw ExplorationIssue.capacityInsufficient
+         }
+         if UInt64(free) <= ticket.minimumRemainingBytes || UInt64(max(resources.fileSize ?? 0, 0)) >= ticket.maximumFileBytes {
+-            stopFailure = .resourceUnavailable
++            termination.recordFailure(.resourceUnavailable)
+             stopRecording()
+         }
+     }
+ 
+     fileprivate func sampleFailure(_ code: String, isAudio: Bool) {
+         guard let token = activeToken, !isFinishing else { return }
+-        stopFailure = .adapterFailure(code: code)
++        termination.recordFailure(.adapterFailure(code: code))
+         observe(code, context: token.context, time: ExplorationCaptureValues.now(), detail: "recording_stopped_no_retry")
+         if isAudio {
+             audioSequence += 1
+@@ -735,7 +737,6 @@
+ 
+     private func writerFinished() async {
+         guard let writer, let token = activeToken else { return }
+-        let failure = writer.status == .completed ? stopFailure : .adapterFailure(code: "writer_finalize_failed")
+         if writer.status == .completed, let firstAudio, let lastAudio {
+             audioSequence += 1
+             let span = CaptureSampleSpan(first: sampleTime(firstAudio, context: token.context),
+@@ -743,7 +744,7 @@
+             emit(.audioObserved(token.context, sequence: audioSequence, audioState(writing: .completed(span))))
+         }
+         let evidence = RecordingEndEvidence(
+-            writer: failure.map(CaptureWriterTermination.interrupted) ?? .completed,
++            writer: termination.writerFinished(completed: writer.status == .completed),
+             ceasedAt: ExplorationCaptureValues.now(),
+             lastVideo: lastVideo.map { sampleTime($0, context: token.context) } ?? .unavailable(.notMeasured),
+             lastAudio: lastAudio.map { sampleTime($0, context: token.context) } ?? .unavailable(.notMeasured))
+@@ -760,7 +761,7 @@
+ 
+     fileprivate func movieFinished(token: CaptureCommandToken, failure: CaptureUnavailableReason?) async {
+         guard activeToken == token else { return }
+-        let evidence = RecordingEndEvidence(writer: (failure ?? stopFailure).map(CaptureWriterTermination.interrupted) ?? .completed,
++        let evidence = RecordingEndEvidence(writer: termination.movieFinished(failure: failure),
+                                             ceasedAt: ExplorationCaptureValues.now(),
+                                             lastVideo: .unavailable(.apiDoesNotExpose), lastAudio: .unavailable(.apiDoesNotExpose))
+         await finish(token: token, evidence: evidence)
+--- a/FrameRelay/Platform/Capture/NativeRecordingTermination.swift
++++ b/FrameRelay/Platform/Capture/NativeRecordingTermination.swift
+@@ -0,0 +1,38 @@
++/// Recording failure facts outlive WB recovery during STOP. Only a new recorder
++/// clears them; a successful lock or file finalization is not a successful take.
++nonisolated struct NativeRecordingTermination: Sendable {
++    private var failure: CaptureUnavailableReason?
++
++    mutating func beginRecording() {
++        failure = nil
++    }
++
++    mutating func recordFailure(_ reason: CaptureUnavailableReason) {
++        failure = reason
++    }
++
++    /// Called before publishing a thrown command's failure. A user STOP may have
++    /// reached the lifecycle first, so its later command need not carry this reason.
++    mutating func recordCommandFailure(_ command: CaptureIOCommand, activeToken: CaptureCommandToken?,
++                                       reason: CaptureUnavailableReason) {
++        guard case .refreshAndLockWhiteBalance(let token) = command,
++              token.context == activeToken?.context else { return }
++        failure = reason
++    }
++
++    mutating func recordStop(_ reason: CaptureStopReason) {
++        switch reason {
++        case .user: break
++        case .audioFailure: failure = .interrupted
++        case .adapterFailure(let reason): failure = reason
++        }
++    }
++
++    func writerFinished(completed: Bool) -> CaptureWriterTermination {
++        movieFinished(failure: completed ? nil : .adapterFailure(code: "writer_finalize_failed"))
++    }
++
++    func movieFinished(failure finalizationFailure: CaptureUnavailableReason?) -> CaptureWriterTermination {
++        (finalizationFailure ?? failure).map(CaptureWriterTermination.interrupted) ?? .completed
++    }
++}
+--- a/FrameRelayTests/Platform/Capture/NativeRecordingTerminationTests.swift
++++ b/FrameRelayTests/Platform/Capture/NativeRecordingTerminationTests.swift
+@@ -0,0 +1,171 @@
++import Testing
++@testable import FrameRelay
++
++struct NativeRecordingTerminationTests {
++    @Test(arguments: [false, true], [false, true])
++    func failedRefreshStartRemainsPartialAfterStopRelockAndNextClipCanSave(movieFile: Bool,
++                                                                         userStopFirst: Bool) throws {
++        let first = try CaptureFixture()
++        let second = try CaptureFixture(clip: "after-refresh-failure")
++        let refreshFailure = CaptureUnavailableReason.adapterFailure(code: "capture_command_failed")
++        var order = ExplorationWBCommandOrder(generation: first.context.generation)
++        var termination = NativeRecordingTermination()
++
++        for (index, fixture) in [first, second].enumerated() {
++            var capture = CaptureLifecycle(context: fixture.context, audio: fixture.audio)
++            let tokens = try beginCapture(&capture, fixture: fixture)
++            #expect(order.requestLock(tokens.whiteBalance) == true)
++            #expect(order.appliedLock(tokens.whiteBalance) == true)
++            _ = try captureEffects(capture.receive(.whiteBalanceLocked(tokens.whiteBalance, fixture.lock)))
++            let startEffects = try captureEffects(capture.receiveIntentCommit(fixture.receipt(tokens.intent)))
++            let start = try #require(startEffects.compactMap { effect -> CaptureCommandToken? in
++                if case .capture(.startRecording(let token, _)) = effect { return token }
++                return nil
++            }.first)
++            #expect(order.canStart(fixture.context))
++            termination.beginRecording()
++            _ = try captureEffects(capture.receive(.recordingStarted(start, fixture.time)))
++
++            var save = try RecordingSaveLifecycle(intent: fixture.intent, intentToken: tokens.intent, revision: 0)
++            try save.acceptIntentCommit(fixture.receipt(tokens.intent))
++            let stopEffects: [CaptureLifecycleEffect]
++            var refresh: CaptureCommandToken?
++            if index == 0 {
++                let refreshEffects = try captureEffects(capture.refreshWhiteBalance(operation: fixture.intent.operation))
++                let token = try #require(refreshEffects.compactMap { effect -> CaptureCommandToken? in
++                    if case .capture(.refreshAndLockWhiteBalance(let token)) = effect { return token }
++                    return nil
++                }.first)
++                refresh = token
++                #expect(order.requestRefresh(token) == true)
++                let earlierStop = userStopFirst
++                    ? try captureEffects(capture.stop(operation: fixture.intent.operation)) : nil
++                // Inject the failure of refreshWhiteBalance's SDK lock before one-shot
++                // measurement. Native records it synchronously before publishing the event.
++                termination.recordCommandFailure(.refreshAndLockWhiteBalance(token), activeToken: start,
++                    reason: refreshFailure)
++                let failureEffects = try captureEffects(capture.receive(.commandFailed(token, refreshFailure)))
++                if let earlierStop {
++                    stopEffects = earlierStop
++                    #expect(failureEffects.isEmpty) // No adapterFailure STOP will reach Native.
++                } else {
++                    stopEffects = failureEffects
++                }
++                #expect(capture.failureReason == refreshFailure)
++            } else {
++                stopEffects = try captureEffects(capture.stop(operation: fixture.intent.operation))
++            }
++
++            let stop = try #require(stopEffects.compactMap { effect -> CaptureIOCommand? in
++                if case .capture(let command) = effect { return command }
++                return nil
++            }.first)
++            guard case .stopRecording(let token, let reason) = stop else {
++                Issue.record("Expected the lifecycle's STOP command"); return
++            }
++            #expect(token == start)
++            let expectedStop: CaptureStopReason = index == 0 && !userStopFirst
++                ? .adapterFailure(refreshFailure) : .user(fixture.intent.operation)
++            #expect(reason == expectedStop)
++            termination.recordStop(reason)
++
++            if let refresh {
++                // Native STOP cancels measurement and waits for a successful re-lock.
++                #expect(order.holdForStop(fixture.context) == .lockCurrent(refresh))
++                #expect(order.measurementCompleted(refresh) == false)
++                #expect(!order.shouldStopAfterLock(refresh))
++                #expect(order.appliedLock(refresh) == true)
++                #expect(order.shouldStopAfterLock(refresh))
++                #expect(capture.receive(.whiteBalanceLocked(refresh, fixture.lock)) == .rejected(.duplicateOrOutOfOrder))
++            } else {
++                #expect(order.holdForStop(fixture.context) == .stop)
++                // The old clip cannot apply a late lock over the next clip.
++                #expect(order.appliedLock(first.token(4)) == false)
++            }
++            #expect(capture.phase == .stopping)
++            #expect(capture.end == nil)
++
++            // Both real Native completion paths use these same production methods.
++            let writer = movieFile ? termination.movieFinished(failure: nil)
++                : termination.writerFinished(completed: true)
++            let expectedWriter: CaptureWriterTermination = index == 0 ? .interrupted(refreshFailure) : .completed
++            #expect(writer == expectedWriter)
++            let end = RecordingEndEvidence(writer: writer, ceasedAt: fixture.time,
++                lastVideo: fixture.time, lastAudio: fixture.time)
++            let endEffects = try captureEffects(capture.receive(.recordingEnded(start, end)))
++            #expect(endEffects.contains(.recordingCeased(end)))
++            let automatic = try #require(endEffects.compactMap { effect -> CaptureCommandToken? in
++                if case .capture(.restoreAutomaticWhiteBalance(let token)) = effect { return token }
++                return nil
++            }.first)
++            #expect(order.requestAutomatic(automatic) == true)
++            #expect(order.appliedAutomatic(automatic) == true)
++            _ = try captureEffects(capture.receive(.automaticWhiteBalanceRestored(automatic, fixture.time)))
++            #expect(capture.whiteBalance == .automatic)
++
++            try save.acceptRecordingEnd(context: fixture.context, evidence: end)
++            try save.acceptFile(fixture.file)
++            let resultToken = fixture.token(automatic.ordinal + 1)
++            // Complete synthetic inspection isolates the lost STOP-reason bug. It does
++            // not claim the real inspection adapter or an SDK throw was exercised.
++            let command = try save.acceptInspection(fixture.inspection(), resultToken: resultToken)
++            let expectedResult: RecordingSaveResult = index == 0 ? .partial(refreshFailure) : .saved
++            guard case .commitResult(_, _, let record) = command else {
++                Issue.record("Expected a result commit"); return
++            }
++            #expect(record.result == expectedResult)
++            #expect(save.phase == .awaitingResultCommit(expectedResult))
++            try save.acceptResultCommit(fixture.receipt(resultToken, previous: 1))
++            #expect(save.phase == .committed(expectedResult))
++        }
++    }
++
++    @Test func unrelatedOrInactiveCommandFailuresDoNotContaminateTheCurrentClip() throws {
++        let fixture = try CaptureFixture()
++        let old = try CaptureFixture(clip: "old-clip")
++        let failure = CaptureUnavailableReason.adapterFailure(code: "capture_command_failed")
++        var termination = NativeRecordingTermination()
++        termination.beginRecording()
++        let unrelated: [CaptureIOCommand] = [
++            .lockCurrentWhiteBalance(fixture.token(2)),
++            .startRecording(fixture.token(3), fixture.intent),
++            .restoreAutomaticWhiteBalance(fixture.token(5)),
++            .refreshAndLockWhiteBalance(old.token(4))
++        ]
++        for command in unrelated {
++            termination.recordCommandFailure(command, activeToken: fixture.token(3), reason: failure)
++        }
++        termination.recordCommandFailure(.refreshAndLockWhiteBalance(fixture.token(4)), activeToken: nil,
++            reason: failure)
++        #expect(termination.writerFinished(completed: true) == .completed)
++        #expect(termination.movieFinished(failure: nil) == .completed)
++
++        // An adapter STOP also carries its failure when the producer did not record it.
++        termination.recordStop(.adapterFailure(failure))
++        #expect(termination.writerFinished(completed: true) == .interrupted(failure))
++        #expect(termination.movieFinished(failure: nil) == .interrupted(failure))
++    }
++
++    @Test(arguments: [false, true])
++    func userStopKeepsFailureAndSDKFinalizationFailureStillTakesPrecedence(movieFile: Bool) throws {
++        let fixture = try CaptureFixture()
++        let stopFailure = CaptureUnavailableReason.adapterFailure(code: "wb_refix_failed")
++        var termination = NativeRecordingTermination()
++        termination.beginRecording()
++        termination.recordFailure(stopFailure)
++        termination.recordStop(.user(fixture.intent.operation))
++        let successfulFinalization = movieFile ? termination.movieFinished(failure: nil)
++            : termination.writerFinished(completed: true)
++        #expect(successfulFinalization == .interrupted(stopFailure))
++
++        // Preserve Native's existing audio STOP representation and SDK-error priority.
++        termination.recordStop(.audioFailure(.routeInterrupted(.init(rawValue: "synthetic-audio-failure"))))
++        let audioFinalization = movieFile ? termination.movieFinished(failure: nil)
++            : termination.writerFinished(completed: true)
++        #expect(audioFinalization == .interrupted(.interrupted))
++        let sdkFailure = CaptureUnavailableReason.adapterFailure(code: movieFile ? "movie_finish_1" : "writer_finalize_failed")
++        let failedFinalization = movieFile ? termination.movieFinished(failure: sdkFailure)
++            : termination.writerFinished(completed: false)
++        #expect(failedFinalization == .interrupted(sdkFailure))
++    }
++}

@@ -1,0 +1,87 @@
+{
+  "status": "S43 blocked: product policy decision/injection pending",
+  "independentValidation": false,
+  "baselineCount": 5521,
+  "baselineBytes": 106676450,
+  "baselineNonEvidenceCopies": 349,
+  "changedExisting": [
+    ".steering/20260929-device-independent-implementation/design.md",
+    ".steering/20260929-device-independent-implementation/tasklist.md",
+    "FrameRelay/Application/Capture/CaptureLifecycle.swift",
+    "FrameRelay/Application/Capture/ExplorationCoordinator.swift",
+    "FrameRelay/Application/Capture/ProductCaptureCoordinator.swift",
+    "FrameRelay/Application/Ports/ExplorationPorts.swift",
+    "FrameRelay/Application/Ports/ProductCapturePorts.swift",
+    "FrameRelay/Composition/ProductCaptureFactory.swift",
+    "FrameRelay/Features/Capture/ProductCaptureView.swift",
+    "FrameRelay/Platform/Capture/NativeExplorationCapture.swift",
+    "FrameRelay/Platform/Capture/NativeRecordingTermination.swift",
+    "FrameRelayTests/Application/ExplorationCoordinatorTests.swift",
+    "FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift",
+    "FrameRelayTests/Platform/Capture/NativeRecordingTerminationTests.swift",
+    "FrameRelayUITests/Flows/ProductCaptureFlowTests.swift",
+    "docs/architecture.md",
+    "docs/functional-design.md"
+  ],
+  "unchangedExistingCount": 5504,
+  "newSourceFiles": [
+    "FrameRelay/Domain/Capture/ProductCaptureAudio.swift",
+    "FrameRelay/Features/Capture/ProductCaptureAudioView.swift",
+    "FrameRelay/Platform/Capture/NativeCaptureAudioObservation.swift",
+    "FrameRelayTests/Application/ProductCaptureAudioCoordinatorTests.swift",
+    "FrameRelayTests/Application/ProductCaptureAudioLifecycleTests.swift",
+    "FrameRelayTests/Platform/Capture/NativeCaptureAudioObservationTests.swift"
+  ],
+  "missing": [],
+  "outOfScopeChanges": [],
+  "oldEvidenceChanges": [],
+  "finalSourceManifest": "test-04-sources.json",
+  "finalSourceCount": 181,
+  "finalTestIOSBuildAndCurrentSourcesMatch": true,
+  "verification": {
+    "test-03": {
+      "testDeclarations": 61,
+      "expandedCases": 88,
+      "passed": 61,
+      "failed": 0,
+      "skipped": 0,
+      "runtimeWarnings": []
+    },
+    "test-04": {
+      "testDeclarations": 26,
+      "expandedCases": 32,
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "runtimeWarnings": []
+    },
+    "uniqueDeclarationsAcrossRuns": 73,
+    "uniqueExpandedCasesAcrossRuns": 102,
+    "test03ToFinalSourceChanges": [
+      "FrameRelayTests/Application/ExplorationCoordinatorTests.swift",
+      "FrameRelay/Application/Capture/ExplorationCoordinator.swift",
+      "FrameRelay/Application/Ports/ExplorationPorts.swift"
+    ],
+    "finalInputCount": 181,
+    "finalTestBuildInputsMatch": true,
+    "currentSourceMismatches": []
+  },
+  "knownLimitations": [
+    "ProductCaptureFactory has no audioPolicy; no-arrival deadline and manual bounded retry are not enabled in the product.",
+    "Proposed 2 seconds no-arrival / one manual attempt / 5 seconds timeout / audio input-output reconfiguration remains unapproved.",
+    "S42 independent revalidation report not located; implementation tests and pre-fix P2 report are not substituted.",
+    "Real microphone/camera/OS fault/reconfiguration/quality/synchronization remain DV-10; D01/G2B/DV-03 and prior incomplete tasks remain unchanged.",
+    "SDK execution stuck inside a serial operation can delay actual cancellation/release; the coordinator stays busy and does not claim release from timeout alone."
+  ],
+  "documentationReview": {
+    "reviewer": "s43_docs_review (doc_reviewer)",
+    "finding": "P2: policy not enabled in product needed explicit wording",
+    "resolution": "functional-design/architecture explicitly state no policy injection and no product activation; recheck found no additional findings"
+  },
+  "excludedWork": [
+    "S27 detailed verification",
+    "S44 and later tasks",
+    "independent implementation validation"
+  ],
+  "whitespaceCheck": "git diff --check and untracked source line checks passed"
+}

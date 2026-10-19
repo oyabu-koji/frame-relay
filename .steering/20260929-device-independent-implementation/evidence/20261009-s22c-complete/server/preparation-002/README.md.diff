@@ -1,0 +1,19 @@
+--- before/README.md
++++ current/README.md
+@@ -96,6 +96,16 @@
+ 2. checkpoint 4のlistener/Simulator wrapperは準備済み・未起動。上記command/hash/新runtime/停止方法をmainがレビューし、具体許可後だけ実行する。
+ 3. 保全済み30秒H264/PCM Movie（485721 bytes、SHA256 `0f567596a4bd101d970dc978f38a2bd1095cefb470a66fc2e0c4b6a11f3df725`）をread-onlyで読みruntimeへcopy/hash照合する。旧helperの非Log技術fixtureへseedするが、既存verified欄は契約入力であり実upload検証/Log/変換合格/新製品receiptへ昇格しない。libraryのopt-in実AVPlayer試験に `FR_LEGACY_PROBE_*` を引渡す。元Movieの終了時hashも照合する。
+ 
++## S22C preparation-002（2026-10-09、実行前の準備）
++
++preparation-001 の実行は Xcode exit 0 でも実行0件・listener到達0件だった。`-enumerate-tests` の6つの method ID は末尾 `()` を含み、旧指定にはこれがなかった。旧001のsource・runtime・結果は保持し、新しい `prepare_registration_listener.py --revision 002 --enumeration /private/tmp/fr-di-20261009-resume/S22C-probe-enumeration.json` で S22 成功snapshot253件の同一copyと新runtime設定を準備する。このhelperはbackendをimportせず、外部source・site-packages・interpreter・guardをread-only照合する。
++
++凍結するruntime sourceは旧来の11件を明示列挙する。prepare helperとsupervisorはその外側へcopyし、別の `supervisor-manifest.json` でhashを記録する。supervisorは `--preparation`・`--checkpoint-sha256`・`--supervisor-manifest-sha256` によって今回の版へ束縛するため、checkpoint内に自己hashを埋め込まない。実行コマンドは新preparationの `integration-command.json` に保存する。`--execute-reviewed-integration` を省いたsupervisorと、`--execute-reviewed-xcode` を省いたwrapperはdry-runだけを行う。mainの準備レビューと今回の具体権限後に実行する。
++
++wrapperは列挙済み6method IDを完全一致で指定し、Xcode exit 0でも自動的に合格にしない。SDK標準 `xcresulttool get test-results summary/tests` のmetadataだけを読み、宣言・実行とも6件成功、失敗・skip・expected failure各0、既定destination1件、Test CaseのID集合と各Passed結果の一致を要求する。0件・欠落・重複・skip・不明結果やmetadata取得失敗はwrapper exit 71とし、supervisorも当該結果を必須にする。metadata toolには秘密環境を渡さず、各10秒上限、raw診断・添付をexportしない。
++
++認証・secret環境4件・guard・127.0.0.1:0・listener1200秒・supervisor1260秒上限は維持する。Xcode終端で従来のstop helperへ要求してからmetadataを確認し、finallyでも同じ冪等要求を行う。listenerが先に終了した場合のwrapper回収猶予はmetadata確認の最大20秒を含む25秒とする。実停止・秘密削除・process回収と、実HTTP/DB成功は引き続き別々に確認する。この準備とdry-runは実probe成功ではない。
++
+ ## 後続のsnapshot実ファイル所有候補
+ 
+ 次の割当はこのsnapshot上の将来task用であり、今回の準備ではbackendファイルを編集しない。外部repoへの反映・deploy・実DB操作は別の明示許可が必要。

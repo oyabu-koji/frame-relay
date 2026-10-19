@@ -1,0 +1,30 @@
+S45 host実engine限定診断（2026-10-18）
+
+cwd: /Users/oyabu/dev/rep/FrameRelay
+使用環境: xcrun swiftc / macOS host。iOS Simulatorや実機の成功証拠ではない。
+本番4sourceはmacOSへそのままcompile（Simulator専用CPU指定の条件分岐は不適用）。harnessは公開NASA fixtureのみを512x640 BGRAへ描画。
+
+初回compile: exit 1。tmp harnessのimport CoreImage不足によりCIContext/CIImage未解決。実行0件。元診断はworker tool outputで確認、最初のlogファイル保存なし。
+修正: tmp harnessへimport CoreImageを追加。App/Testの変更なし。
+2回目compile: exit 0。subject-engine-probe-compile-02.logへ保存。
+command: xcrun swiftc -swift-version 5 -parse-as-library FrameRelay/Domain/Operations/CaptureIdentity.swift FrameRelay/Domain/Capture/CaptureSubjects.swift FrameRelay/Platform/Capture/NativeCaptureSubjectGeometry.swift FrameRelay/Platform/Capture/NativeCaptureSubjectAnalysis.swift /private/tmp/fr-s45-20261018-ow_sx8bp/subject-engine-probe.swift -o /private/tmp/fr-s45-20261018-ow_sx8bp/subject-engine-probe > /private/tmp/fr-s45-20261018-ow_sx8bp/subject-engine-probe-compile-02.log 2>&1
+run command: /private/tmp/fr-s45-20261018-ow_sx8bp/subject-engine-probe > /private/tmp/fr-s45-20261018-ow_sx8bp/subject-engine-probe-01.log 2>&1
+run exit: 0
+
+観測: Sally/Mae/blankの実画素digestは異なる。直接ROI FeaturePrint距離はautomatic 0.7411192、CPU 0.7247012。engineはSally選択→同一追従→blank→Maeを別ID→Sallyを元ID/reacquiredにした。
+限界: 同じfixtureのSimulatorは別画像が同一FeaturePrintとなり、別人への選択ID付与を拒否できない1test/2issuesが未解決。alpha仮説は不支持。host結果をSimulator/実機の代替成功にしない。
+
+source sha256（現在4sourceはtest-02保全版との一致を検査）:
+FrameRelay/Domain/Operations/CaptureIdentity.swift 6c88e0202c2c72ff93b712f0bd41946912bd368af9e589578706bfb74588e0bd baseline_match=True
+FrameRelay/Domain/Capture/CaptureSubjects.swift 5a85595cc6b3ac761d9a6b2f0d787232aaba52e99f2282eed5272067bd337778 baseline_match=True
+FrameRelay/Platform/Capture/NativeCaptureSubjectGeometry.swift 88c7bcccf58ec2b89b2c426f01a3ceb87d635ad9b3ba3bdf8db7abc6dd498daa baseline_match=True
+FrameRelay/Platform/Capture/NativeCaptureSubjectAnalysis.swift 32f5d8aca39cc04d1e6d4fbbeecfa51b27d4d56d64599ae542e6601ef5fdece2 baseline_match=True
+
+artifact sha256:
+subject-engine-probe.swift 4ec8ec91e4e662d5aae6e1b9b6735b644c5fab00bd60a3e25f5573853f1831ee
+subject-engine-probe aa4fdf2978c9bcdb180f86ed8585bafa7e9c078a1bd3b9e8582dacab8a3e2eb3
+subject-engine-probe-compile-02.log e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+subject-engine-probe-01.log adc53216ac1490640366c85c663cf359286ba760cced79448a91d1c22765555c
+sally-buffer.png 64b5bee2c9c9cdd37c38fa5b9c16f997223fecbe8309109224f916d2e9862899
+mae-buffer.png de74fb99826fbf9b78ef03a380c85e177082218ff9a4a087a5a596fa6647229d
+blank-buffer.png 616680bb6e0e241eec7537e1a2ca8885a007d23ea5a9d280b32dfffc30ca00ea

@@ -1,0 +1,55 @@
+{
+  "scope": [
+    "FrameRelay/Platform/Capture/NativeCaptureSubjectAnalysis.swift",
+    "FrameRelayTests/Platform/Capture/NativeCaptureSubjectAnalysisTests.swift"
+  ],
+  "diagnosis": [
+    "旧E-S45-01の画像画素/alpha255/hostとの差は継承し再実施しなかった。",
+    "diagnostic-01: rev1はCPU指定でもVision Code9。rev2はROI無し、CGImage全体、明示crop、元JPEG、scaleFit/fill/centerCropで距離0または初回のみ0.0017806018。Sally ROI未clampの一部試行はCode14として記録し、診断02では正規化clampした。",
+    "diagnostic-02: ROI clamp後もsoftware CIContext指定・新compute stage CPU/旧usesCPUOnlyの全12有効比較で距離0または初回のみ0.0017806018。automatic computeはespresso context作成失敗。",
+    "collision-diagnostic-01: 初回anchorのfeature SHA256 fdd4b8a0f11ae4261303d990a4b6f33afc280b81949493f78575d2ed7e99764d。全く同じROI画素の2フレーム目は b10827edba0eb3f43f54a6c7f79b45b03b80045cab522125149269e25027edc5、距離0.0017806018。別人ROI画素でもb108、帰還同一ROIでもb108。",
+    "確認済Simulator経路での特徴量退化と初回微差に絞った。Apple framework内部の具体的根本原因は断定していない。アプリ側はfeatureの同一性を画像内容と矛盾した場合にも信頼していた。"
+  ],
+  "fix": [
+    "同一immutable frame/ROIのFeaturePrintを上限2回取得。距離判定は元のprimaryと閾値を維持し、secondaryを衝突veto専用に固定参照と共に保持。選択直後の別人置換にも初回微差を拾い漏らさない。別画像による参照更新なし。",
+    "任意のprimary/secondaryの完全同一feature dataに対してROI実画素digestが異なる場合は同一ID継続/再捕捉を拒否。新画像類似閾値、Simulator専用観測差替え、skip、assert緩和なし。",
+    "hashはVision/CoreImageを通さず直接CVPixelBufferのROI有効画素から生成。BGRA、8bit420video/full、10bit420video/full全planeを対象、row padding/ROI外は除外。不正bounds/未知formatはthrowし上位で解析unavailable。",
+    "raw buffer追加保持なし。digest/2 featureは解析session内だけ、製品log/保存/通信なし。"
+  ],
+  "validation": {
+    "collision-fix-03": {
+      "result": "passed",
+      "declaredTests": 5,
+      "expandedTests": 10,
+      "skipped": 0,
+      "runtimeWarnings": 0,
+      "compilerWarnings": 0,
+      "analyzerWarnings": 0
+    },
+    "collision-cold-immediate-04": {
+      "result": "passed",
+      "declaredTests": 1,
+      "expandedTests": 2,
+      "purpose": "新appプロセスで即時置換だけを実行し先行Visionテストのwarmupに依存しないことを確認"
+    },
+    "coverage": [
+      "旧別人拒否・同一画像reacquired・構図失効",
+      "曖昧同一肖像2名拒否/猶予後拒否/blank available",
+      "選択直後直接別人/blank後別人と元画像復帰",
+      "5 pixel format各planeの変更検出・paddingとROI外除外・不正bounds拒否"
+    ]
+  },
+  "limitations": [
+    "完全同一FeaturePrintに対し異なる画素を拒否するため、同一人物でも画素が変化しfeatureが退化/一致した場合は保持となる。Simulator上の動く人物追跡品質を修復/保証したわけではない。",
+    "2回推論とROI走査の端末負荷、実camera8/10bit/Log入力品質、同一性・遮蔽・交差・AF合焦/前後追従はDV-06実機未確認。一般的な人物同一性保証はない。",
+    "ログにはNASA JPEG decoderのCVPixelBufferCreate RGBA -6680メッセージが残るが、実入力生成/opaque検証と全test成功。xcresult runtimeWarningsは0。",
+    "診断試行の失敗・一回参照collision-fix-01失敗を保持。独立validationを代行していない。"
+  ],
+  "references": [
+    "https://developer.apple.com/documentation/vision/vnimageoption/cicontext",
+    "https://developer.apple.com/documentation/coreimage/cicontextoption/usesoftwarerenderer",
+    "https://developer.apple.com/documentation/vision/vngenerateimagefeatureprintrequest",
+    "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRequest.h",
+    "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRequestHandler.h"
+  ]
+}

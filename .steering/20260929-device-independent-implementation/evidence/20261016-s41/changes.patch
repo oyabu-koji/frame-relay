@@ -1,0 +1,2452 @@
+--- baseline/.steering/20260929-device-independent-implementation/tasklist.md
++++ current/.steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,8 +12,10 @@
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-16、次セッションに向けて停止）
+-
++## 現在の再開点（2026-10-16、S41限定検証済・判断待ち）
++
++- **S41再開結果**: 設定保存/現在条件照合・通常撮影UI・共通保存/一覧再生の接続を実装し、Simulator/iOS build、Unit48ケース、UI1件が成功。初回fps・記録候補・撮影日時の確定点への質問は未回答のため、`calendarNow`未注入で通常RECは無効のまま、S41はblocked。詳しい残件/再開手順はS41節と `evidence/20261016-s41/`。S27詳細検証保留・既存変更保持・S42以降未着手を維持。
++- 今回は明示implementを受領しS41のみ再開。S27の詳細検証は保留、既存差分を保持。以下の停止記録は再開前の履歴として保持する。
+ - ユーザーは「次に実装する内容を整理したい。その上で別のセッションで実装する」と指示。現在の実装・検証を停止した。次セッションで明示implementを受けるまでS27のbuild/HTTP/pytestやS41実装を開始しない。実装優先の希望を維持し、検証環境の網羅的な仕上げを再開の前提にしない。
+ - S27は実装差分を保持してblocked（必要検証未実施・今回作業停止）。iOSは既存4変更＋新13、全App/Tests/project158fileをmainがhash照合。製品静的型確認成功はworker報告/保存ログにあるが、Xcode build-01はsandboxのCoreSimulator接続拒否でexit70、コンパイル成功・test成功なし。build-02の権限付き再試行は中断され、log/xcresultとも未作成。環境権限変更後も再実行していない。
+ - 停止証拠は `evidence/20261016-s27-pause/`（244copy/2,333,586bytes＋manifest/notes）。App158file、現backend overlay、wire/最小準備、未完成HTTP草稿、静的確認とbuild失敗logを保全。backendは最終担当報告未受領の現物として保持し、準備helper/import/pytest/HTTPは未実行。停止時のprocess照会で該当Xcode/publication listener/supervisorなし、collaboration一覧はmainのみ。
+@@ -524,7 +526,16 @@
+ 
+ ### S41 撮影設定・実適用・記録保存を製品接続
+ 
+-- [ ] Status: pending
++- [ ] Status: blocked
++  - 2026-10-16 最終状態: **S41の設定/SDK/画面/共通保存/一覧再生の接続と限定自動検証は実施済み、本人判断待ちで通常RECは未有効化**。初回fpsを未選択にする案、Movie/sample writerの2候補を交換可能・実機採用保留で接続する案、暦撮影日時をREC受付時に一度確定する案を質問済み・回答未受領。`ProductCaptureFactory`は`calendarNow`未注入、coordinatorの既定nilで`canRecord=false`を維持。未回答を承認と扱わず全体doneにはしない。S42以降は未着手、S27詳細検証は保留。
++  - substatus: 共有保存契約・希望設定永続・条件照合・SDK二候補・通常UI・save/bind/一覧/既存原本再生の接続・限定自動検証＝実装/確認済。製品REC有効化＝判断待ち。実カメラ/両方式D01・G2B・権限拒否実機・Movie実出力metadata・Log/全編完全性・画質/負荷＝未確認。S16の未達アクセシビリティ監査を解消扱いにせず、既存の部分接続を再利用した。
++  - 再開手順: 本人が3点を確定後、fps回答に合わせ必要なら初回draftのみ調整し、REC受付日時案なら`ProductCaptureFactory.make`から`calendarNow: { Date() }`を注入する。日時は同一観測をミリ秒精度へ一度揃えてintentと両出力metadataへ渡す候補。実記録開始日時を採る回答なら意図commit/metadata契約から再検討する。承認された判断だけdesign/関連docsへ同期し、変更に必要な確認を実施してS41完了可否を判定する。S42へ自動移行しない。
++  - 実装内容: カメラはuniqueIDで保存しformatは現在の条件から再照合、設定は`CapturePreferenceStore`で別atomic文書へ保存。希望/能力scope/読戻しを分離、未知/非対応/不一致/古い世代を採用しない。試験票・試験上限を通常経路から分離し、共通保存の予約済みURLを使ってintent commit後にREC。終端/実file→保存結果commit→内容bind→一覧refreshまで所有を保持し、途中STOP/背景/一覧refresh中の次RECを処理する。日時契約はschema7、旧記録はnilのまま非破壊読取移行。保存検査unknownを正常保存へ昇格せず既存原本再生へ接続。関連安定文書はfunctional-design/architectureの限定追記のみ。
++  - E-S41-01 / 検証: Simulator build-01成功、generic iOS署名なしbuild-01/02成功。限定Unitは**33テスト（引数展開48ケース）成功・失敗0/skip0**、新規通常設定/保存/metadata/共通保存→再open→一覧から実AVPlayer進行と旧保存/移行の重要条件を対象。UIは試験票なしの通常撮影入口→Simulator理由表示→一覧復帰**1件成功**。実MOVへ書いたcreationDateの再読取も成功（Movie実カメラmetadataは未確認）。Swift診断なし、既存AppIntents依存なしのSDK警告のみ、xcresult runtimeWarnings空。必要範囲以外のS27 HTTP/pytest/全体Unit・S16全監査は実行していない。
++  - 証跡/差分: `evidence/20261016-s41/` の`test-01-sources.json`（App/Test/project170file、Unit/UI/最終iOS build後hash一致）、各log、xcresult/summary、commands.json、main-scope-review.json、changes.patch。開始時329fileから既存15file変更＋新規16file、欠落0、所有外変更0（evidenceを除く）。S27は`PublicationHTTPFixtureTests`のreader→RenditionPlaybackInput互換3行だけ補正し、本体/保留証拠は保持。mainが差分/新規境界/旧変更保持を確認、独立validationは未実施。実装が完了した後の別工程は同じsteeringへの明示`$validate-implementation`。
++  - 2026-10-16 S41再開: ユーザーの明示implementで通常撮影動線だけ着手。mainが進捗/判断/統合を所有。S27差分と未検証事項を保持し、S42以降は開始しない。開始時329fileを `evidence/20261016-s41/baseline/` と `baseline-sha256.json` へ保全、既存重複ファイルはこの現物への加算変更に限定する。substatus: 調査/契約整理in-progress、設定/SDK/UI/保存接続/検証pending。初回fps・記録候補・暦日時観測点を本人へ確認中で、回答依存部分は未着手。
++  - 担当/所有: `s41_save_contract`＝RecordingEvidence/RecordingStoreDocument/日時store test＋限定migration期待値＋新規保存再生統合test、`s41_capture`＝Application/Capture（保存lifecycle除外）/Domain/Capture/Platform/Capture/新規ProductCapturePorts・CapturePreferenceStore＋関連test、`s41_ui`＝新規撮影UI/ProductComposition/ContentView/Library入口・日時表示/project用途文/UI test。main＝進捗/統合/限定検証/差分確認、S27 test API互換1か所（PublicationHTTPFixtureTests）のみ。共有契約実装済・検証待ち、設定/SDK/通常UI接続in-progress。
++  - 構成確認: Xcode27.0(27A266a)、Swift6.4／言語5.0、iOS27.0、project/scheme FrameRelay、Debug、既存Unit/UI targetとTest plan FrameRelay、実在Simulator `DFE46693-E8DD-4814-8957-4F327699F719` を確認。初回enumerate操作はtest action未指定で通常build成功（テスト証拠ではない）。test action付きの列挙は既存S27 PublicationHTTPFixtureTestsのRenditionPlaybackInput型不一致でexit65/0件。mainがfixture検証済media_typeに合わせ呼出しだけ修正、S27実通信は未実行。証拠 `evidence/20261016-s41/environment.json` と初回log。
+   - 次セッション向け読取引渡し（2026-10-16）: 通常設定保存/条件復元→製品coordinator/カメラ画面→共通保存/一覧を先行する案。DesiredCaptureSettingsと能力scope、CaptureLifecycle/OriginalSaveCoordinatorは再利用し、Nativeのticket依存/試験上限/二重reserveを製品経路へ持ち込まない。録画意図のtrialReference必須表現と暦撮影日時/媒体metadataの共有変更、列挙順camera-N/format-Nに依存しない識別が必要。既存S27のProductComposition.mediaTerminationを保持し、カメラは撮影入口で遅延準備、Simulator/権限拒否でもLibraryを起動する。初回fps・記録候補・撮影日時の確定点は未採用値を黙って転用せず着手時に整理する。現時点は提案/読取だけでS41書込未開始。
+   - Depends: Start＝N01・既存P05/P06契約（設定・SDK候補・画面の独立実装）。Finish＝S12,S16の実接続。着手時に独立部分と接続部分を別substatusで記録し、接続まで満たす前はtask全体をdoneにしない。
+   - Owner / Files: O-CAPTURE＋O-COMPOSE（直列）／`FrameRelay/Application/Capture/`（保存lifecycle除外）、`FrameRelay/Platform/Capture/NativeExplorationCapture.swift`、`FrameRelay/Domain/Capture/`、`FrameRelay/Features/Capture/`、`FrameRelay/Composition/` と対応test。
+@@ -1078,6 +1089,7 @@
+ | --- | --- | --- | --- | --- | --- | --- |
+ | PLAN-01 | 2026-10-01、feature_planner／main | 計画3文書 | confirmed仕様・現行コードのread-only調査 | 要求／依存／所有／ID／リンクの静的照合、差分保全 | 計画照合済み: PRD79行／一意79、旧P21＋T28、CF11・BI34・DI18、DV18、task69件。未定義task参照・記名依存循環・相対リンク切れ・空白エラー0。mainのbaseline比較で既存151ファイル不変、新規は本3文書だけ。実装試験は未実施 | 本3文書、main保管の開始時baseline。旧証拠の現存はN00で確認 |
+ | PLAN-02 | 2026-10-01、feature_planner | S13／S31／S34／S3V、H01／Q01、A12／A14／A16／A17 | ユーザーのレビュー指摘修正依頼・同じconfirmed仕様 | design／tasklistの限定差分と正本条件、所有・引渡し・case別直接依存、ID／状態／相対リンクを静的照合 | Photosと削除の独立先行、内容対応の単一writer引渡し、実機票の枝条件を明確化。PRD79行／一意79・既存task ID／状態・PLAN-01を保持、requirements変更なし、相対リンク切れ・行末空白0。実装・build/test・実機・独立実装検証は未実施 | 修正はdesign／tasklistの2文書。Q01の実値・品質条件と旧証拠現存確認は未実施のまま保持 |
++| E-S41-01 | 2026-10-16、worker/main | S41・限定V-CAPTURE/STORE/PLAY/UI | test-01-sources170file、Xcode27/Debug/iOS27 Simulator＋generic iOS | commands.json、共通保存→実MOV→bind→再open→Library→AVPlayer、設定/日時/旧schema/早期STOP、通常撮影UI | Simulator/iOS build成功、33Unit/48展開ケース・UI1成功、失敗0/skip0。日時provider未接続で製品REC無効 | `evidence/20261016-s41/`。初回fps/候補/日時観測点の本人回答待ち。実機D01/G2B/画質、S27詳細、独立validationは未確認 |
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+ 
+@@ -1096,6 +1108,7 @@
+ | V-REVIEW-S16-20261010部分 | `S16-ui-13-sources.json`＝ui-large-04/test-07、S22C後のApp/Test8file | main | 再生期限/停止/lease手順不変、診断の匿名性/上限/既定無効、全監査未処理、詳細List viewportと操作・VoiceOverを確認。最大文字の停止はスクロールで到達、全要素の全サイズ監査合格とはしない | 通常3/最大2/Unit＋VERIFY10成功、ui13監査1失敗、旧失敗保持。126source一致、所有外変更なし、`S16-main-frozen-review.json`。S14/S16 blocked、独立validationではない |
+ | V-REVIEW-S24 | `evidence/20261013-s24-complete/` のsnapshot261/凍結support57/準備checkpoint | main | 最終先新FD全readと短い再fence commit、証拠/asset/session/job原子確定、旧入口拒否、SQL001保持、dir_fd実境界、実process終了後の同DB/media再openを確認 | guard12/pytest126/HTTP20＋5成功、全child終了/秘密削除/全接続0、App/Test/project126不変、所有外変更0。`main-review-001.json`と386file保全。独立validation/実機/変換/公開受入ではない |
+ | V-REVIEW-S26J | `evidence/20261014-s26j-complete/` のsnapshot265/凍結support65/準備checkpoint | main | exact保存証拠、候補版とclaimの分離、同一job retry、入力FD保持/全read、旧claimの成功/失敗/cleanup拒否、未公開fixtureとV1保持を確認 | pytest160成功、parent実exit0/全接続0、App/Test/project126不変、所有外変更0。345file保全。標準変換/公開/独立validationの完了ではない |
++| V-REVIEW-S41部分 | test-01-sources170file/changes.patch、既存15＋新規16 | main | 共有予約/intent前REC禁止/早期STOP/世代/最新音声入力/保存・一覧更新中の所有/旧日時非補完/範囲を確認。非ready beginの一覧refreshと保存refresh終了前の再RECを修正。S27本体保持 | E-S41-01、main-scope-review.json。限定48case/UI1成功。本人判断未回答で製品REC無効/S41 blocked、独立validationではない |
+ 
+ ## 振り返り・引渡し
+ 
+--- baseline/FrameRelay.xcodeproj/project.pbxproj
++++ current/FrameRelay.xcodeproj/project.pbxproj
+@@ -374,9 +374,9 @@
+ 				DEVELOPMENT_TEAM = 37AG2HP5Z5;
+ 				ENABLE_PREVIEWS = YES;
+ 				GENERATE_INFOPLIST_FILE = YES;
+-				INFOPLIST_KEY_NSCameraUsageDescription = "確認済みの探索条件でカメラ能力を調べ、FrameRelay内に検証動画を記録します。";
++				INFOPLIST_KEY_NSCameraUsageDescription = "動画を撮影し、FrameRelay内に原本を保存するためにカメラを使用します。";
+ 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "選択したMac miniに接続し、端末の登録情報を確認するために使用します。";
+-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "確認済みの探索条件で音声入力を調べ、検証動画に音声を記録します。";
++				INFOPLIST_KEY_NSMicrophoneUsageDescription = "撮影する動画に音声を記録するためにマイクを使用します。";
+ 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+ 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+ 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+@@ -409,9 +409,9 @@
+ 				DEVELOPMENT_TEAM = 37AG2HP5Z5;
+ 				ENABLE_PREVIEWS = YES;
+ 				GENERATE_INFOPLIST_FILE = YES;
+-				INFOPLIST_KEY_NSCameraUsageDescription = "確認済みの探索条件でカメラ能力を調べ、FrameRelay内に検証動画を記録します。";
++				INFOPLIST_KEY_NSCameraUsageDescription = "動画を撮影し、FrameRelay内に原本を保存するためにカメラを使用します。";
+ 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "選択したMac miniに接続し、端末の登録情報を確認するために使用します。";
+-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "確認済みの探索条件で音声入力を調べ、検証動画に音声を記録します。";
++				INFOPLIST_KEY_NSMicrophoneUsageDescription = "撮影する動画に音声を記録するためにマイクを使用します。";
+ 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+ 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+ 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+--- baseline/FrameRelay/Application/Library/LibrarySnapshot.swift
++++ current/FrameRelay/Application/Library/LibrarySnapshot.swift
+@@ -1,3 +1,5 @@
++import Foundation
++
+ /// Read-only presentation values. These are never a deletion or confirmation authority.
+ nonisolated enum LibraryAxis: String, CaseIterable, Identifiable, Sendable {
+     case save, original, transfer, verification, publication, retrieval, confirmation, invalidation, photos, removal
+@@ -64,8 +66,12 @@
+     var operationResults: [LibraryOperationResult] = []
+ 
+     var id: CaptureID { recording.intent.context.capture }
+-    // Until calendar capture dates are available, the stored capture ID identifies the target.
+     var title: String { "動画 \(id.rawValue)" }
++    var capturedAt: Date? { recording.intent.capturedAt }
++    var captureDateDescription: String {
++        guard let capturedAt else { return "撮影日時不明" }
++        return "撮影日時：\(capturedAt.formatted(date: .abbreviated, time: .standard))"
++    }
+     var isDiscardHistory: Bool { removal == .removed(.discard) }
+     func status(_ axis: LibraryAxis) -> String {
+         statuses.first { $0.axis == axis }?.text ?? "状態を取得できません"
+--- baseline/FrameRelay/Composition/ProductComposition.swift
++++ current/FrameRelay/Composition/ProductComposition.swift
+@@ -7,6 +7,7 @@
+     private(set) var library: LibraryModel?
+     private(set) var playback: OriginalPlaybackModel?
+     private(set) var connection: ConnectionModel?
++    private(set) var capture: ProductCaptureCoordinator?
+     private(set) var mediaTermination: ProductMediaTermination?
+     private(set) var isOpening = false
+     private(set) var openingIssue: String?
+@@ -32,6 +33,9 @@
+             mediaTermination = ProductMediaTermination(store: services.store, access: services.access, player: adapter)
+             playback = player
+             library = LibraryModel(reader: services.reader, commands: OriginalPlaybackLibraryCommands(model: player))
++            capture = ProductCaptureFactory.make(services: services, didSave: { [weak self] in
++                await self?.library?.refresh()
++            })
+             connection = ConnectionModel(coordinator: registrationFactory(services.store))
+             openingIssue = nil
+             await library?.refresh()
+@@ -42,6 +46,7 @@
+     }
+ 
+     func enteredBackground() async {
++        await capture?.leaveCapture()
+         await playback?.stop()
+         await exploration.stop()
+     }
+--- baseline/FrameRelay/ContentView.swift
++++ current/FrameRelay/ContentView.swift
+@@ -11,12 +11,14 @@
+     @Bindable var composition: ProductComposition
+     @State private var showsExploration = false
+     @State private var showsConnection = false
++    @State private var showsCapture = false
+     @Environment(\.scenePhase) private var scenePhase
+ 
+     var body: some View {
+         Group {
+             if let library = composition.library {
+-                LibraryView(model: library, showExploration: { showsExploration = true },
++                LibraryView(model: library, showCapture: { showsCapture = true },
++                            showExploration: { showsExploration = true },
+                             showConnection: { showsConnection = true })
+             } else {
+                 NavigationStack {
+@@ -38,6 +40,20 @@
+             }
+         }
+             .task { await composition.open() }
++            .sheet(isPresented: $showsCapture, onDismiss: {
++                Task { await composition.capture?.leaveCapture(); await composition.presentationEnded() }
++            }) {
++                if let capture = composition.capture {
++                    ProductCaptureView(model: capture, close: {
++                        Task {
++                            await capture.leaveCapture()
++                            await composition.presentationEnded()
++                            showsCapture = false
++                        }
++                    })
++                    .interactiveDismissDisabled()
++                }
++            }
+             .sheet(isPresented: $showsConnection) {
+                 if let connection = composition.connection { ConnectionView(model: connection) }
+             }
+--- baseline/FrameRelay/Domain/Media/RecordingEvidence.swift
++++ current/FrameRelay/Domain/Media/RecordingEvidence.swift
+@@ -1,3 +1,5 @@
++import Foundation
++
+ /// An app-managed identifier, never an arbitrary file URL or a deletion authority.
+ nonisolated struct CaptureOriginalReference: Equatable, Hashable, Sendable, Codable {
+     let rawValue: String
+@@ -7,10 +9,28 @@
+     let context: CaptureContext
+     let operation: CaptureOperationID
+     let original: CaptureOriginalReference
+-    let trialReference: String
++    /// Exploration records retain their trial reference. Ordinary recordings do
++    /// not require a trial ticket or synthesize one for storage.
++    let trialReference: String?
+     let desired: DesiredCaptureSettings
+     let applied: AppliedCaptureSettings
+     let acceptedAt: CaptureTimeObservation
++    /// Calendar time supplied by the capture producer, distinct from monotonic
++    /// acceptedAt. Legacy evidence without this observation remains nil.
++    let capturedAt: Date?
++
++    init(context: CaptureContext, operation: CaptureOperationID, original: CaptureOriginalReference,
++         trialReference: String? = nil, desired: DesiredCaptureSettings, applied: AppliedCaptureSettings,
++         acceptedAt: CaptureTimeObservation, capturedAt: Date? = nil) {
++        self.context = context
++        self.operation = operation
++        self.original = original
++        self.trialReference = trialReference
++        self.desired = desired
++        self.applied = applied
++        self.acceptedAt = acceptedAt
++        self.capturedAt = capturedAt
++    }
+ }
+ 
+ nonisolated enum CaptureWriterTermination: Equatable, Sendable, Codable {
+--- baseline/FrameRelay/Features/Library/LibraryView.swift
++++ current/FrameRelay/Features/Library/LibraryView.swift
+@@ -2,6 +2,7 @@
+ 
+ struct LibraryView: View {
+     @Bindable var model: LibraryModel
++    var showCapture: (() -> Void)? = nil
+     var showExploration: (() -> Void)? = nil
+     var showConnection: (() -> Void)? = nil
+     @State private var showsHistory = false
+@@ -9,6 +10,12 @@
+     var body: some View {
+         NavigationStack {
+             List {
++                if let showCapture {
++                    Section {
++                        Button("撮影する", systemImage: "camera.fill") { showCapture() }
++                            .accessibilityIdentifier("product.capture")
++                    }
++                }
+                 Section {
+                     Picker("表示する記録", selection: $showsHistory) {
+                         Text("ライブラリ").tag(false)
+@@ -40,6 +47,8 @@
+                                 VStack(alignment: .leading, spacing: 6) {
+                                     Text(item.title).font(.headline)
+                                         .accessibilityIdentifier("library.itemTitle.\(item.id.rawValue)")
++                                    Text(item.captureDateDescription)
++                                        .accessibilityIdentifier("library.itemCapturedAt.\(item.id.rawValue)")
+                                     Text(item.status(.save))
+                                         .accessibilityIdentifier("library.itemSave.\(item.id.rawValue)")
+                                     Text(item.status(.original))
+@@ -109,6 +118,9 @@
+                     Text(item.title)
+                         .fixedSize(horizontal: false, vertical: true)
+                         .accessibilityIdentifier("library.detailIdentity")
++                    Text(item.captureDateDescription)
++                        .fixedSize(horizontal: false, vertical: true)
++                        .accessibilityIdentifier("library.detailCapturedAt")
+                 }
+                 Section {
+                     ForEach(item.statuses) { status in
+--- baseline/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
++++ current/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
+@@ -2,7 +2,7 @@
+ import Dispatch
+ 
+ /// Both output candidates use this serial SDK owner. Samples never enter View state.
+-actor NativeExplorationCapture: ExplorationDevicePort {
++actor NativeExplorationCapture: ExplorationDevicePort, ProductCaptureDevicePort {
+     nonisolated let queue = DispatchSerialQueue(label: "FrameRelay.Exploration.Capture")
+     nonisolated var unownedExecutor: UnownedSerialExecutor { queue.asUnownedSerialExecutor() }
+ 
+@@ -21,7 +21,13 @@
+     private var audioOutput: AVCaptureAudioDataOutput?
+     private var sampleDelegate: ExplorationSampleDelegate?
+     private var movieDelegate: ExplorationMovieDelegate?
+-    private var preparation: ExplorationPreparation?
++    private struct Preparation {
++        let desired: DesiredCaptureSettings
++        let generation: CaptureGeneration
++        let operation: CaptureOperationID
++        let trial: ExplorationTicket?
++    }
++    private var preparation: Preparation?
+     private var activeIntent: RecordingIntent?
+     private var activeToken: CaptureCommandToken?
+     private var wbOrder: ExplorationWBCommandOrder?
+@@ -59,7 +65,12 @@
+     func events() -> AsyncStream<CaptureIOEvent> { captureStream }
+     func explorationEvents() -> AsyncStream<ExplorationDeviceEvent> { eventStream }
+ 
+-    func discover() throws -> [ExplorationCameraDescription] {
++    func productEvents() -> AsyncStream<ExplorationDeviceEvent> { eventStream }
++    func previewSource() -> (any ProductCapturePreviewSource)? { session.map(NativeCapturePreviewSource.init) }
++    func discover() throws -> [ExplorationCameraDescription] { try discover(stableIDs: false) }
++    func discoverCameras() throws -> [ExplorationCameraDescription] { try discover(stableIDs: true) }
++
++    private func discover(stableIDs: Bool) throws -> [ExplorationCameraDescription] {
+         #if targetEnvironment(simulator)
+         throw ExplorationIssue.simulatorHasNoVerifiedCamera
+         #else
+@@ -73,12 +84,12 @@
+         ], mediaType: .video, position: .unspecified)
+         devices.removeAll()
+         return discovery.devices.enumerated().map { index, device in
+-            let id = "camera-\(index + 1)"
++            let id = stableIDs ? device.uniqueID : "camera-\(index + 1)"
+             devices[id] = device
+             let formats = device.formats.enumerated().map { index, format in
+                 let dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
+                 return ExplorationFormatDescription(
+-                    id: "format-\(index + 1)", width: Int(dimensions.width), height: Int(dimensions.height),
++                    id: stableIDs ? "current-format-\(index + 1)" : "format-\(index + 1)", width: Int(dimensions.width), height: Int(dimensions.height),
+                     frameRateRanges: format.videoSupportedFrameRateRanges.map { $0.minFrameRate...$0.maxFrameRate },
+                     logEncodings: [CaptureLogEncoding.appleLog, .appleLog2].filter {
+                         format.supportedColorSpaces.contains(ExplorationCaptureValues.colorSpace($0))
+@@ -94,23 +105,44 @@
+     }
+ 
+     func prepare(_ request: ExplorationPreparation) async throws -> ExplorationPrepared {
++        guard request.ticket.validationIssues.isEmpty else { throw ExplorationIssue.settingsInvalid }
++        if let issue = ExplorationDisplayBoundary.issue(for: request.ticket.display) { throw issue }
++        return try await prepare(.init(desired: request.ticket.desired, generation: request.generation,
++                                       operation: request.operation, trial: request.ticket))
++    }
++
++    func prepare(_ request: ProductCapturePreparation) async throws -> ExplorationPrepared {
++        guard ProductCapturePreferences(desired: request.desired).isValid else { throw ExplorationIssue.settingsInvalid }
++        return try await prepare(.init(desired: request.desired, generation: request.generation,
++                                       operation: request.operation, trial: nil))
++    }
++
++    private func prepare(_ request: Preparation) async throws -> ExplorationPrepared {
+         #if targetEnvironment(simulator)
+         throw ExplorationIssue.simulatorHasNoVerifiedCamera
+         #else
+         guard activeToken == nil, session == nil else { throw ExplorationIssue.operationInProgress }
+-        guard request.ticket.validationIssues.isEmpty else { throw ExplorationIssue.settingsInvalid }
+-        if let issue = ExplorationDisplayBoundary.issue(for: request.ticket.display) { throw issue }
+         guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized,
+               AVCaptureDevice.authorizationStatus(for: .audio) == .authorized else { throw ExplorationIssue.permissionDenied }
+-        _ = try discover()
+-        let desired = request.ticket.desired
+-        guard let selected = devices[desired.configuration.camera],
+-              let formatIndex = Int(request.ticket.formatID.replacingOccurrences(of: "format-", with: "")),
+-              formatIndex > 0,
+-              selected.formats.indices.contains(formatIndex - 1) else {
+-            throw ExplorationIssue.capabilityUnconfirmed("camera_or_format")
+-        }
+-        let format = selected.formats[formatIndex - 1]
++        _ = try discover(stableIDs: request.trial == nil)
++        let desired = request.desired
++        guard let selected = devices[desired.configuration.camera] else {
++            throw ExplorationIssue.capabilityUnconfirmed("camera_unavailable")
++        }
++        let format: AVCaptureDevice.Format
++        if let ticket = request.trial {
++            guard let index = Int(ticket.formatID.replacingOccurrences(of: "format-", with: "")),
++                  index > 0, selected.formats.indices.contains(index - 1) else {
++                throw ExplorationIssue.capabilityUnconfirmed("format_unavailable")
++            }
++            format = selected.formats[index - 1]
++        } else {
++            // Re-resolve current hardware formats by the complete wish; never persist an array index.
++            guard let matching = selected.formats.first(where: { Self.matches($0, desired: desired) }) else {
++                throw ExplorationIssue.capabilityUnconfirmed("format_log_fps_controls")
++            }
++            format = matching
++        }
+         let dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
+         let fps = Double(desired.configuration.framesPerSecond)
+         guard Int(dimensions.width) == desired.configuration.width, Int(dimensions.height) == desired.configuration.height,
+@@ -192,6 +224,20 @@
+         #endif
+     }
+ 
++    private static func matches(_ format: AVCaptureDevice.Format, desired: DesiredCaptureSettings) -> Bool {
++        let c = desired.configuration
++        let dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
++        let fps = Double(c.framesPerSecond)
++        guard Int(dimensions.width) == c.width, Int(dimensions.height) == c.height,
++              format.videoSupportedFrameRateRanges.contains(where: { $0.minFrameRate <= fps && fps <= $0.maxFrameRate }),
++              format.supportedColorSpaces.contains(ExplorationCaptureValues.colorSpace(c.logEncoding)),
++              let mode = ExplorationCaptureValues.stabilizationModes.first(where: { $0.0 == c.stabilizationMode })?.1,
++              mode == .off || format.isVideoStabilizationModeSupported(mode) else { return false }
++        let exposure = desired.exposure
++        return format.supportsExposureModeCustom(lensAperture: exposure.aperture.map(Float.init) ?? AVCaptureDevice.currentLensAperture,
++            duration: CMTime(value: exposure.shutter.ticks, timescale: exposure.shutter.timescale), iso: Float(exposure.iso))
++    }
++
+     private func configureOutput(session: AVCaptureSession, stabilization: AVCaptureVideoStabilizationMode) throws {
+         if candidate == .movieFile {
+             let output = AVCaptureMovieFileOutput()
+@@ -226,8 +272,8 @@
+     }
+ 
+     private func readPrepared(device: AVCaptureDevice, format: AVCaptureDevice.Format,
+-                              at time: CMTime, request: ExplorationPreparation) throws -> ExplorationPrepared {
+-        let desired = request.ticket.desired
++                              at time: CMTime, request: Preparation) throws -> ExplorationPrepared {
++        let desired = request.desired
+         let codec = ExplorationCaptureValues.codec(desired.configuration.codec)
+         let videoConnection = movie?.connection(with: .video) ?? videoOutput?.connection(with: .video)
+         let audioConnection = movie?.connection(with: .audio) ?? audioOutput?.connection(with: .audio)
+@@ -346,7 +392,7 @@
+     private func whiteBalanceApplied(token: CaptureCommandToken, gains: CaptureWhiteBalanceGains,
+                                      measured: CaptureTimeObservation, time: CMTime) {
+         guard wbOrder?.appliedLock(token) == true, let preparation else { return }
+-        let applied = ExplorationCaptureValues.time(time, clock: .captureDevice(camera: preparation.ticket.desired.configuration.camera), source: "WB-completion")
++        let applied = ExplorationCaptureValues.time(time, clock: .captureDevice(camera: preparation.desired.configuration.camera), source: "WB-completion")
+         emit(.whiteBalanceLocked(token, .init(gains: gains, measuredAt: measured, appliedAt: applied)))
+         // Clock conversion is recorded as a derived mapping, not as an identical clock.
+         if let deviceClock, let clock = session?.synchronizationClock {
+@@ -400,7 +446,7 @@
+ 
+ extension NativeExplorationCapture {
+     private func startRecording(url: URL, token: CaptureCommandToken, intent: RecordingIntent) throws {
+-        guard let preparation else { throw ExplorationIssue.ticketMissing }
++        guard let preparation else { throw ExplorationIssue.operationInProgress }
+         sourceStart = nil
+         firstAccepted = false
+         lastVideo = nil
+@@ -413,12 +459,16 @@
+         stopFailure = nil
+         writerURL = url
+         if let movie {
+-            movie.maxRecordedDuration = CMTime(value: preparation.ticket.maximumDuration.ticks,
+-                                               timescale: preparation.ticket.maximumDuration.timescale)
+-            guard preparation.ticket.maximumFileBytes <= UInt64(Int64.max),
+-                  preparation.ticket.minimumRemainingBytes <= UInt64(Int64.max) else { throw ExplorationIssue.trialLimitsInvalid }
+-            movie.maxRecordedFileSize = Int64(preparation.ticket.maximumFileBytes)
+-            movie.minFreeDiskSpaceLimit = Int64(preparation.ticket.minimumRemainingBytes)
++            if let trial = preparation.trial {
++                movie.maxRecordedDuration = CMTime(value: trial.maximumDuration.ticks, timescale: trial.maximumDuration.timescale)
++                guard trial.maximumFileBytes <= UInt64(Int64.max), trial.minimumRemainingBytes <= UInt64(Int64.max) else {
++                    throw ExplorationIssue.trialLimitsInvalid
++                }
++                movie.maxRecordedFileSize = Int64(trial.maximumFileBytes)
++                movie.minFreeDiskSpaceLimit = Int64(trial.minimumRemainingBytes)
++            }
++            // Product recordings keep SDK resource behavior; no exploratory duration/file caps.
++            movie.metadata = CaptureCreationMetadata.items(capturedAt: intent.capturedAt)
+             let delegate = ExplorationMovieDelegate(owner: self, token: token)
+             movieDelegate = delegate
+             movie.startRecording(to: url, recordingDelegate: delegate)
+@@ -441,6 +491,7 @@
+             }
+             videoSettings[AVVideoColorPropertiesKey] = color
+             let assetWriter = try AVAssetWriter(outputURL: url, fileType: .mov)
++            assetWriter.metadata = CaptureCreationMetadata.items(capturedAt: intent.capturedAt)
+             guard assetWriter.canApply(outputSettings: videoSettings, forMediaType: .video),
+                   assetWriter.canApply(outputSettings: audioSettings, forMediaType: .audio) else {
+                 throw ExplorationIssue.capabilityUnconfirmed("writer_settings")
+@@ -455,7 +506,8 @@
+             try assetWriter.start()
+             writer = assetWriter
+         }
+-        let duration = preparation.ticket.maximumDuration.seconds
++        guard let trial = preparation.trial else { return }
++        let duration = trial.maximumDuration.seconds
+         guard duration.isFinite, duration > 0, duration < Double(UInt64.max) / 1_000_000_000 else {
+             throw ExplorationIssue.trialLimitsInvalid
+         }
+@@ -565,7 +617,8 @@
+     }
+ 
+     private func inspectTrialCapacity() throws {
+-        guard let url = writerURL, let ticket = preparation?.ticket else { throw ExplorationIssue.ticketMissing }
++        guard let ticket = preparation?.trial else { return }
++        guard let url = writerURL else { throw ExplorationIssue.operationInProgress }
+         let resources = try url.resourceValues(forKeys: [.fileSizeKey, .volumeAvailableCapacityForImportantUsageKey])
+         guard let free = resources.volumeAvailableCapacityForImportantUsage, free >= 0 else {
+             throw ExplorationIssue.capacityInsufficient
+@@ -639,7 +692,7 @@
+     }
+ 
+     private func finish(token: CaptureCommandToken, evidence: RecordingEndEvidence) async {
+-        guard let intent = activeIntent else { return }
++        guard activeToken == token, let intent = activeIntent else { return }
+         durationTask?.cancel()
+         durationTask = nil
+         activeToken = nil
+@@ -659,6 +712,7 @@
+     }
+ 
+     private func completeNeverStarted(token: CaptureCommandToken) {
++        guard activeToken == token else { return }
+         activeToken = nil
+         activeIntent = nil
+         isFinishing = false
+--- baseline/FrameRelay/Platform/LocalStore/RecordingStoreDocument.swift
++++ current/FrameRelay/Platform/LocalStore/RecordingStoreDocument.swift
+@@ -1,7 +1,7 @@
+ import Foundation
+ 
+ nonisolated struct RecordingStoreDocument: Codable {
+-    static let currentSchema = 6
++    static let currentSchema = 7
+     var schema = currentSchema
+     /// Nil for stores which have not explicitly established registration identity.
+     /// Reading or migrating a legacy document never generates one.
+@@ -73,12 +73,21 @@
+                 guard migrated.storeIdentity == nil else { throw ExplorationStorageError.corruptStore }
+                 migrated.schema = currentSchema
+                 document = migrated
+-            } else if header.schema == 5 {
++            } else if header.schema == 5 || header.schema == 6 {
+                 var migrated = try decoder.decode(Self.self, from: data)
+                 migrated.schema = currentSchema
+                 document = migrated
+             } else {
+                 document = try decoder.decode(Self.self, from: data)
++            }
++            if header.schema < 7 {
++                // Before ordinary recording support every intent had a trial
++                // reference and no calendar observation. Missing old identity
++                // is corruption, not a product recording or an inferred date.
++                guard document.entries.allSatisfy({ $0.intent.trialReference != nil
++                    && $0.intent.capturedAt == nil }) else {
++                    throw ExplorationStorageError.corruptStore
++                }
+             }
+             try document.validate()
+             return document
+@@ -235,7 +244,15 @@
+ 
+     static func intent(_ intent: RecordingIntent) throws {
+         try text(intent.context.capture.rawValue); try text(intent.context.generation.session.rawValue)
+-        try text(intent.operation.rawValue); try text(intent.applied.operation.rawValue); try text(intent.trialReference)
++        try text(intent.operation.rawValue); try text(intent.applied.operation.rawValue)
++        if let trialReference = intent.trialReference {
++            try text(trialReference)
++        } else if intent.capturedAt == nil {
++            throw CaptureContractError.invalidValue
++        }
++        if let capturedAt = intent.capturedAt {
++            guard capturedAt.timeIntervalSinceReferenceDate.isFinite else { throw CaptureContractError.invalidValue }
++        }
+         do { try ExplorationRunDirectory.validateReference(intent.original) }
+         catch { throw CaptureContractError.invalidValue }
+         try settings(intent.desired.configuration, intent.desired.exposure, intent.desired.zoom)
+--- baseline/FrameRelayTests/Integration/Remote/PublicationHTTPFixtureTests.swift
++++ current/FrameRelayTests/Integration/Remote/PublicationHTTPFixtureTests.swift
+@@ -28,7 +28,9 @@
+             let client = FixedRenditionHTTPClient(binding: wire)
+             let reader = try await FixedRenditionRangeReader.open(command: binding.command, admission: admission,
+                 authorization: binding, leases: leases, client: client, scope: scope)
+-            let player = try await AVRenditionPlayback.open(leases: leases, temporary: temporary, scope: scope) { _ in reader }
++            let player = try await AVRenditionPlayback.open(leases: leases, temporary: temporary, scope: scope) { _ in
++                RenditionPlaybackInput(reader: reader, contentType: "video/quicktime")
++            }
+             let session = PlaybackSessionID(rawValue: "s27-wire-player")
+             do {
+                 // A separately owned successful GET establishes a consumed
+--- baseline/FrameRelayTests/Integration/Storage/MediaStoreLegacyMigrationTests.swift
++++ current/FrameRelayTests/Integration/Storage/MediaStoreLegacyMigrationTests.swift
+@@ -41,7 +41,7 @@
+ 
+             let migratedBytes = try readLegacyPayload(candidate: candidate, run: run)
+             let persisted = try JSONDecoder().decode(LegacyEvidenceProjection.self, from: migratedBytes)
+-            #expect(persisted.schema == 6)
++            #expect(persisted.schema == RecordingStoreDocument.currentSchema)
+             #expect(persisted.legacyRevision == 13)
+             #expect(persisted.transactionRevision == 14)
+             #expect(persisted.entries == legacy.entries)
+--- baseline/FrameRelayTests/Integration/Storage/RegistrationStoreIdentityTests.swift
++++ current/FrameRelayTests/Integration/Storage/RegistrationStoreIdentityTests.swift
+@@ -86,7 +86,7 @@
+             #expect(try registrationFixturePayload(run) == bytes)
+             let identity = try await establishRegistrationIdentity(store)
+             let document = try RecordingStoreDocument.decode(registrationFixturePayload(run))
+-            #expect(document.schema == 6 && document.storeIdentity == identity)
++            #expect(document.schema == RecordingStoreDocument.currentSchema && document.storeIdentity == identity)
+             #expect(document.transactionRevision == 0 && document.legacyRevision == 0)
+             #expect(document.entries.isEmpty && document.originalJournal.isEmpty && document.backendJournal.isEmpty)
+         }
+--- baseline/FrameRelayTests/Support/Storage/SyntheticMovieFixture.swift
++++ current/FrameRelayTests/Support/Storage/SyntheticMovieFixture.swift
+@@ -10,7 +10,7 @@
+ nonisolated enum SyntheticMovieFixture {
+     private static let sampleRate: Int32 = 8000
+ 
+-    static func write(to url: URL, withAudio: Bool, durationSeconds: Double = 1) async throws {
++    static func write(to url: URL, withAudio: Bool, durationSeconds: Double = 1, capturedAt: Date? = nil) async throws {
+         try Task.checkCancellation()
+         // Limit this test-only generator to 120 video frames and 960 KB of PCM
+         // in total, appending at most 8 KB of audio at a time.
+@@ -28,15 +28,16 @@
+         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
+             Task.detached(priority: .utility) {
+                 do {
+-                    try await generate(to: url, withAudio: withAudio, sampleCount: sampleCount)
++                    try await generate(to: url, withAudio: withAudio, sampleCount: sampleCount, capturedAt: capturedAt)
+                     continuation.resume()
+                 } catch { continuation.resume(throwing: error) }
+             }
+         }
+     }
+ 
+-    private static func generate(to url: URL, withAudio: Bool, sampleCount: Int) async throws {
++    private static func generate(to url: URL, withAudio: Bool, sampleCount: Int, capturedAt: Date?) async throws {
+         let writer = try AVAssetWriter(outputURL: url, fileType: .mov)
++        writer.metadata = CaptureCreationMetadata.items(capturedAt: capturedAt)
+         let videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: [
+             AVVideoCodecKey: AVVideoCodecType.h264, AVVideoWidthKey: 64, AVVideoHeightKey: 64])
+         guard writer.canAdd(videoInput) else { throw CaptureContractError.invalidValue }
+--- baseline/docs/architecture.md
++++ current/docs/architecture.md
+@@ -9,6 +9,7 @@
+ - 状態: 2026-09-25作成、2026-09-26にR3を同期した設計案。PRDの要求承認と、本書の技術判断・機能設計の未合意案・実装成立を区別する。U1〜U3のR3確定部分と残件、未合意のU4〜U8を区別し、本書の共通基盤を理由に未回答案を採用済みへ変えない。
+ - 優先する品質: 撮り逃しの抑制、設定と原本の保持、音声を含む記録の継続性、操作結果の復旧、対象を取り違えない手動削除。成立しない場合は理由・代替案を示し、P0を黙って縮小しない。
+ - 範囲: 既存Xcodeプロジェクト内の責務分離と、既存MediaVaultとの必要契約を定める。別project生成、外部依存導入、Mac mini側のSwiftへの書き換えは行わない。物理的なファイル配置・実装順序は後続文書・計画で定める。
++- S41の追記は通常撮影の設定・保存・一覧接続に関する境界を限定して具体化する。進捗と検証結果は[現行tasklist](../.steering/20260929-device-independent-implementation/tasklist.md)を正本とし、記録方式の正式採用や実機G2Bの成立を表さない。
+ 
+ 設計上採用するのは、単一のiOSアプリ内でのUI・ユースケース・純粋規則・端末I/Oの分離である。小規模な個人用アプリに複数プロセスや多数のpackageを追加せず、Swiftの型・プロトコルと組み立て箇所で境界を表現する。以下の名称は論理責務であり、既に同名クラスやサーバーAPIが存在するとの意味ではない。
+ 
+@@ -115,7 +116,8 @@
+ | --- | --- | --- | --- |
+ | 撮影原本・確定可能な部分原本 | アプリ専用の非キャッシュ領域（Application Support配下を設計案とする） | 録画出力の媒体ファイル。不透明なLocalOriginalRefで参照。拡張子/コンテナは出力方式検証後 | 本人の容量整理/破棄まで保持し、自動容量回収しない。原本をPhotosに保存しない |
+ | 記録中の出力 | 同じ管理領域の確定前領域 | 撮影IDと対応する一時名。キャッシュと区別 | 書込終端・媒体検査後に確定。中断したからといって自動で消さず、部分/不明/失敗を照合 |
+-| 設定・撮影・操作・検証・版・確認/失効・削除・写真登録 | Application Support内のローカルストア | version付きschema。単一のwriter契約。固定対象集合と動画別操作/証拠/結果を関連付け | 再起動後の正本。失効・未解決操作・重複防止に必要な記録をキャッシュ回収で消さない |
++| 撮影希望設定・記録方式候補 | 製品保存領域の `capture-preferences.json` | `CapturePreferenceStore`がschema付き設定文書をatomic置換。共通記録storeとは別の保存単位 | 現在の能力・実適用値を再確認して復元する。未知schema・破損を通常の設定保存で上書きしない |
++| 撮影・操作・検証・版・確認/失効・削除・写真登録 | Application Support内のローカルストア | version付きschema。単一のwriter契約。固定対象集合と動画別操作/証拠/結果を関連付け | 再起動後の正本。失効・未解決操作・重複防止に必要な記録をキャッシュ回収で消さない |
+ | サムネイル・表示索引 | 再生成可能なキャッシュ | 撮影/内容世代を付与 | 消失しても確認・容量整理判定を変えない。容量整理後に必要な撮影記録と区別 |
+ | streamingバッファ/取得中/再生/Photos受渡しの軽量版 | 使用メモリとアプリ管理の一時領域 | 原本/変換版/映像ID、取得範囲・検証結果、用途・所有者・使用権・使用量、断片の操作ID | 恒久保存にしない。再生用は使用終了後、登録用は登録成功かつ使用者なしで回収し、再取得可能な本体と復旧証拠を分離。方式・上限/期限はU2で合意/評価 |
+ | 主役候補・ND入力・フレーム | セッションのメモリ | boundedな最新入力とcontext | セッション終了時解放。人物識別台帳や未要求のクラウド解析を追加しない |
+@@ -151,6 +153,8 @@
+ | 写真登録 | 登録キーと操作ID、登録に渡す版 | Photos結果と対応記録のcommit | 追加済みの可能性を保持して照合。記録なしだけで再追加しない |
+ 
+ DB、原本ファイル、Photos、Mac miniを一括で原子的に更新できるとは扱わない。外部副作用の前に意図、後に結果を保存し、間の不確実性を照合で扱う。確認・失効・操作記録を含むschema移行はversionを付け、解釈できない記録を成功へ丸めない。移行失敗/破損で空のDBを自動作成して正常復旧にせず、復旧が必要な状態と理由を示す。具体schema、migration、読み戻し保証は実装計画の検証項目とする。
++
++S41の共有記録契約では `RecordingStoreDocument` schema 7により、`RecordingIntent.trialReference: String?` と `capturedAt: Date?` を扱う。通常撮影は試験参照なしを許可する一方、暦日時を必須とする。旧schema 1〜6は試験参照と既存証拠を保持し、暦日時をnilのまま読み取り時に移行する。読み取りだけでは保存文書を書き換えず、現在時刻や単調時計の `acceptedAt` から日時を捏造しない。旧記録の日時欠損と未知schema・破損の拒否を区別する。
+ 
+ ### 容量整理・破棄・失効の直列化
+ 
+@@ -183,7 +187,13 @@
+ 
+ ### 記録・表示・解析の経路
+ 
++通常撮影の `ProductCaptureCoordinator` は、希望設定の読込み→現在の能力確認→適用・読戻しを担当する。`ProductCaptureFactory`はライブラリと同じ原本領域・共通writerを渡し、カメラの準備を撮影入口まで遅らせる。試験票なしの通常撮影でも既存の記録二候補を交換可能にし、共通保存が予約した出力先を使用して二重予約を避ける。
++
++記録意図のcommit後にRECへ進み、記録終端とファイル確定を `OriginalSaveCoordinator` へ渡す。保存結果のcommit後に原本の内容対応をbindし、一覧を再読込みして既存の原本再生へ渡す。保存結果とbindの成否は分離し、対応未確定を再生可能と偽装しない。暦日時を観測する時点、初回fps、記録方式の正式採用は未決として保持する。暦日時を供給する契約が製品経路へ接続されるまではRECを許可せず、通常撮影全体の動作完了とは扱わない。
++
+ 記録経路は音声/映像のタイムスタンプ、実適用設定、writer終端をCapturePort内で追跡する。REC時のWB固定をND完了やUI描画に依存させず、最後の記録フレーム後に待機Autoへ戻す。音量値がゼロであること、入力が届かないこと、書込が失敗したことを別の観測としてApplicationへ渡す。部分ファイル救済の成功を保証しない。
++
++S41のカメラ表示は構図確認用で、標準Rec.709変換を備えた表示の達成証拠にはしない。WB再固定・音声メーター/復旧・標準表示変換の実装と検証はそれぞれS42・S43・S48の範囲として残す。
+ 
+ 表示変換は入力Log種別と色特性が判明した経路だけに適用し、二重変換を避ける。Apple LogとApple Log 2には異なる色空間定義があるため、機種名やファイル名から一律に同じ変換を適用しない。採用するLog種別と変換係数・LUTの由来、表示とMac miniの変換整合は別途検証する。[AVCaptureColorSpace.appleLog](https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog)
+ 
+--- baseline/docs/functional-design.md
++++ current/docs/functional-design.md
+@@ -7,6 +7,7 @@
+ - 技術前提: [PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md)のSwift・SwiftUI・native iOS・既存Xcode projectを維持する。状態管理方式、通信プロトコル、永続化方式、ハッシュ方式、描画・撮影API、ディレクトリ配置はアーキテクチャ設計で決める。
+ - 本書で具体化するもの: 画面の責務、利用者イベント、状態と不変条件、サービス境界、復旧・競合、受入試験への対応。U1〜U3のR3確定部分と残件、未合意のU4〜U8を区別し、残る操作案は実装前に判断する。ユーザー判断待ちを理由にP0を任意機能へ落とさない。
+ - 対象外・禁止動作はPRDを継承する。特に原本自動削除、無音録画継続、全体自動再起動、勝手な形式・露出・補正変更、クリップ間WB固定の持越しを導入しない。タイムライン編集・汎用取り込み・旧「写真」原本削除・LUT選択UI・Rec.709高品質版の常時生成も追加しない。
++- S41の通常撮影に関する追記は、設定・保存・一覧接続の契約を扱う。実装進捗と検証証跡は[現行tasklist](../.steering/20260929-device-independent-implementation/tasklist.md)を正本とし、動線全体や実機受入の完了を意味しない。
+ 
+ 設計箇所の記号は、F=利用者フロー、V=画面、D=データ契約、S=状態遷移、I=外部境界、T=テスト、U=確定部分とユーザー判断待ちの整理を表す。受入条件の範囲は同じ要求の連続する枝番を含み、下表は21要求・79受入条件を対象とする。T項目は試験計画であり未実施。
+ 
+@@ -50,6 +51,8 @@
+ 
+ ### F1 起動から録画・次の撮影へ
+ 
++通常撮影は試験票を要求せず、撮影設定→REC/STOP→アプリ内保存→一覧から既存の原本再生へつなぐ。探索用の試験参照や試験時間上限を通常撮影の開始条件にしない。保存結果の確定後は原本との内容対応を照合して一覧を更新し、保存分類・内容対応・再生可否を別々に示す。撮影を準備できない端末や権限拒否時も、ライブラリへの入口を維持する。
++
+ 1. 保存済み撮影設定を読み、現在の端末・カメラ・形式の対応情報と照合する。カメラ・マイク・内部保存先を準備し、入力有効性を確認する。初回権限取得、通常起動、復帰を区別する。
+ 2. 撮影画面に実適用値と準備状態を出す。WBはAuto。補正は初回の標準相当候補または前回選択を対応確認後に適用する。非対応・未確認の場合は制約と選択肢を示し、代替を勝手に適用しない。
+ 3. 人物・ND解析の完了を待たず、必要な記録条件が整えばRECを受け付ける。REC受付で動画通信の再開を閉じ、端末上の送受信を一時停止する。サーバー応答や未完了のサムネイル生成を待つことを開始条件にしない。
+@@ -123,6 +126,8 @@
+ | AudioState | `enum` | 初期はchecking | `checking / valid / failed(reason) / recovering`。レベル値と別。入力経路ID・最終データ到着・書込結果を分ける。ゼロ音量だけでfailedにしない |
+ | CaptureSessionID / configurationRevision | `UUID` / `UInt64` | 必須 | 再構成・復帰で世代更新。古い適用完了・解析結果を現在状態へ戻さない |
+ 
++通常撮影の設定保存は希望値と記録方式の候補を対象とする。復元時は現在のカメラ・形式・組合せを再照合し、適用後の読戻しを実適用値として表示する。以前の能力判定・実適用値・WB固定値は復元しない。保存済みのカメラや形式が使えない場合も希望値を保持し、別の条件へ自動変更しない。初回fpsの既定値と記録方式の正式採用は未決であり、候補の保存を実機での採用確認と扱わない。
++
+ ### D2 人物・ND・ズーム
+ 
+ | 型・フィールド | Swiftの型例 | 必須性・欠損の意味 | 許容値・初期値・制約 |
+@@ -140,12 +145,15 @@
+ | 型・フィールド | Swiftの型例 | 必須性・欠損の意味 | 許容値・初期値・制約 |
+ | --- | --- | --- | --- |
+ | ClipRecord.id | `UUID` | REC受理時に必須 | 一撮影一ID。派生版、転送再試行、容量整理で増やさない |
+-| capturedAt / duration / byteCount | `Date` / `Duration?` / `Int64?` | 日時は必須、長さ/容量は未確定ならnil | 確定値は非負。30秒や2〜3分は利用傾向であり上限にしない |
++| capturedAt | `Date?` | 新規の通常撮影意図では必須。未観測の旧記録はnil | 暦上の撮影日時。単調時計によるREC受付時刻とは別。旧記録のnilは「撮影日時不明」と表示し、現在時刻・取得日時・試験日時で補完しない |
++| duration / byteCount | `Duration?` / `Int64?` | 未確定ならnil | 確定値は非負。30秒や2〜3分は利用傾向であり上限にしない |
+ | recordingOutcome | `enum` | 必須 | `recording / finalizing / saved / partial / unknown / failed`。savedには書込終了と必要な音声・映像の確認が必要。ファイルの存在だけではsavedにしない |
+ | LocalOriginalRef | `struct?` | nilは記録上の参照なし | アプリ管理領域内の不透明な参照、原本識別、内容世代、確定サイズ等。サーバーURLや「写真」アセットをローカル削除対象へ変換しない |
+ | localOriginalState | `enum` | 必須 | `present / deletionInProgress / removed(reason) / reconciliationRequired / unavailable`。reasonは容量整理/破棄。想定外の消失を本人の削除成功にしない |
+ | originalIdentity | `struct?` | ファイル未確定ならnil | 原本の不変IDと全内容を照合できる識別情報。方式はarchitectureで選定。名前、長さ、HTTP成功だけで同一性・全内容検証を証明しない |
+ | remote/preview/confirmation/photos | D4〜D7の参照 | 未開始を明示 | 別の事実として保持。ローカル原本破棄で検証済み・確認済みに書き換えない |
++
++`RecordingIntent`は通常撮影で試験参照を省略でき、探索記録は従来の試験参照を保持する。暦日時は撮影側が観測して保存意図・媒体metadata・後続の転送/Photosへ同じ意味で渡す契約とするが、REC受付・実記録開始等のどの時点を採るかは未決である。観測点の合意と製品経路への接続が揃うまでは、通常撮影のREC動線を利用可能・完了と扱わない。
+ 
+ ### D4 Mac mini保存検証・軽量版
+ 
+--- /dev/null
++++ current/FrameRelay/Application/Capture/ProductCaptureConfigurationMatcher.swift
+@@ -0,0 +1,13 @@
++/// A discover-time check only. Codec/manual controls still need preparation and SDK readback.
++nonisolated enum ProductCaptureConfigurationMatcher {
++    static func hasCurrentFormat(for configuration: CaptureConfiguration,
++                                 cameras: [ExplorationCameraDescription]) -> Bool {
++        guard let camera = cameras.first(where: { $0.id == configuration.camera }) else { return false }
++        return camera.formats.contains { format in
++            format.width == configuration.width && format.height == configuration.height
++                && format.frameRateRanges.contains { $0.contains(Double(configuration.framesPerSecond)) }
++                && format.logEncodings.contains(configuration.logEncoding)
++                && format.stabilizationModes.contains(configuration.stabilizationMode)
++        }
++    }
++}
+--- /dev/null
++++ current/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift
+@@ -0,0 +1,311 @@
++import Foundation
++import Observation
++
++/// Composition-lived owner. View disappearance never cancels an in-flight intent or save.
++@MainActor @Observable
++final class ProductCaptureCoordinator {
++    private(set) var preferences = ProductCapturePreferences()
++    private(set) var cameras: [ExplorationCameraDescription] = []
++    private(set) var prepared: ExplorationPrepared?
++    private(set) var capture: CaptureLifecycle?
++    private(set) var previewSource: (any ProductCapturePreviewSource)?
++    private(set) var saveResult: RecordingSaveResult?
++    private(set) var issue: String?
++    private(set) var isPreparing = false
++    private(set) var isStarting = false
++    private(set) var isSaving = false
++    private(set) var preferencesLoaded = false
++
++    @ObservationIgnored private let preferenceStore: any ProductCapturePreferencePort
++    @ObservationIgnored private let makeDevice: @Sendable (ExplorationOutputCandidate) async throws -> any ProductCaptureDevicePort
++    @ObservationIgnored private let save: any ProductCaptureSavePort
++    @ObservationIgnored private let bindOriginal: @Sendable (CaptureOriginalReference) async -> Bool
++    @ObservationIgnored private let didSave: @MainActor @Sendable () async -> Void
++    @ObservationIgnored private let calendarNow: (@Sendable () -> Date)?
++    @ObservationIgnored private let captureNow: @Sendable () -> CaptureTimeObservation
++    @ObservationIgnored private var device: (any ProductCaptureDevicePort)?
++    @ObservationIgnored private var eventTask: Task<Void, Never>?
++    @ObservationIgnored private var generation: CaptureGeneration?
++    @ObservationIgnored private var activeIntent: RecordingIntent?
++    @ObservationIgnored private var pendingEnd: RecordingEndEvidence?
++    @ObservationIgnored private var pendingFile: CaptureFileEvidence?
++    @ObservationIgnored private var intentReady = false
++    @ObservationIgnored private var endDelivered = false
++    @ObservationIgnored private var saveFinished = false
++    @ObservationIgnored private var drainingSave = false
++    @ObservationIgnored private var leaveRequested = false
++    @ObservationIgnored private var eventEpoch = UUID()
++
++    init(preferences: any ProductCapturePreferencePort,
++         makeDevice: @escaping @Sendable (ExplorationOutputCandidate) async throws -> any ProductCaptureDevicePort,
++         save: any ProductCaptureSavePort,
++         bindOriginal: @escaping @Sendable (CaptureOriginalReference) async -> Bool,
++         didSave: @escaping @MainActor @Sendable () async -> Void,
++         calendarNow: (@Sendable () -> Date)? = nil,
++         captureNow: @escaping @Sendable () -> CaptureTimeObservation = { .unavailable(.notMeasured) }) {
++        preferenceStore = preferences; self.makeDevice = makeDevice; self.save = save
++        self.bindOriginal = bindOriginal; self.didSave = didSave
++        self.calendarNow = calendarNow; self.captureNow = captureNow
++    }
++
++    var isBusy: Bool {
++        isPreparing || isStarting || isSaving || capture.map {
++            $0.phase == .starting || $0.phase == .recording || $0.phase == .stopping
++        } == true
++    }
++
++    var canRecord: Bool {
++        guard !isBusy, !leaveRequested, issue == nil, calendarNow != nil, let generation, let prepared,
++              preferences.desired != nil, preferences.outputCandidate != nil,
++              capture == nil || capture?.whiteBalance == .automatic else { return false }
++        return readiness(generation: generation, prepared: prepared).blockers.isEmpty
++    }
++
++    func load() async {
++        guard !isBusy, !preferencesLoaded else { return }
++        do {
++            preferences = try await preferenceStore.load()
++            preferencesLoaded = true
++        } catch { issue = "撮影設定を読み込めません。保存済み設定を保持しています。" }
++    }
++
++    func discover() async {
++        guard !isBusy else { return }
++        isPreparing = true
++        defer { isPreparing = false }
++        do {
++            // This temporary output choice only enumerates hardware, never sets recording preferences.
++            let discovery = try await makeDevice(preferences.outputCandidate ?? .movieFile)
++            cameras = try await discovery.discoverCameras()
++            await discovery.shutDown()
++        } catch { issue = message(for: error) }
++    }
++
++    func updatePreferences(_ value: ProductCapturePreferences) async {
++        guard !isBusy else { return }
++        guard value.isValid else { issue = "撮影設定の値を確認してください。"; return }
++        // A corrupt/unknown settings file is not silently replaced by an ordinary edit.
++        guard preferencesLoaded else { issue = "保存済み設定を読み込めていないため変更できません。"; return }
++        isPreparing = true
++        defer { isPreparing = false }
++        await releaseDevice()
++        do {
++            try await preferenceStore.save(value)
++            preferences = value
++            issue = nil
++        } catch { issue = "撮影設定を保存できませんでした。" }
++    }
++
++    func prepare() async {
++        guard !isBusy else { return }
++        guard preferencesLoaded, let desired = preferences.desired, let candidate = preferences.outputCandidate else {
++            issue = "撮影設定と記録方式を選択してください。"; return
++        }
++        isPreparing = true
++        leaveRequested = false
++        issue = nil
++        defer { isPreparing = false }
++        await releaseDevice()
++        let nextGeneration = CaptureGeneration(session: .init(rawValue: UUID().uuidString), settings: 1)
++        do {
++            let created = try await makeDevice(candidate)
++            device = created
++            let epoch = UUID()
++            eventEpoch = epoch
++            let stream = await created.productEvents()
++            eventTask = Task { [weak self] in
++                for await event in stream {
++                    guard !Task.isCancelled else { return }
++                    await self?.receive(event, epoch: epoch)
++                }
++            }
++            cameras = try await created.discoverCameras()
++            guard ProductCaptureConfigurationMatcher.hasCurrentFormat(for: desired.configuration, cameras: cameras) else {
++                throw ExplorationIssue.capabilityUnconfirmed("camera_or_format_no_longer_available")
++            }
++            let result = try await created.prepare(.init(desired: desired, generation: nextGeneration,
++                operation: .init(rawValue: "prepare-\(UUID().uuidString)")))
++            generation = nextGeneration
++            prepared = result
++            previewSource = await created.previewSource()
++            if !readiness(generation: nextGeneration, prepared: result).blockers.isEmpty {
++                issue = "希望設定を適用できません。現在の対応条件と実適用値を確認してください。"
++            }
++            if leaveRequested { await releaseDevice() }
++        } catch {
++            issue = message(for: error)
++            await releaseDevice()
++        }
++    }
++
++    func record() async {
++        guard canRecord, let generation, let prepared, let desired = preferences.desired, let calendarNow else { return }
++        isStarting = true
++        let context = CaptureContext(generation: generation, capture: .init(rawValue: UUID().uuidString))
++        let operation = CaptureOperationID(rawValue: UUID().uuidString)
++        // Calendar observation is independent of the monotonic capture timeline.
++        // Millisecond precision is shared by store and QuickTime creation-date metadata.
++        let observed = calendarNow()
++        let capturedAt = Date(timeIntervalSince1970: floor(observed.timeIntervalSince1970 * 1_000) / 1_000)
++        let intent = RecordingIntent(context: context, operation: operation,
++            original: .init(rawValue: UUID().uuidString), desired: desired, applied: prepared.applied,
++            acceptedAt: captureNow(), capturedAt: capturedAt)
++        var lifecycle = CaptureLifecycle(context: context, audio: capture?.audio ?? prepared.audio)
++        let transition = lifecycle.begin(intent, readiness: readiness(generation: generation, prepared: prepared), expectedStoreRevision: 0)
++        capture = lifecycle
++        activeIntent = intent
++        pendingEnd = nil; pendingFile = nil; intentReady = false
++        endDelivered = false; saveFinished = false; saveResult = nil
++        await perform(transition)
++        isStarting = false
++        await finishLeavingIfPossible()
++    }
++
++    func stop() async {
++        guard var lifecycle = capture else { return }
++        let transition = lifecycle.stop(operation: .init(rawValue: UUID().uuidString))
++        capture = lifecycle
++        await perform(transition)
++    }
++
++    /// Safe on navigation/background. Capture events and persistence continue until settled.
++    func leaveCapture() async {
++        leaveRequested = true
++        await stop()
++        await finishLeavingIfPossible()
++    }
++
++    private func readiness(generation: CaptureGeneration, prepared: ExplorationPrepared) -> CaptureReadiness {
++        .init(generation: generation, desired: preferences.desired, capabilities: prepared.capabilities,
++              applied: prepared.applied, camera: .ready, audioInput: capture?.audio.input ?? prepared.audio.input,
++              destination: .ready, recordingResources: .ready)
++    }
++
++    private func perform(_ transition: CaptureTransition) async {
++        guard let device else { return }
++        guard case .accepted(let effects) = transition else { return }
++        // WB may complete or STOP may arrive while common-save begin is suspended.
++        for effect in effects {
++            if case .store(.commitIntent) = effect { isSaving = true }
++        }
++        for effect in effects {
++            if case .capture(let command) = effect {
++                if case .rejected(let token, let reason) = await device.submit(command) {
++                    await receive(.capture(.commandFailed(token, reason)), epoch: eventEpoch)
++                }
++            }
++        }
++        for effect in effects {
++            switch effect {
++            case .capture: break
++            case .store(.commitIntent(let token, _, let intent)):
++                let result = await save.begin(intent, token: token)
++                let storeResult: RecordingStoreResult
++                switch result {
++                case .ready(let receipt): intentReady = true; storeResult = .committed(receipt)
++                case .rejected(let error):
++                    storeResult = .rejected(token, error)
++                    issue = "保存意図を確定できません。録画は開始しませんでした。"
++                    saveFinished = true
++                default:
++                    storeResult = .unavailable(token, .resourceUnavailable)
++                    issue = "保存意図の結果が不明です。一覧から記録を確認してください。"
++                    saveFinished = true
++                }
++                if var lifecycle = capture, lifecycle.context == token.context {
++                    let next = lifecycle.receiveIntentStoreResult(storeResult)
++                    capture = lifecycle
++                    await perform(next)
++                    await drainSave()
++                    if !intentReady {
++                        await didSave()
++                        isSaving = false
++                    }
++                }
++            case .store(.commitResult): break // Result writes belong exclusively to OriginalSaveCoordinator.
++            case .recordingCeased(let end):
++                pendingEnd = end
++                await drainSave()
++            }
++        }
++    }
++
++    private func receive(_ event: ExplorationDeviceEvent, epoch: UUID) async {
++        guard epoch == eventEpoch else { return }
++        switch event {
++        case .capture(let event):
++            guard var lifecycle = capture else { return }
++            let transition = lifecycle.receive(event)
++            capture = lifecycle
++            await perform(transition)
++        case .fileFinalized(let file):
++            guard let intent = activeIntent, file.context == intent.context, file.original == intent.original,
++                  !saveFinished, pendingFile == nil else { return }
++            pendingFile = file
++            await drainSave()
++        case .observation(let observation):
++            if observation.code == "file_finalization_unconfirmed", observation.context == activeIntent?.context {
++                issue = "録画は停止しましたがファイルの確定を確認できません。一覧で照合してください。"
++                saveFinished = true
++                await didSave()
++                isSaving = false
++            }
++        }
++        await finishLeavingIfPossible()
++    }
++
++    private func drainSave() async {
++        guard !drainingSave, intentReady, !saveFinished, let intent = activeIntent, let end = pendingEnd else { return }
++        drainingSave = true
++        defer { drainingSave = false }
++        if !endDelivered {
++            guard case .accepted = await save.recordingEnded(context: intent.context, evidence: end) else {
++                issue = "記録終端の保存照合が必要です。"; saveFinished = true
++                await didSave(); isSaving = false; return
++            }
++            endDelivered = true
++        }
++        if end.writer == .notStarted {
++            issue = "録画開始前に停止しました。保存意図は一覧で要確認として残ります。"
++            saveFinished = true
++            await didSave(); isSaving = false; return
++        }
++        guard let file = pendingFile else { return }
++        let token = CaptureCommandToken(context: intent.context, operation: intent.operation, ordinal: 100)
++        let result = await save.fileFinalized(file, resultToken: token)
++        saveFinished = true
++        switch result {
++        case .committed(let record, _):
++            saveResult = record.result
++            if !(await bindOriginal(intent.original)) {
++                issue = "保存結果を記録しました。原本と一覧の対応は確認が必要です。"
++            }
++        default: issue = "保存結果を確定できません。一覧で原本と保存記録を確認してください。"
++        }
++        await didSave()
++        isSaving = false
++    }
++
++    private func finishLeavingIfPossible() async {
++        guard leaveRequested, !isPreparing, !isStarting, !isSaving,
++              capture == nil || capture?.phase == .ended || capture?.phase == .ready else { return }
++        await releaseDevice()
++    }
++
++    private func releaseDevice() async {
++        eventEpoch = UUID()
++        if let device { await device.shutDown() }
++        device = nil; previewSource = nil; prepared = nil; generation = nil; capture = nil
++        eventTask?.cancel(); eventTask = nil
++    }
++
++    private func message(for error: Error) -> String {
++        switch error as? ExplorationIssue {
++        case .simulatorHasNoVerifiedCamera: return "Simulatorではカメラ撮影を利用できません。一覧と再生は利用できます。"
++        case .permissionDenied: return "カメラとマイクの使用許可を設定で確認してください。"
++        case .appliedValuesDiffer: return "希望設定と実際の適用値が一致しません。RECは開始できません。"
++        case .capabilityUnconfirmed: return "現在のカメラでは選択した条件を確認できません。設定を変更してください。"
++        default: return "カメラを準備できませんでした。条件を確認して再準備してください。"
++        }
++    }
++}
+--- /dev/null
++++ current/FrameRelay/Application/Ports/ProductCapturePorts.swift
+@@ -0,0 +1,31 @@
++import Foundation
++
++nonisolated protocol ProductCapturePreferencePort: Sendable {
++    func load() async throws -> ProductCapturePreferences
++    func save(_ preferences: ProductCapturePreferences) async throws
++}
++
++nonisolated struct ProductCapturePreparation: Sendable {
++    let desired: DesiredCaptureSettings
++    let generation: CaptureGeneration
++    let operation: CaptureOperationID
++}
++
++/// Ticket-free product access. Format indices and exploratory limits are not inputs.
++nonisolated protocol ProductCapturePreviewSource: Sendable {}
++
++nonisolated protocol ProductCaptureDevicePort: CaptureControlPort {
++    func discoverCameras() async throws -> [ExplorationCameraDescription]
++    func prepare(_ request: ProductCapturePreparation) async throws -> ExplorationPrepared
++    func productEvents() async -> AsyncStream<ExplorationDeviceEvent>
++    func previewSource() async -> (any ProductCapturePreviewSource)?
++    func shutDown() async
++}
++
++nonisolated protocol ProductCaptureSavePort: Sendable {
++    func begin(_ intent: RecordingIntent, token: CaptureCommandToken) async -> OriginalSaveOperationResult
++    func recordingEnded(context: CaptureContext, evidence: RecordingEndEvidence) async -> OriginalSaveOperationResult
++    func fileFinalized(_ file: CaptureFileEvidence, resultToken: CaptureCommandToken) async -> OriginalSaveOperationResult
++}
++
++extension OriginalSaveCoordinator: ProductCaptureSavePort {}
+--- /dev/null
++++ current/FrameRelay/Composition/ProductCaptureFactory.swift
+@@ -0,0 +1,34 @@
++import AVFoundation
++import Foundation
++
++/// Shares the product writer and original directory. Creating the model does
++/// not request capture permissions or open a capture session.
++@MainActor enum ProductCaptureFactory {
++    static func make(services: ProductLibraryServices,
++                     didSave: @escaping @MainActor @Sendable () async -> Void) -> ProductCaptureCoordinator {
++        let preferences = CapturePreferenceStore(url: services.run.url.appendingPathComponent("capture-preferences.json"))
++        let save = OriginalSaveCoordinator(store: services.store, originals: services.originals,
++                                           inspection: AVOriginalInspectionAdapter(originals: services.originals))
++        return ProductCaptureCoordinator(preferences: preferences, makeDevice: { candidate in
++            #if !targetEnvironment(simulator)
++            guard await permission(for: .video), await permission(for: .audio) else {
++                throw ExplorationIssue.permissionDenied
++            }
++            #endif
++            return NativeExplorationCapture(candidate: candidate,
++                originals: ProductReservedOriginalDestination(store: services.originals))
++        }, save: save, bindOriginal: { reference in
++            let operation = MediaOperationID(rawValue: "capture-bind-" + UUID().uuidString)
++            if case .succeeded = await services.access.bind(reference, operation: operation) { return true }
++            return false
++        }, didSave: didSave, captureNow: { ExplorationCaptureValues.now() })
++    }
++
++    private nonisolated static func permission(for media: AVMediaType) async -> Bool {
++        switch AVCaptureDevice.authorizationStatus(for: media) {
++        case .authorized: return true
++        case .notDetermined: return await AVCaptureDevice.requestAccess(for: media)
++        default: return false
++        }
++    }
++}
+--- /dev/null
++++ current/FrameRelay/Domain/Capture/ProductCapturePreferences.swift
+@@ -0,0 +1,30 @@
++import Foundation
++
++/// Persisted wishes only. Hardware readback, capability and WB locks are never restored as facts.
++nonisolated struct ProductCapturePreferences: Equatable, Sendable, Codable {
++    var desired: DesiredCaptureSettings?
++    var outputCandidate: ExplorationOutputCandidate?
++
++    init(desired: DesiredCaptureSettings? = nil, outputCandidate: ExplorationOutputCandidate? = nil) {
++        self.desired = desired
++        self.outputCandidate = outputCandidate
++    }
++
++    var isValid: Bool {
++        guard let desired else { return true }
++        let c = desired.configuration
++        let e = desired.exposure
++        return !c.camera.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
++            && c.width == 3840 && c.height == 2160 && [24, 30].contains(c.framesPerSecond)
++            && !c.stabilizationMode.isEmpty && e.shutter.ticks > 0 && e.shutter.timescale > 0
++            && e.shutter.seconds.isFinite && e.iso.isFinite && e.iso > 0
++            && (e.aperture.map { $0.isFinite && $0 > 0 } ?? true)
++            && desired.zoom.isFinite && desired.zoom > 0
++    }
++}
++
++nonisolated enum ProductCapturePreferenceError: Error, Equatable, Sendable {
++    case invalidSettings
++    case unknownSchema
++    case corruptStore
++}
+--- /dev/null
++++ current/FrameRelay/Features/Capture/ProductCapturePreview.swift
+@@ -0,0 +1,27 @@
++import AVFoundation
++import SwiftUI
++
++/// Camera framing only. This layer does not claim a standard Rec.709 transform.
++struct ProductCapturePreview: UIViewRepresentable {
++    let source: NativeCapturePreviewSource
++
++    func makeUIView(context: Context) -> ProductCapturePreviewSurface {
++        let view = ProductCapturePreviewSurface()
++        view.previewLayer.videoGravity = .resizeAspect
++        view.previewLayer.session = source.session
++        return view
++    }
++
++    func updateUIView(_ view: ProductCapturePreviewSurface, context: Context) {
++        if view.previewLayer.session !== source.session { view.previewLayer.session = source.session }
++    }
++
++    static func dismantleUIView(_ view: ProductCapturePreviewSurface, coordinator: ()) {
++        view.previewLayer.session = nil
++    }
++}
++
++final class ProductCapturePreviewSurface: UIView {
++    override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
++    var previewLayer: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
++}
+--- /dev/null
++++ current/FrameRelay/Features/Capture/ProductCaptureSettingsView.swift
+@@ -0,0 +1,222 @@
++import SwiftUI
++
++struct ProductCaptureSettingsView: View {
++    @Bindable var model: ProductCaptureCoordinator
++    @Environment(\.dismiss) private var dismiss
++    @State private var draft: ProductCaptureSettingsDraft
++    @State private var issue: String?
++    @State private var isApplying = false
++
++    init(model: ProductCaptureCoordinator) {
++        self.model = model
++        _draft = State(initialValue: ProductCaptureSettingsDraft(model.preferences))
++    }
++
++    var body: some View {
++        NavigationStack {
++            Form {
++                Section("希望する設定") {
++                    Picker("カメラ", selection: $draft.camera) {
++                        Text("選択してください").tag("")
++                        if !draft.camera.isEmpty, !model.cameras.contains(where: { $0.id == draft.camera }) {
++                            Text("保存したカメラ（現在未確認）").tag(draft.camera)
++                        }
++                        ForEach(model.cameras, id: \.id) { camera in
++                            Text(camera.label).tag(camera.id)
++                        }
++                    }
++                    .accessibilityIdentifier("capture.settings.camera")
++                    LabeledContent("解像度", value: "4K（3840×2160）")
++                    Picker("フレームレート", selection: $draft.framesPerSecond) {
++                        Text("選択してください").tag(0)
++                        Text("24 fps").tag(24)
++                        Text("30 fps").tag(30)
++                    }.accessibilityIdentifier("capture.settings.fps")
++                    Picker("記録形式", selection: $draft.codec) {
++                        Text("選択してください").tag("")
++                        ForEach([CaptureCodec.proRes422LT, .proRes422, .proRes422Proxy], id: \.self) { codec in
++                            Text(ProductCaptureText.codec(codec)).tag(codec.rawValue)
++                        }
++                    }.accessibilityIdentifier("capture.settings.codec")
++                    Picker("Log", selection: $draft.log) {
++                        Text("選択してください").tag("")
++                        ForEach([CaptureLogEncoding.appleLog, .appleLog2], id: \.self) { log in
++                            Text(ProductCaptureText.log(log)).tag(log.rawValue)
++                        }
++                    }.accessibilityIdentifier("capture.settings.log")
++                }
++                Section("手動設定") {
++                    HStack {
++                        Text("シャッター（秒）")
++                        TextField("分子", text: $draft.shutterTicks).keyboardType(.numberPad)
++                            .multilineTextAlignment(.trailing)
++                            .accessibilityLabel("シャッター秒の分子")
++                        Text("/")
++                        TextField("分母", text: $draft.shutterTimescale).keyboardType(.numberPad)
++                            .multilineTextAlignment(.trailing)
++                            .accessibilityLabel("シャッター秒の分母")
++                    }
++                    LabeledContent("ISO") {
++                        TextField("ISOを入力", text: $draft.iso).keyboardType(.decimalPad)
++                            .multilineTextAlignment(.trailing)
++                            .accessibilityIdentifier("capture.settings.iso")
++                    }
++                    LabeledContent("倍率") {
++                        TextField("倍率を入力", text: $draft.zoom).keyboardType(.decimalPad)
++                            .multilineTextAlignment(.trailing)
++                            .accessibilityIdentifier("capture.settings.zoom")
++                    }
++                    if supportsAperture {
++                        LabeledContent("絞り") {
++                            TextField("変更しない", text: $draft.aperture).keyboardType(.decimalPad)
++                                .multilineTextAlignment(.trailing)
++                                .accessibilityIdentifier("capture.settings.aperture")
++                        }
++                    } else if !draft.aperture.isEmpty {
++                        Text("保存した絞り指定：\(draft.aperture)。現在の組合せで絞りの調整に対応するかは未確認です。")
++                            .font(.footnote)
++                        Button("保存した絞り指定を外す") { draft.aperture = "" }
++                            .accessibilityIdentifier("capture.settings.clearAperture")
++                    }
++                    Picker("手ブレ補正", selection: $draft.stabilization) {
++                        Text("選択してください").tag("")
++                        ForEach(stabilizationChoices, id: \.self) { mode in
++                            Text(ProductCaptureText.stabilization(mode)).tag(mode)
++                        }
++                    }
++                    Text("補正の品質・動作の評価は未完了です。選んだ条件が使えるかを適用時に確認します。")
++                        .font(.footnote)
++                }
++                Section("記録方式") {
++                    Picker("記録方式の候補", selection: $draft.output) {
++                        Text("選択してください").tag("")
++                        Text("Movieファイル出力").tag(ExplorationOutputCandidate.movieFile.rawValue)
++                        Text("サンプル書込").tag(ExplorationOutputCandidate.sampleWriter.rawValue)
++                    }.accessibilityIdentifier("capture.settings.output")
++                    Text("両方式とも実機での採用確認は未完了です。選んだ方式が使えない場合、自動で別方式に切り替えません。")
++                        .font(.footnote)
++                }
++                Section("現在のカメラで確認できた条件") {
++                    Text(capabilityDescription)
++                        .accessibilityIdentifier("capture.settings.capabilities")
++                    Text("形式・fps・Logの一覧はカメラから取得した条件です。記録方式・手動値を含む組合せと実適用値は、保存して適用すると確認します。")
++                        .font(.footnote)
++                    Button("カメラの条件を再確認") { Task { await model.discover() } }
++                        .disabled(model.isBusy || model.isPreparing)
++                }
++                if let issue = issue ?? model.issue {
++                    Section { Text(issue).accessibilityIdentifier("capture.settings.issue") }
++                }
++                Section {
++                    Button("保存して適用") { Task { await apply() } }
++                        .disabled(isApplying || model.isBusy || model.isPreparing)
++                        .accessibilityIdentifier("capture.settings.apply")
++                    Text("希望する設定を保存します。使えない条件は自動で変更しません。録画中・保存中は設定を変更できません。")
++                        .font(.footnote)
++                }
++            }
++            .disabled(isApplying)
++            .navigationTitle("撮影設定")
++            .navigationBarTitleDisplayMode(.inline)
++            .toolbar {
++                ToolbarItem(placement: .cancellationAction) { Button("閉じる") { dismiss() }.disabled(isApplying) }
++            }
++            .interactiveDismissDisabled(isApplying)
++        }
++    }
++
++    private var selectedCamera: ExplorationCameraDescription? { model.cameras.first { $0.id == draft.camera } }
++
++    private var stabilizationChoices: [String] {
++        var modes = Set(selectedCamera?.formats.flatMap(\.stabilizationModes) ?? [])
++        if !draft.stabilization.isEmpty { modes.insert(draft.stabilization) }
++        return modes.sorted()
++    }
++
++    private var supportsAperture: Bool {
++        guard let capabilities = model.prepared?.capabilities,
++              let configuration = capabilities.controlsForConfiguration,
++              configuration.camera == draft.camera, configuration.width == 3840, configuration.height == 2160,
++              configuration.framesPerSecond == draft.framesPerSecond,
++              configuration.codec.rawValue == draft.codec, configuration.logEncoding.rawValue == draft.log,
++              configuration.stabilizationMode == draft.stabilization,
++              case .supported(let limits) = capabilities.manualControls,
++              case .supported = limits.aperture else { return false }
++        return true
++    }
++
++    private var capabilityDescription: String {
++        guard let camera = selectedCamera else { return "カメラは未選択、または現在の端末では確認できません。" }
++        let formats = camera.formats.filter { $0.width == 3840 && $0.height == 2160 }
++        guard !formats.isEmpty else { return "このカメラの4K形式は確認できません。" }
++        let combinations = Set(formats.flatMap { format in
++            [24, 30].filter { fps in format.frameRateRanges.contains { $0.contains(Double(fps)) } }
++                .flatMap { fps in format.logEncodings.map { "4K · \(fps)fps · \(ProductCaptureText.log($0))" } }
++        })
++        guard !combinations.isEmpty else { return "このカメラの4K・24/30fps・Logの組合せは確認できません。" }
++        return combinations.sorted().joined(separator: "\n")
++    }
++
++    private func apply() async {
++        isApplying = true
++        defer { isApplying = false }
++        do {
++            let preferences = try draft.preferences()
++            await model.updatePreferences(preferences)
++            guard model.preferences == preferences, model.issue == nil else {
++                issue = "設定を保存できませんでした。入力値と保存領域を確認してください。"
++                return
++            }
++            await model.prepare()
++            dismiss()
++        } catch {
++            issue = "カメラ・fps・記録形式・Log・補正・記録方式を選び、シャッター・ISO・倍率に正の数を入力してください。"
++        }
++    }
++}
++
++private struct ProductCaptureSettingsDraft {
++    var camera = ""
++    var framesPerSecond = 0
++    var codec = ""
++    var log = ""
++    var stabilization = ""
++    var output = ""
++    var shutterTicks = ""
++    var shutterTimescale = ""
++    var iso = ""
++    var zoom = ""
++    var aperture = ""
++
++    init(_ preferences: ProductCapturePreferences) {
++        output = preferences.outputCandidate?.rawValue ?? ""
++        guard let desired = preferences.desired else { return }
++        camera = desired.configuration.camera
++        framesPerSecond = desired.configuration.framesPerSecond
++        codec = desired.configuration.codec.rawValue
++        log = desired.configuration.logEncoding.rawValue
++        stabilization = desired.configuration.stabilizationMode
++        shutterTicks = String(desired.exposure.shutter.ticks)
++        shutterTimescale = String(desired.exposure.shutter.timescale)
++        iso = String(desired.exposure.iso)
++        zoom = String(desired.zoom)
++        aperture = desired.exposure.aperture.map { String($0) } ?? ""
++    }
++
++    func preferences() throws -> ProductCapturePreferences {
++        guard let codec = CaptureCodec(rawValue: codec), let log = CaptureLogEncoding(rawValue: log),
++              let output = ExplorationOutputCandidate(rawValue: output),
++              let ticks = Int64(shutterTicks), let timescale = Int32(shutterTimescale),
++              let iso = Double(iso), let zoom = Double(zoom),
++              aperture.isEmpty || Double(aperture) != nil else { throw CaptureContractError.invalidValue }
++        let configuration = try CaptureConfiguration(camera: camera, width: 3840, height: 2160,
++            framesPerSecond: framesPerSecond, codec: codec, logEncoding: log, stabilizationMode: stabilization)
++        let exposure = try CaptureManualExposure(shutter: .init(ticks: ticks, timescale: timescale),
++                                                 iso: iso, aperture: Double(aperture))
++        let preferences = ProductCapturePreferences(
++            desired: try DesiredCaptureSettings(configuration: configuration, exposure: exposure, zoom: zoom),
++            outputCandidate: output)
++        guard preferences.isValid else { throw CaptureContractError.invalidValue }
++        return preferences
++    }
++}
+--- /dev/null
++++ current/FrameRelay/Features/Capture/ProductCaptureView.swift
+@@ -0,0 +1,173 @@
++import SwiftUI
++
++struct ProductCaptureView: View {
++    @Bindable var model: ProductCaptureCoordinator
++    let close: () -> Void
++    @State private var showsSettings = false
++    @State private var isClosing = false
++
++    var body: some View {
++        NavigationStack {
++            ScrollView {
++                VStack(alignment: .leading, spacing: 20) {
++                    if let source = model.previewSource as? NativeCapturePreviewSource {
++                        ProductCapturePreview(source: source)
++                            .aspectRatio(16 / 9, contentMode: .fit)
++                            .background(.black)
++                            .accessibilityLabel("カメラの構図プレビュー")
++                    } else {
++                        ContentUnavailableView("撮影の準備が必要です", systemImage: "camera",
++                                               description: Text("撮影設定を選び、現在のカメラで使える条件を確認してください。"))
++                    }
++                    Text("プレビューの標準Rec.709変換は未対応です。色の仕上がりを確認する表示には使えません。")
++                        .font(.footnote)
++                    if let issue = model.issue {
++                        Text(issue).foregroundStyle(.primary)
++                            .fixedSize(horizontal: false, vertical: true)
++                            .accessibilityIdentifier("capture.issue")
++                    }
++                    if model.isPreparing { ProgressView("カメラの条件を確認しています") }
++                    VStack(alignment: .leading, spacing: 8) {
++                        Text("希望する設定").font(.headline)
++                        Text(desiredDescription)
++                            .accessibilityIdentifier("capture.desired")
++                        Button("撮影設定", systemImage: "slider.horizontal.3") { showsSettings = true }
++                            .disabled(model.isBusy || model.isPreparing)
++                            .accessibilityIdentifier("capture.settings")
++                        Button("保存した設定で再準備", systemImage: "arrow.clockwise") {
++                            Task { await model.discover(); await model.prepare() }
++                        }
++                        .disabled(model.isBusy || model.isPreparing || model.preferences.desired == nil
++                                  || model.preferences.outputCandidate == nil)
++                        .accessibilityIdentifier("capture.prepare")
++                    }
++                    VStack(alignment: .leading, spacing: 8) {
++                        Text("現在の適用状態").font(.headline)
++                        Text(appliedDescription).accessibilityIdentifier("capture.applied")
++                        Text("実機での記録方式・画質の確認は未完了です。")
++                            .font(.footnote)
++                    }
++                    VStack(alignment: .leading, spacing: 8) {
++                        Text("録画と直近の保存結果").font(.headline)
++                        Text(phaseDescription).accessibilityIdentifier("capture.phase")
++                        Text(saveDescription).accessibilityIdentifier("capture.save")
++                    }
++                    Button("ライブラリへ戻る", action: finish)
++                        .disabled(isClosing)
++                        .accessibilityIdentifier("capture.close")
++                }
++                .padding()
++            }
++            .navigationTitle("撮影")
++            .navigationBarTitleDisplayMode(.inline)
++            .toolbar {
++                ToolbarItem(placement: .cancellationAction) {
++                    Button("閉じる", action: finish)
++                        .disabled(isClosing)
++                        .accessibilityIdentifier("capture.closeToolbar")
++                }
++            }
++            .safeAreaInset(edge: .bottom) {
++                HStack(spacing: 24) {
++                    Button("REC", systemImage: "record.circle") { Task { await model.record() } }
++                        .buttonStyle(.borderedProminent).tint(.red)
++                        .disabled(!model.canRecord || isClosing)
++                        .accessibilityIdentifier("capture.rec")
++                    Button("STOP", systemImage: "stop.fill") { Task { await model.stop() } }
++                        .buttonStyle(.bordered)
++                        .disabled(!canStop || isClosing)
++                        .accessibilityIdentifier("capture.stop")
++                }
++                .padding().frame(maxWidth: .infinity).background(.bar)
++            }
++            .sheet(isPresented: $showsSettings) {
++                ProductCaptureSettingsView(model: model)
++            }
++            .task {
++                await model.load()
++                await model.discover()
++                if model.preferences.desired != nil, model.preferences.outputCandidate != nil, !model.isBusy {
++                    await model.prepare()
++                }
++            }
++        }
++    }
++
++    private func finish() {
++        guard !isClosing else { return }
++        isClosing = true
++        close()
++    }
++
++    private var desiredDescription: String {
++        guard let desired = model.preferences.desired else { return "未選択。撮影設定から条件を選んでください。" }
++        return ProductCaptureText.settings(desired.configuration, exposure: desired.exposure, zoom: desired.zoom,
++                                           camera: model.cameras.first { $0.id == desired.configuration.camera }?.label)
++    }
++
++    private var appliedDescription: String {
++        guard let values = model.prepared?.applied.values.value else { return "未確認。希望する設定はまだ実適用値として確認できていません。" }
++        return ProductCaptureText.settings(values.configuration, exposure: values.exposure, zoom: values.zoom,
++                                           camera: model.cameras.first { $0.id == values.configuration.camera }?.label)
++    }
++
++    private var canStop: Bool {
++        model.capture?.phase == .starting || model.capture?.phase == .recording
++    }
++
++    private var phaseDescription: String {
++        switch model.capture?.phase {
++        case .ready, nil: return model.canRecord ? "録画できます" : "準備待ち"
++        case .starting: return "録画開始を受け付けました・実開始待ち"
++        case .recording: return "録画中"
++        case .stopping: return "停止要求済み・録画の終了待ち"
++        case .ended: return "録画は終了しました"
++        case .blocked: return "録画を開始できません"
++        }
++    }
++
++    private var saveDescription: String {
++        switch model.saveResult {
++        case .saved: return "アプリ内への保存完了。ライブラリで原本の再生可否を確認できます。"
++        case .partial: return "部分保存。保存された範囲の確認が必要です。"
++        case .unknown: return "保存結果不明・要照合。正常保存として扱いません。"
++        case .failed: return "保存失敗。ライブラリで保存記録を確認してください。"
++        case nil:
++            return model.isBusy ? "録画・保存の処理中。保存結果はまだ確定していません。" : "この撮影の保存結果はまだありません。"
++        }
++    }
++}
++
++enum ProductCaptureText {
++    static func codec(_ codec: CaptureCodec) -> String {
++        switch codec {
++        case .proRes422LT: "ProRes 422 LT（標準）"
++        case .proRes422: "ProRes 422（上位）"
++        case .proRes422Proxy: "ProRes 422 Proxy（容量優先）"
++        }
++    }
++
++    static func log(_ log: CaptureLogEncoding) -> String {
++        log == .appleLog ? "Apple Log" : "Apple Log 2"
++    }
++
++    static func stabilization(_ mode: String) -> String {
++        switch mode {
++        case "off": "OFF"
++        case "standard": "標準"
++        case "cinematic": "シネマティック"
++        case "cinematicExtended": "拡張シネマティック"
++        case "cinematicExtendedEnhanced": "強化拡張シネマティック"
++        case "auto": "自動"
++        default: mode
++        }
++    }
++
++    static func settings(_ configuration: CaptureConfiguration, exposure: CaptureManualExposure,
++                         zoom: Double, camera: String?) -> String {
++        "\(camera ?? "保存したカメラ") · \(configuration.width)×\(configuration.height) · \(configuration.framesPerSecond)fps\n"
++            + "\(codec(configuration.codec)) · \(log(configuration.logEncoding))\n"
++            + "シャッター \(exposure.shutter.ticks)/\(exposure.shutter.timescale) 秒 · ISO \(exposure.iso.formatted()) · 倍率 \(zoom.formatted())×\n"
++            + "補正：\(stabilization(configuration.stabilizationMode))"
++    }
++}
+--- /dev/null
++++ current/FrameRelay/Platform/Capture/CaptureCreationMetadata.swift
+@@ -0,0 +1,18 @@
++import AVFoundation
++import Foundation
++
++/// Both recording candidates receive the same independently observed calendar date.
++/// A nil legacy/exploration date does not become the time of encoding or inspection.
++nonisolated enum CaptureCreationMetadata {
++    static func items(capturedAt: Date?) -> [AVMetadataItem] {
++        guard let capturedAt, capturedAt.timeIntervalSince1970.isFinite else { return [] }
++        let formatter = ISO8601DateFormatter()
++        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
++        formatter.timeZone = TimeZone(secondsFromGMT: 0)
++        let item = AVMutableMetadataItem()
++        item.identifier = .quickTimeMetadataCreationDate
++        item.value = formatter.string(from: capturedAt) as NSString
++        item.dataType = kCMMetadataBaseDataType_UTF8 as String
++        return [item]
++    }
++}
+--- /dev/null
++++ current/FrameRelay/Platform/Capture/ProductReservedOriginalDestination.swift
+@@ -0,0 +1,20 @@
++import Foundation
++import AVFoundation
++
++/// Product save has already reserved the destination before accepting REC.
++actor ProductReservedOriginalDestination: ExplorationOriginalDestinationPort {
++    private let store: ManagedOriginalStore
++    init(store: ManagedOriginalStore) { self.store = store }
++    func reserve(original: CaptureOriginalReference) async throws -> URL {
++        try await store.reservedURL(for: original)
++    }
++    func byteCount(for original: CaptureOriginalReference) async throws -> UInt64 {
++        try await store.byteCount(for: original)
++    }
++}
++
++/// Session configuration/running stays on the capture actor. UI only attaches its preview layer.
++nonisolated final class NativeCapturePreviewSource: ProductCapturePreviewSource, @unchecked Sendable {
++    let session: AVCaptureSession
++    init(session: AVCaptureSession) { self.session = session }
++}
+--- /dev/null
++++ current/FrameRelay/Platform/LocalStore/CapturePreferenceStore.swift
+@@ -0,0 +1,34 @@
++import Foundation
++
++/// Separate atomic settings file; loading an unknown/corrupt document never overwrites it.
++actor CapturePreferenceStore: ProductCapturePreferencePort {
++    private struct Document: Codable {
++        let schema: Int
++        let preferences: ProductCapturePreferences
++    }
++    private let url: URL
++    init(url: URL) { self.url = url }
++
++    func load() throws -> ProductCapturePreferences {
++        guard FileManager.default.fileExists(atPath: url.path) else { return .init() }
++        let data = try Data(contentsOf: url)
++        struct Header: Decodable { let schema: Int }
++        let header: Header
++        do { header = try JSONDecoder().decode(Header.self, from: data) }
++        catch { throw ProductCapturePreferenceError.corruptStore }
++        guard header.schema == 1 else { throw ProductCapturePreferenceError.unknownSchema }
++        let document: Document
++        do { document = try JSONDecoder().decode(Document.self, from: data) }
++        catch { throw ProductCapturePreferenceError.corruptStore }
++        guard document.preferences.isValid else { throw ProductCapturePreferenceError.invalidSettings }
++        return document.preferences
++    }
++
++    func save(_ preferences: ProductCapturePreferences) throws {
++        guard preferences.isValid else { throw ProductCapturePreferenceError.invalidSettings }
++        if FileManager.default.fileExists(atPath: url.path) { _ = try load() }
++        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
++        let data = try JSONEncoder().encode(Document(schema: 1, preferences: preferences))
++        try data.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
++    }
++}
+--- /dev/null
++++ current/FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift
+@@ -0,0 +1,308 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@MainActor
++struct ProductCaptureCoordinatorTests {
++    @Test func wishesPersistIndependentlyAndMissingChoicesNeverStartRecording() async throws {
++        let fixture = try CaptureFixture()
++        let preferences = ProductCaptureTestPreferences()
++        let device = ProductCaptureTestDevice(fixture: fixture)
++        let save = ProductCaptureTestSave()
++        let model = model(preferences: preferences, device: device, save: save)
++        await model.load()
++        await model.record()
++        #expect(!model.canRecord)
++        #expect(await save.intents.isEmpty)
++        let wish = ProductCapturePreferences(desired: fixture.desired, outputCandidate: .sampleWriter)
++        await model.updatePreferences(wish)
++        #expect(await preferences.load() == wish)
++        #expect(model.prepared == nil)
++        await model.prepare()
++        #expect(model.canRecord)
++        #expect(model.capture == nil)
++    }
++
++    @Test func unsupportedOrDifferentReadbackCannotBecomeREC() async throws {
++        let fixture = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: fixture, differ: true)
++        let save = ProductCaptureTestSave()
++        let model = model(preferences: ProductCaptureTestPreferences(fixture: fixture), device: device, save: save)
++        await model.load(); await model.prepare(); await model.record()
++        #expect(model.prepared != nil) // Actual readback remains visible.
++        #expect(model.issue != nil)
++        #expect(!model.canRecord)
++        #expect(await save.intents.isEmpty)
++        #expect(await device.commands.isEmpty)
++    }
++
++    @Test func recorderStartsOnlyAfterIntentCommitThenSavesBindsAndRefreshesOnce() async throws {
++        let fixture = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: fixture)
++        let save = ProductCaptureTestSave(delayIntent: true)
++        let probe = ProductCaptureTestProbe()
++        let model = model(preferences: ProductCaptureTestPreferences(fixture: fixture), device: device, save: save, probe: probe)
++        await model.load(); await model.prepare()
++        let start = Task { await model.record() }
++        await save.waitForIntent()
++        #expect(await device.startCount == 0)
++        await save.releaseIntent()
++        await start.value
++        await eventually { model.capture?.phase == .recording }
++        #expect(await device.startCount == 1)
++        let intent = try #require(await save.intents.first)
++        #expect(intent.trialReference == nil)
++        #expect(intent.capturedAt == Date(timeIntervalSince1970: 1_700_000_000.125))
++        await model.stop()
++        await eventually { model.saveResult != nil && !model.isSaving }
++        #expect(model.saveResult == .unknown(.notMeasured))
++        #expect(await probe.bound == [intent.original])
++        #expect(await probe.refreshes == 1)
++        #expect(await save.ends.count == 1)
++        #expect(await save.files.count == 1)
++        await device.repeatLastEndAndFile()
++        for _ in 0..<20 { await Task.yield() }
++        #expect(await save.ends.count == 1)
++        #expect(await save.files.count == 1)
++        #expect(await probe.refreshes == 1)
++    }
++
++    @Test func earlySTOPAndLeavingRetainOwnerUntilLateIntentCommitWithoutStartingRecorder() async throws {
++        let fixture = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: fixture)
++        let save = ProductCaptureTestSave(delayIntent: true)
++        let probe = ProductCaptureTestProbe()
++        let model = model(preferences: ProductCaptureTestPreferences(fixture: fixture), device: device, save: save, probe: probe)
++        await model.load(); await model.prepare()
++        let start = Task { await model.record() }
++        await save.waitForIntent()
++        await model.leaveCapture()
++        #expect(model.isBusy)
++        #expect(await device.shutdowns == 0)
++        await save.releaseIntent()
++        await start.value
++        #expect(!model.isBusy)
++        #expect(await device.shutdowns == 1)
++        #expect(await device.startCount == 0)
++        #expect(await save.ends.first?.writer == .notStarted)
++        #expect(await save.files.isEmpty)
++        #expect(await probe.bound.isEmpty)
++        #expect(await probe.refreshes == 1)
++    }
++
++    @Test func backgroundStopKeepsSaveOwnerUntilCompletion() async throws {
++        let fixture = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: fixture)
++        let save = ProductCaptureTestSave()
++        let model = model(preferences: ProductCaptureTestPreferences(fixture: fixture), device: device, save: save)
++        await model.load(); await model.prepare(); await model.record()
++        await eventually { model.capture?.phase == .recording }
++        await model.leaveCapture()
++        await eventually { !model.isBusy && model.prepared == nil }
++        #expect(await save.files.count == 1)
++        #expect(await device.shutdowns == 1)
++    }
++
++    @Test func uncertainIntentCommitRefreshesListAndLeavingDoesNotStartRecorder() async throws {
++        let fixture = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: fixture)
++        let save = ProductCaptureTestSave(delayIntent: true, unknownIntent: true)
++        let probe = ProductCaptureTestProbe()
++        let model = model(preferences: ProductCaptureTestPreferences(fixture: fixture), device: device, save: save, probe: probe)
++        await model.load(); await model.prepare()
++        let start = Task { await model.record() }
++        await save.waitForIntent()
++        await model.leaveCapture()
++        await save.releaseIntent()
++        await start.value
++        #expect(await probe.refreshes == 1)
++        #expect(await device.startCount == 0)
++        #expect(await device.shutdowns == 1)
++        #expect(!model.isBusy)
++        #expect(model.issue != nil)
++    }
++
++    @Test func listRefreshMustFinishBeforeNextRECOrReconfiguration() async throws {
++        let fixture = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: fixture)
++        let save = ProductCaptureTestSave()
++        let probe = ProductCaptureTestProbe(holdRefresh: true)
++        let model = model(preferences: ProductCaptureTestPreferences(fixture: fixture), device: device, save: save, probe: probe)
++        await model.load(); await model.prepare(); await model.record()
++        await eventually { model.capture?.phase == .recording }
++        await model.stop()
++        await probe.waitForRefresh()
++        let context = try #require(model.capture?.context)
++        #expect(model.isSaving)
++        #expect(!model.canRecord)
++        await model.record()
++        await model.updatePreferences(.init())
++        await model.prepare()
++        #expect(model.capture?.context == context)
++        #expect(model.preferences.desired == fixture.desired)
++        #expect(await save.intents.count == 1)
++        await probe.releaseRefresh()
++        await eventually { !model.isBusy }
++        #expect(await probe.refreshes == 1)
++    }
++
++    @Test func audioInputFailureAfterPreparationBlocksNextREC() async throws {
++        let fixture = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: fixture)
++        let model = model(preferences: ProductCaptureTestPreferences(fixture: fixture), device: device, save: ProductCaptureTestSave())
++        await model.load(); await model.prepare(); await model.record()
++        await eventually { model.capture?.phase == .recording }
++        await model.stop()
++        await eventually { model.saveResult != nil && !model.isSaving && model.capture?.whiteBalance == .automatic }
++        let context = try #require(model.capture?.context)
++        let audio = CaptureAudioState(level: .unavailable(.notMeasured), input: .failed(.permissionDenied),
++                                      arrival: .unobserved, writing: .notStarted)
++        await device.emit(.capture(.audioObserved(context, sequence: 90, audio)))
++        await eventually { model.capture?.audio.input == audio.input }
++        #expect(!model.canRecord)
++    }
++
++    private func model(preferences: ProductCaptureTestPreferences, device: ProductCaptureTestDevice,
++                       save: ProductCaptureTestSave, probe: ProductCaptureTestProbe = .init()) -> ProductCaptureCoordinator {
++        ProductCaptureCoordinator(preferences: preferences, makeDevice: { _ in device }, save: save,
++            bindOriginal: { await probe.bind($0) }, didSave: { await probe.refresh() },
++            calendarNow: { Date(timeIntervalSince1970: 1_700_000_000.1259) })
++    }
++
++    private func eventually(_ condition: @MainActor () -> Bool) async {
++        for _ in 0..<2_000 {
++            if condition() { return }
++            await Task.yield()
++        }
++        #expect(condition())
++    }
++}
++
++actor ProductCaptureTestPreferences: ProductCapturePreferencePort {
++    private var value: ProductCapturePreferences
++    init(fixture: CaptureFixture? = nil) {
++        value = .init(desired: fixture?.desired, outputCandidate: fixture == nil ? nil : .sampleWriter)
++    }
++    func load() -> ProductCapturePreferences { value }
++    func save(_ preferences: ProductCapturePreferences) { value = preferences }
++}
++
++actor ProductCaptureTestProbe {
++    private let holdRefresh: Bool
++    private var release: CheckedContinuation<Void, Never>?
++    private var waiting: CheckedContinuation<Void, Never>?
++    init(holdRefresh: Bool = false) { self.holdRefresh = holdRefresh }
++    private(set) var bound: [CaptureOriginalReference] = []
++    private(set) var refreshes = 0
++    func bind(_ original: CaptureOriginalReference) -> Bool { bound.append(original); return true }
++    func refresh() async {
++        refreshes += 1
++        if holdRefresh {
++            await withCheckedContinuation { continuation in
++                release = continuation
++                waiting?.resume(); waiting = nil
++            }
++        }
++    }
++    func waitForRefresh() async {
++        if release != nil { return }
++        await withCheckedContinuation { waiting = $0 }
++    }
++    func releaseRefresh() { release?.resume(); release = nil }
++}
++
++actor ProductCaptureTestDevice: ProductCaptureDevicePort {
++    private let fixture: CaptureFixture
++    private let differ: Bool
++    private let stream: AsyncStream<ExplorationDeviceEvent>
++    private let continuation: AsyncStream<ExplorationDeviceEvent>.Continuation
++    private var intent: RecordingIntent?
++    private var lastEvents: [ExplorationDeviceEvent] = []
++    private(set) var commands: [CaptureIOCommand] = []
++    private(set) var shutdowns = 0
++    var startCount: Int { commands.filter { if case .startRecording = $0 { return true }; return false }.count }
++    init(fixture: CaptureFixture, differ: Bool = false) {
++        self.fixture = fixture; self.differ = differ
++        let pair = AsyncStream<ExplorationDeviceEvent>.makeStream()
++        stream = pair.stream; continuation = pair.continuation
++    }
++    func events() -> AsyncStream<CaptureIOEvent> { AsyncStream { $0.finish() } }
++    func productEvents() -> AsyncStream<ExplorationDeviceEvent> { stream }
++    func previewSource() -> (any ProductCapturePreviewSource)? { nil }
++    func discoverCameras() -> [ExplorationCameraDescription] {
++        let c = fixture.desired.configuration
++        return [.init(id: c.camera, label: "Synthetic camera", isVirtual: false, formats: [
++            .init(id: "transient-index", width: c.width, height: c.height, frameRateRanges: [24...30],
++                  logEncodings: [c.logEncoding], stabilizationModes: [c.stabilizationMode])])]
++    }
++    func shutDown() { shutdowns += 1 }
++    func prepare(_ request: ProductCapturePreparation) throws -> ExplorationPrepared {
++        let c = fixture.capabilities
++        let exposure = differ ? try CaptureManualExposure(shutter: fixture.desired.exposure.shutter, iso: 161, aperture: nil) : fixture.desired.exposure
++        return .init(capabilities: .init(generation: request.generation, configurations: c.configurations,
++            controlsForConfiguration: c.controlsForConfiguration, manualControls: c.manualControls, whiteBalanceLock: c.whiteBalanceLock),
++            applied: .init(generation: request.generation, operation: request.operation,
++                values: .observed(.init(configuration: request.desired.configuration, exposure: exposure, zoom: request.desired.zoom),
++                    at: fixture.time, method: .direct(source: "synthetic"))), audio: fixture.audio)
++    }
++    func submit(_ command: CaptureIOCommand) -> CaptureCommandAcceptance {
++        commands.append(command)
++        switch command {
++        case .lockCurrentWhiteBalance(let token): emit(.capture(.whiteBalanceLocked(token, fixture.lock)))
++        case .restoreAutomaticWhiteBalance(let token): emit(.capture(.automaticWhiteBalanceRestored(token, fixture.time)))
++        case .startRecording(let token, let intent):
++            self.intent = intent
++            emit(.capture(.recordingStarted(token, fixture.time)))
++        case .stopRecording(let token, _):
++            guard let intent else { break }
++            lastEvents = [.capture(.recordingEnded(token, fixture.end)),
++                .fileFinalized(.init(context: intent.context, original: intent.original, byteCount: 4096, finalizedAt: fixture.time))]
++            for event in lastEvents { emit(event) }
++        case .refreshAndLockWhiteBalance: break
++        }
++        return .accepted(command.token)
++    }
++    func emit(_ event: ExplorationDeviceEvent) { continuation.yield(event) }
++    func repeatLastEndAndFile() { for event in lastEvents { emit(event) } }
++}
++
++actor ProductCaptureTestSave: ProductCaptureSavePort {
++    private let delayIntent: Bool
++    private let unknownIntent: Bool
++    private var release: CheckedContinuation<Void, Never>?
++    private var started: CheckedContinuation<Void, Never>?
++    private(set) var intents: [RecordingIntent] = []
++    private(set) var ends: [RecordingEndEvidence] = []
++    private(set) var files: [CaptureFileEvidence] = []
++    init(delayIntent: Bool = false, unknownIntent: Bool = false) {
++        self.delayIntent = delayIntent; self.unknownIntent = unknownIntent
++    }
++    func waitForIntent() async {
++        if !intents.isEmpty { return }
++        await withCheckedContinuation { started = $0 }
++    }
++    func releaseIntent() { release?.resume(); release = nil }
++    func begin(_ intent: RecordingIntent, token: CaptureCommandToken) async -> OriginalSaveOperationResult {
++        intents.append(intent)
++        if delayIntent {
++            await withCheckedContinuation { continuation in
++                release = continuation
++                started?.resume(); started = nil
++            }
++        }
++        if unknownIntent { return .requiresReconciliation(.interrupted) }
++        return .ready(.init(token: token, previousRevision: 0, committedRevision: 1))
++    }
++    func recordingEnded(context: CaptureContext, evidence: RecordingEndEvidence) -> OriginalSaveOperationResult {
++        ends.append(evidence); return .accepted
++    }
++    func fileFinalized(_ file: CaptureFileEvidence, resultToken: CaptureCommandToken) -> OriginalSaveOperationResult {
++        files.append(file)
++        guard let intent = intents.last, let end = ends.last else { return .rejected(.wrongStage) }
++        let inspection = CaptureMediaInspection(context: intent.context, original: intent.original,
++            video: .unavailable(.notMeasured), audio: .unavailable(.notMeasured), format: .unavailable(.notMeasured),
++            playback: .unavailable(.notMeasured), completeness: .unknown(.notMeasured))
++        return .committed(.init(intent: intent, end: end, file: file, inspection: inspection, result: .unknown(.notMeasured)),
++                          .init(token: resultToken, previousRevision: 1, committedRevision: 2))
++    }
++}
+--- /dev/null
++++ current/FrameRelayTests/Integration/Composition/ProductCaptureSavePlaybackTests.swift
+@@ -0,0 +1,158 @@
++import AVFoundation
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@Suite(.serialized) @MainActor
++struct ProductCaptureSavePlaybackTests {
++    @Test func ordinaryIntentFlowsThroughCommonSaveReopenLibraryAndRealOriginalPlayback() async throws {
++        let parent = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
++            .appendingPathComponent("FrameRelay-capture-save-playback-" + UUID().uuidString, isDirectory: true)
++        try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: false)
++        // Retain this isolated evidence until process/container teardown. The
++        // lifetime of a test function does not prove SQLite descriptors closed.
++        let services = try await ProductLibraryFactory(supportDirectory: parent).open()
++        let fixture = try CaptureFixture(clip: "ordinary-capture-save-playback")
++        let capturedAt = Date(timeIntervalSince1970: 1_600_000_000.25)
++        let intent = RecordingIntent(context: fixture.context, operation: fixture.intent.operation,
++            original: fixture.intent.original, desired: fixture.desired, applied: fixture.applied,
++            acceptedAt: fixture.time, capturedAt: capturedAt)
++        let inspector = AVOriginalInspectionAdapter(originals: services.originals)
++        let saving = OriginalSaveCoordinator(store: services.store, originals: services.originals,
++                                             inspection: inspector)
++
++        try #require(await saving.begin(intent, token: fixture.token(1))
++            == .ready(fixture.receipt(fixture.token(1))))
++        let pending = try await capturePlaybackRecordingSnapshot(services.store)
++        #expect(pending.recordings.count == 1)
++        #expect(pending.recordings.first?.intent == intent)
++        #expect(pending.recordings.first?.result == nil)
++        // The common save owner reserved once, before committing the intent.
++        // The producer must consume that reservation instead of reserving again.
++        let destination = ProductReservedOriginalDestination(store: services.originals)
++        let url = try await destination.reserve(original: intent.original)
++        #expect(url == (try await services.originals.reservedURL(for: intent.original)))
++        try await SyntheticMovieFixture.write(to: url, withAudio: true, durationSeconds: 3)
++        try #require(await saving.recordingEnded(context: fixture.context, evidence: fixture.end) == .accepted)
++        guard case .present(let byteCount) = await services.originals.observeFile(intent.original) else {
++            Issue.record("The finalized synthetic movie must exist in its managed reservation")
++            throw CaptureContractError.evidenceMismatch
++        }
++        #expect(byteCount > 0)
++        let file = CaptureFileEvidence(context: fixture.context, original: intent.original,
++                                       byteCount: byteCount, finalizedAt: fixture.time)
++        guard case .committed(let record, let receipt) = await saving.fileFinalized(file, resultToken: fixture.token(4)) else {
++            Issue.record("Common save did not commit its actual file inspection")
++            throw CaptureContractError.wrongStage
++        }
++        #expect(receipt == fixture.receipt(fixture.token(4), previous: 1))
++        #expect(record.intent == intent)
++        #expect(record.intent.trialReference == nil)
++        #expect(record.intent.capturedAt == capturedAt)
++        #expect(record.file.byteCount == byteCount)
++        #expect(record.inspection.video.hasSamples)
++        #expect(record.inspection.audio.hasSamples)
++        // Synthetic H.264 and PCM prove the save/playback connection only. The
++        // inspector has no validated actual-Log or complete-playback evidence.
++        #expect(record.result == .unknown(.evidenceMissing))
++        #expect(record.inspection.playback == .unavailable(.notMeasured))
++        #expect(record.inspection.completeness == .unknown(.evidenceMissing))
++        let observation = try #require(await inspector.observation(for: intent.original))
++        #expect(observation.videoTrackCount == 1 && observation.audioTrackCount == 1)
++        #expect(observation.digest.byteCount == byteCount)
++
++        guard case .succeeded(let binding) = await services.access.bind(intent.original,
++            operation: .init(rawValue: "bind-ordinary-capture-save-playback")) else {
++            Issue.record("The saved original must have a committed content binding")
++            throw CaptureContractError.evidenceMismatch
++        }
++        #expect(binding.saveRecord == record && binding.saveCommit == receipt)
++        #expect(binding.original.content.digest == observation.digest.sha256)
++
++        let reopened = try await ProductLibraryFactory(supportDirectory: parent).open()
++        #expect(reopened.store !== services.store)
++        guard case .loaded(let snapshot) = await reopened.reader.loadLibrary() else {
++            Issue.record("The product library must reopen the shared save and content binding")
++            throw CaptureContractError.wrongStage
++        }
++        try #require(snapshot.items.count == 1)
++        let item = try #require(snapshot.items.first)
++        #expect(snapshot.history.isEmpty)
++        #expect(item.id == fixture.context.capture)
++        #expect(item.recording.intent == intent)
++        #expect(item.recording.intent.capturedAt == capturedAt)
++        #expect(item.recording.result == record)
++        #expect(item.original == binding.original)
++        #expect(item.file == .present(byteCount: byteCount))
++        #expect(item.requiresReconciliation)
++        let before = try await capturePlaybackRecordingSnapshot(reopened.store)
++        let digestBefore = try await reopened.originals.digest(for: intent.original)
++        #expect(digestBefore == observation.digest)
++
++        let player = AVOriginalPlayback(access: reopened.access)
++        let playbackModel = OriginalPlaybackModel(playback: player)
++        let commands = OriginalPlaybackLibraryCommands(model: playbackModel)
++        let library = LibraryModel(reader: reopened.reader, commands: commands)
++        let source: OriginalPlaybackSource
++        do {
++            await library.refresh()
++            #expect(library.failure == nil)
++            #expect(library.item(fixture.context.capture)?.recording.intent.capturedAt == capturedAt)
++            try #require(library.availability(.playOriginal, captures: [fixture.context.capture]) == .available)
++            await library.submit(.playOriginal, captures: [fixture.context.capture])
++            #expect(library.submission?.phase == .playbackHandedOff)
++            #expect(playbackModel.target?.original == binding.original)
++            #expect(playbackModel.target?.reference == intent.original)
++            try #require(await captureSavePlaybackEventually { player.elapsedSeconds > 0 })
++            #expect(player.audioTrackCount == 1)
++            source = try #require(player.activeSource)
++            #expect(source.lease.original == binding.original)
++            #expect(await reopened.access.reconcileReaders(binding.original) == .inProgress)
++            #expect(library.availability(.playOriginal, captures: [fixture.context.capture]) != .available)
++        } catch {
++            // Even a failed assertion or cancelled wait must drain the SDK and
++            // release its durable original reader before the test exits.
++            await playbackModel.close()
++            throw error
++        }
++        await playbackModel.close()
++        #expect(playbackModel.target == nil && playbackModel.canOpen)
++        #expect(player.player == nil && !player.isBusy)
++        #expect(player.lastRelease == .succeeded(.init(lease: source.lease)))
++        guard case .succeeded = await reopened.access.reconcileReaders(binding.original),
++              case .succeeded(let originalState) = await reopened.store.loadOriginalState() else {
++            Issue.record("Playback reader and its file descriptor were not durably released")
++            throw CaptureContractError.wrongStage
++        }
++        #expect(originalState.originals.count == 1)
++        #expect(originalState.originals.allSatisfy { $0.readers.isEmpty })
++        #expect(originalState.originals.first?.binding == binding)
++        #expect(try await reopened.originals.digest(for: intent.original) == digestBefore)
++        let after = try await capturePlaybackRecordingSnapshot(reopened.store)
++        #expect(after.recordings == before.recordings)
++        #expect(after.recordings.first?.result?.result == .unknown(.evidenceMissing))
++        await library.refresh()
++        #expect(library.item(fixture.context.capture)?.recording.result == record)
++        #expect(library.item(fixture.context.capture)?.recording.intent.capturedAt == capturedAt)
++        #expect(library.availability(.playOriginal, captures: [fixture.context.capture]) == .available)
++    }
++}
++
++nonisolated private func capturePlaybackRecordingSnapshot(_ store: SQLiteRecordingStore) async throws
++    -> RecordingStoreSnapshot {
++    guard case .loaded(let snapshot) = await store.loadRecordings() else {
++        Issue.record("The real product recording store must be readable")
++        throw CaptureContractError.wrongStage
++    }
++    return snapshot
++}
++
++@MainActor private func captureSavePlaybackEventually(_ condition: () -> Bool) async -> Bool {
++    let deadline = ContinuousClock.now.advanced(by: .seconds(5))
++    while ContinuousClock.now < deadline {
++        if condition() { return true }
++        if Task.isCancelled { return false }
++        try? await Task.sleep(for: .milliseconds(20))
++    }
++    return condition()
++}
+--- /dev/null
++++ current/FrameRelayTests/Integration/Storage/ProductRecordingPersistenceTests.swift
+@@ -0,0 +1,256 @@
++import CoreData
++import Foundation
++import Testing
++@testable import FrameRelay
++
++struct ProductRecordingPersistenceTests {
++    @Test(arguments: StorageCandidate.allCases)
++    func ordinaryRecordingKeepsOneCalendarDateAcrossIntentResultAndReopen(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let fixture = try CaptureFixture()
++            let capturedAt = Date(timeIntervalSince1970: 1_600_000_000.25)
++            let intent = productIntent(fixture, capturedAt: capturedAt)
++            let store = try candidate.open(run, mode: .createNew)
++            #expect(await store.execute(.commitIntent(fixture.token(1), expectedRevision: 0, intent))
++                == .committed(fixture.receipt(fixture.token(1))))
++
++            let reopened = try candidate.open(.openExisting(at: run.url), mode: .openExisting)
++            let pending = try await productSnapshot(reopened)
++            #expect(pending.revision == 1)
++            #expect(pending.recordings.count == 1)
++            #expect(pending.recordings.first?.intent == intent)
++            #expect(pending.recordings.first?.intent.trialReference == nil)
++            #expect(pending.recordings.first?.intent.capturedAt == capturedAt)
++            #expect(pending.recordings.first?.result == nil)
++
++            let result = try productResult(fixture, intent: intent)
++            #expect(result.intent.capturedAt == capturedAt)
++            #expect(await reopened.execute(.commitResult(fixture.token(4), expectedRevision: 1, result))
++                == .committed(fixture.receipt(fixture.token(4), previous: 1)))
++            let completedStore = try candidate.open(.openExisting(at: run.url), mode: .openExisting)
++            let completed = try await productSnapshot(completedStore)
++            #expect(completed.revision == 2)
++            #expect(completed.recordings.first?.result == result)
++            #expect(completed.recordings.first?.result?.intent.capturedAt == capturedAt)
++            #expect(completed.recordings.first?.result?.result == .saved)
++            #expect(await completedStore.loadUnfinished() == .loaded([]))
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases)
++    func changingCalendarDateInResultCannotReplaceCommittedIntent(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let fixture = try CaptureFixture()
++            let capturedAt = Date(timeIntervalSince1970: 1_600_000_000)
++            let intent = productIntent(fixture, capturedAt: capturedAt)
++            let store = try candidate.open(run, mode: .createNew)
++            try #require(await store.execute(.commitIntent(fixture.token(1), expectedRevision: 0, intent))
++                == .committed(fixture.receipt(fixture.token(1))))
++            let altered = try productResult(fixture,
++                intent: productIntent(fixture, capturedAt: capturedAt.addingTimeInterval(1)))
++            #expect(await store.execute(.commitResult(fixture.token(4), expectedRevision: 1, altered))
++                == .rejected(fixture.token(4), .evidenceMismatch))
++
++            let reopened = try candidate.open(run, mode: .openExisting)
++            let snapshot = try await productSnapshot(reopened)
++            #expect(snapshot.revision == 1)
++            #expect(snapshot.recordings.first?.intent == intent)
++            #expect(snapshot.recordings.first?.result == nil)
++            let correct = try productResult(fixture, intent: intent)
++            #expect(await reopened.execute(.commitResult(fixture.token(4), expectedRevision: 1, correct))
++                == .committed(fixture.receipt(fixture.token(4), previous: 1)))
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases)
++    func ordinaryIntentRequiresFiniteCalendarObservationBeforeDiskCommit(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let fixture = try CaptureFixture()
++            let store = try candidate.open(run, mode: .createNew)
++            let dates: [Date?] = [nil, Date(timeIntervalSinceReferenceDate: .infinity),
++                                 Date(timeIntervalSinceReferenceDate: .nan)]
++            for capturedAt in dates {
++                let intent = productIntent(fixture, capturedAt: capturedAt)
++                #expect(await store.execute(.commitIntent(fixture.token(1), expectedRevision: 0, intent))
++                    == .rejected(fixture.token(1), .invalidValue))
++            }
++            let reopened = try candidate.open(run, mode: .openExisting)
++            let snapshot = try await productSnapshot(reopened)
++            #expect(snapshot.revision == 0)
++            #expect(snapshot.recordings.isEmpty)
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases)
++    func legacySchemaSixStaysUndatedAndMigratesOnlyOnCommit(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let legacyFixture = try CaptureFixture(clip: "legacy-undated-recording")
++            let legacyResult = try syntheticResult(legacyFixture, unknown: true)
++            let bytes = try JSONEncoder().encode(SchemaSixRecordingPayload(fixture: legacyFixture,
++                                                                           result: legacyResult))
++            #expect(String(decoding: bytes, as: UTF8.self).contains("\"capturedAt\"") == false)
++            try installProductPayload(bytes, candidate: candidate, run: run)
++
++            let store = try candidate.open(run, mode: .openExisting)
++            let legacy = try await productSnapshot(store)
++            #expect(legacy.revision == 2)
++            #expect(legacy.recordings.count == 1)
++            #expect(legacy.recordings.first?.intent == legacyFixture.intent)
++            #expect(legacy.recordings.first?.result == legacyResult)
++            #expect(legacy.recordings.first?.intent.capturedAt == nil)
++            #expect(legacy.recordings.first?.result?.intent.capturedAt == nil)
++            #expect(try readProductPayload(candidate: candidate, run: run) == bytes)
++
++            let fixture = try CaptureFixture(clip: "ordinary-after-migration")
++            let capturedAt = Date(timeIntervalSince1970: 1_600_000_000)
++            let intent = productIntent(fixture, capturedAt: capturedAt)
++            #expect(await store.execute(.commitIntent(fixture.token(1), expectedRevision: 0, intent))
++                == .committed(fixture.receipt(fixture.token(1))))
++            let reopened = try candidate.open(.openExisting(at: run.url), mode: .openExisting)
++            let after = try await productSnapshot(reopened)
++            #expect(after.revision == 3)
++            #expect(after.recordings.count == 2)
++            #expect(after.recordings.first == legacy.recordings.first)
++            #expect(after.recordings.last?.intent == intent)
++            let migratedBytes = try readProductPayload(candidate: candidate, run: run)
++            let document = try RecordingStoreDocument.decode(migratedBytes)
++            #expect(document.schema == RecordingStoreDocument.currentSchema)
++            #expect(document.legacyRevision == 0)
++            #expect(try firstProductEntryJSON(migratedBytes) == firstProductEntryJSON(bytes))
++        }
++    }
++
++    @Test func missingLegacyTrialCannotBeReclassifiedAsOrdinaryRecording() throws {
++        let fixture = try CaptureFixture()
++        let bytes = try JSONEncoder().encode(SchemaSixRecordingPayload(fixture: fixture,
++            result: syntheticResult(fixture, unknown: true)))
++        var object = try #require(JSONSerialization.jsonObject(with: bytes) as? [String: Any])
++        var entries = try #require(object["entries"] as? [[String: Any]])
++        var intent = try #require(entries[0]["intent"] as? [String: Any])
++        intent.removeValue(forKey: "trialReference")
++        // A calendar value does not make a malformed schema-6 record legitimate.
++        intent["capturedAt"] = 123.0
++        entries[0]["intent"] = intent
++        var result = try #require(entries[0]["result"] as? [String: Any])
++        result["intent"] = intent
++        entries[0]["result"] = result
++        object["entries"] = entries
++        let corrupt = try JSONSerialization.data(withJSONObject: object)
++        #expect(throws: ExplorationStorageError.corruptStore) { try RecordingStoreDocument.decode(corrupt) }
++    }
++}
++
++nonisolated private func productIntent(_ fixture: CaptureFixture, capturedAt: Date?) -> RecordingIntent {
++    RecordingIntent(context: fixture.context, operation: fixture.intent.operation, original: fixture.intent.original,
++                    desired: fixture.desired, applied: fixture.applied, acceptedAt: fixture.time,
++                    capturedAt: capturedAt)
++}
++
++nonisolated private func productResult(_ fixture: CaptureFixture, intent: RecordingIntent) throws -> RecordingResultRecord {
++    var lifecycle = try RecordingSaveLifecycle(intent: intent, intentToken: fixture.token(1), revision: 0)
++    try lifecycle.acceptIntentCommit(fixture.receipt(fixture.token(1)))
++    try lifecycle.acceptRecordingEnd(context: fixture.context, evidence: fixture.end)
++    try lifecycle.acceptFile(fixture.file)
++    _ = try lifecycle.acceptInspection(fixture.inspection(), resultToken: fixture.token(4))
++    return try #require(lifecycle.resultRecord)
++}
++
++nonisolated private func productSnapshot(_ store: any RecordingStorePort) async throws -> RecordingStoreSnapshot {
++    guard case .loaded(let snapshot) = await store.loadRecordings() else {
++        Issue.record("Expected readable product recording store")
++        throw CaptureContractError.wrongStage
++    }
++    return snapshot
++}
++
++/// Frozen schema-6 envelope and intent: legacy encoding must never acquire the
++/// current optional fields or depend on relabeling the current document schema.
++nonisolated private struct SchemaSixRecordingPayload: Encodable {
++    let schema = 6
++    let entries: [LegacyEntry]
++    let transactionRevision: UInt64 = 2
++    let originalJournal: [OriginalStoreJournalEntry] = []
++    let backendJournal: [BackendStoreJournalEntry] = []
++    let legacyRevision: UInt64 = 0
++
++    struct LegacyIntent: Encodable {
++        let context: CaptureContext
++        let operation: CaptureOperationID
++        let original: CaptureOriginalReference
++        let trialReference: String
++        let desired: DesiredCaptureSettings
++        let applied: AppliedCaptureSettings
++        let acceptedAt: CaptureTimeObservation
++    }
++
++    struct LegacyResult: Encodable {
++        let intent: LegacyIntent
++        let end: RecordingEndEvidence
++        let file: CaptureFileEvidence
++        let inspection: CaptureMediaInspection
++        let result: RecordingSaveResult
++    }
++
++    struct LegacyEntry: Encodable {
++        let intentToken: CaptureCommandToken
++        let intent: LegacyIntent
++        let revision: UInt64 = 2
++        let resultToken: CaptureCommandToken
++        let result: LegacyResult
++    }
++
++    init(fixture: CaptureFixture, result: RecordingResultRecord) throws {
++        let intent = LegacyIntent(context: fixture.context, operation: fixture.intent.operation,
++            original: fixture.intent.original, trialReference: try #require(fixture.intent.trialReference),
++            desired: fixture.desired, applied: fixture.applied, acceptedAt: fixture.time)
++        entries = [.init(intentToken: fixture.token(1), intent: intent, resultToken: fixture.token(4),
++            result: .init(intent: intent, end: result.end, file: result.file, inspection: result.inspection,
++                          result: result.result))]
++    }
++}
++
++nonisolated private func firstProductEntryJSON(_ data: Data) throws -> Data {
++    let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
++    let entries = try #require(object["entries"] as? [[String: Any]])
++    return try JSONSerialization.data(withJSONObject: #require(entries.first), options: .sortedKeys)
++}
++
++nonisolated private func installProductPayload(_ data: Data, candidate: StorageCandidate,
++                                              run: ExplorationRunDirectory) throws {
++    if candidate == .atomicFile {
++        try data.write(to: run.url.appendingPathComponent(candidate.fileName), options: .withoutOverwriting)
++    } else {
++        let context = try productPayloadContext(run)
++        try context.performAndWait {
++            let object = NSEntityDescription.insertNewObject(forEntityName: "Document", into: context)
++            object.setValue(data, forKey: "payload")
++            try context.save()
++        }
++    }
++}
++
++nonisolated private func readProductPayload(candidate: StorageCandidate, run: ExplorationRunDirectory) throws -> Data {
++    if candidate == .atomicFile { return try Data(contentsOf: run.url.appendingPathComponent(candidate.fileName)) }
++    let context = try productPayloadContext(run)
++    return try context.performAndWait {
++        let rows = try context.fetch(NSFetchRequest<NSManagedObject>(entityName: "Document"))
++        try #require(rows.count == 1)
++        return try #require(rows.first?.value(forKey: "payload") as? Data)
++    }
++}
++
++nonisolated private func productPayloadContext(_ run: ExplorationRunDirectory) throws -> NSManagedObjectContext {
++    let entity = NSEntityDescription()
++    entity.name = "Document"; entity.managedObjectClassName = "NSManagedObject"
++    let payload = NSAttributeDescription()
++    payload.name = "payload"; payload.attributeType = .binaryDataAttributeType; payload.isOptional = false
++    entity.properties = [payload]
++    let model = NSManagedObjectModel()
++    model.entities = [entity]; model.versionIdentifiers = ["FrameRelay-D04-v1"]
++    let coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
++    try coordinator.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil,
++        at: run.url.appendingPathComponent("recordings.sqlite"))
++    let context = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
++    context.persistentStoreCoordinator = coordinator
++    return context
++}
+--- /dev/null
++++ current/FrameRelayTests/Platform/Capture/ProductCaptureSettingsTests.swift
+@@ -0,0 +1,67 @@
++import Foundation
++import AVFoundation
++import Testing
++@testable import FrameRelay
++
++struct ProductCaptureSettingsTests {
++    @Test func settingStoreReopenPreservesWishesWithoutCapabilitiesOrWBLock() async throws {
++        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("settings.json")
++        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
++        let fixture = try CaptureFixture()
++        let wish = ProductCapturePreferences(desired: fixture.desired, outputCandidate: .movieFile)
++        let first = CapturePreferenceStore(url: url)
++        #expect(try await first.load() == .init())
++        try await first.save(wish)
++        let reopened = CapturePreferenceStore(url: url)
++        #expect(try await reopened.load() == wish)
++        let object = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
++        let encoded = try #require(object["preferences"] as? [String: Any])
++        #expect(Set(encoded.keys) == ["desired", "outputCandidate"])
++    }
++
++    @Test(arguments: ["{\"schema\":999,\"preferences\":{}}", "not-json"])
++    func unknownOrCorruptSettingsRemainUnchanged(data: String) async throws {
++        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("settings.json")
++        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
++        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
++        let original = Data(data.utf8)
++        try original.write(to: url)
++        let store = CapturePreferenceStore(url: url)
++        await #expect(throws: (any Error).self) { try await store.load() }
++        await #expect(throws: (any Error).self) { try await store.save(.init()) }
++        #expect(try Data(contentsOf: url) == original)
++    }
++
++    @Test func cameraAndFormatEnumerationOrderIsNotRestoredAsIdentity() throws {
++        let fixture = try CaptureFixture()
++        let configuration = fixture.desired.configuration
++        let matching = ExplorationFormatDescription(id: "format-1", width: 3840, height: 2160,
++            frameRateRanges: [24...30], logEncodings: [.appleLog], stabilizationModes: [configuration.stabilizationMode])
++        let otherFormat = ExplorationFormatDescription(id: "format-2", width: 1920, height: 1080,
++            frameRateRanges: [24...30], logEncodings: [.appleLog], stabilizationModes: [configuration.stabilizationMode])
++        let wanted = ExplorationCameraDescription(id: configuration.camera, label: "A", isVirtual: false, formats: [matching, otherFormat])
++        let other = ExplorationCameraDescription(id: "stable-other-device", label: "B", isVirtual: false, formats: [matching])
++        #expect(ProductCaptureConfigurationMatcher.hasCurrentFormat(for: configuration, cameras: [wanted, other]))
++        let reordered = ExplorationCameraDescription(id: configuration.camera, label: "A", isVirtual: false, formats: [otherFormat, matching])
++        #expect(ProductCaptureConfigurationMatcher.hasCurrentFormat(for: configuration, cameras: [other, reordered]))
++        #expect(!ProductCaptureConfigurationMatcher.hasCurrentFormat(for: configuration, cameras: [other]))
++        let disappeared = ExplorationCameraDescription(id: configuration.camera, label: "A", isVirtual: false, formats: [otherFormat])
++        #expect(!ProductCaptureConfigurationMatcher.hasCurrentFormat(for: configuration, cameras: [other, disappeared]))
++    }
++
++    @Test func observedCreationDateSurvivesWriterFinalizationAndAssetReopen() async throws {
++        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mov")
++        defer { try? FileManager.default.removeItem(at: url) }
++        let observed = Date(timeIntervalSince1970: 1_700_000_000.125)
++        try await SyntheticMovieFixture.write(to: url, withAudio: true, capturedAt: observed)
++        let asset = AVURLAsset(url: url)
++        let metadata = try await asset.loadMetadata(for: .quickTimeMetadata)
++        let creation = try #require(metadata.first(where: { $0.identifier == .quickTimeMetadataCreationDate }))
++        let value = try await creation.load(.stringValue)
++        let encoded = try #require(value)
++        let formatter = ISO8601DateFormatter()
++        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
++        #expect(formatter.date(from: encoded) == observed)
++        #expect(CaptureCreationMetadata.items(capturedAt: nil).isEmpty)
++    }
++}
+--- /dev/null
++++ current/FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
+@@ -0,0 +1,25 @@
++import XCTest
++
++final class ProductCaptureFlowTests: XCTestCase {
++    override func setUpWithError() throws { continueAfterFailure = false }
++
++    @MainActor func testOrdinaryCaptureWithoutTicketShowsSimulatorLimitationAndReturnsToLibrary() throws {
++        #if !targetEnvironment(simulator)
++        throw XCTSkip("Simulatorのカメラ利用不可表示を検証するケースです")
++        #else
++        let app = XCUIApplication()
++        app.launch()
++        let entry = app.buttons["product.capture"]
++        XCTAssertTrue(entry.waitForExistence(timeout: 10))
++        entry.tap()
++        let issue = app.staticTexts["capture.issue"]
++        XCTAssertTrue(issue.waitForExistence(timeout: 10))
++        XCTAssertTrue(issue.label.contains("Simulator"))
++        XCTAssertFalse(app.buttons["capture.rec"].isEnabled)
++        XCTAssertFalse(app.buttons["exploration.import"].exists)
++        app.buttons["capture.closeToolbar"].tap()
++        XCTAssertTrue(entry.waitForExistence(timeout: 5))
++        XCTAssertTrue(app.buttons["library.refresh"].exists)
++        #endif
++    }
++}

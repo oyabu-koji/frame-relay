@@ -1,0 +1,171 @@
+--- 001/prepare_registration_listener.py
++++ current/prepare_registration_listener.py
+@@ -4,6 +4,7 @@
+ import difflib
+ import hashlib
+ import json
++import os
+ from pathlib import Path
+ import re
+ import shutil
+@@ -15,6 +16,25 @@
+ SUPPORT = Path("/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/support/server-isolation")
+ BASE = ROOT / "S22/snapshot-001"
+ BASE_PREPARATION = ROOT / "S22/preparation-001"
++FROZEN_SOURCES = (
++    "README.md", "cases.json", "isolation_guard.py", "listener_probe.py", "prepare_snapshot.py",
++    "range_probe.py", "registration_listener.py", "request_listener_stop.py", "run_pytest.py",
++    "run_registration_simulator_probe.py", "run_simulator_probe.py",
++)
++
++
++def expected_methods():
++    # Read the literal allowlist without importing the wrapper or backend.
++    module = ast.parse((SUPPORT / "run_registration_simulator_probe.py").read_text())
++    for node in module.body:
++        if isinstance(node, ast.Assign) and any(
++                isinstance(target, ast.Name) and target.id == "EXPECTED_TESTS" for target in node.targets):
++            tests = ast.literal_eval(node.value)
++            if (len(tests) == 6 and len(set(tests)) == 6 and all(re.fullmatch(
++                    r"FrameRelayTests/Registration(?:Server|Transport)ProbeTests/test[A-Za-z0-9_]+\(\)",
++                    item) for item in tests)):
++                return list(tests)
++    raise RuntimeError("Expected the literal exact six-method allowlist")
+ 
+ 
+ def record(path):
+@@ -29,6 +49,27 @@
+             if path.is_file() or path.is_symlink()}
+ 
+ 
++def verify_external_runtime(original):
++    site = Path(original["site_packages_root"])
++
++    def dependency_record(path):
++        if path.is_symlink():
++            return {"kind": "symlink", "target": os.readlink(path),
++                    "resolved": str(path.resolve(strict=True))}
++        return record(path)
++
++    site_manifest = {str(path.relative_to(site)): dependency_record(path)
++        for path in sorted(site.rglob("*")) if path.is_file() or path.is_symlink()}
++    interpreter = Path(original["interpreter"]["entry"])
++    if (site_manifest != original["site_packages_before"] or
++            dependency_record(interpreter) != original["interpreter"]["record"] or
++            record(interpreter.resolve(strict=True)) != original["interpreter"]["resolved_record"] or
++            (interpreter.parent.parent / "pyvenv.cfg").read_text() != original["pyvenv_cfg"] or
++            {str(path.relative_to(site)): path.read_text() for path in sorted(site.glob("*.pth"))}
++            != original["pth"]):
++        raise RuntimeError("External site-packages/interpreter configuration changed")
++
++
+ def dump(path, value):
+     with path.open("x") as stream:
+         json.dump(value, stream, indent=2, sort_keys=True)
+@@ -45,19 +86,22 @@
+ def main():
+     parser = argparse.ArgumentParser()
+     parser.add_argument("--revision", required=True)
+-    parser.add_argument("--test", action="append", required=True)
++    parser.add_argument("--enumeration", type=Path, required=True)
+     args = parser.parse_args()
+     if re.fullmatch(r"[0-9]{3}", args.revision) is None:
+         raise SystemExit("Expected three-digit fresh revision")
+-    tests = args.test
+-    if len(tests) != len(set(tests)) or any(re.fullmatch(
+-        r"FrameRelayTests/Registration(?:Server|Transport)ProbeTests/test[A-Za-z0-9_]+", item
+-    ) is None for item in tests):
+-        raise SystemExit("Expected explicit reviewed registration probe test methods")
++    tests = expected_methods()
++    record(args.enumeration)
++    enumeration = json.loads(args.enumeration.read_text())
++    plans = enumeration.get("values", [])
++    if (enumeration.get("errors") != [] or len(plans) != 1 or
++            plans[0].get("testPlan") != "FrameRelay" or
++            sorted(item["identifier"] for item in plans[0].get("enabledTests", [])) != tests):
++        raise SystemExit("Enumeration must enable exactly the six reviewed methods including ()")
+     provenance_path = BASE_PREPARATION / "provenance-before.json"
+     original = json.loads(provenance_path.read_text())
+     base_before = tree(BASE)
+-    if base_before != original["snapshot"]:
++    if base_before != original["snapshot"] or len(base_before) != 253:
+         raise SystemExit("Verified S22 snapshot identity mismatch")
+     result_path = ROOT / "S22/runtime-pytest-001/result.json"
+     result = json.loads(result_path.read_text())
+@@ -69,11 +113,14 @@
+     source_before = {name: record(external / name) for name in original["source_before"]}
+     if source_before != original["source_before"]:
+         raise SystemExit("External tracked source changed")
+-    support_before = tree(SUPPORT)
++    verify_external_runtime(original)
++    support_before = {name: record(SUPPORT / name) for name in FROZEN_SOURCES}
++    auxiliary_before = {name: record(SUPPORT / name) for name in
++                        ("prepare_registration_listener.py", "run_registration_integration.py")}
+     guard_before = record(SUPPORT / "isolation_guard.py")
+     if guard_before != record(BASE_PREPARATION / "source-snapshot/server-isolation/isolation_guard.py"):
+         raise SystemExit("Guard differs from successful S22 version; separate review required")
+-    for name in support_before:
++    for name in (*support_before, *auxiliary_before):
+         if name.endswith(".py"):
+             ast.parse((SUPPORT / name).read_text(), filename=name)
+     snapshot = OUTPUT / ("snapshot-" + args.revision)
+@@ -89,12 +136,17 @@
+     for name in support_before:
+         copy(SUPPORT / name, frozen / name)
+     copy(Path(__file__), evidence / "prepare_registration_listener.py")
++    copy(SUPPORT / "run_registration_integration.py", evidence / "run_registration_integration.py")
++    copy(args.enumeration, evidence / "xcode-test-enumeration.json")
+     snapshot_manifest = tree(snapshot)
+-    if snapshot_manifest != base_before or tree(BASE) != base_before or tree(SUPPORT) != support_before:
++    if (snapshot_manifest != base_before or tree(BASE) != base_before or
++            {name: record(SUPPORT / name) for name in FROZEN_SOURCES} != support_before or
++            {name: record(SUPPORT / name) for name in auxiliary_before} != auxiliary_before):
+         raise SystemExit("Source changed during copy")
+     source_after = {name: record(external / name) for name in original["source_before"]}
+     if source_after != source_before:
+         raise SystemExit("External source changed during copy")
++    verify_external_runtime(original)
+     provenance = dict(original)
+     provenance.update({"snapshot": snapshot_manifest,
+         "s22_parent_provenance": str(provenance_path), "s22_parent_provenance_record": record(provenance_path),
+@@ -135,10 +187,11 @@
+     manifest = {"snapshot": snapshot_manifest, "frozen_sources": tree(frozen),
+         "snapshot_is_byte_identical_s22_copy": True, "s22_base_unchanged": True,
+         "external_tracked_source_unchanged": True, "guard_unchanged_from_s22": True,
++        "external_runtime_unchanged": True,
+         "base_provenance": record(provenance_path), "s22_result": record(result_path),
+         "provenance": record(new_provenance), "run_config": record(config_path),
+         "commands": record(evidence / "commands.json"), "runner_diff": record(evidence / "runner.diff"),
+-        "preparation_script": record(evidence / "prepare_registration_listener.py"),
++        "xcode_test_enumeration": record(evidence / "xcode-test-enumeration.json"),
+         "xcode_only_testing": tests, "backend_imported": False, "tests_executed": False,
+         "listener_started": False, "runtime_created": False,
+         "limits": ["guard is Python audit/SQLite containment, not a complete native OS sandbox",
+@@ -146,9 +199,26 @@
+                    "no real Wi-Fi/TLS/background/physical-device or PRD acceptance claim"]}
+     manifest_path = evidence / "checkpoint-files.json"
+     dump(manifest_path, manifest)
++    checkpoint_sha256 = record(manifest_path)["sha256"]
++    supervisor_manifest = {"files": {name: record(evidence / name) for name in auxiliary_before},
++        "checkpoint_sha256": checkpoint_sha256,
++        "meaning": "Preparation helper and supervisor are outside the eleven frozen runtime sources; no hash self-reference"}
++    supervisor_manifest_path = evidence / "supervisor-manifest.json"
++    dump(supervisor_manifest_path, supervisor_manifest)
++    integration_command = ["python3", "-I", "-B", "-S",
++        str(evidence / "run_registration_integration.py"), "--preparation", str(evidence),
++        "--checkpoint-sha256", checkpoint_sha256, "--supervisor-manifest-sha256",
++        record(supervisor_manifest_path)["sha256"], "--execute-reviewed-integration"]
++    dump(evidence / "integration-command.json", {"command": integration_command, "executed": False,
++        "requires": "main review and permission for this fresh listener and Xcode run"})
++    for path in evidence.iterdir():
++        if path.is_file():
++            path.chmod(0o444)
+     print(json.dumps({"evidence": str(evidence), "snapshot_files": len(snapshot_manifest),
+         "frozen_source_files": len(support_before), "test_methods": len(tests),
+-        "checkpoint_sha256": record(manifest_path)["sha256"], "runtime_created": False}))
++        "checkpoint_sha256": checkpoint_sha256,
++        "supervisor_manifest_sha256": record(supervisor_manifest_path)["sha256"],
++        "runtime_created": False}))
+ 
+ 
+ if __name__ == "__main__":

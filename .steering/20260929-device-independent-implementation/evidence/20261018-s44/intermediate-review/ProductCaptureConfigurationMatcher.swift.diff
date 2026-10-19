@@ -1,0 +1,53 @@
+--- baseline/FrameRelay/Application/Capture/ProductCaptureConfigurationMatcher.swift
++++ FrameRelay/Application/Capture/ProductCaptureConfigurationMatcher.swift
+@@ -1,5 +1,50 @@
+ /// A discover-time check only. Codec/manual controls still need preparation and SDK readback.
+ nonisolated enum ProductCaptureConfigurationMatcher {
++    static func stabilizationAvailability(mode: String, camera: String, width: Int = 3840,
++                                         height: Int = 2160, framesPerSecond: Int,
++                                         log: CaptureLogEncoding?,
++                                         cameras: [ExplorationCameraDescription]) -> CaptureStabilizationAvailability {
++        guard CaptureStabilizationCatalog.modes.contains(mode) else {
++            return .unsupported("保存した補正モードをこのアプリでは確認できません。")
++        }
++        // Apple documents this mode for preview-sized surfaces only, not recorded 4K.
++        guard mode != "previewOptimized" else {
++            return .unsupported("プレビュー用の補正です。4Kの記録出力には使用できません。")
++        }
++        guard !camera.isEmpty, framesPerSecond > 0, let log else {
++            return .unconfirmed("カメラ・fps・Logを選ぶと補正候補を確認できます。")
++        }
++        guard let camera = cameras.first(where: { $0.id == camera }) else {
++            return .unconfirmed("選択したカメラの現在の対応条件は未確認です。")
++        }
++        let formats = matchingFormats(camera: camera, width: width, height: height,
++                                      framesPerSecond: framesPerSecond, log: log)
++        guard !formats.isEmpty else {
++            return .unsupported("現在のカメラに選択した4K・fps・Logの組合せがありません。")
++        }
++        guard formats.contains(where: { $0.stabilizationModes.contains(mode) }) else {
++            return .unsupported("選択した4K・fps・Logの組合せは、この補正に対応していません。")
++        }
++        return .formatCandidate
++    }
++
++    static func stabilizationModes(camera: ExplorationCameraDescription?, framesPerSecond: Int,
++                                   log: CaptureLogEncoding?) -> [String] {
++        guard let camera, let log, framesPerSecond > 0 else { return [] }
++        let available = Set(matchingFormats(camera: camera, width: 3840, height: 2160,
++                                           framesPerSecond: framesPerSecond, log: log).flatMap(\.stabilizationModes))
++        return CaptureStabilizationCatalog.modes.filter { available.contains($0) }
++    }
++
++    private static func matchingFormats(camera: ExplorationCameraDescription, width: Int, height: Int,
++                                        framesPerSecond: Int, log: CaptureLogEncoding) -> [ExplorationFormatDescription] {
++        camera.formats.filter { format in
++            format.width == width && format.height == height
++                && format.frameRateRanges.contains { $0.contains(Double(framesPerSecond)) }
++                && format.logEncodings.contains(log)
++        }
++    }
++
+     static func hasCurrentFormat(for configuration: CaptureConfiguration,
+                                  cameras: [ExplorationCameraDescription]) -> Bool {
+         guard let camera = cameras.first(where: { $0.id == configuration.camera }) else { return false }

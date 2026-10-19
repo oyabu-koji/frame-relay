@@ -1,0 +1,67 @@
+{
+  "created_at": "2026-10-15T12:14:55.337620+00:00",
+  "entries": [
+    {
+      "path": "prepare_rendition_fixture.py",
+      "source": ".steering/20260929-device-independent-implementation/support/server-isolation/prepare_rendition_fixture.py",
+      "bytes": 12930,
+      "sha256": "621a3cd833595f5b0f8cd883ee91add5df00918d0f46b05b85d97610888cbc8f"
+    },
+    {
+      "path": "rendition_fixture_listener.py",
+      "source": ".steering/20260929-device-independent-implementation/support/server-isolation/rendition_fixture_listener.py",
+      "bytes": 18577,
+      "sha256": "d52c669b3812e53a263bc7c3c192c0a9a8c2b965e89abf1a0531ea91e4a0aa67"
+    },
+    {
+      "path": "run_rendition_fixture.py",
+      "source": ".steering/20260929-device-independent-implementation/support/server-isolation/run_rendition_fixture.py",
+      "bytes": 12289,
+      "sha256": "04d7fe6bfb9bcef9f118c3b118d948113c0cbf308643f23d82f5e4d8d1f2569b"
+    },
+    {
+      "path": "run_rendition_simulator_probe.py",
+      "source": ".steering/20260929-device-independent-implementation/support/server-isolation/run_rendition_simulator_probe.py",
+      "bytes": 10725,
+      "sha256": "671e18f4d90d7a0d5c08ef14a1428803e7cfa8ac6293f35e79a1c788c871a8fd"
+    },
+    {
+      "path": "README-rendition.md",
+      "source": ".steering/20260929-device-independent-implementation/support/server-isolation/README-rendition.md",
+      "bytes": 7734,
+      "sha256": "9afd1ae6e457ee68999df7fd6a2096c12fa2d852da95ce5e7ae6e7925002ac0c"
+    },
+    {
+      "path": "isolation_guard.py",
+      "source": ".steering/20260929-device-independent-implementation/support/server-isolation/isolation_guard.py",
+      "bytes": 18949,
+      "sha256": "74015efc998eb3dc8fe45387bc65b9e9bb2bbacd24ece43991ee644eff2e8265"
+    },
+    {
+      "path": "listener_lifecycle.py",
+      "source": ".steering/20260929-device-independent-implementation/support/server-isolation/listener_lifecycle.py",
+      "bytes": 12707,
+      "sha256": "738a43ebf7a7b88bebf9d0bb129e0d0fa8ff22801ad90f63dbe370c3cd28b632"
+    },
+    {
+      "path": "run_pytest.py",
+      "source": ".steering/20260929-device-independent-implementation/support/server-isolation/run_pytest.py",
+      "bytes": 17822,
+      "sha256": "2d787626748eb4960f6bf24f54d3cf4afd67765502b2802145b73fabc4ce0f3c"
+    }
+  ],
+  "reviewed_by": "main",
+  "helper_executed": false,
+  "http_executed": false,
+  "review": [
+    "No backend import; exact reviewed dependencies imported only after guard installation.",
+    "New runtime only; loopback one bind; exact fixture copy digest; source/dependency and media FD terminal verification.",
+    "0600 transient bearer environment, bound run/PID/origin/deadline, redacted child output and actual parent wait.",
+    "Exact SDK declaration IDs and argument cases, no skips/zero execution; client and listener streaming observations kept distinct.",
+    "Short/oversize cover header inconsistency, not valid-header truncated-body or native network-policy acceptance."
+  ],
+  "missing_inputs": [
+    "New 60-second synthetic movie and manifest",
+    "Current SDK enumeration after S25 compile fixes"
+  ]
+}

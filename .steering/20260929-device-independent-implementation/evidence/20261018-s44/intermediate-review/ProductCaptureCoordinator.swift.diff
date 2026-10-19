@@ -1,0 +1,132 @@
+--- baseline/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift
++++ FrameRelay/Application/Capture/ProductCaptureCoordinator.swift
+@@ -16,6 +16,7 @@
+     private(set) var isSaving = false
+     private(set) var preferencesLoaded = false
+     private(set) var captureVisit: UUID?
++    private(set) var framing = CaptureFramingState()
+     private(set) var observedAudio: CaptureAudioState?
+     private(set) var audioRecovery: ProductCaptureAudioRecoveryStatus = .idle
+     private(set) var isRecoveringAudio = false
+@@ -29,6 +30,7 @@
+     @ObservationIgnored private let captureNow: @Sendable () -> CaptureTimeObservation
+     @ObservationIgnored private var device: (any ProductCaptureDevicePort)?
+     @ObservationIgnored private var eventTask: Task<Void, Never>?
++    @ObservationIgnored private var stabilizationTask: Task<Void, Never>?
+     @ObservationIgnored private var audioTask: Task<Void, Never>?
+     @ObservationIgnored private var audioSequence: UInt64?
+     @ObservationIgnored private let audioPolicy: ProductCaptureAudioPolicy?
+@@ -70,7 +72,7 @@
+     var canRecord: Bool {
+         guard !isBusy, !leaveRequested, captureVisit != nil, preferencesLoaded, issue == nil, calendarNow != nil, let generation, let prepared,
+               preferences.desired != nil, preferences.outputCandidate != nil,
+-              currentAudio?.confirmedFailure == nil,
++              currentAudio?.confirmedFailure == nil, currentStabilizationAllowsRecording,
+               capture == nil || capture?.whiteBalance == .automatic else { return false }
+         return readiness(generation: generation, prepared: prepared).blockers.isEmpty
+     }
+@@ -180,6 +182,7 @@
+                 guard accepts(visit) else { await created.shutDown(); return }
+                 let stream = await created.productEvents()
+                 let audioStream = await created.audioSnapshots()
++                let stabilizationStream = await created.stabilizationSnapshots()
+                 guard accepts(visit) else { await created.shutDown(); return }
+                 let discovered = try await created.discoverCameras()
+                 guard accepts(visit) else { await created.shutDown(); return }
+@@ -195,6 +198,9 @@
+                 generation = nextGeneration
+                 cameras = discovered
+                 prepared = result
++                if let snapshot = result.stabilization {
++                    framing.receive(snapshot, generation: nextGeneration, desired: desired, output: candidate)
++                }
+                 observedAudio = result.audio
+                 audioSequence = nil
+                 audioRecovery = .idle
+@@ -212,6 +218,14 @@
+                         guard !Task.isCancelled else { return }
+                         await self?.receiveAudio(snapshot, epoch: epoch)
+                     }
++                }
++                stabilizationTask = Task { [weak self] in
++                    for await snapshot in stabilizationStream {
++                        guard !Task.isCancelled else { return }
++                        self?.receiveStabilization(snapshot, epoch: epoch)
++                    }
++                    guard !Task.isCancelled else { return }
++                    self?.stabilizationObservationEnded(epoch: epoch)
+                 }
+                 if readiness(generation: nextGeneration, prepared: result).blockers.contains(where: { $0 != .audioNotValid }) {
+                     issue = "希望設定を適用できません。現在の対応条件と実適用値を確認してください。"
+@@ -284,6 +298,8 @@
+     /// Safe on navigation/background. Capture events and persistence continue until settled.
+     func leaveCapture() async {
+         leaveRequested = true
++        framing.invalidate(.interrupted)
++        stabilizationTask?.cancel(); stabilizationTask = nil
+         captureVisit = nil
+         preparationOwner = nil
+         isPreparing = false
+@@ -356,6 +372,38 @@
+         await finishLeavingIfPossible()
+     }
+ 
++    var currentStabilization: CaptureStabilizationSnapshot? { framing.snapshot }
++
++    private var currentStabilizationAllowsRecording: Bool {
++        // Existing adapters may provide only the prepare-time applied observation.
++        // Missing framing evidence never claims crop/preview equality or overrides that observation.
++        guard let snapshot = currentStabilization else {
++            return prepared?.stabilization == nil && framing.invalidation != .evidenceMismatch
++        }
++        guard let desired = preferences.desired, let generation, let output = preferences.outputCandidate else { return false }
++        return snapshot.matchesRecordingRequest(desired, generation: generation, output: output,
++                                                preparedFormatID: prepared?.stabilization?.formatID)
++    }
++
++    private func receiveStabilization(_ snapshot: CaptureStabilizationSnapshot, epoch: UUID) {
++        guard epoch == eventEpoch, !leaveRequested, captureVisit != nil, let generation else { return }
++        framing.receive(snapshot, generation: generation, desired: preferences.desired, output: preferences.outputCandidate)
++    }
++
++    private func stabilizationObservationEnded(epoch: UUID) {
++        guard epoch == eventEpoch, !leaveRequested, currentStabilization != nil else { return }
++        framing.invalidate(.resourceUnavailable)
++    }
++
++    var stabilizationConstraint: String? {
++        guard prepared != nil, !currentStabilizationAllowsRecording else { return nil }
++        guard let snapshot = currentStabilization else {
++            return "補正の現在値を確認できません。再準備してください。"
++        }
++        if !snapshot.matchesRequest { return "希望する補正の実動作が未確認または不一致です。次のRECを開始できません。" }
++        return "カメラ・形式・倍率が準備時の条件と一致しません。希望設定を確認して再準備してください。"
++    }
++
+     private func receiveAudio(_ snapshot: ProductCaptureAudioSnapshot, epoch: UUID) async {
+         guard epoch == eventEpoch, snapshot.generation == generation,
+               audioSequence.map({ snapshot.sequence > $0 }) ?? true else { return }
+@@ -501,6 +549,8 @@
+ 
+     private func releaseDevice() async {
+         eventEpoch = UUID()
++        framing.invalidate(.notMeasured)
++        stabilizationTask?.cancel(); stabilizationTask = nil
+         let released = device
+         device = nil; previewSource = nil; prepared = nil; generation = nil; capture = nil
+         eventTask?.cancel(); eventTask = nil
+@@ -520,7 +570,13 @@
+         case .simulatorHasNoVerifiedCamera: return "Simulatorではカメラ撮影を利用できません。一覧と再生は利用できます。"
+         case .permissionDenied: return "カメラとマイクの使用許可を設定で確認してください。"
+         case .appliedValuesDiffer: return "希望設定と実際の適用値が一致しません。RECは開始できません。"
+-        case .capabilityUnconfirmed: return "現在のカメラでは選択した条件を確認できません。設定を変更してください。"
++        case .capabilityUnconfirmed(let reason) where reason.hasPrefix("stabilization_"):
++            switch reason {
++            case "stabilization_preview_only": return "選択した補正はプレビュー用で、4K記録には使えません。OFFまたは対応する補正を選んでください。"
++            case "stabilization_connection_unsupported": return "選択した記録方式の接続は希望する補正に対応していません。OFFまたは対応モードを選んでください。希望設定は保持しています。"
++            default: return "記録出力の補正を確認できません。接続と記録方式を確認して再準備してください。希望設定は保持しています。"
++            }
++        case .capabilityUnconfirmed: return "現在のカメラ・4K・fps・Log・補正・記録形式の組合せを確認できません。希望は保持しています。条件を確認し、対応モードまたはOFFを選んでください。"
+         default: return "カメラを準備できませんでした。条件を確認して再準備してください。"
+         }
+     }

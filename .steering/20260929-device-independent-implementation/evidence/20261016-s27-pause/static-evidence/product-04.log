@@ -1,0 +1,8 @@
+FrameRelay/Platform/Remote/PublicationWire.swift:104:30: error: operator can throw but expression is not marked with 'try'
+102 |         let object = try value.object(keys: ["current", "revision", "invalidation_generation", "replacement_pending", "media_type"])
+103 |         let current = object["current"] == .null ? nil : try decodeRendition(object["current"]!)
+104 |         guard current == nil || (try current.map { try original($0.original) == original(expected) }) == true else { throw BackendContractError.identityMismatch }
+    |                              |  `- note: call is to 'rethrows' function, but argument function can throw
+    |                              `- error: operator can throw but expression is not marked with 'try'
+105 |         let type = object["media_type"] == .null ? nil : try mediaType(object["media_type"]!)
+106 |         guard (current == nil) == (type == nil) else { throw BackendContractError.identityMismatch }

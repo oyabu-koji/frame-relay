@@ -1,0 +1,447 @@
+--- before/.steering/20260929-device-independent-implementation/design.md
++++ after/.steering/20260929-device-independent-implementation/design.md
+@@ -101,6 +101,10 @@
+ 
+ 人物候補・主役・特徴量はセッション内だけに保持し、永続的な人物台帳を作らない。撮影意図だけを既存設定storeへ保存する。解析は処理中1件と置換可能な待機1件に制限し、古い世代・逆順・期限超過の結果を拒否する。SDKの検出/追跡IDや画像特徴量は人物同一性の保証にしない。技術的な画像照合閾値は変更可能な実装設定であり、3秒の本人承認やSimulator試験を実機品質の採用へ昇格させない。合焦・前後追従・別人通過・同一主役再捕捉・人物優先AF・距離/照明・補正cropとpreview座標・Log入力・継続/負荷はDV-06で未確認として残す。Simulatorで別画像から同一FeaturePrintと初回微差を観測したため、固定参照の同一ROIから上限2回取得した特徴量と、Visionとは独立した実画素digestを照合する。特徴量が完全一致しても実画素が異なる場合は同一IDの継続・再捕捉を拒否する。距離閾値は緩和せず、別画像で固定参照を更新しない。raw bufferを追加保持せず、digestはセッション内だけに置く。SimulatorのSDK内部原因は未確定で、この防御をSDK自体の修復と扱わない。同じ人物も画素変化と特徴量衝突で保持になり得る制約、2回生成の追加負荷は実機未確認として残す。S45の接続・検証結果はtasklistに記録する。
+ 
++S46の本人承認（2026-10-18）: 入力信号別の交換可能な暫定基準で、撮影意図に応じた対象からND方向・理由・両立困難を参考表示する。結果の有効期間は入力映像の観測時点から暫定1秒とし、新しい結果が得られなければ旧案内を取り消して保留を示す。これは端末内リアルタイム解析の鮮度管理であり、バックエンドへの要求や通信を使わない。`ProductCaptureFactory` が `CaptureNDPolicy.provisionalV1(maximumResultAge: 1)` の同じ版をNativeとcoordinatorへ注入する。NDの保留や警告をREC開始・継続の条件にせず、露出設定・WB・物理ND・録画映像へ書き戻さない。
++
++実画素の符号値による未校正の基準であり、正確なND段数・EV・IRE・センサー余裕の測定ではない。信号のattachment、全体/各選択人物/背景、WB・構図・選択・解析失効の世代と単調時刻を照合する。変更や停止の観測時刻より前の入力は新contextでも受け付けず、KVOの変化通知がA→B→Aに戻っても失効する。この時刻境界はフレーム固有のWB gainを証明せず、Auto WBが変化し続ける間は保留が続き得る。基準・1秒・実写の方向一致・入力信号・ROI・WB・負荷の実機評価はDV-07へ残す。実装・製品接続・自動検証はS46に記録し、FR-06受入や実機採用へ昇格させない。
++
+ ズームは目標選択時点では実倍率を変えない。制御中の観測実倍率で目標超過を防ぎ、目標・途中停止を同じ制御器へ渡す。停止支援候補は実カメラ・形式・解像度・補正の根拠付きとし、整数倍率だけで品質保証しない。設定は目的・根拠・適用範囲・版・変更箇所・未採用フラグ付きの暫定値、DV-08後の採用値を別記録する。数値・吸着方式・詳細設定画面を計画で追加決定しない。
+ 
+ D02資材は由来・版・利用条件・入力Log適合を先に確認する。資材適合待ちはS26変換本体／S48表示変換だけへ局所化し、周辺版管理・描画分離・既知入力機能試験を先行する。既知入力の技術試験は本人の画質採用試験ではない。出力1080p HEVC等は候補のまま、G3事前合意→DV-13評価→G5採用を維持する。
+--- before/.steering/20260929-device-independent-implementation/requirements.md
++++ after/.steering/20260929-device-independent-implementation/requirements.md
+@@ -66,7 +66,7 @@
+ 
+ - 希望値、能力、実適用、実機評価済みを分ける。WB 安定・ND・人物検出待ちだけで REC を止めない。静寂と音声障害を分け、有限復旧後も自動 REC しない。
+ - AF は複数露出対象と単一主役、通常合焦・前後追従・同一主役再捕捉・別人へ移行なし・追跡 OFF の人物優先 AF まで含める。2026-10-18のS45本人承認に従い、人物なし時はタップ位置AF、初回意図は本人選択・保存復元・REC非阻害、見失い猶予は変更可能な暫定3秒後に保持/再指定待ちとする。実機品質や他の未合意候補を採用済みにしない。
+-- ND は解析入力と根拠から方向／理由／両立困難を扱い、遅延・停止・不確かな世代で旧 OK を失効する。常に保留だけでは完成にしない。
++- ND は解析入力と根拠から方向／理由／両立困難を扱い、遅延・停止・不確かな世代で旧 OK を失効する。常に保留だけでは完成にしない。2026-10-18のS46本人承認に従い、入力映像の観測時点から変更可能な暫定1秒で結果を失効し、交換可能な入力信号別の暫定基準で方向と理由を参考表示する。端末内で完結し、バックエンド通信やND判定をRECの条件にしない。正確なND段数や実機品質の採用はこの合意に含めない。
+ - ズーム予告で実倍率を変えず、原本へ焼き込まない。目標／途中停止と近傍停止支援を持ち、速度・精度・吸着許容差を版付き暫定設定と実機採用値に分ける。
+ - 適合する実 Log と由来・版・利用条件の確認済み標準資材だけを Rec.709 変換へ使う。compress-only、タグ変更、独自係数は代用しない。
+ 
+--- before/.steering/20260929-device-independent-implementation/tasklist.md
++++ after/.steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,11 +12,17 @@
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-18、S46本体・注入試験完了／製品policy判断待ち）
+-
+-- **S46 / blocked（製品policyの本人判断待ち）**: 実画素解析・人物/背景別評価・方向/理由・失効・UIと注入経路を実装。通常FactoryのND policyはnilで、通常撮影のND解析は未有効。「暫定1秒で失効」「入力信号/意図別の交換可能な暫定基準で方向と理由だけ参考表示」の2点は質問済み・回答未受領。実機未確認だけの完成品とは扱わない。
+-- **E-S46-01**: 通常構成の関連Unit48宣言/64展開、修正後ND16宣言/22展開、最後の時刻境界修正後Native ND12宣言/18展開、通常UI1件が各成功。generic iOS署名なしbuild成功。各版と差分/継承範囲を下記S46と `evidence/20261018-s46/` に記録し、重複caseを合算しない。実写の方向一致・WB対応/連続Auto時の保留・負荷はDV-07へ残す。
+-- **保全・所有**: 開始時7311fileのhash、証跡外の現物copy、git差分を `/private/tmp/fr-s46-20261018-ck1k643l/` に保存。未コミット/未追跡成果の現物へ加算し、旧証跡/README/memo/他taskを保持する。mainが本steering・証跡・差分確認を所有。`s46_explore` は接続点のread-only調査。
++## 現在の再開点（2026-10-18、S46製品接続・関連自動検証完了）
++
++- **S46 / done（本人合意・製品接続・自動検証範囲）**: 「2はOK」と、端末内リアルタイム解析の古い案内を失効させる期限でバックエンド非依存と説明後の「OK 理解 よろしく」を受領。入力観測から暫定1秒と交換可能な未校正基準による方向/理由の参考表示を合意し、通常Factoryから同一policyをNative/coordinatorへ接続した。NDをRECの阻害条件にしない。
++- **E-S46-02**: test-02のUnit26宣言/34展開＋通常UI1件が全成功。Simulator test buildとgeneric iOS署名なしbuild成功、失敗/skip/runtimeWarnings/compiler/analyzer 0。最終210入力はtest-02・ios-build-01・現物で一致。初回test-01の新規test macro隔離compile失敗/0件も保持。証跡 `evidence/20261018-s46-approved/`。
++- **保全・所有**: 開始時7503file/165,634,783bytesをhash照合し、既存10file変更/7493不変＋新規Composition test1file、削除/所有外変更/旧証跡変更0。mainはsteering・証跡・最終diff、worker s46_implはコード/test6file、document_author s46_docsは関連永続2文書を所有。doc_reviewer指摘なし。開始時copyとraw xcresultは `/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s46-approved-20261018-x4qojjkd/`。
++- **残件と次工程**: 実カメラdestinationなし。実入力/実WB KVO/連続Autoでの保留/実ROI・crop/実写方向/黒・反射/品質・負荷・数値採用はDV-07、FR-06受入は未確認。独立validationは同steeringへの明示 `$validate-implementation` で別途実施する。S47以降・他task既知残件は今回進めていない。
++
++### 前回のS46本体・注入試験記録
++
++- **E-S46-01**: 通常構成の関連Unit48宣言/64展開、修正後ND16宣言/22展開、最後の時刻境界修正後Native ND12宣言/18展開、通常UI1件が各成功。generic iOS署名なしbuild成功。各版と差分/継承範囲を下記S46と `evidence/20261018-s46/` に記録し、重複caseを合算しない。当時は製品policy判断待ちで、今回E-S46-02で合意・接続した。
++- **前回保全**: 開始時7311fileのhash、証跡外copy、git差分は `/private/tmp/fr-s46-20261018-ck1k643l/`。今回も旧証跡/README/memo/他taskを保持した。
+ 
+ ### 直前のS45実装完了記録
+ 
+@@ -713,14 +719,22 @@
+ 
+ ### S46 ND方向・理由・保留と設定再評価
+ 
+-- [ ] Status: blocked
+-  - E-S46-01 / 現在状態: 本体・注入可能なNative/coordinator/UIと関連自動検証＝実装済。通常Factoryの同policy採用/有効化＝本人判断待ち。暫定1秒とcode-domain暫定基準による方向/理由の参考表示は質問済み・未回答。通常画面は評価基準未設定の保留を明示し、S46全体done・FR-06受入にはしない。
++- [x] Status: done
++  - E-S46-02 / 完了範囲: 本体/通常製品接続/関連自動検証を完了。2026-10-18の本人合意に従い、`ProductCaptureFactory.provisionalNDPolicyV1` は `CaptureNDPolicy.provisionalV1(maximumResultAge: 1)`。同じ値を両記録候補のdevice builder→Nativeとcoordinatorへ注入し、未校正の参考表示とする。端末内で完結し、通信・NDの保留や警告をREC条件にしない。正確な段数や実機品質を承認済みにしない。
++  - E-S46-02 / 挙動検証: 新Composition試験は両候補でFactoryから渡ったpolicyを実解析queueへ接続し、実BGRA→参考案内、250msの配送遅延でも入力観測から1秒で失効、途中更新した結果を旧timerが消さないこと、失効後REC開始・方向案内/解析終了でも録画継続を確認。撮影制御はfakeであり実カメラ/WB/録画画質の証明ではない。既存NDの5画素形式/4信号・複数ROI・旧世代/入力時刻境界・失効、Subject/Audio接続、実MOV保存→一覧→AVPlayerの限定回帰を再実行。
++  - E-S46-02 / 最終結果: `test-02` Unit26宣言/34展開＋通常UI1成功、失敗/skip/runtimeWarnings 0。通常UIは入口・ND保留理由（評価基準未設定ではなく入力待ち）・閉じる操作を確認。Simulator test build・`ios-build-01` generic iOS/CODE_SIGNING_ALLOWED=NO build成功、compiler/analyzer診断0。stdoutの既存AppIntents metadata警告は保持。buildのtest0件は合格件数へ含めない。
++  - E-S46-02 / 最終版・証跡: test-02/ios-build-01/現物の210入力一致、run中変更0。各command/run/source hash・所有source copy・ログ・xcresult要約/test tree/build-results・開始時差分を `evidence/20261018-s46-approved/` に保存。全raw bundle/DerivedData/開始時copyは着手行の作業root。test-01の失敗版も保持し、結果は後続成功で上書きしない。
++  - E-S46-02 / 最終review・保全: mainがコード/test6file、永続2文書、steering3文書の開始時差分を確認。開始時7503file中、変更10/不変7493、新規test1、削除/所有外変更/旧証跡変更0。project/README/memo/既存store等を保持。doc_reviewerは指摘なし。実装内のmain確認であり独立validationではない。
++  - E-S46-02 / 引渡し: DV-07の実入力/実WB/連続Auto/ROI・crop/実写方向・反射・黒・負荷・暫定基準/1秒の採用、FR-06受入は未確認。独立検証は `$validate-implementation .steering/20260929-device-independent-implementation/` の明示で別途実施。今回の合意/Unit成功を全体完成や実機受入にせず、S47以降・他taskの既知残件を保持。
++  - E-S46-02 / 着手: 2026-10-18、上記2点の本人承認を受領。mainはsteering/証跡/差分確認、worker s46_implはFactoryと関連Composition/Application/UI test、document_author s46_docsはfunctional-design/architectureのND記述を所有。開始時7503fileのhashと証跡外copyを `/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s46-approved-20261018-x4qojjkd/` に保全。既存未コミット成果・旧証跡は保持する。
++  - E-S46-02 / 途中検証（履歴）: 通常Factoryの同一policy接続・両候補Composition試験・UI期待を更新。test-01は新規test内のSwift Testing property-access macroがactor隔離に違反するcompile失敗で0件実行。新規test内でlocalへ読み出す最小修正後、test-02が成功した。既存actor/言語/project設定は変更しない。command/source copy/log/xcresultは上記作業root。
++  - E-S46-01 / 前回時点（履歴）: 本体・注入可能なNative/coordinator/UIと関連自動検証＝実装済。通常Factoryの同policy採用/有効化＝本人判断待ち。暫定1秒とcode-domain暫定基準による方向/理由の参考表示は質問済み・未回答。通常画面は評価基準未設定の保留を明示し、S46全体done・FR-06受入にはしない。
+   - E-S46-01 / 本体: BGRA、8/10bit bi-planarのfull/video range（5形式）と実attachmentを照合し、709/sRGB/AppleLog/Log2を区別する。最大96×96標本、処理中1件＋置換待機1件。複数人物を平均で潰さず、人物外背景との相反/方向/理由/根拠不足を評価。全面黒/白・平坦・小反射だけを正解にせず、EV/IRE/正確なND段数へ変換しない。解析から録画画像/露出設定/REC可否へ書き戻さない。
+   - E-S46-01 / 失効: 設定/構図/選択/意図/独立WB revision、入力時刻/順序/期限と解析失効epochを照合。選択処理中・人物欠落・停止後のin-flight復活、古い高sequence通知で現結果の期限が無効になる問題を修正。開始/変更/失効の単調時刻validAfterより前の実bufferは新contextでも拒否する。WB KVOは通知時の変化を確認しA→B→Aも失効。validAfterは保守的な観測下限でありフレーム固有gainの証明ではない。Auto WBが変わり続ける間は保留が続く可能性を実機残件とする。
+   - E-S46-01 / 検証: `worker/test-06` 通常構成48宣言/64展開成功。再停止epoch修正後 `test-07` ND16宣言/22展開成功。最後のvalidAfter/KVO修正後 `test-09` Native ND12宣言/18展開成功。fail/skip/runtimeWarnings/compiler/analyzer 0。`ui-final-01` は通常撮影入口/ND保留・理由/閉じる操作1件成功。UI後の変更はDomain/Native/対応Unitの3fileのみで、UI/未注入Factory/coordinatorは不変のためUI結果を継承。`ios-build-final-01` はgeneric iOS、CODE_SIGNING_ALLOWED=NOで成功（buildでありtest0件は合格件数へ含めない）。stdoutの既存AppIntents依存なしmetadata警告は保持。
+   - E-S46-01 / 版と証跡: 最終test-09の201 Swift sourceは現物・iOSbuildの209入力の対応部分と一致。各command/exit/log/source hash/summary、関連test tree/build-results、失敗/最終の所有sourceと開始時差分を `evidence/20261018-s46/` へ保存。raw xcresult/DerivedData/完全な開始時copyは `/private/tmp/fr-s46-20261018-ck1k643l/`。test-01〜03のcompile失敗・test0件を保持。診断用test-04のdisable-batch成功は通常構成の証明にしない。新規test helperのpolicy default引数を明示引数へ変えたtest-05以降は通常batchで成功し、既存actor/project設定は不変。コンパイラ内部原因は未確定。
+   - E-S46-01 / 最終差分: mainが開始時7311fileと所有差分を確認。コード/対応test13file、関連永続2文書、本tasklistだけを変更し、旧証跡・project・README・memo・共有store等を保持。文書差分はdoc_reviewer指摘なし。mainの実装内確認であり独立validationではない。
+-  - 再開条件: 上記2点の本人回答後、同じ版付きpolicyを通常FactoryのNative/coordinatorへ注入し、必要なComposition/通常UIの限定検証を行う。実カメラdestinationがないため実入力/実WB KVO/補正crop座標/実写の方向一致・黒い服や反射・品質/負荷はDV-07に残す。未校正の人工入力成功を本人合意の代表場面の合格にしない。独立validationは本体の製品接続後に同じsteeringへの明示 `$validate-implementation` で行い、暗黙開始しない。他taskの独立部分へ新しい依存は追加しない。
++  - 前回の再開条件（本人回答は今回受領）: 上記2点の本人回答後、同じ版付きpolicyを通常FactoryのNative/coordinatorへ注入し、必要なComposition/通常UIの限定検証を行う。実カメラdestinationがないため実入力/実WB KVO/補正crop座標/実写の方向一致・黒い服や反射・品質/負荷はDV-07に残す。未校正の人工入力成功を本人合意の代表場面の合格にしない。独立validationは本体の製品接続後に同じsteeringへの明示 `$validate-implementation` で行い、暗黙開始しない。他taskの独立部分へ新しい依存は追加しない。
+   - 再開当初（2026-10-18、履歴）: 明示implement、開始baseline `/private/tmp/fr-s46-20261018-ck1k643l/`。S41/S42/S45の既存接続を継承。mainがsteering/証跡/統合を所有、`s46_explore` がSDK入力と世代接続をread-only調査。
+   - 所有引渡し: worker `s46_impl`＝新規ND Domain/解析/調停/表示と、接続に必要なNativeExplorationCapture、ProductCaptureCoordinator、ProductCapturePorts、ProductCaptureFactory、ProductCaptureView、対応Capture Unit/Composition/UI testだけ。mainは本steering/証跡を所有。project/共有store/原本/他媒体機能/docsはworker所有外。既存変更を戻さず、同じファイルへ並行書込しない。
+   - 追加所有: ROI逆変換に必要なNativeCaptureSubjectGeometryと対応testも同workerへ単独引渡し。document_author `s46_docs` は `docs/architecture.md` と `docs/functional-design.md` のND構造だけを同期し、未合意policy/製品未接続/実機未確認を保持する。コードと文書の所有は重ねない。
+@@ -884,7 +898,7 @@
+ | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+ | FR-01 | AC-FR-01-01 | 音声付き4K24/30原本・写真非追加 | P05/P06/P09;CF-02/08 | EC,ES | S12,S41 | dep(S12,S41)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 通常撮影・保存・一覧再生接続済（実Log/品質未確認） | E-S41-01/02/03: 最新71case/UI1・開始拒否終端/離脱回帰・build | D0 | 部分証拠、実機未受入 | DV-01、DV-02 |
+ | FR-01 | AC-FR-01-02 | 3形式・カメラ対応・無断代替禁止 | P05/P06/P09;CF-02/08 | EC,ES | S41 | dep(S41)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 現能力照合・希望/実値・自動代替拒否を製品接続済 | E-S41-01/02: 設定/条件照合・build | D0 | 部分証拠、全組合せ未確認 | DV-01 |
+-| FR-01 | AC-FR-01-03 | 手動値維持・ND再評価 | P05/P06/P09;CF-02/08 | EC,ES | S41,S46 | dep(S41,S46)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | S41手動設定接続済、S46 ND本体/失効実装・製品未有効 | E-S41-01/02、E-S46-01: 設定世代/時刻境界の注入試験 | D0 | 部分証拠、ND未受入 | DV-01、DV-07 |
++| FR-01 | AC-FR-01-03 | 手動値維持・ND再評価 | P05/P06/P09;CF-02/08 | EC,ES | S41,S46 | dep(S41,S46)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 手動設定・ND実画素/失効と通常policy接続済 | E-S41-01/02、E-S46-01/02: 設定世代/時刻境界/期限・REC非阻害 | D0 | 実装/自動検証済、実機未受入 | DV-01、DV-07 |
+ | FR-01 | AC-FR-01-04 | 保存設定・WB/補正の条件復元 | P05/P06/P09;CF-02/08 | EC,ES,E-S44-01 | S41,S44 | dep(S41,S44)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | S41希望保存・S44補正候補/条件復元接続済 | E-S41-01/02/03、E-S44-01: store再open/条件照合/非代替/初期UI | D0 | 部分証拠、実機補正未受入 | DV-01、DV-04 |
+ | FR-02 | AC-FR-02-01 | 固定Rec.709表示・非焼込み | P06/P12;CF-05 | EC:表示拒否境界のみ | S48 | dep(S48)＋対応A/Q01 | O-CAPTURE | I0 | A1 | D0 | R0 | DV-05 |
+ | FR-02 | AC-FR-02-02 | 確認状態分離・描画/録画品質 | P06/P12;CF-05 | EC:表示拒否境界のみ | S48,S4V | dep(S48,S4V)＋対応A/Q01 | O-CAPTURE | I0 | A1 | D0 | R0 | DV-05、DV-11 |
+@@ -895,16 +909,16 @@
+ | FR-03 | AC-FR-03-05 | 標準不成立の制約と相談 | P05/P06/P13;CF-06 | EC:能力/適用契約,E-S44-01 | S44 | dep(S44)＋対応A/Q01 | O-CAPTURE | 非対応/未確認/実値不一致理由と本人選択・再準備導線済 | E-S44-01: 非代替/preview専用拒否/希望保持/UI | D0 | 実機標準成立・必要な要求再確認は未評価 | DV-04 |
+ | FR-04 | AC-FR-04-01 | 安定前RECと固定 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | 安定待ちなしの既存固定・製品接続済 | Unit89/UI1・iOS build成功、早期STOP/旧callback回帰 | D0 | 制御の部分証拠・実色/記録開始未確認 | DV-03 |
+ | FR-04 | AC-FR-04-02 | 本人再固定・他設定維持・品質 | P05/P06/P10;CF-03 | EC,E-S42-01,E-S42-V01,E-S42-02 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | 対応能力確認/SDK再測定/固定/本人UI接続済、開始失敗理由の終端保持P2修正済 | E-S42-01 Unit89/UI1＋P2修正Unit65/UI1・iOS build成功、本人STOP競合/完全検査でも部分保存 | D0 | 本体/制御の部分証拠・修正後独立検証/実機色/継続性未確認 | DV-03 |
+-| FR-04 | AC-FR-04-03 | 最終フレーム・待機Auto・二本 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42,S46 | dep(S42,S46)＋対応A/Q01 | O-CAPTURE | 終端後Auto/二本新測定/旧通知拒否接続済、NDはS46 | Unit89/UI1・iOS build成功、測定/固定待ちSTOP/二本/逆順 | D0 | 終端制御の部分証拠・実最終フレーム/ND統合未確認 | DV-03、DV-07 |
++| FR-04 | AC-FR-04-03 | 最終フレーム・待機Auto・二本 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42,S46 | dep(S42,S46)＋対応A/Q01 | O-CAPTURE | 終端後Auto/二本新測定/旧通知拒否接続済、NDはS46 | Unit89/UI1・iOS build成功、測定/固定待ちSTOP/二本/逆順 | D0 | 終端制御の部分証拠・実最終フレーム/ND実機統合未確認 | DV-03、DV-07 |
+ | FR-05 | AC-FR-05-01 | 複数露出対象と単一主役・意図 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01,E-S45-02 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | 本体・通常Factory接続済、意図保存復元/位置指定AF | E-S45-02: 分離/両候補policy/実disk復元/通常UI成功 | D0 | 実装・自動検証済、実機未受入 | DV-06 |
+ | FR-05 | AC-FR-05-02 | 見失い保持・同一再捕捉・再指定 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01,E-S45-02 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | 固定参照/衝突拒否/暫定3秒保持/再指定を製品接続 | E-S45-02: 実Vision別人拒否・即時置換・同一画像復帰/猶予変更成功 | D0 | 静止fixtureの技術証拠、動く人物/同一性品質未受入 | DV-06 |
+ | FR-05 | AC-FR-05-03 | 人物未確定でもREC | P05のREC非依存のみ;CF-09部分/後続必須 | EC,E-S45-01,E-S45-02 | S45,S41 | dep(S45,S41)＋対応A/Q01 | O-CAPTURE | 人物/意図/解析をREC条件へ追加せず通常接続 | E-S45-02: 未選択/解析なし/遅延保存中REC・継続/両候補Factory成功 | D0 | REC非阻害の自動検証済、実機未受入 | DV-06 |
+ | FR-05 | AC-FR-05-04 | 通常合焦・前後追従品質 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01,E-S45-02 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | SDK AF計画/読戻し/不成立表示を製品接続 | E-S45-02: AF計画/座標/状態境界成功 | D0 | 実合焦/前後追従・衝突防御の保持制約/負荷品質未受入 | DV-06 |
+ | FR-05 | AC-FR-05-05 | 追跡OFFの人物優先AF品質 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01,E-S45-02 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | 追跡OFF人物優先AFとscene後復帰を製品接続 | E-S45-02: OFF非固定/人物再登場/AF計画成功 | D0 | 実人物優先AF品質未受入 | DV-06 |
+-| FR-06 | AC-FR-06-01 | 濃く/薄くの方向と理由 | P05/P10設定事実;CF-09部分/後続必須 | E-S46-01 | S46 | dep(S46)＋対応A/Q01 | O-CAPTURE | 実画素の方向/理由本体・通常Factory未注入 | E-S46-01: 5画素形式/4信号の人工入力で方向成立 | D0 | 部分証拠、製品policy/実写一致未受入 | DV-07 |
+-| FR-06 | AC-FR-06-02 | 人物背景両立困難・太陽反射黒 | P05/P10設定事実;CF-09部分/後続必須 | E-S46-01 | S46 | dep(S46)＋対応A/Q01 | O-CAPTURE | 人物別/背景別評価・相反/不足を実装、製品未有効 | E-S46-01: 複数対象/相反/小反射/黒/飽和の人工入力 | D0 | 部分証拠、実写の材質/意図との一致未受入 | DV-07 |
+-| FR-06 | AC-FR-06-03 | 停止遅延保留・旧OK失効・REC | P05/P10設定事実;CF-09部分/後続必須 | E-S46-01 | S46,S41 | dep(S46,S41)＋対応A/Q01 | O-CAPTURE | 世代/時刻/停止/期限失効・REC非阻害の注入経路 | E-S46-01: in-flight/再停止/高sequenceと期限/REC継続成功 | D0 | 部分証拠、通常製品policy待ち | DV-07 |
+-| FR-06 | AC-FR-06-04 | WB状態と飽和情報の限界 | P05/P10設定事実;CF-09部分/後続必須 | E-S46-01 | S46,S42 | dep(S46,S42)＋対応A/Q01 | O-CAPTURE | 独立WB観測/validAfter/飽和保留、製品未有効 | E-S46-01: 新context付き古フレーム拒否/飽和/境界入力 | D0 | 部分証拠、実WB KVO/連続Auto/実写未受入 | DV-03、DV-07 |
++| FR-06 | AC-FR-06-01 | 濃く/薄くの方向と理由 | P05/P10設定事実;CF-09部分/後続必須 | E-S46-01/02 | S46 | dep(S46)＋対応A/Q01 | O-CAPTURE | 実画素の方向/理由と本人合意の通常policy接続済 | E-S46-02: 5画素形式/4信号・両候補Factory→実解析→案内成功 | D0 | 実装/自動検証済、実写一致未受入 | DV-07 |
++| FR-06 | AC-FR-06-02 | 人物背景両立困難・太陽反射黒 | P05/P10設定事実;CF-09部分/後続必須 | E-S46-01/02 | S46 | dep(S46)＋対応A/Q01 | O-CAPTURE | 人物別/背景別・相反/不足を通常接続済 | E-S46-02: 複数対象/相反/小反射/黒/飽和の人工入力回帰成功 | D0 | 実装/自動検証済、実写材質/意図との一致未受入 | DV-07 |
++| FR-06 | AC-FR-06-03 | 停止遅延保留・旧OK失効・REC | P05/P10設定事実;CF-09部分/後続必須 | E-S46-01/02 | S46,S41 | dep(S46,S41)＋対応A/Q01 | O-CAPTURE | 世代/時刻/停止・暫定1秒失効とREC非阻害を通常接続済 | E-S46-02: 遅延配送/更新/期限・失効後REC/録画継続成功 | D0 | 実装/自動検証済、実機未受入 | DV-07 |
++| FR-06 | AC-FR-06-04 | WB状態と飽和情報の限界 | P05/P10設定事実;CF-09部分/後続必須 | E-S46-01/02 | S46,S42 | dep(S46,S42)＋対応A/Q01 | O-CAPTURE | 独立WB/validAfter/飽和保留を通常接続済 | E-S46-02: 新context付き古フレーム拒否/飽和/境界入力回帰成功 | D0 | 実装/自動検証済、実WB KVO/連続Auto/実写未受入 | DV-03、DV-07 |
+ | FR-07 | AC-FR-07-01 | 目標構図予告・倍率不変・非焼込み | P05/P14;CF-07（予告は後続必須） | EC:倍率/停止契約のみ | S47 | dep(S47)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-08 |
+ | FR-07 | AC-FR-07-02 | 目標/途中停止・操作と品質 | P05/P14;CF-07（予告は後続必須） | EC:倍率/停止契約のみ | S47 | dep(S47)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-08 |
+ | FR-07 | AC-FR-07-03 | 停止支援・引く予告・画角/画質/負荷 | P05/P14;CF-07（予告は後続必須） | EC:倍率/停止契約のみ | S47,S44 | dep(S47,S44)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04、DV-08、DV-09 |
+@@ -1244,6 +1258,7 @@
+ | E-S45-01 | 2026-10-18、explorer/worker/document_author/doc_reviewer/main | S45部分・AC-FR-05-01〜05と限定回帰 | 最終203入力、test-final-05/ios-build-03一致 | 各run.json、公開画像実Vision/世代/状態/設定保存/REC非阻害/AF計画/座標/UI、host同ソース診断 | Unit76宣言/99展開中75/98成功・1宣言2issues失敗、UI2成功、build成功、skip/runtimeWarnings0。途中失敗保持 | `evidence/20261018-s45/`。本人判断/Factory注入・Simulator同一特徴量問題でblocked。実機/独立validation未確認 |
+ | E-S45-02 | 2026-10-18、explorer/workers/document_author/doc_reviewer/main | S45再開・AC-FR-05-01〜05と限定回帰 | 最終202入力・Unit/UI/iOSbuild/現物一致 | 各run.json、公開画像実Vision/即時別人拒否/猶予変更/5画素形式/両候補Factory/意図実disk復元/通常UI | Unit81宣言112展開/UI3件全成功、build成功、skip/runtimeWarnings/compiler/analyzer0。診断途中失敗保持 | `evidence/20261018-s45-resume/`。S45実装・自動検証done、SDK内部原因/実機品質/独立validation未確認 |
+ | E-S46-01 | 2026-10-18、explorer/worker/document_author/doc_reviewer/main | S46部分・AC-FR-06-01〜04/AC-FR-01-03 | 最終201 SwiftとiOSbuild209入力を照合、UIは不変範囲継承 | 各command/run/source hash、実buffer/複数ROI/失効/REC/通常UI | 通常関連48宣言64展開、修正ND16宣言22展開、最終Native12宣言18展開、UI1成功。iOSbuild成功・診断0。重複合算なし | `evidence/20261018-s46/`。製品policy未回答/通常Factory未注入でblocked。実写/実機/独立validation未確認 |
++| E-S46-02 | 2026-10-18、worker/document_author/doc_reviewer/main | S46本人合意・通常接続・限定回帰 | 最終210入力、test-02/ios-build-01/現物一致 | 各run/source hash、両候補Factory→実解析、250ms遅延/入力から1秒/更新、REC開始・継続、保存再生/通常UI | Unit26宣言34展開＋UI1全成功、Simulator/iOS build成功、最終失敗/skip/runtimeWarnings/compiler/analyzer0 | `evidence/20261018-s46-approved/`。初回compile失敗0件保持。実機DV-07/FR-06受入/独立validation未確認 |
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+ 
+@@ -1275,6 +1290,7 @@
+ | V-REVIEW-S45部分 | E-S45-01、最終203入力・既存11/新13file | main、文書はdoc_reviewer | 記録経路非変更/有界解析/人物不在と解析失敗の分離/世代/REC非依存/意図保持/固定参照/適用と品質/未注入/保全を照合 | `evidence/20261018-s45/main-scope-review.json`。別人拒否1失敗を保持、本人判断/製品未注入でS45 blocked。独立validationではない |
+ | V-REVIEW-S45再開 | E-S45-02、最終202入力・既存15file変更 | main、文書はdoc_reviewer | 既存成果継承/本人承認/同policy注入/固定参照衝突拒否/即時置換/REC非阻害/実機境界/保全を照合 | `evidence/20261018-s45-resume/main-scope-review.json`、`doc-review.json`。独立validationではない |
+ | V-REVIEW-S46部分 | E-S46-01、最終201 Swift・所有コード13file/文書2file | main、文書はdoc_reviewer | 実signal/ROI/有界入力/独立WB/時刻境界/失効後復活/高水位と期限/REC非阻害/未注入/既存保全を確認・修正 | `evidence/20261018-s46/main-scope-review.json` とdoc-review.json。本人判断待ち、実機/独立validation未確認 |
++| V-REVIEW-S46接続 | E-S46-02、最終210入力・既存10file/新test1file | main、文書はdoc_reviewer | 本人合意/同一policy注入/入力観測起点1秒/更新/端末内完結/REC非阻害/実機境界/既存保全を確認 | `evidence/20261018-s46-approved/main-scope-review.json` とdoc-review.json。S46実装done、実機/独立validation未確認 |
+ 
+ ## 振り返り・引渡し
+ 
+--- before/FrameRelay/Composition/ProductCaptureFactory.swift
++++ after/FrameRelay/Composition/ProductCaptureFactory.swift
+@@ -21,14 +21,14 @@
+     nonisolated static let provisionalSubjectPolicyV1 = CaptureSubjectPolicy(
+         version: "s45-provisional-v1", lostGrace: 3, noPersonFocus: .tapPosition)
+ 
+-    /// S46 product adoption awaits explicit agreement on lifetime and reference bands.
+-    /// The implementation is exercisable with injected policies; the product does not
+-    /// silently adopt the test reference settings.
+-    nonisolated static let ndPolicy: CaptureNDPolicy? = nil
++    /// S46 v1, agreed 2026-10-18: local reference advice expires one second after
++    /// its input frame. Signal-specific bands remain provisional and uncalibrated
++    /// pending DV-07; neither analysis nor expiry depends on a backend connection.
++    nonisolated static let provisionalNDPolicyV1 = CaptureNDPolicy.provisionalV1(maximumResultAge: 1)
+ 
+     static func make(services: ProductLibraryServices,
+                      didSave: @escaping @MainActor @Sendable () async -> Void) -> ProductCaptureCoordinator {
+-        make(services: services, didSave: didSave, makeDevice: { candidate, audioPolicy, subjectPolicy in
++        make(services: services, didSave: didSave, makeDevice: { candidate, audioPolicy, subjectPolicy, ndPolicy in
+             #if !targetEnvironment(simulator)
+             guard await permission(for: .video) else { throw ExplorationIssue.permissionDenied }
+             guard await permission(for: .audio) else {
+@@ -44,15 +44,16 @@
+     /// Keep the device builder and coordinator on the same versioned policy.
+     static func make(services: ProductLibraryServices,
+                      didSave: @escaping @MainActor @Sendable () async -> Void,
+-                     makeDevice: @escaping @Sendable (ExplorationOutputCandidate, ProductCaptureAudioPolicy, CaptureSubjectPolicy) async throws
++                     makeDevice: @escaping @Sendable (ExplorationOutputCandidate, ProductCaptureAudioPolicy, CaptureSubjectPolicy, CaptureNDPolicy) async throws
+                         -> any ProductCaptureDevicePort) -> ProductCaptureCoordinator {
+         let audioPolicy = provisionalAudioPolicyV1
+         let subjectPolicy = provisionalSubjectPolicyV1
++        let ndPolicy = provisionalNDPolicyV1
+         let preferences = CapturePreferenceStore(url: services.run.url.appendingPathComponent("capture-preferences.json"))
+         let save = OriginalSaveCoordinator(store: services.store, originals: services.originals,
+                                            inspection: AVOriginalInspectionAdapter(originals: services.originals))
+         return ProductCaptureCoordinator(preferences: preferences, makeDevice: { candidate in
+-            try await makeDevice(candidate, audioPolicy, subjectPolicy)
++            try await makeDevice(candidate, audioPolicy, subjectPolicy, ndPolicy)
+         }, save: save, bindOriginal: { reference in
+             let operation = MediaOperationID(rawValue: "capture-bind-" + UUID().uuidString)
+             if case .succeeded = await services.access.bind(reference, operation: operation) { return true }
+--- before/FrameRelay/Domain/Capture/CaptureNDAdvice.swift
++++ after/FrameRelay/Domain/Capture/CaptureNDAdvice.swift
+@@ -45,7 +45,7 @@
+     }
+ 
+     /// Provisional reference screening only; physical ND density is not measured.
+-    /// 2026-10 S46 candidate. Signal-specific code values intentionally avoid any
++    /// S46 v1 reference use agreed 2026-10-18. Signal-specific code values avoid any
+     /// transfer inversion or universal clip-rate/EV target. Device calibration pending.
+     static func provisionalV1(maximumResultAge: TimeInterval) -> Self {
+         .init(version: "s46-code-domain-reference-v1-uncalibrated", maximumResultAge: maximumResultAge,
+--- before/FrameRelayTests/Application/ProductCaptureSubjectCoordinatorTests.swift
++++ after/FrameRelayTests/Application/ProductCaptureSubjectCoordinatorTests.swift
+@@ -13,7 +13,7 @@
+         let services = try await ProductLibraryFactory(supportDirectory: parent).open()
+         let fixture = try CaptureFixture()
+         let device = SubjectCoordinatorDevice(fixture: fixture)
+-        let model = ProductCaptureFactory.make(services: services, didSave: {}, makeDevice: { selected, _, policy in
++        let model = ProductCaptureFactory.make(services: services, didSave: {}, makeDevice: { selected, _, policy, _ in
+             #expect(selected == candidate)
+             #expect(policy == ProductCaptureFactory.provisionalSubjectPolicyV1)
+             #expect(policy.version == "s45-provisional-v1")
+@@ -41,7 +41,7 @@
+         #expect(model.canRecord)
+         await model.leaveCapture()
+ 
+-        let restored = ProductCaptureFactory.make(services: services, didSave: {}, makeDevice: { _, _, _ in
++        let restored = ProductCaptureFactory.make(services: services, didSave: {}, makeDevice: { _, _, _, _ in
+             SubjectCoordinatorDevice(fixture: fixture)
+         })
+         restored.enterCapture()
+--- before/FrameRelayTests/Integration/Composition/ProductCaptureAudioCompositionTests.swift
++++ after/FrameRelayTests/Integration/Composition/ProductCaptureAudioCompositionTests.swift
+@@ -16,7 +16,7 @@
+         let expectedGrace = try CaptureRationalTime(ticks: 2, timescale: 1)
+         let expectedTimeout = try CaptureRationalTime(ticks: 5, timescale: 1)
+         await device.configureAudioRecovery(outcomes: [.failed(failure)])
+-        let model = ProductCaptureFactory.make(services: services, didSave: {}, makeDevice: { candidate, policy, _ in
++        let model = ProductCaptureFactory.make(services: services, didSave: {}, makeDevice: { candidate, policy, _, _ in
+             #expect(candidate == .sampleWriter)
+             #expect(policy.noArrivalGrace == expectedGrace)
+             #expect(policy.recovery.maximumAttempts == 1)
+--- /dev/null
++++ after/FrameRelayTests/Integration/Composition/ProductCaptureNDCompositionTests.swift
+@@ -0,0 +1,169 @@
++import CoreVideo
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@MainActor
++struct ProductCaptureNDCompositionTests {
++    @Test(arguments: [ExplorationOutputCandidate.sampleWriter, .movieFile])
++    func productPolicyReachesAnalysisAndExpiresAfterOneSecondWithoutBlockingREC(candidate: ExplorationOutputCandidate) async throws {
++        let parent = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
++            .appendingPathComponent("FrameRelay-capture-nd-policy-" + UUID().uuidString, isDirectory: true)
++        try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: false)
++        // Keep the isolated store until process teardown, matching the product-store
++        // composition fixtures. No camera, network or frame-specific WB is simulated as verified.
++        let services = try await ProductLibraryFactory(supportDirectory: parent).open()
++        let fixture = try CaptureFixture()
++        let underlying = ProductCaptureTestDevice(fixture: fixture)
++        let device = NDCompositionDevice(underlying: underlying)
++        let model = ProductCaptureFactory.make(services: services, didSave: {}, makeDevice: { selected, _, _, policy in
++            #expect(selected == candidate)
++            #expect(policy == ProductCaptureFactory.provisionalNDPolicyV1)
++            #expect(policy.maximumResultAge == 1)
++            #expect(policy.version == "s46-code-domain-reference-v1-uncalibrated")
++            #expect(policy.isValid)
++            await device.configureAnalysis(policy: policy)
++            return device
++        })
++        model.enterCapture()
++        await model.load()
++        await model.updatePreferences(.init(desired: fixture.desired, outputCandidate: candidate, shootingIntent: .scenery))
++        await model.prepare()
++        try #require(model.canRecord)
++        #expect(model.ndAdvice.direction == .pending)
++        #expect(model.ndAdvice != .pending(.policyUnavailable))
++        #expect(await device.policy == ProductCaptureFactory.provisionalNDPolicyV1)
++
++        // The Factory-provided policy runs the real bounded ND analysis queue over
++        // actual tagged BGRA pixels; the device fake only supplies capture control.
++        let observedAt = try await device.emitPixels(base: 0.30)
++        try #require(await eventually { model.ndAdvice.direction == .acceptable })
++        #expect(model.ndSnapshot?.result?.observedAt == observedAt)
++        #expect(model.ndSnapshot?.result?.evidence?.policyVersion == ProductCaptureFactory.provisionalNDPolicyV1.version)
++        #expect(model.ndSnapshot?.result?.evidence?.signal == .rec709)
++        #expect(model.ndSnapshot?.result?.evidence?.isCalibrated == false)
++        #expect(ProcessInfo.processInfo.systemUptime - observedAt < 1)
++        #expect(model.canRecord)
++        #expect(await underlying.startCount == 0)
++
++        // Refresh before the first frame expires. Its cancelled timer must not clear
++        // the later frame, whose own deadline remains tied to its input timestamp.
++        try await Task.sleep(for: .milliseconds(350))
++        let latestObservedAt = try await device.emitPixels(base: 0.30)
++        try #require(await eventually { model.ndSnapshot?.result?.observedAt == latestObservedAt })
++        let latestReceivedAt = ProcessInfo.processInfo.systemUptime
++        #expect(latestReceivedAt - latestObservedAt >= 0.25)
++        let untilOldDeadline = observedAt + 1.05 - ProcessInfo.processInfo.systemUptime
++        if untilOldDeadline > 0 { try await Task.sleep(for: .seconds(untilOldDeadline)) }
++        #expect(model.ndSnapshot?.result?.observedAt == latestObservedAt)
++        #expect(model.ndAdvice.direction == .acceptable)
++
++        // No more frames arrive. The real coordinator timer clears the result one
++        // second after input, not one second after the deliberately delayed delivery.
++        try #require(await eventually { model.ndAdvice == .pending(.stale) })
++        let expiredAt = ProcessInfo.processInfo.systemUptime
++        #expect(expiredAt - latestObservedAt >= 1)
++        #expect(expiredAt - latestReceivedAt < 1)
++        #expect(model.ndSnapshot == nil)
++        #expect(model.canRecord)
++        await model.record()
++        try #require(await eventually { model.capture?.phase == .recording })
++        #expect(await underlying.startCount == 1)
++        _ = try await device.emitPixels(base: 0.80)
++        try #require(await eventually { model.ndAdvice.direction == .darker })
++        #expect(model.capture?.phase == .recording)
++        #expect(model.preferences.desired == fixture.desired)
++        await device.endAnalysis()
++        try #require(await eventually { model.ndAdvice == .pending(.stopped) })
++        #expect(model.capture?.phase == .recording)
++        await model.stop()
++        try #require(await eventually { !model.isBusy })
++        await model.leaveCapture()
++        #expect(model.ndSnapshot == nil)
++    }
++
++    private func eventually(_ condition: @MainActor () -> Bool) async -> Bool {
++        let deadline = ContinuousClock.now.advanced(by: .seconds(3))
++        while ContinuousClock.now < deadline {
++            if condition() { return true }
++            do { try await Task.sleep(for: .milliseconds(10)) } catch { return false }
++        }
++        return condition()
++    }
++}
++
++private actor NDCompositionDevice: ProductCaptureDevicePort {
++    let underlying: ProductCaptureTestDevice
++    private(set) var policy: CaptureNDPolicy?
++    private var generation: CaptureGeneration?
++    private var intent: CaptureShootingIntent?
++    private var analysis: NativeCaptureNDAnalysis?
++    private let pair = AsyncStream<CaptureNDSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
++
++    init(underlying: ProductCaptureTestDevice) { self.underlying = underlying }
++    func configureAnalysis(policy: CaptureNDPolicy) {
++        self.policy = policy
++        analysis?.stop()
++        analysis = NativeCaptureNDAnalysis(policy: policy) { [weak self] result in
++            Task { await self?.receive(result) }
++        }
++    }
++    func events() async -> AsyncStream<CaptureIOEvent> { await underlying.events() }
++    func productEvents() async -> AsyncStream<ExplorationDeviceEvent> { await underlying.productEvents() }
++    func discoverCameras() async throws -> [ExplorationCameraDescription] { await underlying.discoverCameras() }
++    func prepare(_ request: ProductCapturePreparation) async throws -> ExplorationPrepared {
++        generation = request.generation
++        return try await underlying.prepare(request)
++    }
++    func previewSource() async -> (any ProductCapturePreviewSource)? { await underlying.previewSource() }
++    func submit(_ command: CaptureIOCommand) async -> CaptureCommandAcceptance { await underlying.submit(command) }
++    func shutDown() async { endAnalysis(); await underlying.shutDown() }
++    func ndSnapshots() -> AsyncStream<CaptureNDSnapshot> { pair.stream }
++    func updateNDIntent(_ intent: CaptureShootingIntent?, generation: CaptureGeneration) {
++        if self.generation == generation { self.intent = intent }
++    }
++    func endAnalysis() { analysis?.stop(); analysis = nil; pair.continuation.finish() }
++    func emitPixels(base: Double) throws -> TimeInterval {
++        let currentGeneration = self.generation
++        let currentAnalysis = self.analysis
++        let generation = try #require(currentGeneration)
++        let analysis = try #require(currentAnalysis)
++        let buffer = try NDCompositionPixels.make(base: base)
++        let observedAt = ProcessInfo.processInfo.systemUptime
++        let context = CaptureNDContext(generation: generation, framingRevision: 1,
++            selectionRevision: 0, whiteBalanceRevision: 0, intent: intent)
++        analysis.submit(buffer, instruction: .init(context: context, targets: [], targetsAvailable: true), observedAt: observedAt)
++        return observedAt
++    }
++    private func receive(_ result: CaptureNDResult) async {
++        // Model analysis/delivery latency without a backend: the source timestamp
++        // remains the actual fixture input time passed into the real analysis queue.
++        do { try await Task.sleep(for: .milliseconds(250)) } catch { return }
++        guard analysis != nil else { return }
++        pair.continuation.yield(.init(context: result.context, sequence: result.sequence,
++            result: result, advice: result.advice))
++    }
++}
++
++nonisolated private enum NDCompositionPixels {
++    static func make(base: Double) throws -> CVPixelBuffer {
++        var created: CVPixelBuffer?
++        let status = CVPixelBufferCreate(kCFAllocatorDefault, 64, 64, kCVPixelFormatType_32BGRA,
++            [kCVPixelBufferIOSurfacePropertiesKey: [:]] as CFDictionary, &created)
++        try #require(status == kCVReturnSuccess)
++        let buffer = try #require(created)
++        CVBufferSetAttachment(buffer, kCVImageBufferColorPrimariesKey, kCVImageBufferColorPrimaries_ITU_R_709_2, .shouldPropagate)
++        CVBufferSetAttachment(buffer, kCVImageBufferTransferFunctionKey, kCVImageBufferTransferFunction_ITU_R_709_2, .shouldPropagate)
++        try #require(CVPixelBufferLockBaseAddress(buffer, []) == kCVReturnSuccess)
++        defer { CVPixelBufferUnlockBaseAddress(buffer, []) }
++        let bytes = try #require(CVPixelBufferGetBaseAddress(buffer))
++        let rowBytes = CVPixelBufferGetBytesPerRow(buffer)
++        for y in 0..<64 { for x in 0..<64 {
++            let pixel = bytes.advanced(by: y * rowBytes + x * 4)
++            let code = UInt8(((base + Double(x % 20) / 100) * 255).rounded())
++            for channel in 0..<3 { pixel.storeBytes(of: code, toByteOffset: channel, as: UInt8.self) }
++            pixel.storeBytes(of: UInt8(255), toByteOffset: 3, as: UInt8.self)
++        } }
++        return buffer
++    }
++}
+--- before/FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
++++ after/FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
+@@ -35,7 +35,9 @@
+         for _ in 0..<3 where !ndAdvice.isHittable { app.swipeUp() }
+         XCTAssertTrue(ndAdvice.exists)
+         XCTAssertTrue(ndAdvice.label.contains("保留"))
+-        XCTAssertTrue(app.staticTexts["capture.ndReason"].label.contains("評価基準"))
++        let ndReason = app.staticTexts["capture.ndReason"]
++        XCTAssertTrue(ndReason.label.contains("入力"))
++        XCTAssertFalse(ndReason.label.contains("評価基準はまだ設定"))
+         let audio = app.staticTexts["capture.audio.input"]
+         if !audio.isHittable { app.swipeUp() }
+         XCTAssertTrue(audio.exists)
+--- before/docs/architecture.md
++++ after/docs/architecture.md
+@@ -234,11 +234,11 @@
+ 
+ `NativeCaptureSubjectFocus` は主役への継続AF、見失い時の保持、追跡OFFの人物優先AF、人物なし時のタップ位置AFを能力照合して適用する。主役指定中は自動の顔切替を無効にし、非対応のAFを無断で固定へ代替しない。変更対象はフォーカス設定だけとし、読戻しによる適用・非対応・失敗を合焦品質から分離する。公開の上半身画像fixtureによる実Vision解析は技術試験の入力であり、別人通過・前後移動・再捕捉・距離/照明・補正crop座標・Log・記録負荷の実機受入を代替しない。製品接続、検証結果、未確認範囲はS45/DV-06で追跡する。
+ 
+-S46のND経路では、`NativeCaptureNDAnalysis` が処理中1件と置換可能な待機1件を専用queueで処理し、`NativeCaptureNDPixels` が解析分岐の実 `CVPixelBuffer` をread-onlyで読む。入力の色特性attachmentと画素形式・video/full rangeを照合し、撮影希望やプレビュー変換から入力信号を推定しない。画素を有界に標本化し、全体・選択した各人物のROI・その外側の背景を分ける。人物の鮮度・座標・選択全員の情報が揃わなければ、その人物を評価から黙って除外せず保留する。解析画像や案内を原本へ書き戻さない。
+-
+-`CaptureNDSession` は人物AFとは別のcontextにセッション/設定・構図・対象選択・WBの世代と撮影意図を持つ。`NativeExplorationCapture` はWB modeと実gainの変化を観測し、入力時と結果受理時にcontextを照合する。設定・対象・意図・WBの変更、逆順・遅延・期限超過・解析停止で旧結果を失効させ、`ProductCaptureDevicePort` の最新1件のsnapshotからcoordinatorとND表示へ渡す。coordinatorも現在の所有者・世代・順序・期限を確認し、入力が止まっても旧「許容」を残さない。WB固定後の解析を継続する経路とし、ND未完了や警告をREC条件に追加せず、露出・WB・物理NDを操作する命令を持たせない。
+-
+-`CaptureNDPolicy` は入力信号ごとの交換可能なcode-domainの暫定基準を持ち、撮影意図に応じた対象から方向・理由・両立困難を返す。符号値の分布は表示IRE・EV・ND段数・センサー余裕の測定ではなく、飽和や情報不足から精密量を補完しない。現時点では通常 `ProductCaptureFactory` へのND policy注入は未実施で、暫定基準と有効期間の製品利用は本人判断待ちである。注入可能な実装経路と製品有効化を区別し、進捗・検証証跡はS46のtasklistを正本とする。方向の有用性、実入力色特性、WB変化・ROI・記録負荷等の実機評価とFR-06受入は未確認として残す。
++S46のND経路では、`NativeCaptureNDAnalysis` が処理中1件と置換可能な待機1件を専用queueで処理し、`NativeCaptureNDPixels` が解析分岐の実 `CVPixelBuffer` をread-onlyで読む。入力の色特性attachmentと画素形式・video/full rangeを照合し、撮影希望やプレビュー変換から入力信号を推定しない。画素を有界に標本化し、全体・選択した各人物のROI・その外側の背景を分ける。人物の鮮度・座標・選択全員の情報が揃わなければ、その人物を評価から黙って除外せず保留する。解析は端末内で完結し、バックエンド通信を使わず、解析画像や案内を原本へ書き戻さない。
++
++`CaptureNDSession` は人物AFとは別のcontextにセッション/設定・構図・対象選択・WBの世代と撮影意図を持つ。`NativeExplorationCapture` はWB modeと実gainの変化を観測し、入力時と結果受理時にcontextを照合する。設定・対象・意図・WBの変更、逆順・遅延・期限超過・解析停止で旧結果を失効させ、`ProductCaptureDevicePort` の最新1件のsnapshotからcoordinatorとND表示へ渡す。coordinatorも現在の所有者・世代・順序・期限を確認し、入力映像の観測時刻から変更可能な暫定1秒の期限で結果を消して判定待ちへ戻す。解析完了や表示の時刻から1秒を数え直さない。WB変化の観測前に取得した入力を拒否するため、連続Auto WBで保留が続く可能性がある。現在のgainをフレーム固有のWB証拠とは扱わない。WB固定後も解析を継続し、ND未完了や警告をREC条件に追加せず、露出・WB・物理NDを操作する命令を持たせない。
++
++`CaptureNDPolicy` は入力信号ごとの交換可能な未校正のcode-domain暫定基準を持ち、撮影意図に応じた対象から方向・理由・両立困難を参考表示する。2026-10-18のS46で、この参考表示と入力映像の観測から暫定1秒での失効について本人の承認を得た。通常 `ProductCaptureFactory` からNativeとcoordinatorへ同一policyを注入する。符号値の分布は表示IRE・EV・ND段数・センサー余裕の測定ではなく、飽和や情報不足から精密量を補完しない。製品接続と実機品質の受入を区別し、進捗・検証証跡はS46のtasklistを正本とする。方向の有用性、実入力色特性、WB変化・ROI・記録負荷、暫定基準・期限の実機評価とFR-06受入はDV-07の未確認範囲として残す。
+ 
+ ### 全動画通信の共通契約
+ 
+--- before/docs/functional-design.md
++++ after/docs/functional-design.md
+@@ -146,7 +146,7 @@
+ 
+ S45は、露出評価対象の集合と一人の主役を別に選ぶ状態・UI、撮影意図の保存・復元、人物解析・AFを通常撮影へ接続する。`ProductCaptureFactory` からNativeとcoordinatorへ同一の `subjectPolicy` を注入し、人物なし時のタップ位置AFと、見失い猶予の変更可能な暫定3秒を共有する。候補IDと主役はセッション内だけに保持し、撮影意図や露出対象の選択からISO・シャッターを自動変更しない。接続・検証の進捗はS45のtasklistを正本とし、U5の今回合意を実機品質の受入にしない。
+ 
+-S46のNDは `CaptureNDContext` にセッション/設定・構図・対象選択・WBの世代と撮影意図を保持し、結果に入力時点・連番・実入力信号・policy版・評価領域の根拠を付ける。全体、選択した各人物、人物ROI外の背景を分け、選択全員の新しい情報が揃わなければ保留する。調整方向の参考情報であり、正確なND段数・EV・IRE・センサー余裕は算出しない。入力信号別の交換可能な暫定基準と有効期間は本人判断待ちで、通常FactoryへのND policy注入は未実施である。実装経路・製品有効化・実機受入を分け、進捗はS46のtasklistで管理する。
++S46のNDは `CaptureNDContext` にセッション/設定・構図・対象選択・WBの世代と撮影意図を保持し、結果に入力時点・連番・実入力信号・policy版・評価領域の根拠を付ける。全体、選択した各人物、人物ROI外の背景を分け、選択全員の新しい情報が揃わなければ保留する。入力信号別の交換可能な未校正の暫定基準による方向・理由の参考表示と、入力映像の観測から暫定1秒での失効は2026-10-18に本人合意済みで、通常FactoryからNativeとcoordinatorへ同一policyを注入する。期限は変更可能で、解析完了・表示時点から数え直さず、古い結果を消して判定待ちへ戻す。解析は端末内で完結し、バックエンド通信を使わず、保留や警告でもRECを妨げない。正確なND段数・EV・IRE・センサー余裕は算出しない。製品接続とDV-07/FR-06の実機受入を分け、進捗はS46のtasklistで管理する。
+ 
+ ### D3 撮影項目とローカル原本
+ 
+@@ -266,7 +266,7 @@
+ 
+ 補正・倍率・format・実カメラ・セッションの変化は、世代と通知順序を持つ画角状態へ反映する。旧世代・重複・逆順通知を採用せず、再準備・中断・観測終了では旧画角状態を失効させる。同じ世代で失効しても受理済み通知番号の最大値を保持し、遅れた通知で旧状態を復活させない。formatの画角は補正後cropの根拠にせず、補正後の撮影範囲とプレビュー・記録の一致はOFFでも未確認と表示する。S44はS47向けの状態供給までを扱い、構図予告・ズーム停止支援UIへの接続と実画角の検証は残す。進捗・検証証跡は現行tasklistを正本とし、3場面の補正品質や全FR-03受入の完了を意味しない。
+ 
+-解析の受付結果はセッション・設定・対象・構図世代と有効期間が一致するときだけ採用する。WB更新・倍率/実カメラ変更・補正変更・アプリ中断で該当する解析を失効させる。解析の有効期間は未合意の固定数値を作らず、T05/T06で評価条件と併せて決める。主役見失い猶予の暫定3秒はU5の本人合意とT05/DV-06の実機採用を区別する。音声の障害判定猶予はS1・U7の暫定合意とT09/DV-10の実機評価を区別する。録画品質が維持できないときの補助処理削減案はU7で決め、削減を理由に補正や撮影設定を無断変更しない。
++解析の受付結果はセッション・設定・対象・構図世代と有効期間が一致するときだけ採用する。WB更新・倍率/実カメラ変更・補正変更・アプリ中断で該当する解析を失効させる。NDの有効期間はS46本人合意の入力映像の観測から暫定1秒とし、T06/DV-07の実機評価で見直す。WB mode/gain変化の観測前の入力を拒否するため、連続Auto WBではNDの保留が続く可能性があり、フレーム固有のWB対応や実機の有用性を確認済みとしない。その他の未合意の解析期限を固定数値で補わない。主役見失い猶予の暫定3秒はU5の本人合意とT05/DV-06の実機採用を区別する。音声の障害判定猶予はS1・U7の暫定合意とT09/DV-10の実機評価を区別する。録画品質が維持できないときの補助処理削減案はU7で決め、削減を理由に補正や撮影設定を無断変更しない。
+ 
+ ### S3 原本保存と起動時の復旧
+ 
+@@ -392,7 +392,7 @@
+ | T03 | 初回候補と保存希望優先、条件付き復元、format候補と実接続の分離、無断代替禁止、両出力の要求/実active照合、予約後の開始再確認、旧通知・画角失効と通知番号の保持 | 候補/未確認/非対応理由と希望/要求/実動作の表示。OFF＋複数モードの効果を歩き/静止手持ち/ゆっくりパンで評価。構図・音声同期・ズーム/切替との両立、標準不成立時の説明。予告/停止支援への接続と実画角はS47・実機評価で確認 |
+ | T04 | REC/STOP/合わせ直しの順序、WB値のクリップ間持越しなし | 安定前REC、最後の記録フレーム、合わせ直し時の色と連続性、二本連続撮影、他露出値の維持 |
+ | T05 | 主役と露出対象の分離、同じ主役のみ再捕捉、曖昧な対応の拒否、暫定3秒の猶予と期限後の保持/再指定、旧世代・逆順/期限超過の候補、追跡OFF、人物なし時のタップ位置AF、意図保存/復元・未選択REC。公開の上半身画像fixtureによる実Vision解析は限定的な技術試験として扱う | 通常の主役合焦/前後追従、人物優先AFを距離・光・移動条件別に評価。人物なし・検出待ちでもREC可能。静止fixtureやAF設定の読戻しは、動く人物の同一性・合焦品質・補正crop座標・Log・記録負荷の実機受入を代替しない。実行結果と未確認範囲はS45/DV-06へ記録 |
+-| T06 | 実pixel bufferの信号・画素range照合、複数人物ROIと背景の分離、有界入力、設定/対象/構図/意図・WB mode/gain変更、逆順/期限超過/停止による旧OK失効、REC非阻害。暫定code-domain基準を用いた技術試験と製品採用を区別 | 濃く/薄く/両立困難の合意代表例、反射・太陽・黒、WB Auto/固定、飽和/情報不足、実ROI・負荷・有効期間を評価。精密量・適正露出の保証にせず、保留だけで完成にしない。実行結果と実機未確認範囲はS46/DV-07へ記録 |
++| T06 | 実pixel bufferの信号・画素range照合、複数人物ROIと背景の分離、有界入力、設定/対象/構図/意図・WB mode/gain変更、逆順/停止による旧OK失効、入力観測から暫定1秒の期限、通常Factoryの同一policy接続、端末内完結・REC非阻害 | 濃く/薄く/両立困難の合意代表例、反射・太陽・黒、WB Auto/固定と連続Autoでの保留、飽和/情報不足、実ROI・負荷・暫定基準/期限を評価。本人合意の参考表示と技術試験を実機品質の受入にせず、精密量・適正露出を保証しない。保留だけで完成にせず、実行結果と実機未確認範囲はS46/DV-07へ記録 |
+ | T07 | 予告中の倍率不変、目標到達/途中停止、候補不在、古い予告 | 録画中に寄る/引く/止まる操作、滑らかさ・停止精度・原本非焼込み、実画角との差、補正、停止前後の実画質 |
+ | T08 | 限定ISO補正の範囲、実値表示、非対応切替拒否、手動変更の優先 | 切替の途切れ・明るさ/色/ピント/位置/時間・音声同期・記録継続、戻すレンズ時の方針、無断変更なし |
+ | T09 | ゼロレベルと障害の分離、開始阻止、録画停止、書込障害、有限復旧・自動REC禁止 | 音声の到着と実ファイルの書込、静寂/入力不能/音割れ、部分保存・結果不明表示。音声省略で起動目標を満たさない |
+@@ -411,7 +411,7 @@
+ 
+ S5の差し替え試験では、V2生成前後、失効永続化前後、応答送信前後、サーバー確定前後の全境界で通信断/再起動を挟む。さらに同じ境界で容量整理を開始し、先に直列化された操作だけがその条件で進むことを検証する。S6の破棄では未転送・転送一部・サーバー保存応答不明を用意し、止めた後もMac miniに残り得る原本を連動削除しないことを確認する。
+ 
+-実機の品質評価は、評価対象の組合せ、代表シーン、操作、比較方法、測定項目、許容範囲をユーザーと事前に合意する。AF距離・保持秒数、ND閾値/有効期間、ズーム速度/停止許容差、音声障害の判定時間等に架空の数値を置かない。試験実施と合意範囲充足を別欄で記録し、不成立なら制約・代替案・要求再確認へ戻す。
++実機の品質評価は、評価対象の組合せ、代表シーン、操作、比較方法、測定項目、許容範囲をユーザーと事前に合意する。AF距離・保持秒数、ND閾値/有効期間、ズーム速度/停止許容差、音声障害の判定時間等に架空の数値を置かない。S46で合意したNDの暫定基準と1秒の期限も、実機品質を確認済みの確定値とはしない。試験実施と合意範囲充足を別欄で記録し、不成立なら制約・代替案・要求再確認へ戻す。
+ 
+ ### 既存の検証構成と今回の確認範囲
+ 

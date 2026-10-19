@@ -1,0 +1,1920 @@
+--- a/.steering/20260929-device-independent-implementation/design.md
++++ b/.steering/20260929-device-independent-implementation/design.md
+@@ -87,6 +87,10 @@
+ 
+ S42の再固定制御（2026-10-17）: 録画中の本人操作を、現在の再測定能力が確認できる場合だけ受け付ける。後方互換のoptional能力がnilなら未確認を保持する。対応するSDKのone-shot `autoWhiteBalance`から`locked`への遷移を観測し、現在gainの固定適用完了を再固定の確定に使う。固定秒数・品質閾値は導入せず、機器のmode/custom gains対応を照合する。測定中のSTOPは観測を失効させて現在gainを固定し、適用完了後に記録停止へ進む。旧context/tokenの観測・適用callbackは拒否し、記録終端後だけ待機Autoへ戻す。露出値は変更せず、次クリップは新しく測定する。実機の色・連続性・最終フレームの対応はDV-03で別に評価する。
+ 
++S43の音声接続（2026-10-18）: 両記録候補で観測用AudioDataOutputを使い、到着した実sampleの形式に従って音量を算出する。入力確認・到着・書込を別軸とし、無音sampleは正常到着、メーター解析不能は音量未確認のまま扱う。Movieへの書込成功は観測用sampleから推定しない。最新1件の音声snapshotと障害/記録終端の制御通知を分け、セッション/設定世代・クリップ・単調な通知順序で旧結果を拒否する。音声障害は停止通知より前にNativeで保持し、先行するWB故障も成功へ戻さない。録画終端・保存結果・WB Auto復帰を確認してから、本人操作による音声入力/出力だけの復旧を試みる処理を設ける。実sampleの再到着で成功を判定し、時間切れ/離脱では旧試行を失効させ、SDK所有の終了が確認できるまで次REC・重複試行を抑止する。
++
++無到着の猶予と復旧回数/時間は注入契約で分離する。製品値・復旧の開始方法/再構成範囲はU7の未合意事項であり、現ProductCaptureFactoryではpolicy未注入のため、通常経路の無到着期限判定と本人再試行は未有効。本人へ提示した暫定案は回答前に採用しない。合意後の接続・関連検証をS43の残件として記録し、実音声/同期/OS障害・復旧品質はDV-10へ残す。
++
+ ズームは目標選択時点では実倍率を変えない。制御中の観測実倍率で目標超過を防ぎ、目標・途中停止を同じ制御器へ渡す。停止支援候補は実カメラ・形式・解像度・補正の根拠付きとし、整数倍率だけで品質保証しない。設定は目的・根拠・適用範囲・版・変更箇所・未採用フラグ付きの暫定値、DV-08後の採用値を別記録する。数値・吸着方式・詳細設定画面を計画で追加決定しない。
+ 
+ D02資材は由来・版・利用条件・入力Log適合を先に確認する。資材適合待ちはS26変換本体／S48表示変換だけへ局所化し、周辺版管理・描画分離・既知入力機能試験を先行する。既知入力の技術試験は本人の画質採用試験ではない。出力1080p HEVC等は候補のまま、G3事前合意→DV-13評価→G5採用を維持する。
+--- a/.steering/20260929-device-independent-implementation/tasklist.md
++++ b/.steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,7 +12,14 @@
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-17、S42独立検証P2の限定修正完了）
++## 現在の再開点（2026-10-18、S43部分実装・本人判断待ち）
++
++- **S43 / blocked（製品policy合意・接続待ち）**: 音量/入力/到着/書込の実観測と通常UI、確認済み障害のREC抑止/停止/保存分類、旧通知拒否を接続。有限復旧の本体/注入試験も完了したが、現ProductCaptureFactoryはaudioPolicy未注入で通常経路の無到着期限判定・本人再試行は未有効。提示した「無到着2秒、本人retryごと音声入力/出力だけ1回、5秒timeout」の暫定案は回答未受領のため製品採用しない。合意後に同じS43の接続・必要検証を再開する。
++- **検証**: test-03＝Unit60宣言/87展開＋UI1、既存探索の互換修正後test-04＝Unit26宣言/32展開が全成功。重複を除く73宣言/102展開ケース、失敗/skip/runtimeWarnings 0。最終Simulator test buildとgeneric iOS署名なしbuild-02成功、181入力と現物hash一致。初回compile失敗0件・test-02の1件失敗/4issuesも保持。E-S43-01、`evidence/20261018-s43/` を参照。
++- **S42今回独立再検証 / 報告反映待ち**: 本人から今回結果の反映依頼を受領。保存先のvalidation-report.txtは修正前P2報告で、修正後の独立再検証本文は本steering/S42関連一時証跡では未発見。本文/保存先を本人へ確認中。修正時の成功で合格を捏造せず、新しい独立検証も開始しない。報告受領後に判定・指摘・範囲を追記する。
++- **範囲・保全**: S43だけを実施。S27詳細・S44以降は未着手。開始時5521file/106,676,450bytesのhashと証跡以外349fileを `/private/tmp/fr-s43-20261018-v4sxn_hx/` に保全し現物へ加算。既存17file変更/5504不変、新規音声関連6file（追加証跡除外）、欠落/旧証跡変更/所有外変更0。mainが最終diff・テスト版・所有を確認。実機音声/同期/故障/復旧品質、D01/G2B/DV-03/DV-10・S16等の既知残件を保持。
++
++### 直前のS42修正記録（履歴、2026-10-17）
+ 
+ - **S42 P2修正 / done**: 本人の明示 `$implement-steering` により、WB再測定開始失敗の理由がSTOP・記録終端へ引き継がれない独立検証指摘1件を修正。Nativeで失敗通知前に理由を保持し、本人STOP先行時も停止時の再固定成功で理由を消さない。関連Unit43宣言/65展開ケース（新規7ケース含む）＋UI1件とgeneric iOS署名なしbuildが成功、失敗/skip/runtimeWarnings 0。開始時347file/4,097,161bytesを `/private/tmp/fr-s42-p2-fix-20261017-pp27gwwf/baseline/` に保全し、既存2file変更/345不変、新規2ソースだけを加算（追加証跡を除く）。E-S42-02と `evidence/20261017-s42-p2-fix/` に実行版・結果・差分を記録。修正後の独立検証は未実施で、次工程は同steeringの明示 `$validate-implementation` によるS42限定再検証。実機/DV-03の既知未確認、S27詳細・S43以降未着手を維持する。以下は修正前の履歴。
+ 
+@@ -572,6 +579,7 @@
+ ### S42 WB固定・再固定・記録終端を完成
+ 
+ - [x] Status: done
++  - 2026-10-18引渡し: 今回の修正後独立再検証結果は本文/保存先の受領待ち。以下の「独立検証未実施」は修正完了時の履歴であり今回判定を表さない。前回test-01の174管理対象入力とS43開始baseline、git ignoredのscheme管理plist1件と構成照会後の現物が一致（計175入力、`evidence/20261018-s43/s42-handoff-check.json`）。修正前P2報告・実装時成功を今回結果に転用しない。
+   - E-S42-02 / 2026-10-17 P2修正完了: Nativeのrefresh開始throwをcommandFailed通知前に現在録画contextへ記録し、adapterFailure STOPも保持する。本番共用のNativeRecordingTerminationでMovie/sample writer終端へ渡し、STOP時の固定成功で失敗を.completedへ戻さない。本人STOPが先行してLifecycleから追加のadapterFailure STOPが出ない場合も保持する。初回REC/旧clip/非activeのcommand失敗を混入させず、リセット位置と既存音声/SDK終端失敗優先を維持した。
+   - E-S42-02 / 関連検証: 実Lifecycle→本番WB順序→本番共用終端→実SaveLifecycleで両方式×本人STOP先行有無を確認。完全な合成検査でも部分保存(元理由)、次clipは通常保存。新規3宣言/7ケースを含む関連Unit43宣言/65展開＋UI1成功、失敗/skip/runtimeWarnings 0。Simulator test buildとgeneric iOS署名なしbuild成功、compiler/analyzer診断0、既存AppIntents metadata警告あり。Xcode27.0(27A266a)/Swift6.4・言語5.0・iOS27.0、FrameRelay.xcodeproj / scheme・plan FrameRelay / Debug、実在Simulator `DFE46693-E8DD-4814-8957-4F327699F719` と3target/Test actionを再確認。
+   - E-S42-02 / 証跡・main差分: `evidence/20261017-s42-p2-fix/`。test-01/ios-build-01の各175入力が実行中不変・現物hash一致。Native1fileと本tasklistだけ既存変更、新規NativeRecordingTermination/Testsの2file、開始時の残り345fileと旧証跡は不変。project/設定/共有Ports/保存契約/UI/docs/designへの変更なし。git diff --check成功。実SDK throw/KVO・実機色/継続性/最終フレームは未確認、修正後独立検証は未実施。
+@@ -596,7 +604,21 @@
+ 
+ ### S43 音声メーター・障害・有限復旧を完成
+ 
+-- [ ] Status: pending
++- [ ] Status: blocked
++  - E-S43-01 / 部分引渡し: 両記録候補の実PCM観測、音量/入力/到着/書込表示、静寂・音量上限と故障の分離、開始抑止/停止/保存分類、旧通知拒否を接続。Movie観測sampleを個別書込成功にせず取得不能を保持。本人STOP先行/SDK完了でも障害を正常保存へ戻さず先行WB理由を保持。既存探索もchecking準備後の遅延sampleを受け取り再準備なしでRECへ進む。
++  - 現在のsubstatus: 音声観測/確認済み故障処理/通常UI/探索互換/有限復旧本体/注入試験/main差分確認＝完了。無到着猶予・復旧policyの製品採用/Factory接続＝本人判断待ち。未接続を「実機未確認だけ」と扱わない。実機音声/同期/OS故障/両方式/復旧品質はA10/DV-10へ残す。
++  - 再開条件: 本人が猶予・開始方法/回数/timeout/再構成範囲を確定後、Nativeとcoordinatorへ同policyを注入し関連検証する。S42報告は受領後に反映する。S27詳細・S44以降・独立validationを自動開始しない。
++  - E-S43-01 / 最終検証: test-03 Unit60宣言/87展開＋UI1、test-04 Unit26宣言/32展開が全成功。test-03から最終版はExplorationPorts/Coordinator/対応testの3fileだけが変わり、その範囲をtest-04で再検証して他の不変証跡を継承。重複除外73宣言/102展開ケース、失敗/skip/runtimeWarnings 0。最終181入力はtest-04/ios-build-02/現物一致。Simulator test build・generic iOS署名なしbuild成功、compiler/analyzer診断0（既存AppIntents SDK警告のみ）。新規試験計19宣言、既存UI1件の音声未確認/再試行無効表示も確認。実録画UI/実カメラ音声の合格ではない。
++  - E-S43-01 / 証跡・main照合: `evidence/20261018-s43/` に各runのcommand/source/hash/log/xcresult/summary、途中失敗、環境、変更前後copy/差分、文書レビュー/所有照合を保存。開始時5521file中17変更/5504不変、新規6source、欠落/旧証跡変更/所有外変更0（archive追加除外）。git diff --check成功。requirements/project/言語/OS/共有store/保存契約/S27差分は保持。以下は実装経過。
++  - 2026-10-18開始: S43限定の明示implementを受領。mainが本tasklist・判断・証跡・構成確認・限定build/test・最終差分を所有し、`s43_map` explorerが既存音声契約/SDK/製品接続を読取調査する。書込workerの具体所有は調査後に束縛する。未合意の障害猶予・復旧回数/時間・再構成範囲を製品採用済みにせず、必要判断を切り分ける。
++  - 所有束縛: `s43_impl` workerがO-CAPTUREの音声Domain/Recovery/Native/専用部品、CaptureLifecycle/ProductCaptureCoordinator、ProductCaptureView/専用音声UIと関連testを単独所有。O-PORTとしてProductCapturePortsと音声専用新規Port、O-COMPOSEとしてProductCaptureFactoryだけを直列に引き渡す。共有store/保存契約/project/その他Compositionは凍結し、必要変更はmainへ戻す。mainがtasklist/証跡/build/test/差分確認を担当する。
++  - 未合意判断: 本人へ無到着2秒・本人の再試行1回につき音声入力/出力だけを1回再構成・5秒timeoutという変更可能な暫定案を確認中。未回答を承認とせず、注入可能な処理・試験を先行し製品既定値の採用は回答待ちとする。S42修正後独立再検証は保存報告を発見できず、本文/保存先を確認中。修正前P2報告や実装時成功で代用しない。
++  - substatus: 契約/SDK/接続調査完了、meter/障害/有限復旧/通常UI/関連test実装in-progress、製品policy採用判断待ち、実行検証pending。実機音声・同期・障害猶予/復旧品質はDV-10へ残す。S27詳細・S44以降は未着手。
++  - 初回検証（test-01）: 確認済みXcode27.0(27A266a)/Swift6.4・言語5.0/iOS27、FrameRelay.xcodeproj/scheme・plan FrameRelay/Debug、App/Unit/UIの有効Test actionとboot済みSimulator `DFE46693-E8DD-4814-8957-4F327699F719` で限定試験を開始。test helperのnonisolated actor宣言がcompile error、旧AVAudioFormat initializerとactor initializerの新規警告もありexit65/0件。181入力は実行中不変。`/private/tmp/fr-s43-20261018-v4sxn_hx/test-01*` に失敗を保持し、workerへ限定修正を返した。
++  - test-03 / ios-build-01: テスト側の復旧受付待ちを保存終了だけからWB Auto復帰を含むcanRetryAudioへ修正し、実PCM helperのsending警告を解消。Unit60宣言/87展開ケース＋UI1が全成功、失敗/skip/runtimeWarnings 0、Simulator test build・generic iOS署名なしbuild成功、compiler/analyzer診断0（既存AppIntents SDK警告のみ）。各181入力は実行中不変。復旧policyは未注入のままで、注入fixtureの成功を製品有効化へ昇格しない。
++  - 最終差分中の互換修正: 共有Nativeがprepareで音声checkingを返す場合、既存ExplorationCoordinatorが待機中の後続sampleを受け取れずRECへ進めないことを検出。同workerへExplorationPorts.swift/ExplorationCoordinator.swift/既存ExplorationCoordinatorTestsの3fileだけを追加所有し、既存snapshotの世代/clip/順序照合による互換接続を実施する。探索gate・復旧機能やS27詳細/S44以降へ範囲を広げない。
++  - test-02: compileは成功、Unit60宣言＋UI1件中60成功/1失敗、skip/runtimeWarnings 0。復旧後の次RECを検査する新規coordinator試験1件で4issuesを検出し、送出/処理の順序と本体を点検中。PCM test closureのsending警告1件も修正対象。181入力は実行中不変。初回失敗を成功へ置換せず、test-02のlog/xcresult/summary/build-resultsを同runへ保存。
++  - 所有追加: 同workerへNativeRecordingTermination.swift/対応testの音声故障時に先行WB理由を上書きしない限定変更を引渡し。次clip開始時の書込表示resetも含め修正する。文書は`s43_docs` document_authorがfunctional-design/architectureの音声境界のみ更新。`s43_docs_review` doc_reviewerが未接続表記のP2を指摘し、policy未注入/通常経路未有効の明記後に解消・追加指摘なし。
+   - Depends: Start＝N01・既存音声契約（meter・入力／書込・復旧）。Finish＝S41の実接続。着手時に独立部分と接続部分を別substatusで記録し、接続まで満たす前はtask全体をdoneにしない。
+   - Owner / Files: O-CAPTURE／`FrameRelay/Domain/Capture/CaptureAudioState.swift`、`FrameRelay/Application/Recovery/CaptureAudioRecovery.swift`、`FrameRelay/Platform/Capture/` の音声adapter、`FrameRelay/Features/Capture/` と対応test。
+   - Done when: 音量／入力／到着／書込み実処理、静寂正常、確認済み障害で抑止／停止・保存結果、有限復旧と手動REC。
+@@ -809,10 +831,10 @@
+ | FR-08 | AC-FR-08-01 | 限定ISOと切替後保持 | P05/P14;CF-07 | EC:実値/限定ISO契約のみ | S47 | dep(S47)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-09 |
+ | FR-08 | AC-FR-08-02 | 実値表示・非対応切替拒否 | P05/P14;CF-07 | EC:実値/限定ISO契約のみ | S47,S44 | dep(S47,S44)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04、DV-09 |
+ | FR-08 | AC-FR-08-03 | 映像音声・切替継続品質 | P05/P14;CF-07 | EC:実値/限定ISO契約のみ | S47,S4V | dep(S47,S4V)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-09、DV-11 |
+-| FR-09 | AC-FR-09-01 | 待機/録画音量・静寂と障害 | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43 | dep(S43)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | I1 | A1 | D0 | R0 | DV-10 |
+-| FR-09 | AC-FR-09-02 | 確認済障害で停止・保存分類 | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43,S12 | dep(S43,S12)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | I1 | A1 | D0 | R0 | DV-02、DV-10 |
+-| FR-09 | AC-FR-09-03 | 有限復旧・手動REC | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43 | dep(S43)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | I1 | A1 | D0 | R0 | DV-10 |
+-| FR-09 | AC-FR-09-04 | 到着/書込み・保存音声 | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43,S12 | dep(S43,S12)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | I1 | A1 | D0 | R0 | DV-02、DV-10 |
++| FR-09 | AC-FR-09-01 | 待機/録画音量・静寂と障害 | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43 | dep(S43)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 音量/入力/到着の製品接続済・無到着policy未接続 | E-S43-01:実PCM/静寂/待機/旧通知/UI | D0 | 部分証拠・実機未評価 | DV-10 |
++| FR-09 | AC-FR-09-02 | 確認済障害で停止・保存分類 | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43,S12 | dep(S43,S12)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 入力/書込故障の抑止・停止/保存接続済・無到着policy未接続 | E-S43-01:障害/本人STOP/終端/保存分類 | D0 | 部分証拠・全障害実機未評価 | DV-02、DV-10 |
++| FR-09 | AC-FR-09-03 | 有限復旧・手動REC | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43 | dep(S43)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 有限復旧本体実装済・製品policy未接続 | E-S43-01:注入policy/上限/timeout/実所有/手動REC | D0 | 未達:製品接続・実機未確認 | DV-10 |
++| FR-09 | AC-FR-09-04 | 到着/書込み・保存音声 | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43,S12 | dep(S43,S12)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 実到着/書込観測接続済・Movie個別書込取得不能保持 | E-S43-01:実PCM/書込故障/実保存再生回帰 | D0 | 部分証拠・保存実音声未確認 | DV-02、DV-10 |
+ | FR-10 | AC-FR-10-01 | 原本/軽量版再生・複数結果/単数操作 | P08/P09/P21,T15/T20;CF-01/08,BI-15/33 | ES,EB,E-S13/14/15/25 | S14,S15,S25,S28,S34 | dep(S14,S15,S25,S28,S34)＋対応A/Q01 | O-LIBRARY | 原本製品入口と固定軽量版下位I/O/AVPlayer実装済、S16監査・S27 wire/S28 UI未完 | E-S13:50/E-S14:44/E-S15:33、E-S16通常3/最大文字2成功、E-S25新Unit27/全Unit等286・HTTP10成功/全reader解放。旧失敗保持 | D0 | 原本製品操作と合成軽量版の部分証拠・製品配布/UI/実機未確認 | DV-14、DV-16、DV-17 |
+ | FR-10 | AC-FR-10-02 | 保存中断再起動の4分類 | P08/P09/P21,T15/T20;CF-01/08,BI-15/33 | ES,EB,E-S11,E-S12 | S12,S14 | dep(S12,S14)＋対応A/Q01 | O-LIBRARY | S12保存/復旧＋S14分類投影/製品UI接続済、実Capture未接続 | E-S12:54/E-S14:44、E-S16保存unknown/要照合の実表示・post-UI再open | D0 | 保存/reopen/分類/製品UIの部分証拠・実Capture未確認 | DV-02 |
+ | FR-10 | AC-FR-10-03 | 整理後offline・再接続等非強制 | P08/P09/P21,T15/T20;CF-01/08,BI-15/33 | ES,EB（実再生なし） | S14,S32,S34 | dep(S14,S32,S34)＋対応A/Q01 | O-LIBRARY | S14整理後通常一覧の製品UI投影済・実整理未接続 | E-S14:44、E-S16通常UIの整理/破棄投影・履歴操作成功（test seed） | D0 | 投影/製品表示の部分証拠・実整理未確認 | DV-14、DV-17 |
+@@ -1136,6 +1158,7 @@
+ | E-S42-01 | 2026-10-17、explorer/worker/document_author/main | S42、AC-FR-04-01〜03/AC-CF-03、限定回帰 | test-02/ios-build-02の173入力一致、Xcode27/Debug/iOS27 Simulator＋generic iOS | `*-run.json`、WB測定/STOP/遅延/二本/失敗、S41回帰、実MOV保存→一覧→AVPlayer、UI | Unit64宣言/89展開＋UI1成功、失敗/skip/runtimeWarnings0、build成功。初回test compile失敗0実行は保持 | `evidence/20261017-s42/`。実機/DV-03/既知残件/S42独立validation未確認 |
+ | E-S42-V01 | 2026-10-17、implementation_validator/main | S42修正前限定独立検証 | E-S42-01の173入力/最終13fileと元xcresult一致、検証前後5307file不変 | WB固定/再固定/終端、通知順序、S41回帰、例外経路をread-only照合 | 要修正P2 1件、再測定開始失敗理由の終端引継ぎ漏れ。追加build/testなし | `evidence/20261017-s42-p2-fix/validation-report.txt`。実機品質/既知残件は別管理 |
+ | E-S42-02 | 2026-10-17、explorer/worker/main | S42 P2限定修正・関連回帰 | test-01/ios-build-01の175入力一致、Xcode27/Debug/iOS27 Simulator＋generic iOS | Native共用理由保持/終端、両方式×先行本人STOP、完全検査の部分保存/次clip成功、旧通知/S41/保存再生/UI | Unit43宣言/65展開＋UI1成功、新規7ケース、失敗/skip/runtimeWarnings0、Simulator/iOS build成功 | `evidence/20261017-s42-p2-fix/`。実SDK throw/実機品質/修正後独立validation未確認 |
++| E-S43-01 | 2026-10-18、explorer/worker/document_author/doc_reviewer/main | S43部分・AC-FR-09-01〜04/AC-CF-04・探索互換 | 最終181入力一致、test-03不変範囲継承、Xcode27/Debug/iOS27 Simulator＋generic iOS | 各run.json、実PCM/静寂/故障保存/順序/有限復旧/所有/手動REC/遅延観測、UI・実保存再生回帰 | test-03 Unit60/87展開＋UI1、test-04 Unit26/32展開成功、build成功。途中失敗保持 | `evidence/20261018-s43/`。製品policy未合意/未接続でblocked、実機/DV-10/S42報告反映は未完 |
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+ 
+@@ -1161,6 +1184,7 @@
+ | V-REVIEW-S42 | E-S42-01の173入力、今回13file差分 | main | 本人操作/能力未知保持、SDK one-shot/実gain、STOP時固定→終端、旧通知拒否、S41保持、他露出API未変更、旧docs保持を照合 | E-S42-01、`evidence/20261017-s42/main-scope-review.json`。S42実装done、独立validationではない |
+ | V-INDEPENDENT-S42 | E-S42-V01、P2修正前のS42版 | implementation_validator/main | 6観点をread-only確認し、再測定開始失敗から終端への理由漏れ1件を検出 | E-S42-V01、要修正P2 1件。修正後は別明示validation |
+ | V-REVIEW-S42-P2 | E-S42-02の175入力、既存2file変更/新規2file | main | 通知前の故障保持、本人STOP競合、STOP理由/両終端の本番共用、旧clip除外、次clip reset、完全検査でも部分保存、所有範囲を照合 | E-S42-02、`evidence/20261017-s42-p2-fix/main-scope-review.json`。修正・関連検証完了、独立validationではない |
++| V-REVIEW-S43部分 | E-S43-01の最終181入力、既存17file/新6file | main、文書はdoc_reviewer | PCM/4軸分離、STOP前故障保持/先行WB理由、観測順序、復旧所有、探索互換、製品未接続、旧差分/証跡保持を確認。文書P2は未有効明記で解消 | `evidence/20261018-s43/main-scope-review.json`。関連試験成功、S43全体blocked。独立validationではない |
+ 
+ ## 振り返り・引渡し
+ 
+--- a/FrameRelay/Application/Capture/CaptureLifecycle.swift
++++ b/FrameRelay/Application/Capture/CaptureLifecycle.swift
+@@ -52,6 +52,7 @@
+     private var automaticToken: CaptureCommandToken?
+     private var stopReason: CaptureStopReason?
+     private var lastAudioSequence: UInt64?
++    private var confirmedAudioFailure: CaptureAudioFailure?
+     private var ordinal: UInt64 = 0
+ 
+     init(context: CaptureContext, audio: CaptureAudioState) {
+@@ -178,6 +179,7 @@
+             }
+             lastAudioSequence = sequence
+             audio = state
++            if let failure = state.confirmedFailure { confirmedAudioFailure = failure }
+             if let failure = state.confirmedFailure, phase == .starting || phase == .recording {
+                 return requestStop(.audioFailure(failure))
+             }
+@@ -218,7 +220,14 @@
+         return .accepted([.capture(.startRecording(token, intent))])
+     }
+ 
+-    private mutating func completeRecording(_ evidence: RecordingEndEvidence) -> CaptureTransition {
++    private mutating func completeRecording(_ reported: RecordingEndEvidence) -> CaptureTransition {
++        // A completed container cannot erase an observed audio failure, including a
++        // failure that arrived after the user's STOP had already been accepted.
++        let evidence: RecordingEndEvidence
++        if confirmedAudioFailure != nil, reported.writer == .completed {
++            evidence = .init(writer: .interrupted(.adapterFailure(code: "confirmed_audio_failure")),
++                ceasedAt: reported.ceasedAt, lastVideo: reported.lastVideo, lastAudio: reported.lastAudio)
++        } else { evidence = reported }
+         guard let intent else { return .rejected(.wrongStage) }
+         end = evidence
+         phase = .ended
+--- a/FrameRelay/Application/Capture/ExplorationCoordinator.swift
++++ b/FrameRelay/Application/Capture/ExplorationCoordinator.swift
+@@ -26,6 +26,9 @@
+     @ObservationIgnored private let ticketLoader: @Sendable (URL) async throws -> Data
+     @ObservationIgnored private var services: ExplorationServices?
+     @ObservationIgnored private var eventTask: Task<Void, Never>?
++    @ObservationIgnored private var audioTask: Task<Void, Never>?
++    @ObservationIgnored private var streamEpoch = UUID()
++    @ObservationIgnored private var audioSequence: UInt64?
+     @ObservationIgnored private var pendingEnd: (CaptureContext, RecordingEndEvidence)?
+     @ObservationIgnored private var pendingDiagnostics: [ExplorationDeviceEvent] = []
+     @ObservationIgnored private var eventHandlingDepth = 0
+@@ -105,17 +108,27 @@
+             let created = try await factory.makeServices(ticket: ticket, output: outputCandidate, store: storeCandidate)
+             services = created
+             diagnosticsReady = true
++            let epoch = UUID()
++            streamEpoch = epoch
++            audioSequence = nil
+             let stream = await created.device.explorationEvents()
++            let audioStream = await created.device.audioSnapshots()
+             eventTask = Task { [weak self] in
+                 for await event in stream {
+                     guard !Task.isCancelled else { return }
+-                    await self?.receive(event)
++                    await self?.receive(event, epoch: epoch)
+                 }
+             }
+             cameras = try await created.device.discover()
+             let result = try await created.device.prepare(.init(ticket: ticket, generation: created.generation,
+                                                                  operation: .init(rawValue: "prepare-\(created.generation.session.rawValue)")))
+             prepared = result
++            audioTask = Task { [weak self] in
++                for await snapshot in audioStream {
++                    guard !Task.isCancelled else { return }
++                    await self?.receiveAudio(snapshot, epoch: epoch)
++                }
++            }
+             guard result.applied.values.value?.matches(ticket.desired) == true else {
+                 throw ExplorationIssue.appliedValuesDiffer
+             }
+@@ -129,10 +142,13 @@
+     }
+ 
+     private func abandonPreparation() async {
+-        if let services { await services.device.shutDown() }
++        streamEpoch = UUID()
++        let released = services
+         services = nil
+-        eventTask?.cancel()
+-        eventTask = nil
++        eventTask?.cancel(); eventTask = nil
++        audioTask?.cancel(); audioTask = nil
++        audioSequence = nil
++        if let released { await released.device.shutDown() }
+         // Readback is retained when it differed, for honest desired/applied display.
+     }
+ 
+@@ -150,10 +166,12 @@
+         let intent = RecordingIntent(context: context, operation: operation, original: original,
+                                      trialReference: "\(ticket.caseID)-\(ticket.repetitionID)-\(ticket.conditionVersion)",
+                                      desired: ticket.desired, applied: prepared.applied, acceptedAt: time)
+-        var lifecycle = CaptureLifecycle(context: context, audio: prepared.audio)
++        // Runtime/identity calls can suspend while a fresh audio observation arrives.
++        let audio = self.prepared?.audio ?? prepared.audio
++        var lifecycle = CaptureLifecycle(context: context, audio: audio)
+         let readiness = CaptureReadiness(generation: services.generation, desired: ticket.desired,
+                                          capabilities: prepared.capabilities, applied: prepared.applied,
+-                                         camera: .ready, audioInput: prepared.audio.input,
++                                         camera: .ready, audioInput: audio.input,
+                                          destination: .ready, recordingResources: .ready)
+         let transition = lifecycle.begin(intent, readiness: readiness, expectedStoreRevision: 0)
+         capture = lifecycle
+@@ -237,7 +255,8 @@
+         } catch { saveIssue = "記録終端と保存意図の照合が必要です" }
+     }
+ 
+-    private func receive(_ event: ExplorationDeviceEvent) async {
++    private func receive(_ event: ExplorationDeviceEvent, epoch: UUID? = nil) async {
++        if let epoch, epoch != streamEpoch { return }
+         guard let diagnostics = services?.diagnostics else { return }
+         pendingDiagnostics.append(event)
+         eventHandlingDepth += 1
+@@ -272,7 +291,15 @@
+         switch event {
+         case .capture(let event):
+             guard var lifecycle = capture else { return }
++            if case .audioObserved(let context, let sequence, _) = event {
++                guard context == lifecycle.context, lifecycle.end == nil,
++                      audioSequence.map({ sequence > $0 }) ?? true else { return }
++            }
+             let transition = lifecycle.receive(event)
++            if case .audioObserved(_, let sequence, let state) = event, case .accepted = transition {
++                audioSequence = sequence
++                updatePreparedAudio(state)
++            }
+             capture = lifecycle
+             appendObservation(code: "capture_event", detail: eventName(event))
+             await perform(transition)
+@@ -304,6 +331,31 @@
+         }
+     }
+ 
++    /// Compatibility with the shared Native audio observer. Meter traffic stays
++    /// outside the ordered control/diagnostic stream and never creates disk writes.
++    private func receiveAudio(_ snapshot: ProductCaptureAudioSnapshot, epoch: UUID) async {
++        guard epoch == streamEpoch, snapshot.generation == services?.generation,
++              audioSequence.map({ snapshot.sequence > $0 }) ?? true else { return }
++        if let clip = snapshot.capture {
++            guard var lifecycle = capture, lifecycle.context.capture == clip, lifecycle.end == nil else { return }
++            let transition = lifecycle.receive(.audioObserved(lifecycle.context, sequence: snapshot.sequence, snapshot.state))
++            guard case .accepted = transition else { return }
++            audioSequence = snapshot.sequence
++            updatePreparedAudio(snapshot.state)
++            capture = lifecycle
++            await perform(transition)
++        } else {
++            guard capture?.phase != .starting, capture?.phase != .recording, capture?.phase != .stopping else { return }
++            audioSequence = snapshot.sequence
++            updatePreparedAudio(snapshot.state)
++        }
++    }
++
++    private func updatePreparedAudio(_ audio: CaptureAudioState) {
++        guard let prepared else { return }
++        self.prepared = .init(capabilities: prepared.capabilities, applied: prepared.applied, audio: audio)
++    }
++
+     private func appendObservation(code: String, detail: String) {
+         observations.append(.init(code: code, context: capture?.context,
+                                   time: .unavailable(.notMeasured), detail: detail))
+--- a/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift
++++ b/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift
+@@ -16,6 +16,9 @@
+     private(set) var isSaving = false
+     private(set) var preferencesLoaded = false
+     private(set) var captureVisit: UUID?
++    private(set) var observedAudio: CaptureAudioState?
++    private(set) var audioRecovery: ProductCaptureAudioRecoveryStatus = .idle
++    private(set) var isRecoveringAudio = false
+ 
+     @ObservationIgnored private let preferenceStore: any ProductCapturePreferencePort
+     @ObservationIgnored private let makeDevice: @Sendable (ExplorationOutputCandidate) async throws -> any ProductCaptureDevicePort
+@@ -26,6 +29,12 @@
+     @ObservationIgnored private let captureNow: @Sendable () -> CaptureTimeObservation
+     @ObservationIgnored private var device: (any ProductCaptureDevicePort)?
+     @ObservationIgnored private var eventTask: Task<Void, Never>?
++    @ObservationIgnored private var audioTask: Task<Void, Never>?
++    @ObservationIgnored private var audioSequence: UInt64?
++    @ObservationIgnored private let audioPolicy: ProductCaptureAudioPolicy?
++    @ObservationIgnored private var recoveryRequest: ProductCaptureAudioRecoveryRequest?
++    @ObservationIgnored private var recoveryTimeout: Task<Void, Never>?
++    @ObservationIgnored private var recoveryTimedOut = false
+     @ObservationIgnored private var generation: CaptureGeneration?
+     @ObservationIgnored private var activeIntent: RecordingIntent?
+     @ObservationIgnored private var pendingEnd: RecordingEndEvidence?
+@@ -43,15 +52,17 @@
+          save: any ProductCaptureSavePort,
+          bindOriginal: @escaping @Sendable (CaptureOriginalReference) async -> Bool,
+          didSave: @escaping @MainActor @Sendable () async -> Void,
++         audioPolicy: ProductCaptureAudioPolicy? = nil,
+          calendarNow: (@Sendable () -> Date)? = nil,
+          captureNow: @escaping @Sendable () -> CaptureTimeObservation = { .unavailable(.notMeasured) }) {
+         preferenceStore = preferences; self.makeDevice = makeDevice; self.save = save
+         self.bindOriginal = bindOriginal; self.didSave = didSave
+         self.calendarNow = calendarNow; self.captureNow = captureNow
++        self.audioPolicy = audioPolicy
+     }
+ 
+     var isBusy: Bool {
+-        isPreparing || isStarting || isSaving || capture.map {
++        isPreparing || isStarting || isSaving || isRecoveringAudio || capture.map {
+             $0.phase == .starting || $0.phase == .recording || $0.phase == .stopping
+         } == true
+     }
+@@ -59,6 +70,7 @@
+     var canRecord: Bool {
+         guard !isBusy, !leaveRequested, captureVisit != nil, preferencesLoaded, issue == nil, calendarNow != nil, let generation, let prepared,
+               preferences.desired != nil, preferences.outputCandidate != nil,
++              currentAudio?.confirmedFailure == nil,
+               capture == nil || capture?.whiteBalance == .automatic else { return false }
+         return readiness(generation: generation, prepared: prepared).blockers.isEmpty
+     }
+@@ -167,6 +179,7 @@
+             do {
+                 guard accepts(visit) else { await created.shutDown(); return }
+                 let stream = await created.productEvents()
++                let audioStream = await created.audioSnapshots()
+                 guard accepts(visit) else { await created.shutDown(); return }
+                 let discovered = try await created.discoverCameras()
+                 guard accepts(visit) else { await created.shutDown(); return }
+@@ -182,6 +195,9 @@
+                 generation = nextGeneration
+                 cameras = discovered
+                 prepared = result
++                observedAudio = result.audio
++                audioSequence = nil
++                audioRecovery = .idle
+                 previewSource = preview
+                 let epoch = UUID()
+                 eventEpoch = epoch
+@@ -191,7 +207,13 @@
+                         await self?.receive(event, epoch: epoch)
+                     }
+                 }
+-                if !readiness(generation: nextGeneration, prepared: result).blockers.isEmpty {
++                audioTask = Task { [weak self] in
++                    for await snapshot in audioStream {
++                        guard !Task.isCancelled else { return }
++                        await self?.receiveAudio(snapshot, epoch: epoch)
++                    }
++                }
++                if readiness(generation: nextGeneration, prepared: result).blockers.contains(where: { $0 != .audioNotValid }) {
+                     issue = "希望設定を適用できません。現在の対応条件と実適用値を確認してください。"
+                 }
+             } catch {
+@@ -230,7 +252,10 @@
+         let intent = RecordingIntent(context: context, operation: operation,
+             original: .init(rawValue: UUID().uuidString), desired: desired, applied: prepared.applied,
+             acceptedAt: captureNow(), capturedAt: capturedAt)
+-        var lifecycle = CaptureLifecycle(context: context, audio: capture?.audio ?? prepared.audio)
++        var initialAudio = currentAudio ?? prepared.audio
++        initialAudio.writing = .notStarted
++        observedAudio = initialAudio
++        var lifecycle = CaptureLifecycle(context: context, audio: initialAudio)
+         let transition = lifecycle.begin(intent, readiness: readiness(generation: generation, prepared: prepared), expectedStoreRevision: 0)
+         capture = lifecycle
+         activeIntent = intent
+@@ -262,13 +287,96 @@
+         captureVisit = nil
+         preparationOwner = nil
+         isPreparing = false
++        if let request = recoveryRequest, let device { await device.cancelAudioRecovery(request) }
+         await stop()
+         await finishLeavingIfPossible()
+     }
+ 
++    var currentAudio: CaptureAudioState? { observedAudio ?? prepared?.audio }
++
++    var canRetryAudio: Bool {
++        guard !isBusy, !leaveRequested, captureVisit != nil, audioPolicy != nil,
++              let failure = currentAudio?.confirmedFailure, failure != .permissionDenied,
++              capture == nil || capture?.whiteBalance == .automatic else { return false }
++        return device != nil && generation != nil
++    }
++
++    /// An explicit user action; successful recovery only enables a later REC.
++    func retryAudio() async {
++        guard canRetryAudio, let device, let generation, let policy = audioPolicy,
++              let failure = currentAudio?.confirmedFailure, let visit = captureVisit else { return }
++        isRecoveringAudio = true
++        let context = CaptureContext(generation: generation, capture: .init(rawValue: "audio-recovery-" + UUID().uuidString))
++        var recovery = CaptureAudioRecovery(context: context, policy: policy.recovery)
++        guard var attempt = try? recovery.begin(after: failure) else { isRecoveringAudio = false; return }
++        while accepts(visit) {
++            let request = ProductCaptureAudioRecoveryRequest(generation: generation, operation: UUID(), ordinal: attempt.ordinal)
++            recoveryRequest = request
++            recoveryTimedOut = false
++            audioRecovery = .attempting(attempt.ordinal)
++            observedAudio?.input = .recovering(attempt: attempt.ordinal)
++            let timeoutSeconds = attempt.timeout.seconds
++            recoveryTimeout = Task { [weak self] in
++                do { try await Task.sleep(for: .seconds(timeoutSeconds)) }
++                catch { return }
++                guard let self, self.recoveryRequest == request else { return }
++                self.recoveryTimedOut = true
++                self.audioRecovery = .timedOutWaitingForRelease
++                // Cancellation is an acknowledged SDK ownership boundary. Until it returns,
++                // this owner stays busy even if the uncooperative SDK operation exceeded time.
++                await device.cancelAudioRecovery(request)
++            }
++            let result = await device.recoverAudio(request)
++            let timeoutTask = recoveryTimeout
++            let timedOut = recoveryTimedOut
++            timeoutTask?.cancel()
++            if timedOut { await timeoutTask?.value }
++            recoveryTimeout = nil
++            guard recoveryRequest == request else { break }
++            recoveryRequest = nil
++            guard accepts(visit) else { break }
++            let outcome: CaptureAudioRecoveryOutcome = timedOut
++                ? .failed(.routeInterrupted(.init(rawValue: "audio-recovery-timeout"))) : result
++            let next = try? recovery.complete(attempt, outcome: outcome)
++            switch outcome {
++            case .validInput(let route):
++                observedAudio?.input = .valid(route: route)
++                observedAudio?.writing = .notStarted
++                audioRecovery = .readyForUserREC
++            case .failed(let failure):
++                observedAudio?.input = .failed(failure)
++                audioRecovery = .failed
++            }
++            guard !timedOut, let next else { break }
++            attempt = next
++        }
++        recoveryRequest = nil
++        recoveryTimeout?.cancel(); recoveryTimeout = nil
++        isRecoveringAudio = false
++        await finishLeavingIfPossible()
++    }
++
++    private func receiveAudio(_ snapshot: ProductCaptureAudioSnapshot, epoch: UUID) async {
++        guard epoch == eventEpoch, snapshot.generation == generation,
++              audioSequence.map({ snapshot.sequence > $0 }) ?? true else { return }
++        if let clip = snapshot.capture {
++            guard clip == capture?.context.capture else { return }
++        } else if capture?.phase == .starting || capture?.phase == .recording || capture?.phase == .stopping {
++            return
++        }
++        audioSequence = snapshot.sequence
++        guard !isRecoveringAudio else { return }
++        observedAudio = snapshot.state
++        if let clip = snapshot.capture, var lifecycle = capture, lifecycle.context.capture == clip {
++            let transition = lifecycle.receive(.audioObserved(lifecycle.context, sequence: snapshot.sequence, snapshot.state))
++            capture = lifecycle
++            await perform(transition)
++        }
++    }
++
+     private func readiness(generation: CaptureGeneration, prepared: ExplorationPrepared) -> CaptureReadiness {
+         .init(generation: generation, desired: preferences.desired, capabilities: prepared.capabilities,
+-              applied: prepared.applied, camera: .ready, audioInput: capture?.audio.input ?? prepared.audio.input,
++              applied: prepared.applied, camera: .ready, audioInput: currentAudio?.input ?? prepared.audio.input,
+               destination: .ready, recordingResources: .ready)
+     }
+ 
+@@ -326,7 +434,15 @@
+         switch event {
+         case .capture(let event):
+             guard var lifecycle = capture else { return }
++            if case .audioObserved(let context, let sequence, _) = event {
++                guard context == lifecycle.context,
++                      audioSequence.map({ sequence > $0 }) ?? true else { return }
++            }
+             let transition = lifecycle.receive(event)
++            if case .audioObserved(_, let sequence, let state) = event, case .accepted = transition {
++                audioSequence = sequence
++                observedAudio = state
++            }
+             capture = lifecycle
+             await perform(transition)
+         case .fileFinalized(let file):
+@@ -378,7 +494,7 @@
+     }
+ 
+     private func finishLeavingIfPossible() async {
+-        guard leaveRequested, !isPreparing, !isStarting, !isSaving,
++        guard leaveRequested, !isPreparing, !isStarting, !isSaving, !isRecoveringAudio,
+               capture == nil || capture?.phase == .ended || capture?.phase == .ready else { return }
+         await releaseDevice()
+     }
+@@ -388,11 +504,18 @@
+         let released = device
+         device = nil; previewSource = nil; prepared = nil; generation = nil; capture = nil
+         eventTask?.cancel(); eventTask = nil
++        audioTask?.cancel(); audioTask = nil
++        observedAudio = nil; audioSequence = nil; audioRecovery = .idle
+         // Detach before suspension so an old shutdown cannot clear a new preparation.
+         if let released { await released.shutDown() }
+     }
+ 
+     private func message(for error: Error) -> String {
++        if error is ProductCaptureAudioPreparationError {
++            observedAudio = .init(level: .unavailable(.permissionDenied), input: .failed(.permissionDenied),
++                arrival: .unobserved, writing: .notStarted)
++            return "マイクの使用を許可できません。設定アプリでマイクの許可を確認してください。"
++        }
+         switch error as? ExplorationIssue {
+         case .simulatorHasNoVerifiedCamera: return "Simulatorではカメラ撮影を利用できません。一覧と再生は利用できます。"
+         case .permissionDenied: return "カメラとマイクの使用許可を設定で確認してください。"
+--- a/FrameRelay/Application/Ports/ExplorationPorts.swift
++++ b/FrameRelay/Application/Ports/ExplorationPorts.swift
+@@ -56,7 +56,12 @@
+     func discover() async throws -> [ExplorationCameraDescription]
+     func prepare(_ request: ExplorationPreparation) async throws -> ExplorationPrepared
+     func explorationEvents() async -> AsyncStream<ExplorationDeviceEvent>
++    func audioSnapshots() async -> AsyncStream<ProductCaptureAudioSnapshot>
+     func shutDown() async
++}
++
++extension ExplorationDevicePort {
++    func audioSnapshots() async -> AsyncStream<ProductCaptureAudioSnapshot> { AsyncStream { $0.finish() } }
+ }
+ 
+ nonisolated struct ExplorationServices: Sendable {
+--- a/FrameRelay/Application/Ports/ProductCapturePorts.swift
++++ b/FrameRelay/Application/Ports/ProductCapturePorts.swift
+@@ -17,6 +17,9 @@
+ nonisolated protocol ProductCaptureDevicePort: CaptureControlPort {
+     func discoverCameras() async throws -> [ExplorationCameraDescription]
+     func prepare(_ request: ProductCapturePreparation) async throws -> ExplorationPrepared
++    func audioSnapshots() async -> AsyncStream<ProductCaptureAudioSnapshot>
++    func recoverAudio(_ request: ProductCaptureAudioRecoveryRequest) async -> CaptureAudioRecoveryOutcome
++    func cancelAudioRecovery(_ request: ProductCaptureAudioRecoveryRequest) async
+     func productEvents() async -> AsyncStream<ExplorationDeviceEvent>
+     func previewSource() async -> (any ProductCapturePreviewSource)?
+     func shutDown() async
+@@ -29,3 +32,13 @@
+ }
+ 
+ extension OriginalSaveCoordinator: ProductCaptureSavePort {}
++
++extension ProductCaptureDevicePort {
++    /// Adapters without audio observation remain explicitly unavailable; no fake valid input is made here.
++    func audioSnapshots() async -> AsyncStream<ProductCaptureAudioSnapshot> { AsyncStream { $0.finish() } }
++    func recoverAudio(_ request: ProductCaptureAudioRecoveryRequest) async -> CaptureAudioRecoveryOutcome {
++        .failed(.routeInterrupted(.init(rawValue: "audio-recovery-unavailable")))
++    }
++    /// Returns only once the matching audio operation can no longer touch SDK resources.
++    func cancelAudioRecovery(_ request: ProductCaptureAudioRecoveryRequest) async {}
++}
+--- a/FrameRelay/Composition/ProductCaptureFactory.swift
++++ b/FrameRelay/Composition/ProductCaptureFactory.swift
+@@ -11,8 +11,9 @@
+                                            inspection: AVOriginalInspectionAdapter(originals: services.originals))
+         return ProductCaptureCoordinator(preferences: preferences, makeDevice: { candidate in
+             #if !targetEnvironment(simulator)
+-            guard await permission(for: .video), await permission(for: .audio) else {
+-                throw ExplorationIssue.permissionDenied
++            guard await permission(for: .video) else { throw ExplorationIssue.permissionDenied }
++            guard await permission(for: .audio) else {
++                throw ProductCaptureAudioPreparationError.microphonePermissionDenied
+             }
+             #endif
+             return NativeExplorationCapture(candidate: candidate,
+--- /dev/null
++++ b/FrameRelay/Domain/Capture/ProductCaptureAudio.swift
+@@ -0,0 +1,39 @@
++import Foundation
++
++/// A session observation is usable before REC. A clip observation belongs only to that clip.
++nonisolated struct ProductCaptureAudioSnapshot: Equatable, Sendable {
++    let generation: CaptureGeneration
++    let capture: CaptureID?
++    let sequence: UInt64
++    let state: CaptureAudioState
++}
++
++/// Explicitly injected trial/product policy; no implicit grace or retry defaults.
++nonisolated struct ProductCaptureAudioPolicy: Sendable {
++    let noArrivalGrace: CaptureRationalTime
++    let recovery: CaptureAudioRecoveryPolicy
++
++    init(noArrivalGrace: CaptureRationalTime, recovery: CaptureAudioRecoveryPolicy) throws {
++        guard noArrivalGrace.ticks > 0 else { throw CaptureContractError.invalidValue }
++        self.noArrivalGrace = noArrivalGrace
++        self.recovery = recovery
++    }
++}
++
++nonisolated struct ProductCaptureAudioRecoveryRequest: Equatable, Sendable {
++    let generation: CaptureGeneration
++    let operation: UUID
++    let ordinal: Int
++}
++
++nonisolated enum ProductCaptureAudioRecoveryStatus: Equatable, Sendable {
++    case idle
++    case attempting(Int)
++    case timedOutWaitingForRelease
++    case readyForUserREC
++    case failed
++}
++
++nonisolated enum ProductCaptureAudioPreparationError: Error {
++    case microphonePermissionDenied
++}
+--- /dev/null
++++ b/FrameRelay/Features/Capture/ProductCaptureAudioView.swift
+@@ -0,0 +1,86 @@
++import SwiftUI
++
++struct ProductCaptureAudioView: View {
++    let state: CaptureAudioState?
++    let recovery: ProductCaptureAudioRecoveryStatus
++    let canRetry: Bool
++    let retry: () -> Void
++
++    var body: some View {
++        VStack(alignment: .leading, spacing: 8) {
++            Text("音声").font(.headline)
++            if let level = state?.level.value {
++                ProgressView(value: min(level.linearAmplitude, 1))
++                    .accessibilityLabel("音量")
++                    .accessibilityValue("\(Int(min(level.linearAmplitude, 1) * 100))パーセント")
++                    .accessibilityIdentifier("capture.audio.level")
++                if level.isClipping {
++                    Label("音量が上限に達しています", systemImage: "waveform.badge.exclamationmark")
++                        .foregroundStyle(.orange)
++                        .accessibilityIdentifier("capture.audio.peak")
++                }
++            } else {
++                Text("音量は未観測です").accessibilityIdentifier("capture.audio.levelUnknown")
++            }
++            if let failure = state?.confirmedFailure {
++                Label(failureText(failure), systemImage: "xmark.circle.fill")
++                    .foregroundStyle(.red)
++                    .accessibilityIdentifier("capture.audio.failure")
++            } else {
++                Text(inputText).accessibilityIdentifier("capture.audio.input")
++            }
++            Text(arrivalText).font(.footnote).accessibilityIdentifier("capture.audio.arrival")
++            Text(writingText).font(.footnote).accessibilityIdentifier("capture.audio.writing")
++            Text(recoveryText).font(.footnote).accessibilityIdentifier("capture.audio.recovery")
++            Button("音声を再試行", systemImage: "arrow.clockwise", action: retry)
++                .disabled(!canRetry)
++                .accessibilityIdentifier("capture.audio.retry")
++        }
++    }
++
++    private var inputText: String {
++        switch state?.input {
++        case .valid(let route): return "入力有効：\(route)"
++        case .recovering: return "音声入力を再確認しています"
++        default: return "音声入力を確認中です"
++        }
++    }
++
++    private func failureText(_ failure: CaptureAudioFailure) -> String {
++        switch failure {
++        case .permissionDenied: return "マイクを使用できません。設定アプリでマイクの許可を確認してください。"
++        case .confirmedNoSamples: return "音声データが届いていません。録画を開始・継続できません。"
++        case .routeInterrupted: return "音声入力が途切れました。接続と入力を確認してください。"
++        case .writerFailed: return "音声を書き込めませんでした。録画は停止し、保存結果を確認します。"
++        }
++    }
++
++    private var arrivalText: String {
++        if case .received = state?.arrival { return "音声データの到着を確認" }
++        return "音声データ到着：未確認"
++    }
++
++    private var writingText: String {
++        switch state?.writing {
++        case .notStarted, nil: return "音声書き込み：開始前"
++        case .accepted: return "音声書き込み：受理を確認・保存結果は未確定"
++        case .completed: return "音声書き込み：終了を確認・保存結果は別に確認します"
++        case .failed: return "音声書き込み：失敗"
++        case .unavailable: return "音声書き込み：記録方式から個別の結果は取得できません。保存後に音声を検査します。"
++        }
++    }
++
++    private var recoveryText: String {
++        switch recovery {
++        case .attempting(let attempt): return "音声の再試行 \(attempt) 回目・入力到着を確認しています"
++        case .timedOutWaitingForRelease: return "音声の再試行が時間切れです。処理の終了を待っています。"
++        case .readyForUserREC: return "音声が復旧しました。RECを押すと次の録画を開始します。"
++        case .failed: return "音声を復旧できませんでした。直近の保存結果を確認し、撮影画面を開き直してください。"
++        case .idle:
++            if state?.confirmedFailure != nil, !canRetry {
++                return "直近の保存結果と入力の状態を確認し、撮影画面を開き直してください。"
++            }
++            return "音量が小さいことだけでは入力障害と判断しません。保存結果は録画終了後に確認します。"
++        }
++    }
++}
+--- a/FrameRelay/Features/Capture/ProductCaptureView.swift
++++ b/FrameRelay/Features/Capture/ProductCaptureView.swift
+@@ -74,6 +74,8 @@
+                                 .font(.footnote)
+                         }
+                     }
++                    ProductCaptureAudioView(state: model.currentAudio, recovery: model.audioRecovery,
++                        canRetry: model.canRetryAudio && !isClosing) { Task { await model.retryAudio() } }
+                     VStack(alignment: .leading, spacing: 8) {
+                         Text("録画と直近の保存結果").font(.headline)
+                         Text(phaseDescription).accessibilityIdentifier("capture.phase")
+--- /dev/null
++++ b/FrameRelay/Platform/Capture/NativeCaptureAudioObservation.swift
+@@ -0,0 +1,145 @@
++import AVFoundation
++
++/// PCM processing shared by both output candidates and synthetic CMSampleBuffer tests.
++/// Zero RMS is a valid sample. Unsupported meter formats do not imply lost input.
++nonisolated enum NativeCaptureAudioMeter {
++    static func measure(_ sample: CMSampleBuffer) -> CaptureObservation<CaptureAudioLevel> {
++        guard CMSampleBufferDataIsReady(sample),
++              let description = CMSampleBufferGetFormatDescription(sample),
++              CMFormatDescriptionGetMediaType(description) == kCMMediaType_Audio,
++              let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(description),
++              asbd.pointee.mFormatID == kAudioFormatLinearPCM,
++              asbd.pointee.mSampleRate.isFinite, asbd.pointee.mSampleRate > 0,
++              asbd.pointee.mChannelsPerFrame > 0,
++              asbd.pointee.mFramesPerPacket == 1,
++              let format = AVAudioFormat(formatDescription: description),
++              format.commonFormat != .otherFormat,
++              CMSampleBufferGetNumSamples(sample) > 0,
++              CMSampleBufferGetNumSamples(sample) <= Int(Int32.max),
++              let pcm = AVAudioPCMBuffer(pcmFormat: format,
++                  frameCapacity: AVAudioFrameCount(CMSampleBufferGetNumSamples(sample))) else {
++            return .unavailable(.evidenceMismatch)
++        }
++        pcm.frameLength = pcm.frameCapacity
++        guard CMSampleBufferCopyPCMDataIntoAudioBufferList(sample, at: 0,
++            frameCount: Int32(pcm.frameLength), into: pcm.mutableAudioBufferList) == noErr else {
++            return .unavailable(.unsupported)
++        }
++        let stream = format.streamDescription.pointee
++        let bytesPerSample: Int
++        switch format.commonFormat {
++        case .pcmFormatFloat32, .pcmFormatInt32: bytesPerSample = 4
++        case .pcmFormatFloat64: bytesPerSample = 8
++        case .pcmFormatInt16: bytesPerSample = 2
++        default: return .unavailable(.unsupported)
++        }
++        let channelsPerBuffer = format.isInterleaved ? Int(format.channelCount) : 1
++        guard stream.mFormatID == kAudioFormatLinearPCM,
++              stream.mFormatFlags & kAudioFormatFlagIsBigEndian == 0,
++              stream.mFormatFlags & kAudioFormatFlagIsPacked != 0,
++              stream.mBytesPerFrame == channelsPerBuffer * bytesPerSample else { return .unavailable(.unsupported) }
++        var squareSum = 0.0
++        var clipped = false
++        var count = 0
++        for buffer in UnsafeMutableAudioBufferListPointer(pcm.mutableAudioBufferList) {
++            guard let data = buffer.mData else { return .unavailable(.evidenceMissing) }
++            let length = Int(pcm.frameLength).multipliedReportingOverflow(by: Int(buffer.mNumberChannels))
++            let byteLength = length.partialValue.multipliedReportingOverflow(by: bytesPerSample)
++            guard !length.overflow, !byteLength.overflow, length.partialValue > 0,
++                  byteLength.partialValue <= Int(buffer.mDataByteSize) else { return .unavailable(.evidenceMismatch) }
++            for index in 0..<length.partialValue {
++                let value: Double
++                switch format.commonFormat {
++                case .pcmFormatFloat32: value = Double(data.assumingMemoryBound(to: Float.self)[index])
++                case .pcmFormatFloat64: value = data.assumingMemoryBound(to: Double.self)[index]
++                case .pcmFormatInt16:
++                    let integer = data.assumingMemoryBound(to: Int16.self)[index]
++                    clipped = clipped || integer == .min || integer == .max
++                    value = Double(integer) / 32768
++                case .pcmFormatInt32:
++                    let integer = data.assumingMemoryBound(to: Int32.self)[index]
++                    clipped = clipped || integer == .min || integer == .max
++                    value = Double(integer) / 2147483648
++                default: return .unavailable(.unsupported)
++                }
++                guard value.isFinite else { return .unavailable(.evidenceMismatch) }
++                squareSum += value * value
++                clipped = clipped || abs(value) >= 1
++                count += 1
++            }
++        }
++        guard count > 0,
++              let level = try? CaptureAudioLevel(linearAmplitude: sqrt(squareSum / Double(count)),
++                                                isClipping: clipped) else {
++            return .unavailable(.evidenceMismatch)
++        }
++        return .observed(level, at: ExplorationCaptureValues.now(), method: .direct(source: "PCM-RMS-peak"))
++    }
++}
++
++/// The SDK owner supplies actual route/connection checks and monotonic arrival time.
++/// Failure is latched until a user-requested audio reconfiguration; sound level cannot clear it.
++nonisolated struct NativeCaptureAudioObservation: Sendable {
++    private(set) var state = CaptureAudioState(level: .unavailable(.notMeasured), input: .checking,
++                                               arrival: .unobserved, writing: .notStarted)
++    private(set) var lastArrival: Double?
++    private var beganAt: Double
++    private var first: CaptureTimeObservation?
++    private var lastPTS: CMTime?
++    private var count: UInt64 = 0
++
++    init(beganAt: Double) { self.beganAt = beganAt }
++
++    mutating func reset(at now: Double) { self = Self(beganAt: now) }
++
++    mutating func receive(_ sample: CMSampleBuffer, generation: CaptureGeneration,
++                          route: String?, now: Double) -> Bool {
++        guard let route, CMSampleBufferDataIsReady(sample), CMSampleBufferGetNumSamples(sample) > 0,
++              let description = CMSampleBufferGetFormatDescription(sample),
++              CMFormatDescriptionGetMediaType(description) == kCMMediaType_Audio else { return false }
++        var lastTiming = CMSampleTimingInfo()
++        let pts = CMSampleBufferGetPresentationTimeStamp(sample)
++        guard pts.isNumeric,
++              CMSampleBufferGetSampleTimingInfo(sample, at: CMSampleBufferGetNumSamples(sample) - 1,
++                                               timingInfoOut: &lastTiming) == noErr,
++              lastTiming.presentationTimeStamp.isNumeric,
++              lastTiming.presentationTimeStamp.epoch == pts.epoch,
++              CMTimeCompare(lastTiming.presentationTimeStamp, pts) >= 0,
++              lastPTS.map({ $0.epoch == pts.epoch && CMTimeCompare(pts, $0) > 0 }) ?? true else { return false }
++        lastPTS = lastTiming.presentationTimeStamp
++        lastArrival = now
++        let firstTime = ExplorationCaptureValues.time(pts, clock: .captureSession(generation.session), source: "audio-sample-PTS")
++        if first == nil { first = firstTime }
++        count += UInt64(CMSampleBufferGetNumSamples(sample))
++        state.level = NativeCaptureAudioMeter.measure(sample)
++        state.arrival = .received(.init(first: first ?? firstTime,
++            last: ExplorationCaptureValues.time(lastTiming.presentationTimeStamp,
++                clock: .captureSession(generation.session), source: "audio-sample-PTS"), count: count))
++        if state.confirmedFailure == nil { state.input = .valid(route: route) }
++        return true
++    }
++
++    mutating func checkArrival(now: Double, grace: Double, evidence: CaptureEvidenceID) -> CaptureAudioFailure? {
++        guard state.confirmedFailure == nil, now - (lastArrival ?? beganAt) >= grace else { return nil }
++        let failure = CaptureAudioFailure.confirmedNoSamples(evidence)
++        fail(failure)
++        return failure
++    }
++
++    mutating func fail(_ failure: CaptureAudioFailure) {
++        guard state.confirmedFailure == nil else { return }
++        switch failure {
++        case .writerFailed: state.writing = .failed(failure)
++        default: state.input = .failed(failure)
++        }
++    }
++
++    mutating func writing(_ value: CaptureAudioWriting) {
++        if case .failed = state.writing { return }
++        state.writing = value
++    }
++
++    mutating func beginClip(movie: Bool) {
++        state.writing = movie ? .unavailable(.apiDoesNotExpose) : .notStarted
++    }
++}
+--- a/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
++++ b/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
+@@ -19,6 +19,16 @@
+     private var movie: AVCaptureMovieFileOutput?
+     private var videoOutput: AVCaptureVideoDataOutput?
+     private var audioOutput: AVCaptureAudioDataOutput?
++    private var microphoneInput: AVCaptureDeviceInput?
++    private var audioObservation = NativeCaptureAudioObservation(beganAt: ProcessInfo.processInfo.systemUptime)
++    private let audioPolicy: ProductCaptureAudioPolicy?
++    private let audioStream: AsyncStream<ProductCaptureAudioSnapshot>
++    private let audioContinuation: AsyncStream<ProductCaptureAudioSnapshot>.Continuation
++    private var audioMonitorTask: Task<Void, Never>?
++    private var audioRecoveryRequest: ProductCaptureAudioRecoveryRequest?
++    private var latestAudioRecoveryRequest: ProductCaptureAudioRecoveryRequest?
++    private var cancelledAudioRecovery: Set<UUID> = []
++    private var audioRecoveryContinuation: CheckedContinuation<CaptureAudioRecoveryOutcome, Never>?
+     private var sampleDelegate: ExplorationSampleDelegate?
+     private var movieDelegate: ExplorationMovieDelegate?
+     private struct Preparation {
+@@ -51,9 +61,14 @@
+     private var termination = NativeRecordingTermination()
+     private var durationTask: Task<Void, Never>?
+ 
+-    init(candidate: ExplorationOutputCandidate, originals: any ExplorationOriginalDestinationPort) {
++    init(candidate: ExplorationOutputCandidate, originals: any ExplorationOriginalDestinationPort,
++         audioPolicy: ProductCaptureAudioPolicy? = nil) {
+         self.candidate = candidate
+         self.originals = originals
++        self.audioPolicy = audioPolicy
++        let audioPair = AsyncStream<ProductCaptureAudioSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
++        audioStream = audioPair.stream
++        audioContinuation = audioPair.continuation
+         // Only bounded control transitions and first/last sample facts are emitted.
+         // Per-sample data and an unbounded Task-per-sample stream are intentionally absent.
+         let eventPair = AsyncStream<ExplorationDeviceEvent>.makeStream(bufferingPolicy: .bufferingOldest(128))
+@@ -67,6 +82,7 @@
+     func events() -> AsyncStream<CaptureIOEvent> { captureStream }
+     func explorationEvents() -> AsyncStream<ExplorationDeviceEvent> { eventStream }
+ 
++    func audioSnapshots() -> AsyncStream<ProductCaptureAudioSnapshot> { audioStream }
+     func productEvents() -> AsyncStream<ExplorationDeviceEvent> { eventStream }
+     func previewSource() -> (any ProductCapturePreviewSource)? { session.map(NativeCapturePreviewSource.init) }
+     func discover() throws -> [ExplorationCameraDescription] { try discover(stableIDs: false) }
+@@ -184,6 +200,7 @@
+         }
+         captureSession.addInput(videoInput)
+         captureSession.addInput(audioInput)
++        microphoneInput = audioInput
+         try selected.lockForConfiguration()
+         selected.activeFormat = format
+         guard desired.zoom >= Double(selected.minAvailableVideoZoomFactor),
+@@ -207,7 +224,9 @@
+             preparation = request
+             wbOrder = ExplorationWBCommandOrder(generation: request.generation)
+             startAdmission = NativeRecordingStartAdmission()
++            audioObservation.reset(at: ProcessInfo.processInfo.systemUptime)
+             captureSession.startRunning()
++            startAudioMonitoring(generation: request.generation)
+             try selected.lockForConfiguration()
+             let appliedTime: CMTime = await withCheckedContinuation { continuation in
+                 selected.setExposureModeCustom(lensAperture: aperture, duration: shutter, iso: Float(desired.exposure.iso)) {
+@@ -253,12 +272,10 @@
+             movie = output
+         } else {
+             let video = AVCaptureVideoDataOutput()
+-            let audio = AVCaptureAudioDataOutput()
+-            guard session.canAddOutput(video), session.canAddOutput(audio) else {
++            guard session.canAddOutput(video) else {
+                 throw ExplorationIssue.capabilityUnconfirmed("sample_outputs")
+             }
+             session.addOutput(video)
+-            session.addOutput(audio)
+             guard video.availableVideoPixelFormatTypes.contains(kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange) else {
+                 throw ExplorationIssue.capabilityUnconfirmed("ten_bit_capture")
+             }
+@@ -266,12 +283,21 @@
+             video.alwaysDiscardsLateVideoFrames = true
+             let delegate = ExplorationSampleDelegate(owner: self)
+             video.setSampleBufferDelegate(delegate, queue: queue)
+-            audio.setSampleBufferDelegate(delegate, queue: queue)
+             video.connection(with: .video)?.preferredVideoStabilizationMode = stabilization
+             sampleDelegate = delegate
+             videoOutput = video
+-            audioOutput = audio
+-        }
++        }
++        try configureAudioOutput(session)
++    }
++
++    private func configureAudioOutput(_ session: AVCaptureSession) throws {
++        let output = AVCaptureAudioDataOutput()
++        guard session.canAddOutput(output) else { throw ExplorationIssue.capabilityUnconfirmed("audio_observation_output") }
++        session.addOutput(output)
++        let delegate = sampleDelegate ?? ExplorationSampleDelegate(owner: self)
++        output.setSampleBufferDelegate(delegate, queue: queue)
++        sampleDelegate = delegate
++        audioOutput = output
+     }
+ 
+     private func readPrepared(device: AVCaptureDevice, format: AVCaptureDevice.Format,
+@@ -323,7 +349,7 @@
+             whiteBalanceLock: .supported(device.isWhiteBalanceModeSupported(.locked)),
+             whiteBalanceRefresh: .supported(device.isWhiteBalanceModeSupported(.autoWhiteBalance)))
+         observe("aperture_readback", context: nil, time: observationTime, detail: "lens_aperture=\(device.lensAperture)")
+-        return ExplorationPrepared(capabilities: capabilities, applied: applied, audio: audioState(writing: .notStarted))
++        return ExplorationPrepared(capabilities: capabilities, applied: applied, audio: audioObservation.state)
+     }
+ 
+     func submit(_ command: CaptureIOCommand) async -> CaptureCommandAcceptance {
+@@ -357,7 +383,8 @@
+                     ownsWhiteBalanceLock: wbOrder?.canStart(token.context) == true,
+                     whiteBalanceLocked: device?.whiteBalanceMode == .locked,
+                     sessionRunning: session?.isRunning == true,
+-                    audioActive: (movie?.connection(with: .audio) ?? audioOutput?.connection(with: .audio))?.isActive == true,
++                    audioActive: currentAudioRoute() != nil && audioObservation.state.confirmedFailure == nil
++                        && { if case .valid = audioObservation.state.input { return true }; return false }(),
+                     observedAt: ExplorationCaptureValues.now())
+                 if case .rejected(let terminal) = admission {
+                     if let terminal { emit(terminal) }
+@@ -375,7 +402,8 @@
+                 try startRecording(url: url, token: token, intent: intent)
+             case .stopRecording(_, let reason):
+                 guard activeToken == token else { return .rejected(token, .evidenceMismatch) }
+-                termination.recordStop(reason)
++                if case .audioFailure = reason { termination.recordAudioFailure() }
++                else { termination.recordStop(reason) }
+                 stopRecording()
+             }
+             return .accepted(token)
+@@ -478,12 +506,148 @@
+     }
+ 
+     private func audioState(writing: CaptureAudioWriting) -> CaptureAudioState {
+-        let arrival: CaptureAudioArrival
+-        if let firstAudioArrival, let lastAudioArrival, let context = activeToken?.context {
+-            arrival = .received(.init(first: sampleTime(firstAudioArrival, context: context), last: sampleTime(lastAudioArrival, context: context), count: audioArrivalCount))
+-        } else { arrival = .unavailable(candidate == .movieFile ? .apiDoesNotExpose : .notMeasured) }
+-        return CaptureAudioState(level: .unavailable(.adapterFailure(code: "level_measurement_not_implemented")),
+-                                 input: .valid(route: "configured-capture-audio-input"), arrival: arrival, writing: writing)
++        audioObservation.writing(writing)
++        return audioObservation.state
++    }
++
++    private func currentAudioRoute() -> String? {
++        guard AVCaptureDevice.authorizationStatus(for: .audio) == .authorized,
++              let session, session.isRunning, !session.isInterrupted,
++              let input = microphoneInput, input.device.isConnected,
++              session.inputs.contains(where: { $0 === input }),
++              audioOutput?.connection(with: .audio)?.isActive == true,
++              audioOutput?.connection(with: .audio)?.isEnabled == true else { return nil }
++        if let movie, movie.connection(with: .audio)?.isActive != true { return nil }
++        return input.device.localizedName
++    }
++
++    private func publishAudio() {
++        guard let preparation else { return }
++        audioSequence += 1
++        audioContinuation.yield(.init(generation: preparation.generation, capture: activeToken?.context.capture,
++            sequence: audioSequence, state: audioObservation.state))
++    }
++
++    private func startAudioMonitoring(generation: CaptureGeneration) {
++        audioMonitorTask?.cancel()
++        audioMonitorTask = Task { [weak self] in
++            while !Task.isCancelled {
++                do { try await Task.sleep(for: .milliseconds(100)) } catch { return }
++                await self?.pollAudio(generation: generation)
++            }
++        }
++    }
++
++    private func pollAudio(generation: CaptureGeneration) {
++        guard preparation?.generation == generation else { return }
++        if AVCaptureDevice.authorizationStatus(for: .audio) != .authorized {
++            confirmAudioFailure(.permissionDenied)
++        } else if session?.isInterrupted == true || microphoneInput?.device.isConnected == false {
++            confirmAudioFailure(.routeInterrupted(.init(rawValue: "audio-route-interrupted")))
++        } else if currentAudioRoute() == nil, case .valid = audioObservation.state.input {
++            confirmAudioFailure(.routeInterrupted(.init(rawValue: "audio-route-unavailable")))
++        } else if let policy = audioPolicy,
++                  let failure = audioObservation.checkArrival(now: ProcessInfo.processInfo.systemUptime,
++                      grace: policy.noArrivalGrace.seconds,
++                      evidence: .init(rawValue: "audio-arrival-deadline-" + generation.session.rawValue)) {
++            confirmAudioFailure(failure, alreadyLatched: true)
++        }
++        publishAudio()
++    }
++
++    fileprivate func isCurrentAudioOutput(_ output: AVCaptureOutput) -> Bool { output === audioOutput }
++
++    fileprivate func observeAudio(_ sample: CMSampleBuffer, output: AVCaptureOutput) -> Bool {
++        guard output === audioOutput, let preparation else { return false }
++        guard audioObservation.receive(sample, generation: preparation.generation,
++            route: currentAudioRoute(), now: ProcessInfo.processInfo.systemUptime) else {
++            // Invalid/reordered buffers are not evidence of a live input. A fresh valid
++            // sample must arrive before the configured deadline; level does not decide it.
++            return false
++        }
++        if let request = audioRecoveryRequest, audioObservation.state.confirmedFailure == nil,
++           case .valid(let route) = audioObservation.state.input {
++            audioRecoveryRequest = nil
++            let continuation = audioRecoveryContinuation
++            audioRecoveryContinuation = nil
++            publishAudio()
++            continuation?.resume(returning: .validInput(route: route))
++            observe("audio_recovery_input_observed", context: nil, time: ExplorationCaptureValues.now(),
++                    detail: "attempt=\(request.ordinal);manual_REC_required")
++        }
++        return true
++    }
++
++    private func confirmAudioFailure(_ failure: CaptureAudioFailure, alreadyLatched: Bool = false) {
++        guard alreadyLatched || audioObservation.state.confirmedFailure == nil else { return }
++        audioObservation.fail(failure)
++        // Record before notification: a user STOP may already be holding the final WB lock.
++        if let token = activeToken {
++            termination.recordAudioFailure(.adapterFailure(code: "confirmed_audio_failure"))
++            audioSequence += 1
++            emit(.audioObserved(token.context, sequence: audioSequence, audioObservation.state))
++            stopRecording()
++        }
++        publishAudio()
++        if audioRecoveryRequest != nil {
++            audioRecoveryRequest = nil
++            let continuation = audioRecoveryContinuation
++            audioRecoveryContinuation = nil
++            continuation?.resume(returning: .failed(failure))
++        }
++    }
++
++    func recoverAudio(_ request: ProductCaptureAudioRecoveryRequest) async -> CaptureAudioRecoveryOutcome {
++        guard !cancelledAudioRecovery.contains(request.operation),
++              request.generation == preparation?.generation, activeToken == nil,
++              audioRecoveryRequest == nil, let session else {
++            return .failed(.routeInterrupted(.init(rawValue: "audio-recovery-wrong-owner")))
++        }
++        guard AVCaptureDevice.authorizationStatus(for: .audio) == .authorized else {
++            return .failed(.permissionDenied)
++        }
++        latestAudioRecoveryRequest = request
++        audioRecoveryRequest = request
++        // Only audio input/output are rebuilt. Camera, format, WB, and the movie output stay owned.
++        session.beginConfiguration()
++        audioOutput?.setSampleBufferDelegate(nil, queue: nil)
++        if let audioOutput { session.removeOutput(audioOutput) }
++        if let microphoneInput { session.removeInput(microphoneInput) }
++        audioOutput = nil; microphoneInput = nil
++        do {
++            guard let microphone = AVCaptureDevice.default(for: .audio) else {
++                throw ExplorationIssue.capabilityUnconfirmed("microphone")
++            }
++            let input = try AVCaptureDeviceInput(device: microphone)
++            guard session.canAddInput(input) else { throw ExplorationIssue.capabilityUnconfirmed("audio_input") }
++            session.addInput(input)
++            microphoneInput = input
++            try configureAudioOutput(session)
++            session.commitConfiguration()
++            audioObservation.reset(at: ProcessInfo.processInfo.systemUptime)
++            publishAudio()
++            return await withCheckedContinuation { audioRecoveryContinuation = $0 }
++        } catch {
++            session.commitConfiguration()
++            audioRecoveryRequest = nil
++            let failure = CaptureAudioFailure.routeInterrupted(.init(rawValue: "audio-reconfiguration-failed"))
++            audioObservation.reset(at: ProcessInfo.processInfo.systemUptime)
++            confirmAudioFailure(failure)
++            return .failed(failure)
++        }
++    }
++
++    func cancelAudioRecovery(_ request: ProductCaptureAudioRecoveryRequest) {
++        cancelledAudioRecovery.insert(request.operation)
++        guard latestAudioRecoveryRequest == request else { return }
++        latestAudioRecoveryRequest = nil
++        let failure = CaptureAudioFailure.routeInterrupted(.init(rawValue: "audio-recovery-cancelled"))
++        audioObservation.fail(failure)
++        audioRecoveryRequest = nil
++        let continuation = audioRecoveryContinuation
++        audioRecoveryContinuation = nil
++        publishAudio()
++        continuation?.resume(returning: .failed(failure))
+     }
+ 
+     private func sampleTime(_ time: CMTime, context: CaptureContext) -> CaptureTimeObservation {
+@@ -493,6 +657,8 @@
+     func shutDown() {
+         guard activeToken == nil else { stopRecording(); return }
+         clearWhiteBalanceObservation()
++        audioMonitorTask?.cancel(); audioMonitorTask = nil
++        if let request = latestAudioRecoveryRequest { cancelAudioRecovery(request) }
+         wbOrder = nil
+         session?.stopRunning()
+         videoOutput?.setSampleBufferDelegate(nil, queue: nil)
+@@ -506,6 +672,7 @@
+         device = nil
+         deviceClock = nil
+         preparation = nil
++        microphoneInput = nil
+     }
+ }
+ 
+@@ -522,6 +689,7 @@
+         lastAudioArrival = nil
+         audioArrivalCount = 0
+         termination.beginRecording()
++        audioObservation.beginClip(movie: candidate == .movieFile)
+         writerURL = url
+         if let movie {
+             if let trial = preparation.trial {
+@@ -652,11 +820,10 @@
+                 if firstAudio == nil { firstAudio = earliest }
+                 lastAudio = latest
+                 audioCount += sampleCount
+-                if audioCount == sampleCount, let firstAudio {
+-                    audioSequence += 1
++                if let firstAudio {
+                     let span = CaptureSampleSpan(first: sampleTime(firstAudio, context: token.context),
+                                                  last: sampleTime(latest, context: token.context), count: audioCount)
+-                    emit(.audioObserved(token.context, sequence: audioSequence, audioState(writing: .accepted(span))))
++                    audioObservation.writing(.accepted(span))
+                 }
+             }
+             try inspectTrialCapacity()
+@@ -696,12 +863,12 @@
+ 
+     fileprivate func sampleFailure(_ code: String, isAudio: Bool) {
+         guard let token = activeToken, !isFinishing else { return }
+-        termination.recordFailure(.adapterFailure(code: code))
++        if isAudio { termination.recordAudioFailure(.adapterFailure(code: code)) }
++        else { termination.recordFailure(.adapterFailure(code: code)) }
+         observe(code, context: token.context, time: ExplorationCaptureValues.now(), detail: "recording_stopped_no_retry")
+         if isAudio {
+-            audioSequence += 1
+             let failure = CaptureAudioFailure.writerFailed(.init(rawValue: "\(token.context.capture.rawValue)-\(code)"))
+-            emit(.audioObserved(token.context, sequence: audioSequence, audioState(writing: .failed(failure))))
++            confirmAudioFailure(failure)
+         } else { emit(.commandFailed(token, .adapterFailure(code: code))) }
+         stopRecording()
+     }
+@@ -728,20 +895,21 @@
+         } else if let writer {
+             videoReceiver?.finish()
+             audioReceiver?.finish()
++            let token = activeToken
+             writer.finishWriting { [weak self] in
+-                Task { await self?.writerFinished() }
++                Task { await self?.writerFinished(expected: token) }
+             }
+         }
+         // A stop during reserve() is completed by the start continuation, with no writer.
+     }
+ 
+-    private func writerFinished() async {
+-        guard let writer, let token = activeToken else { return }
++    private func writerFinished(expected: CaptureCommandToken?) async {
++        guard let writer, let token = activeToken, token == expected else { return }
+         if writer.status == .completed, let firstAudio, let lastAudio {
+-            audioSequence += 1
+             let span = CaptureSampleSpan(first: sampleTime(firstAudio, context: token.context),
+                                          last: sampleTime(lastAudio, context: token.context), count: audioCount)
+-            emit(.audioObserved(token.context, sequence: audioSequence, audioState(writing: .completed(span))))
++            audioObservation.writing(.completed(span))
++            publishAudio()
+         }
+         let evidence = RecordingEndEvidence(
+             writer: termination.writerFinished(completed: writer.status == .completed),
+@@ -806,10 +974,12 @@
+     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+         guard let owner else { return }
+         let isVideo = output is AVCaptureVideoDataOutput
++        guard isVideo || owner.assumeIsolated({ $0.isCurrentAudioOutput(output) }) else { return }
+         guard CMSampleBufferDataIsReady(sampleBuffer) else {
+             owner.assumeIsolated { $0.sampleFailure("sample_not_ready", isAudio: !isVideo) }
+             return
+         }
++        if !isVideo, !owner.assumeIsolated({ $0.observeAudio(sampleBuffer, output: output) }) { return }
+         let ready = CMReadySampleBuffer<CMSampleBuffer.DynamicContent>(unsafeBuffer: sampleBuffer)
+         // The delegate queue is the exact actor executor; the raw alias is never reused.
+         owner.assumeIsolated { $0.consume(ready, isVideo: isVideo) }
+--- a/FrameRelay/Platform/Capture/NativeRecordingTermination.swift
++++ b/FrameRelay/Platform/Capture/NativeRecordingTermination.swift
+@@ -9,6 +9,12 @@
+ 
+     mutating func recordFailure(_ reason: CaptureUnavailableReason) {
+         failure = reason
++    }
++
++    /// Audio observation may occur after another failure or a user STOP. Preserve
++    /// the first recorded cause instead of replacing a WB/resource failure.
++    mutating func recordAudioFailure(_ reason: CaptureUnavailableReason = .interrupted) {
++        if failure == nil { failure = reason }
+     }
+ 
+     /// Called before publishing a thrown command's failure. A user STOP may have
+--- a/FrameRelayTests/Application/ExplorationCoordinatorTests.swift
++++ b/FrameRelayTests/Application/ExplorationCoordinatorTests.swift
+@@ -4,6 +4,121 @@
+ 
+ @MainActor
+ struct ExplorationCoordinatorTests {
++    @Test func checkingPreparationAcceptsDelayedAudioWithoutPreparingAgain() async throws {
++        let fixture = try CaptureFixture()
++        let factory = TestExplorationFactory(fixture: fixture)
++        var checking = fixture.audio; checking.input = .checking
++        await factory.device.setPreparedAudio(checking)
++        let model = try configuredModel(factory: factory, fixture: fixture)
++        await model.prepare()
++        await model.record()
++        #expect(model.capture?.phase == .ready)
++        #expect(await factory.device.commands.isEmpty)
++        await factory.device.emitAudio(fixture.audio, sequence: 1)
++        await eventually { model.prepared?.audio.input == fixture.audio.input }
++        #expect(await factory.diagnostics.attempts.isEmpty) // Meter snapshots are not diagnostic events.
++        let recording = Task { await model.record() }
++        await factory.store.waitForIntent()
++        #expect(model.capture?.phase == .starting)
++        #expect(model.capture?.audio.input == fixture.audio.input)
++        #expect(await factory.makeCount == 1)
++        await model.stop()
++        await factory.store.releaseIntent()
++        await recording.value
++    }
++
++    @Test func idleAudioFailureRejectsRECAndIgnoresOldGenerationAndSequence() async throws {
++        let fixture = try CaptureFixture()
++        let factory = TestExplorationFactory(fixture: fixture)
++        let model = try configuredModel(factory: factory, fixture: fixture)
++        await model.prepare()
++        var failed = fixture.audio
++        failed.input = .failed(.confirmedNoSamples(.init(rawValue: "synthetic-arrival-deadline")))
++        await factory.device.emitAudio(failed, sequence: 4)
++        await eventually { model.prepared?.audio == failed }
++        await factory.device.emitAudio(fixture.audio, sequence: 3)
++        let old = CaptureGeneration(session: .init(rawValue: "old-session"), settings: 1)
++        await factory.device.emitAudio(fixture.audio, sequence: 100, generation: old)
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.prepared?.audio == failed)
++        await model.record()
++        #expect(model.capture?.phase == .ready)
++        #expect(await factory.device.commands.isEmpty)
++    }
++
++    @Test func currentClipAudioSharesControlOrderingAndRejectsCallbacksAfterTerminal() async throws {
++        let fixture = try CaptureFixture()
++        let factory = TestExplorationFactory(fixture: fixture)
++        let model = try configuredModel(factory: factory, fixture: fixture)
++        await model.prepare()
++        let recording = Task { await model.record() }
++        await factory.store.waitForIntent()
++        let lock = try #require(await factory.device.commands.compactMap { command -> CaptureCommandToken? in
++            if case .lockCurrentWhiteBalance(let token) = command { return token }; return nil
++        }.first)
++        await factory.device.emit(.capture(.whiteBalanceLocked(lock, fixture.lock)))
++        await factory.store.releaseIntent()
++        await recording.value
++        await eventually { model.capture?.whiteBalance == .locked(fixture.lock) }
++        let start = try #require(await factory.device.commands.compactMap { command -> CaptureCommandToken? in
++            if case .startRecording(let token, _) = command { return token }; return nil
++        }.first)
++        await factory.device.emit(.capture(.recordingStarted(start, fixture.time)))
++        await eventually { model.capture?.phase == .recording }
++        var failed = fixture.audio
++        failed.writing = .failed(.writerFailed(.init(rawValue: "synthetic-write-failure")))
++        await factory.device.emitAudio(failed, sequence: 10, capture: fixture.context.capture)
++        await eventually { model.capture?.phase == .stopping }
++        await factory.device.emit(.capture(.audioObserved(fixture.context, sequence: 9, fixture.audio)))
++        await factory.device.emit(.capture(.audioObserved(fixture.context, sequence: 10, failed)))
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.capture?.audio == failed)
++        #expect(await factory.device.commands.filter { if case .stopRecording = $0 { return true }; return false }.count == 1)
++        await factory.device.emit(.capture(.recordingEnded(start, fixture.end)))
++        await eventually { model.capture?.phase == .ended }
++        let end = model.capture?.end
++        await factory.device.emitAudio(fixture.audio, sequence: 100, capture: fixture.context.capture)
++        await factory.device.emit(.capture(.audioObserved(fixture.context, sequence: 101, fixture.audio)))
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.capture?.audio == failed)
++        #expect(model.capture?.end == end)
++        await factory.device.emitAudio(fixture.audio, sequence: 11)
++        await eventually { model.prepared?.audio == fixture.audio }
++        #expect(model.capture?.audio == failed) // Finished clip evidence stays immutable.
++    }
++
++    @Test func abandonedAudioSubscriptionCannotChangeRepreparedSession() async throws {
++        let fixture = try CaptureFixture()
++        let factory = TestExplorationFactory(fixture: fixture)
++        var checking = fixture.audio; checking.input = .checking
++        await factory.device.setPreparedAudio(checking)
++        await factory.device.failNextReadback()
++        let model = try configuredModel(factory: factory, fixture: fixture)
++        await model.prepare()
++        #expect(model.issues == [.appliedValuesDiffer])
++        await model.prepare()
++        #expect(await factory.makeCount == 2)
++        #expect(model.prepared?.audio.input == .checking)
++        await factory.device.emitAudio(fixture.audio, sequence: 100, subscription: 0)
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.prepared?.audio.input == .checking)
++        await factory.device.emitAudio(fixture.audio, sequence: 1, subscription: 1)
++        await eventually { model.prepared?.audio.input == fixture.audio.input }
++    }
++
++    private func configuredModel(factory: TestExplorationFactory, fixture: CaptureFixture) throws -> ExplorationCoordinator {
++        let model = ExplorationCoordinator(factory: factory)
++        model.bindTicket(data: try JSONEncoder().encode(explorationTicket(fixture: fixture)))
++        model.selectOutput(.sampleWriter)
++        model.selectStore(.atomicFile)
++        return model
++    }
++
++    private func eventually(_ condition: @MainActor () -> Bool) async {
++        for _ in 0..<3_000 { if condition() { return }; await Task.yield() }
++        #expect(condition())
++    }
++
+     @Test func initializationAndSimulatorPreparationCannotCreateMediaOrRequestCapture() async throws {
+         let fixture = try CaptureFixture()
+         let factory = TestExplorationFactory(fixture: fixture, runtime: .simulator)
+@@ -219,20 +334,44 @@
+ private actor TestExplorationDevice: ExplorationDevicePort {
+     let fixture: CaptureFixture
+     let rejectWB: Bool
+-    let stream: AsyncStream<ExplorationDeviceEvent>
+-    let continuation: AsyncStream<ExplorationDeviceEvent>.Continuation
++    var stream: AsyncStream<ExplorationDeviceEvent>
++    var continuation: AsyncStream<ExplorationDeviceEvent>.Continuation
++    private var audioContinuations: [AsyncStream<ProductCaptureAudioSnapshot>.Continuation] = []
++    private var preparedAudio: CaptureAudioState
++    private var failReadback = false
+     private(set) var commands: [CaptureIOCommand] = []
+     init(fixture: CaptureFixture, rejectWB: Bool) {
+         self.fixture = fixture
+         self.rejectWB = rejectWB
++        preparedAudio = fixture.audio
+         (stream, continuation) = AsyncStream.makeStream()
+     }
+     func discover() -> [ExplorationCameraDescription] { [] }
+     func prepare(_ request: ExplorationPreparation) -> ExplorationPrepared {
+-        ExplorationPrepared(capabilities: fixture.capabilities, applied: fixture.applied, audio: fixture.audio)
++        let applied = failReadback ? AppliedCaptureSettings(generation: fixture.context.generation,
++            operation: fixture.applied.operation, values: .unavailable(.notMeasured)) : fixture.applied
++        failReadback = false
++        return ExplorationPrepared(capabilities: fixture.capabilities, applied: applied, audio: preparedAudio)
+     }
+     func events() -> AsyncStream<CaptureIOEvent> { AsyncStream { $0.finish() } }
+-    func explorationEvents() -> AsyncStream<ExplorationDeviceEvent> { stream }
++    func explorationEvents() -> AsyncStream<ExplorationDeviceEvent> {
++        (stream, continuation) = AsyncStream.makeStream()
++        return stream
++    }
++    func audioSnapshots() -> AsyncStream<ProductCaptureAudioSnapshot> {
++        let pair = AsyncStream<ProductCaptureAudioSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
++        audioContinuations.append(pair.continuation)
++        return pair.stream
++    }
++    func setPreparedAudio(_ audio: CaptureAudioState) { preparedAudio = audio }
++    func failNextReadback() { failReadback = true }
++    func emitAudio(_ audio: CaptureAudioState, sequence: UInt64, capture: CaptureID? = nil,
++                   generation: CaptureGeneration? = nil, subscription: Int? = nil) {
++        let index = subscription ?? (audioContinuations.count - 1)
++        guard audioContinuations.indices.contains(index) else { return }
++        audioContinuations[index].yield(.init(generation: generation ?? fixture.context.generation,
++            capture: capture, sequence: sequence, state: audio))
++    }
+     func shutDown() { continuation.finish() }
+     func emit(_ event: ExplorationDeviceEvent) { continuation.yield(event) }
+     func submit(_ command: CaptureIOCommand) -> CaptureCommandAcceptance {
+--- /dev/null
++++ b/FrameRelayTests/Application/ProductCaptureAudioCoordinatorTests.swift
+@@ -0,0 +1,201 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@MainActor
++struct ProductCaptureAudioCoordinatorTests {
++    @Test func idleAudioChecksSilenceFailuresAndRejectsStaleSequencesAndGenerations() async throws {
++        let f = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: f)
++        let model = try make(f, device: device)
++        await open(model)
++        var checking = f.audio; checking.input = .checking
++        await device.emitAudio(checking, sequence: 1)
++        await eventually { model.currentAudio?.input == .checking }
++        #expect(!model.canRecord)
++        await device.emitAudio(f.audio, sequence: 2)
++        await eventually { model.canRecord }
++        #expect(model.currentAudio?.level.value?.linearAmplitude == 0)
++        var failure = f.audio
++        failure.writing = .failed(.writerFailed(.init(rawValue: "write-failure")))
++        await device.emitAudio(failure, sequence: 4)
++        await eventually { model.currentAudio?.confirmedFailure != nil }
++        #expect(!model.canRecord)
++        await device.emitAudio(f.audio, sequence: 3)
++        await device.emitAudio(f.audio, sequence: 99, generation: f.context.generation)
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.currentAudio == failure)
++        await model.record()
++        #expect(await device.startCount == 0)
++        await model.leaveCapture()
++    }
++
++    @Test func recoveryRequiresUserRECAndOldClipEventsCannotChangeTheNextClip() async throws {
++        let f = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: f)
++        let model = try make(f, device: device)
++        await open(model)
++        let failed = audioFailure(f)
++        await device.emitAudio(failed, sequence: 1)
++        await eventually { model.canRetryAudio }
++        await model.retryAudio()
++        #expect(model.audioRecovery == .readyForUserREC)
++        #expect(model.canRecord)
++        #expect(await device.startCount == 0)
++        await model.record()
++        await eventually { model.capture?.phase == .recording }
++        let first = try #require(model.capture?.context)
++        await device.emit(.capture(.audioObserved(first, sequence: 10, failed)))
++        await eventually { model.canRetryAudio }
++        #expect(model.capture?.phase == .ended && !model.isSaving)
++        #expect(!model.canRecord)
++        await model.retryAudio()
++        #expect(model.canRecord)
++        await model.record()
++        await eventually { model.capture?.phase == .recording }
++        #expect(model.currentAudio?.writing == .notStarted)
++        let current = model.currentAudio
++        await device.emit(.capture(.audioObserved(first, sequence: 100, failed)))
++        await device.emitAudio(failed, sequence: 101, capture: first.capture)
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.currentAudio == current)
++        #expect(model.capture?.phase == .recording)
++        #expect(await device.startCount == 2)
++        await model.stop()
++        await eventually { !model.isSaving }
++        await model.leaveCapture()
++    }
++
++    @Test func oldControlEventCannotOverwriteNewerSnapshotAndSaveMustSettleBeforeRetry() async throws {
++        let f = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: f)
++        let probe = ProductCaptureTestProbe(holdRefresh: true)
++        let save = ProductCaptureTestSave()
++        let model = try make(f, device: device, save: save, didSave: { await probe.refresh() })
++        await open(model); await model.record()
++        await eventually { model.capture?.phase == .recording }
++        let context = try #require(model.capture?.context)
++        let failed = audioFailure(f)
++        await device.emitAudio(failed, sequence: 20, capture: context.capture)
++        await probe.waitForRefresh()
++        await device.emit(.capture(.audioObserved(context, sequence: 19, f.audio)))
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.currentAudio?.confirmedFailure != nil)
++        #expect(!model.canRetryAudio)
++        await model.retryAudio()
++        #expect(await device.audioRecoveryCalls == 0)
++        #expect(await save.ends.first?.writer != .completed)
++        await probe.releaseRefresh()
++        await eventually { model.canRetryAudio }
++        await model.leaveCapture()
++    }
++
++    @Test func retryPolicyBoundsAttemptsAndPermissionDenialRequiresSettings() async throws {
++        let f = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: f)
++        let failure = CaptureAudioFailure.routeInterrupted(.init(rawValue: "route"))
++        await device.configureAudioRecovery(outcomes: [.failed(failure)])
++        let model = try make(f, device: device, maximumAttempts: 2)
++        await open(model)
++        await device.emitAudio(audioFailure(f), sequence: 1)
++        await eventually { model.canRetryAudio }
++        await model.retryAudio()
++        #expect(await device.audioRecoveryCalls == 2)
++        #expect(model.audioRecovery == .failed)
++        #expect(!model.canRecord)
++        var denied = f.audio; denied.input = .failed(.permissionDenied)
++        await device.emitAudio(denied, sequence: 2)
++        await eventually { model.currentAudio?.input == .failed(.permissionDenied) }
++        #expect(!model.canRetryAudio)
++        await model.retryAudio()
++        #expect(await device.audioRecoveryCalls == 2)
++        #expect(await device.startCount == 0)
++        await model.leaveCapture()
++    }
++
++    @Test func timeoutRetainsSDKOwnerUntilRealReleaseAndRejectsLateSuccess() async throws {
++        let f = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: f)
++        await device.configureAudioRecovery(outcomes: [], hold: true)
++        let model = try make(f, device: device, timeoutMilliseconds: 10)
++        await open(model)
++        await device.emitAudio(audioFailure(f), sequence: 1)
++        await eventually { model.canRetryAudio }
++        let retry = Task { await model.retryAudio() }
++        try await Task.sleep(for: .milliseconds(30))
++        await eventually { model.audioRecovery == .timedOutWaitingForRelease }
++        #expect(model.isBusy)
++        #expect(!model.canRecord && !model.canRetryAudio)
++        await model.retryAudio()
++        #expect(await device.audioRecoveryCalls == 1)
++        await device.completeAudioRecovery(.validInput(route: "late success"))
++        await retry.value
++        #expect(model.audioRecovery == .failed)
++        #expect(!model.canRecord)
++        #expect(!model.isBusy)
++        #expect(await device.startCount == 0)
++        await model.leaveCapture()
++    }
++
++    @Test func leavingDuringRecoveryRejectsLateSuccessAndReleasesOnlyAfterSDKReturns() async throws {
++        let f = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: f)
++        await device.configureAudioRecovery(outcomes: [], hold: true)
++        let model = try make(f, device: device)
++        await open(model)
++        await device.emitAudio(audioFailure(f), sequence: 1)
++        await eventually { model.canRetryAudio }
++        let retry = Task { await model.retryAudio() }
++        await eventually { model.isRecoveringAudio }
++        // Let the operation enter the fake SDK before requesting leave.
++        while await device.audioRecoveryCalls == 0 { await Task.yield() }
++        let leave = Task { await model.leaveCapture() }
++        await eventually { model.captureVisit == nil }
++        #expect(await device.shutdowns == 0)
++        await device.completeAudioRecovery(.validInput(route: "late success"))
++        await retry.value; await leave.value
++        #expect(model.prepared == nil)
++        #expect(!model.canRecord)
++        #expect(await device.shutdowns == 1)
++        #expect(await device.startCount == 0)
++    }
++
++    @Test func microphonePermissionDeniedBeforePreparationAppearsAsAudioFailure() async throws {
++        let f = try CaptureFixture()
++        let model = ProductCaptureCoordinator(preferences: ProductCaptureTestPreferences(fixture: f),
++            makeDevice: { _ in throw ProductCaptureAudioPreparationError.microphonePermissionDenied },
++            save: ProductCaptureTestSave(), bindOriginal: { _ in true }, didSave: {}, calendarNow: { Date() })
++        await open(model)
++        #expect(model.currentAudio?.confirmedFailure == .permissionDenied)
++        #expect(model.issue?.contains("マイク") == true)
++        #expect(!model.canRecord && !model.canRetryAudio)
++        await model.leaveCapture()
++    }
++
++    private func audioFailure(_ f: CaptureFixture) -> CaptureAudioState {
++        var result = f.audio
++        result.input = .failed(.confirmedNoSamples(.init(rawValue: "synthetic-deadline")))
++        return result
++    }
++
++    private func make(_ f: CaptureFixture, device: ProductCaptureTestDevice,
++                      save: ProductCaptureTestSave? = nil, maximumAttempts: Int = 1,
++                      timeoutMilliseconds: Int64 = 10_000,
++                      didSave: @escaping @MainActor @Sendable () async -> Void = {}) throws -> ProductCaptureCoordinator {
++        let policy = try ProductCaptureAudioPolicy(noArrivalGrace: .init(ticks: 2, timescale: 1),
++            recovery: .init(maximumAttempts: maximumAttempts,
++                            attemptTimeout: .init(ticks: timeoutMilliseconds, timescale: 1_000)))
++        return ProductCaptureCoordinator(preferences: ProductCaptureTestPreferences(fixture: f), makeDevice: { _ in device },
++            save: save ?? ProductCaptureTestSave(), bindOriginal: { _ in true }, didSave: didSave, audioPolicy: policy, calendarNow: { Date() })
++    }
++
++    private func open(_ model: ProductCaptureCoordinator) async {
++        model.enterCapture()
++        await model.load(); await model.prepare()
++    }
++
++    private func eventually(_ condition: @MainActor () -> Bool) async {
++        for _ in 0..<3_000 { if condition() { return }; await Task.yield() }
++        #expect(condition())
++    }
++}
+--- /dev/null
++++ b/FrameRelayTests/Application/ProductCaptureAudioLifecycleTests.swift
+@@ -0,0 +1,57 @@
++import Testing
++@testable import FrameRelay
++
++struct ProductCaptureAudioLifecycleTests {
++    @Test(arguments: [false, true], [false, true])
++    func confirmedFaultBeforeOrAfterUserStopCannotSaveAsNormal(movie: Bool, userStopFirst: Bool) throws {
++        let fixture = try CaptureFixture()
++        var capture = CaptureLifecycle(context: fixture.context, audio: fixture.audio)
++        let start = try requestRecorderStart(&capture, fixture: fixture)
++        _ = capture.receive(.recordingStarted(start, fixture.time))
++        var nativeEnd = NativeRecordingTermination()
++        nativeEnd.beginRecording()
++        if userStopFirst { _ = capture.stop(operation: fixture.intent.operation) }
++        var observation = NativeCaptureAudioObservation(beganAt: 0)
++        let failure = CaptureAudioFailure.writerFailed(.init(rawValue: "synthetic-append-failure"))
++        observation.fail(failure)
++        nativeEnd.recordAudioFailure(.adapterFailure(code: "confirmed_audio_failure"))
++        let transition = capture.receive(.audioObserved(fixture.context, sequence: 1, observation.state))
++        let effects = try captureEffects(transition)
++        if userStopFirst { #expect(effects.isEmpty) }
++        else {
++            #expect(effects.contains(.capture(.stopRecording(start, reason: .audioFailure(failure)))))
++        }
++        #expect(capture.phase == .stopping)
++        let sdkResult = movie ? nativeEnd.movieFinished(failure: nil) : nativeEnd.writerFinished(completed: true)
++        #expect(sdkResult == .interrupted(.adapterFailure(code: "confirmed_audio_failure")))
++        // Even a faulty adapter that reports completed cannot erase the lifecycle's audio fact.
++        let ended = try captureEffects(capture.receive(.recordingEnded(start, fixture.end)))
++        let end = try #require(ended.compactMap { effect -> RecordingEndEvidence? in
++            if case .recordingCeased(let end) = effect { return end }; return nil
++        }.first)
++        #expect(end.writer != .completed)
++        var save = try RecordingSaveLifecycle(intent: fixture.intent, intentToken: fixture.token(1), revision: 0)
++        try save.acceptIntentCommit(fixture.receipt(fixture.token(1)))
++        try save.acceptRecordingEnd(context: fixture.context, evidence: end)
++        try save.acceptFile(fixture.file)
++        let command = try save.acceptInspection(fixture.inspection(), resultToken: fixture.token(100))
++        guard case .commitResult(_, _, let record) = command else { Issue.record("Missing result"); return }
++        #expect(record.result == .partial(.adapterFailure(code: "confirmed_audio_failure")))
++        nativeEnd.beginRecording()
++        #expect(nativeEnd.writerFinished(completed: true) == .completed)
++    }
++
++    @Test func delayedGoodAudioCannotClearCurrentFaultAndOldClipIsRejected() throws {
++        let fixture = try CaptureFixture()
++        let old = try CaptureFixture(clip: "old")
++        var capture = CaptureLifecycle(context: fixture.context, audio: fixture.audio)
++        let start = try requestRecorderStart(&capture, fixture: fixture)
++        _ = capture.receive(.recordingStarted(start, fixture.time))
++        var failed = fixture.audio
++        failed.input = .failed(.confirmedNoSamples(.init(rawValue: "deadline")))
++        _ = capture.receive(.audioObserved(fixture.context, sequence: 10, failed))
++        #expect(capture.receive(.audioObserved(fixture.context, sequence: 9, fixture.audio)) == .rejected(.duplicateOrOutOfOrder))
++        #expect(capture.receive(.audioObserved(old.context, sequence: 11, fixture.audio)) == .rejected(.wrongContext))
++        #expect(capture.audio == failed)
++    }
++}
+--- a/FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift
++++ b/FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift
+@@ -625,6 +625,12 @@
+     private(set) var sessionActive = false
+     private let stream: AsyncStream<ExplorationDeviceEvent>
+     private let continuation: AsyncStream<ExplorationDeviceEvent>.Continuation
++    private let audioPair = AsyncStream<ProductCaptureAudioSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
++    private var recoveryOutcomes: [CaptureAudioRecoveryOutcome] = [.validInput(route: "recovered test mic")]
++    private var heldRecovery: CheckedContinuation<CaptureAudioRecoveryOutcome, Never>?
++    private var cancellationWaiters: [CheckedContinuation<Void, Never>] = []
++    private var holdAudioRecovery = false
++    private(set) var audioRecoveryCalls = 0
+     private var intent: RecordingIntent?
+     private var lastEvents: [ExplorationDeviceEvent] = []
+     private(set) var commands: [CaptureIOCommand] = []
+@@ -645,6 +651,31 @@
+     }
+     func events() -> AsyncStream<CaptureIOEvent> { AsyncStream { $0.finish() } }
+     func productEvents() -> AsyncStream<ExplorationDeviceEvent> { stream }
++    func audioSnapshots() -> AsyncStream<ProductCaptureAudioSnapshot> { audioPair.stream }
++    func emitAudio(_ state: CaptureAudioState, sequence: UInt64, capture: CaptureID? = nil,
++                   generation override: CaptureGeneration? = nil) {
++        guard let generation = override ?? generation else { return }
++        audioPair.continuation.yield(.init(generation: generation, capture: capture, sequence: sequence, state: state))
++    }
++    func configureAudioRecovery(outcomes: [CaptureAudioRecoveryOutcome], hold: Bool = false) {
++        recoveryOutcomes = outcomes; holdAudioRecovery = hold
++    }
++    func recoverAudio(_ request: ProductCaptureAudioRecoveryRequest) async -> CaptureAudioRecoveryOutcome {
++        audioRecoveryCalls += 1
++        if holdAudioRecovery { return await withCheckedContinuation { heldRecovery = $0 } }
++        let index = min(audioRecoveryCalls - 1, recoveryOutcomes.count - 1)
++        return recoveryOutcomes[index]
++    }
++    func cancelAudioRecovery(_ request: ProductCaptureAudioRecoveryRequest) async {
++        // Models an SDK reconfiguration that cannot release its owner until it returns.
++        if heldRecovery != nil { await withCheckedContinuation { cancellationWaiters.append($0) } }
++    }
++    func completeAudioRecovery(_ result: CaptureAudioRecoveryOutcome) {
++        let held = heldRecovery; heldRecovery = nil
++        held?.resume(returning: result)
++        let waiters = cancellationWaiters; cancellationWaiters.removeAll()
++        for waiter in waiters { waiter.resume() }
++    }
+     func previewSource() async -> (any ProductCapturePreviewSource)? { await previewGate?.holdOnce(); return nil }
+     func discoverCameras() async -> [ExplorationCameraDescription] {
+         await discoverGate?.holdOnce()
+--- /dev/null
++++ b/FrameRelayTests/Platform/Capture/NativeCaptureAudioObservationTests.swift
+@@ -0,0 +1,116 @@
++import AVFoundation
++import Testing
++@testable import FrameRelay
++
++struct NativeCaptureAudioObservationTests {
++    @Test(arguments: [false, true])
++    func actualPCMSeparatesQuietSoundAndFullScale(nonInterleaved: Bool) throws {
++        let flags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked
++            | (nonInterleaved ? kAudioFormatFlagIsNonInterleaved : 0)
++        for values: [Float] in [[0, 0, 0, 0], [0.5, -0.5, 0.5, -0.5], [1, -1, 1, -1]] {
++            try withPCM(values, flags: flags, channels: 2, nonInterleaved: nonInterleaved) { sample in
++                let level = try #require(NativeCaptureAudioMeter.measure(sample).value)
++                #expect(abs(level.linearAmplitude - Double(abs(values[0]))) < 0.00001)
++                #expect(level.isClipping == (abs(values[0]) == 1))
++            }
++        }
++    }
++
++    @Test func integerPositiveAndNegativeFullScaleAndNearPeakRemainDistinct() throws {
++        let flags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked
++        for value: Int16 in [0, 16_384, .max, .min] {
++            try withPCM([value], flags: flags) { sample in
++                let level = try #require(NativeCaptureAudioMeter.measure(sample).value)
++                #expect(level.isClipping == (value == .max || value == .min))
++                #expect(level.linearAmplitude == abs(Double(value)) / 32_768)
++            }
++        }
++        for value: Int32 in [.max, .min] {
++            try withPCM([value], flags: flags) { sample in
++                #expect(NativeCaptureAudioMeter.measure(sample).value?.isClipping == true)
++            }
++        }
++        try withPCM([Float(0.999)], flags: kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked) { sample in
++            #expect(NativeCaptureAudioMeter.measure(sample).value?.isClipping == false)
++        }
++    }
++
++    @Test func nonfiniteMeterDoesNotInventSilenceOrLostInput() throws {
++        let fixture = try CaptureFixture()
++        for value: Float in [.nan, .infinity] {
++            var observation = NativeCaptureAudioObservation(beganAt: 10)
++            try withPCM([value], flags: kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked) { sample in
++                #expect(NativeCaptureAudioMeter.measure(sample).value == nil)
++                let observedResult1 = observation.receive(sample, generation: fixture.context.generation, route: "test mic", now: 11)
++                #expect(observedResult1)
++            }
++            #expect(observation.state.input == .valid(route: "test mic"))
++            #expect(observation.state.confirmedFailure == nil)
++            #expect(observation.state.writing == .notStarted)
++        }
++    }
++
++    @Test func silenceArrivalDeadlineAndReorderedSamplesUseActualSampleObservations() throws {
++        let fixture = try CaptureFixture()
++        var observation = NativeCaptureAudioObservation(beganAt: 10)
++        let evidence = CaptureEvidenceID(rawValue: "synthetic-deadline")
++        #expect(observation.state.input == .checking)
++        let observedResult2 = observation.checkArrival(now: 11.9, grace: 2, evidence: evidence)
++        #expect(observedResult2 == nil)
++        try withPCM([Int16(0), 0], flags: kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked,
++                    at: CMTime(value: 100, timescale: 48_000)) { sample in
++            let observedResult3 = observation.receive(sample, generation: fixture.context.generation, route: "test mic", now: 11.99)
++            #expect(observedResult3)
++            let observedResult4 = observation.receive(sample, generation: fixture.context.generation, route: "test mic", now: 12.5)
++            #expect(!observedResult4)
++        }
++        #expect(observation.lastArrival == 11.99)
++        #expect(observation.state.level.value?.linearAmplitude == 0)
++        #expect(observation.state.input == .valid(route: "test mic"))
++        let observedResult5 = observation.checkArrival(now: 13.98, grace: 2, evidence: evidence)
++        #expect(observedResult5 == nil)
++        let observedResult6 = observation.checkArrival(now: 14, grace: 2, evidence: evidence)
++        #expect(observedResult6 == .confirmedNoSamples(evidence))
++        try withPCM([Int16(0)], flags: kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked,
++                    at: CMTime(value: 200, timescale: 48_000)) { sample in
++            let observedResult7 = observation.receive(sample, generation: fixture.context.generation, route: "test mic", now: 15)
++            #expect(observedResult7)
++        }
++        #expect(observation.state.confirmedFailure == .confirmedNoSamples(evidence))
++        observation.reset(at: 16)
++        #expect(observation.state.input == .checking)
++        #expect(observation.state.arrival == .unobserved)
++    }
++
++    @Test func noSamplesIsFiniteAndFailedWriteCannotBecomeCompleted() throws {
++        var observation = NativeCaptureAudioObservation(beganAt: 0)
++        let fixture = try CaptureFixture()
++        let failure = CaptureAudioFailure.writerFailed(.init(rawValue: "append-failure"))
++        let observedResult8 = observation.checkArrival(now: 0.9, grace: 1, evidence: .init(rawValue: "no-arrival"))
++        #expect(observedResult8 == nil)
++        observation.fail(failure)
++        let span = CaptureSampleSpan(first: fixture.time, last: fixture.time, count: 1)
++        observation.writing(.completed(span))
++        #expect(observation.state.writing == .failed(failure))
++        observation.reset(at: 2)
++        observation.beginClip(movie: true)
++        #expect(observation.state.writing == .unavailable(.apiDoesNotExpose))
++        let observedResult9 = observation.checkArrival(now: 3, grace: 1, evidence: .init(rawValue: "no-arrival"))
++        #expect(observedResult9 != nil)
++    }
++
++    private func withPCM<Value>(_ values: [Value], flags: AudioFormatFlags, channels: UInt32 = 1,
++                                        nonInterleaved: Bool = false, at: CMTime = .zero,
++                                        body: (CMSampleBuffer) throws -> Void) throws {
++        let size = UInt32(MemoryLayout<Value>.size)
++        let bytesPerFrame = size * (nonInterleaved ? 1 : channels)
++        let format = try CMAudioFormatDescription(audioStreamBasicDescription: .init(
++            mSampleRate: 48_000, mFormatID: kAudioFormatLinearPCM, mFormatFlags: flags,
++            mBytesPerPacket: bytesPerFrame, mFramesPerPacket: 1, mBytesPerFrame: bytesPerFrame,
++            mChannelsPerFrame: channels, mBitsPerChannel: size * 8, mReserved: 0))
++        let bytes = values.withUnsafeBytes { Data($0) }
++        let sample = CMReadySampleBuffer(audioDataBuffer: CMReadOnlyDataBlockBuffer(bytes),
++            formatDescription: format, sampleCount: values.count / Int(channels), presentationTimeStamp: at)
++        try sample.withUnsafeSampleBuffer { buffer in try body(buffer) }
++    }
++}
+--- a/FrameRelayTests/Platform/Capture/NativeRecordingTerminationTests.swift
++++ b/FrameRelayTests/Platform/Capture/NativeRecordingTerminationTests.swift
+@@ -120,6 +120,25 @@
+         }
+     }
+ 
++    @Test(arguments: [false, true])
++    func audioFailureAfterWhiteBalanceFailureKeepsTheOriginalReason(movie: Bool) throws {
++        let fixture = try CaptureFixture()
++        var termination = NativeRecordingTermination()
++        termination.beginRecording()
++        let wbFailure = CaptureUnavailableReason.adapterFailure(code: "capture_command_failed")
++        termination.recordCommandFailure(.refreshAndLockWhiteBalance(fixture.token(4)),
++            activeToken: fixture.token(3), reason: wbFailure)
++        termination.recordAudioFailure(.adapterFailure(code: "audio-no-arrival"))
++        termination.recordStop(.user(fixture.intent.operation))
++        termination.recordAudioFailure()
++        let result = movie ? termination.movieFinished(failure: nil) : termination.writerFinished(completed: true)
++        #expect(result == .interrupted(wbFailure))
++        termination.beginRecording()
++        termination.recordAudioFailure(.adapterFailure(code: "audio-writer-rejected"))
++        termination.recordAudioFailure()
++        #expect(termination.writerFinished(completed: true) == .interrupted(.adapterFailure(code: "audio-writer-rejected")))
++    }
++
+     @Test func unrelatedOrInactiveCommandFailuresDoNotContaminateTheCurrentClip() throws {
+         let fixture = try CaptureFixture()
+         let old = try CaptureFixture(clip: "old-clip")
+--- a/FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
++++ b/FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
+@@ -21,6 +21,11 @@
+         XCTAssertTrue(whiteBalance.exists)
+         XCTAssertTrue(whiteBalance.label.contains("未確認"))
+         XCTAssertFalse(app.buttons["capture.refreshWhiteBalance"].isEnabled)
++        let audio = app.staticTexts["capture.audio.input"]
++        if !audio.isHittable { app.swipeUp() }
++        XCTAssertTrue(audio.exists)
++        XCTAssertFalse(app.buttons["capture.audio.retry"].isEnabled)
++        XCTAssertFalse(app.staticTexts["capture.audio.failure"].exists)
+         XCTAssertFalse(app.buttons["exploration.import"].exists)
+         app.buttons["capture.closeToolbar"].tap()
+         XCTAssertTrue(entry.waitForExistence(timeout: 5))
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -199,7 +199,13 @@
+ 
+ 合わせ直しとSTOPが競合した場合、Native側は測定観測を失効させ、現在のgainの固定適用後に記録停止へ進む。記録終端までは固定を保持し、その後に待機Autoへ戻す。KVO観測と適用完了callbackはcontext・tokenを照合し、旧操作・旧クリップの通知を現在の状態へ反映しない。次クリップへ固定値を持ち越さず、実機での色・録画継続性・最終フレーム品質はDV-03の未確認範囲として保持する。S42の進捗と検証証跡は対象steeringのtasklistを正本とする。
+ 
+-S41のカメラ表示は構図確認用で、標準Rec.709変換を備えた表示の達成証拠にはしない。音声メーター/復旧・標準表示変換の実装と検証はそれぞれS43・S48の範囲として残す。
++音声観測は `NativeCaptureAudioObservation` が入力経路・実sample到着・PCM音量・書込結果を分けて保持し、待機中から開始する。ゼロ音量は有効な到着として扱い、メーター非対応形式だけを入力障害へ変換しない。sample writerはappend受理とwriter終了を観測し、Movie方式は観測用sampleの到着をMovieの音声書込成功へ昇格させない。Movieが公開しない個別の書込事実は取得不能を保持し、既存の保存後検査と区別する。
++
++メーター表示は最新1件のsnapshot経路で更新し、確認済み障害・停止・記録終端を扱う制御イベント経路と分ける。snapshotにはセッション/設定世代・任意のクリップID・単調な通知順序を付け、`ProductCaptureCoordinator` は現在の所有者に一致するものだけ受け取る。待機の観測で録画中のクリップ状態を上書きせず、旧セッションや旧クリップの通知を拒否する。確定した故障理由は後続の正常sampleや音量更新だけで解除せず、停止クリップの保存結果を次の入力復旧と別に扱う。
++
++無到着期限判定と有限復旧はpolicy注入時の処理として実装している。現 `ProductCaptureFactory` は `audioPolicy` を注入していないため、通常経路の無到着期限判定・本人再試行は未有効であり、合意・接続後の確認を要する。注入時の音声復旧は試行ごとの世代・操作ID・順番で所有し、完了・時間切れ・取消を照合する。取消要求だけでSDK資源を解放済みにせず、同じ試行の終了を確認するまで次RECと重複復旧を抑止する。成功は実入力到着の再確認で判定し、本人のREC待機へ戻す。障害判定猶予と有限復旧の回数/時間は注入する値であり、製品値と再構成範囲の採用はU7の合意待ちを維持する。S43の進捗・検証証跡は現行tasklistを正本とし、実機の音声・同期・復旧品質はDV-10の未確認範囲として保持する。
++
++S41のカメラ表示は構図確認用で、標準Rec.709変換を備えた表示の達成証拠にはしない。標準表示変換の実装と検証はS48の範囲として残す。
+ 
+ 表示変換は入力Log種別と色特性が判明した経路だけに適用し、二重変換を避ける。Apple LogとApple Log 2には異なる色空間定義があるため、機種名やファイル名から一律に同じ変換を適用しない。採用するLog種別と変換係数・LUTの由来、表示とMac miniの変換整合は別途検証する。[AVCaptureColorSpace.appleLog](https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog)
+ 
+--- a/docs/functional-design.md
++++ b/docs/functional-design.md
+@@ -123,7 +123,7 @@
+ | CaptureCombination / CapabilityStatus | `struct` / `enum` | 全組合せに判定状態が必要 | 端末/OS/カメラ/解像度/fps/コーデック/Log/補正の組合せで `unknown / supported / unsupported(reason)`。機種名だけでsupportedにしない |
+ | AppliedCapture | `struct` | 実適用確認前は値不明 | 実カメラID、実ISO・シャッター・絞り、倍率、補正、WB、形式、設定世代。希望値と分離。絞りの欠損は非対応/未確認を別属性で示す |
+ | WhiteBalanceState | `enum` | 常に存在 | `auto / locking / locked(value) / userReadjusting / unavailable`。固定値はクリップ内だけ。REC時点の取得値と記録適用の対応を保持 |
+-| AudioState | `enum` | 初期はchecking | `checking / valid / failed(reason) / recovering`。レベル値と別。入力経路ID・最終データ到着・書込結果を分ける。ゼロ音量だけでfailedにしない |
++| AudioState | `struct` | 初期は入力checking、音量/到着未観測、書込開始前 | 音量、入力（`checking / valid / failed(reason) / recovering`）、到着、書込を別々に保持。入力経路・到着範囲・書込受理/終了/失敗/取得不能を分け、ゼロ音量だけでfailedにしない |
+ | CaptureSessionID / configurationRevision | `UUID` / `UInt64` | 必須 | 再構成・復帰で世代更新。古い適用完了・解析結果を現在状態へ戻さない |
+ 
+ 通常撮影の設定保存は希望値と記録方式の候補を対象とする。初回fpsは未選択から本人が24/30fpsを選び、以後は保存して条件付きで復元する。復元時は現在のカメラ・形式・組合せを再照合し、適用後の読戻しを実適用値として表示する。以前の能力判定・実適用値・WB固定値は復元しない。記録方式はMovie/sample writerの二候補を保持し、保存済みのカメラ・形式・記録方式が使えなくても希望値を保持して自動切替しない。候補の保持と選択は合意済みだが、実機での記録方式の正式採用・品質確認とは区別する。
+@@ -231,6 +231,10 @@
+ - **音声**: checkingでは有効確認ができるまで準備中を示す。静寂・小音量・音割れと入力到着/書込障害を分ける。確認済み障害は録画中表示を終えて停止・部分保存を試みる。入力正常でも書込失敗は正常録画として扱わない。
+ - **復旧**: 保存結果の照合を優先し、入力の再構成は音声に必要な範囲から試す。復旧後はreadyに戻すだけで自動RECしない。無限再試行を防ぐ有界の試行・タイムアウトはU7と実機検証で確定し、効果不明な全体再起動をしない。
+ - **中断・復帰**: OS中断・画面ロック・バックグラウンドで録画継続を保証しない。中断時は可能な停止・確定を試み、復帰/再起動はS3の照合後に準備する。中断前がrecordingでも画面上だけ録画中へ復元せず、自動再録画もしない。
++
++通常撮影の音声表示は待機中から実sampleの到着と入力経路を確認し、録画中も音量・入力・到着・書込を別々に示す。静寂のsampleも正常な到着であり、音量上限の表示と確認済み障害の赤い×・理由を区別する。音量を計算できない形式は音量未観測とし、そのことだけで入力障害にしない。Movie方式で観測用sampleが届いても、Movie内の音声書込成功とは扱わず、個別の書込結果が取得不能であることと保存後の検査を示す。
++
++確認済み障害は音量更新や後続sampleだけで消さず、開始抑止または記録停止へつなぐ。停止したクリップの保存結果と、次の撮影に向けた音声復旧の結果を分けて表示する。無到着期限判定と有限復旧はpolicy注入時の処理として実装している。現 `ProductCaptureFactory` では未注入のため通常経路の無到着期限判定・本人再試行は未有効であり、合意・接続後の確認を要する。注入時の有限復旧は実入力到着を確認して本人のREC待機へ戻し、自動録画しない。復旧処理が時間切れになっても、処理の終了・資源解放が確認できるまでは次のRECや重複再試行を許可しない。障害判定猶予・復旧回数/時間/再構成範囲はU7の未合意を維持し、S43の進捗・検証証跡は現行tasklist、実音声・同期・復旧品質はDV-10で扱う。
+ 
+ ### S2 撮影制御・解析・ズームの独立状態
+ 

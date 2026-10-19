@@ -1,0 +1,355 @@
+{
+  "observedAt": "2026-10-06T14:23:41.522033+00:00",
+  "processExitCode": 0,
+  "processTerminalObservedViaExecSession": 31755,
+  "results": {
+    "exit_code": 0,
+    "failure": null,
+    "inputs_unchanged": true,
+    "pytest_counts": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 46
+    },
+    "pytest_exit_code": 0,
+    "unreviewed_import_origins": [],
+    "guard": {
+      "counts": {
+        "allowed:missing-ffprobe-attempt": 10,
+        "allowed:popen-devnull": 10,
+        "observed:missing-ffprobe-ENOENT": 10,
+        "open": 73,
+        "os.chdir": 2,
+        "os.chmod": 17,
+        "os.mkdir": 467,
+        "os.remove": 80,
+        "os.rename": 1,
+        "os.rmdir": 3,
+        "os.symlink": 46,
+        "os.utime": 16,
+        "sqlite3.connect": 191
+      },
+      "denials": [],
+      "foreign_thread_connections_not_explicitly_closed": [],
+      "limitation": "Python audit/connection guard is not an OS/native-code sandbox",
+      "sqlite_close_failures": [],
+      "sqlite_connections_alive_after_explicit_close": 0,
+      "sqlite_connections_alive_before_explicit_close": 0
+    }
+  },
+  "testCases": [
+    {
+      "name": "test_asset_list_rejects_invalid_authentication[missing]",
+      "class": "tests.test_asset_read_api",
+      "time": "0.012",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_asset_list_rejects_invalid_authentication[malformed]",
+      "class": "tests.test_asset_read_api",
+      "time": "0.009",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_asset_list_rejects_invalid_authentication[wrong-token]",
+      "class": "tests.test_asset_read_api",
+      "time": "0.009",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_run_migrations_creates_expected_tables",
+      "class": "tests.test_db",
+      "time": "0.005",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_run_migrations_rolls_back_failed_migration_schema_and_ledger",
+      "class": "tests.test_db",
+      "time": "0.002",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_connection_sets_wal_and_busy_timeout",
+      "class": "tests.test_db",
+      "time": "0.001",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_initialize_storage_creates_required_directories",
+      "class": "tests.test_storage",
+      "time": "0.001",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_resolve_media_path_rejects_path_traversal",
+      "class": "tests.test_storage",
+      "time": "0.001",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_cleanup_session_temporary_files_does_not_remove_originals",
+      "class": "tests.test_storage",
+      "time": "0.003",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_worker_leaves_unsupported_job_queued",
+      "class": "tests.test_worker_jobs",
+      "time": "0.010",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_processed_result_download_full_range_headers_and_identity",
+      "class": "tests.test_processed_result_streaming_api",
+      "time": "0.018",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_processed_result_download_supports_single_ranges[bytes=2-5-2345-bytes 2-5/10]",
+      "class": "tests.test_processed_result_streaming_api",
+      "time": "0.015",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_processed_result_download_supports_single_ranges[bytes=-3-789-bytes 7-9/10]",
+      "class": "tests.test_processed_result_streaming_api",
+      "time": "0.018",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_processed_result_download_supports_single_ranges[bytes=7--789-bytes 7-9/10]",
+      "class": "tests.test_processed_result_streaming_api",
+      "time": "0.016",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_processed_result_download_rejects_invalid_or_multi_range[bytes=0-1,3-4]",
+      "class": "tests.test_processed_result_streaming_api",
+      "time": "0.018",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_processed_result_download_rejects_invalid_or_multi_range[items=0-1]",
+      "class": "tests.test_processed_result_streaming_api",
+      "time": "0.015",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_processed_result_download_rejects_invalid_or_multi_range[bytes=99-]",
+      "class": "tests.test_processed_result_streaming_api",
+      "time": "0.016",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_processed_result_download_rejects_invalid_or_multi_range[bytes=-0]",
+      "class": "tests.test_processed_result_streaming_api",
+      "time": "0.015",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_processed_result_descriptor_keeps_requested_bytes_after_pointer_switch",
+      "class": "tests.test_processed_result_streaming_api",
+      "time": "0.017",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_processed_result_pointer_switch_before_descriptor_open_returns_superseded",
+      "class": "tests.test_processed_result_streaming_api",
+      "time": "0.016",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_capabilities_identity_is_persistent_and_does_not_advertise_future_work",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.015",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_api_replay_and_response_loss_recover_same_receipt_after_restart",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.022",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_api_all_routes_require_bootstrap_authentication",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.012",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_api_secret_required_and_never_reflected",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.019",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_api_payload_extra_fields_and_noncanonical_ids_rejected_without_reflection",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.015",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_api_existing_intent_cannot_be_claimed_with_new_secret",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.015",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_api_wrong_destination_is_not_absence_or_new_registration",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.012",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_api_only_verified_absence_returns_bound_not_executed",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.010",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_database_open_failure_is_not_absence",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.011",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_real_busy_database_does_not_report_registration_success",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.014",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_corrupt_database_is_not_absence",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.011",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_unknown_schema_is_not_absence_and_startup_refuses_it",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.012",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_parallel_same_intent_creates_one_receipt_and_one_generation",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.039",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_parallel_distinct_intents_allocate_strictly_unique_generations",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.037",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_before_commit_fault_rolls_back_and_reopen_proves_absence",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.008",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_after_commit_fault_reopens_exact_receipt_without_reallocation",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.009",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_new_registration_preserves_old_receipt_and_cannot_authenticate_as_old",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.008",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_sql_guards_preserve_receipt_destination_and_monotonic_counter",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.007",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_generation_upper_bound_allows_replay_but_refuses_new_allocation",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.008",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_corrupted_counter_type_is_unavailable_not_absence",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.007",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_wire_generation_rejects_numeric_negative_noncanonical_and_overflow",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.008",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_legacy_schema_rows_ledger_and_triggers_unchanged_by_registration",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.007",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_migration_failure_rolls_back_new_tables_identity_and_ledger",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.006",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_applied_migration_never_recreates_missing_destination",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.008",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_corrupt_receipt_fields_and_digest_are_not_success",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.037",
+      "outcome": "passed"
+    },
+    {
+      "name": "test_registration_actor_rejects_bool_nonint_and_out_of_range_generation",
+      "class": "tests.test_frame_relay_registrations",
+      "time": "0.007",
+      "outcome": "passed"
+    }
+  ],
+  "auditFinalSHA256": "13706915c76cf3b5c16f86021aa082fd45eb5ef463d1859ff04da0cd6c02f273",
+  "junitSHA256": "d45f9f644d179df5b9ae35151182fa1c9e3ee2a4159e7f516d7b4b232d2e87ab",
+  "fdAfterExplicitClose": [
+    {
+      "dev": 1075263326,
+      "fd": 0,
+      "ino": 336,
+      "mode": 8630,
+      "path": "/dev/null"
+    },
+    {
+      "dev": 0,
+      "fd": 1,
+      "ino": 371773479575558416,
+      "mode": 4528,
+      "path": null
+    },
+    {
+      "dev": 0,
+      "fd": 2,
+      "ino": 4730324135219541096,
+      "mode": 4528,
+      "path": null
+    },
+    {
+      "dev": 16777234,
+      "fd": 3,
+      "ino": 24378780,
+      "mode": 33188,
+      "path": "/private/tmp/fr-di-20261001-5ljls2fr/S22/runtime-pytest-001/audit.jsonl"
+    },
+    {
+      "closed_during_enumeration": true,
+      "fd": 4
+    }
+  ]
+}

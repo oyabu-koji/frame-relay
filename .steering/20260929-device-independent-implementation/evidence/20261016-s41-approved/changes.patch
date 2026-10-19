@@ -1,0 +1,188 @@
+--- before/.steering/20260929-device-independent-implementation/design.md
++++ after/.steering/20260929-device-independent-implementation/design.md
+@@ -79,6 +79,10 @@
+ 
+ 既存二候補を交換可能に保ち、能力→希望→実適用→保存結果を結ぶ。標準4K24/30・LT／422／Proxy・実Log・補正の能力を仮定せず、製品撮影が不可でもライブラリ／設定／復旧が起動できるCompositionにする。人物なしAF、初回意図、レンズ戻しISO基準・上限、復旧範囲等の未合意重大判断は判断台帳へ残す。
+ 
++S41の本人確定判断（2026-10-16）: 初回fpsは既定値を補わず未選択とし、本人が24/30fpsを選ぶ。選択後の希望設定は保存し、現在のカメラ・形式・能力scopeを照合して復元する。Movie出力とsample writerの二候補は交換可能に保持し、選択方式が非対応でも自動切替しない。二候補の製品接続とD01の実機正式採用は別に扱う。
++
++暦上の撮影日時は、RECの準備条件を満たして本人のRECを受け付けた時点で一度観測する。`ProductCaptureFactory`が端末の暦時計をcoordinatorへ注入し、同じ観測をミリ秒精度へ一度揃えて保存意図と両記録候補のQuickTime creationDateへ渡す。保存完了・一覧更新・転送・写真登録の日時で置換せず、既存の単調時計`acceptedAt`とも区別する。旧記録に暦日時を補完しない。日時と設定の合意は、実カメラ能力・Log/ProRes・G2B・画質・標準Rec.709表示の受入を意味しない。
++
+ WBは記録終端まで固定し、本人再固定だけを許す。音声は音量・入力・到着・書込みを別々に実装する。障害確認で開始抑止／停止・可能部分保存、復旧は有限で手動RECへ戻す。解析は映像の解析用分岐を消費し、録画へ結果画像を戻さない。AFの主役・露出対象、NDの設定／WB／対象世代、ズーム予告のカメラ／補正／倍率世代を別に扱う。
+ 
+ ズームは目標選択時点では実倍率を変えない。制御中の観測実倍率で目標超過を防ぎ、目標・途中停止を同じ制御器へ渡す。停止支援候補は実カメラ・形式・解像度・補正の根拠付きとし、整数倍率だけで品質保証しない。設定は目的・根拠・適用範囲・版・変更箇所・未採用フラグ付きの暫定値、DV-08後の採用値を別記録する。数値・吸着方式・詳細設定画面を計画で追加決定しない。
+--- before/.steering/20260929-device-independent-implementation/tasklist.md
++++ after/.steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,9 +12,10 @@
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-16、S41限定検証済・判断待ち）
+-
+-- **S41再開結果**: 設定保存/現在条件照合・通常撮影UI・共通保存/一覧再生の接続を実装し、Simulator/iOS build、Unit48ケース、UI1件が成功。初回fps・記録候補・撮影日時の確定点への質問は未回答のため、`calendarNow`未注入で通常RECは無効のまま、S41はblocked。詳しい残件/再開手順はS41節と `evidence/20261016-s41/`。S27詳細検証保留・既存変更保持・S42以降未着手を維持。
++## 現在の再開点（2026-10-16、S41実装・限定検証完了）
++
++- **S41完了**: 本人が3点を承認し、初回fpsは本人選択、Movie/sample writerは自動切替なし、撮影日時はREC受付時に一度確定とした。暦時計を製品経路へ接続し、条件成立時のRECを有効化。設定保存/現在条件照合→REC/STOP→共通保存→一覧/既存原本再生の実装と限定検証を完了した。前回Unit48ケース/UI1件に加え、今回の変更後は関連Unit14ケース/UI1件とgeneric iOS buildが成功。証跡は `evidence/20261016-s41/` と `evidence/20261016-s41-approved/`。実機撮影・両方式D01・G2B・Log/ProRes・画質は未確認。S27詳細検証保留・既存変更保持・S42以降未着手を維持。
++- 今回の作業はここで終了。独立した実装検証は `$validate-implementation .steering/20260929-device-independent-implementation/` の別明示工程。S42以降へ自動で進まない。
+ - 今回は明示implementを受領しS41のみ再開。S27の詳細検証は保留、既存差分を保持。以下の停止記録は再開前の履歴として保持する。
+ - ユーザーは「次に実装する内容を整理したい。その上で別のセッションで実装する」と指示。現在の実装・検証を停止した。次セッションで明示implementを受けるまでS27のbuild/HTTP/pytestやS41実装を開始しない。実装優先の希望を維持し、検証環境の網羅的な仕上げを再開の前提にしない。
+ - S27は実装差分を保持してblocked（必要検証未実施・今回作業停止）。iOSは既存4変更＋新13、全App/Tests/project158fileをmainがhash照合。製品静的型確認成功はworker報告/保存ログにあるが、Xcode build-01はsandboxのCoreSimulator接続拒否でexit70、コンパイル成功・test成功なし。build-02の権限付き再試行は中断され、log/xcresultとも未作成。環境権限変更後も再実行していない。
+@@ -526,10 +527,15 @@
+ 
+ ### S41 撮影設定・実適用・記録保存を製品接続
+ 
+-- [ ] Status: blocked
+-  - 2026-10-16 最終状態: **S41の設定/SDK/画面/共通保存/一覧再生の接続と限定自動検証は実施済み、本人判断待ちで通常RECは未有効化**。初回fpsを未選択にする案、Movie/sample writerの2候補を交換可能・実機採用保留で接続する案、暦撮影日時をREC受付時に一度確定する案を質問済み・回答未受領。`ProductCaptureFactory`は`calendarNow`未注入、coordinatorの既定nilで`canRecord=false`を維持。未回答を承認と扱わず全体doneにはしない。S42以降は未着手、S27詳細検証は保留。
+-  - substatus: 共有保存契約・希望設定永続・条件照合・SDK二候補・通常UI・save/bind/一覧/既存原本再生の接続・限定自動検証＝実装/確認済。製品REC有効化＝判断待ち。実カメラ/両方式D01・G2B・権限拒否実機・Movie実出力metadata・Log/全編完全性・画質/負荷＝未確認。S16の未達アクセシビリティ監査を解消扱いにせず、既存の部分接続を再利用した。
+-  - 再開手順: 本人が3点を確定後、fps回答に合わせ必要なら初回draftのみ調整し、REC受付日時案なら`ProductCaptureFactory.make`から`calendarNow: { Date() }`を注入する。日時は同一観測をミリ秒精度へ一度揃えてintentと両出力metadataへ渡す候補。実記録開始日時を採る回答なら意図commit/metadata契約から再検討する。承認された判断だけdesign/関連docsへ同期し、変更に必要な確認を実施してS41完了可否を判定する。S42へ自動移行しない。
++- [x] Status: done
++  - 2026-10-16 本人が「はい」と回答し3点を承認。初回fpsは未選択から24/30を本人選択、2記録候補を保持して自動切替なし、暦撮影日時はREC受付時に一度確定。REC有効化と承認事項同期を再開。前回170sourceのhash差分0、既存変更を保持。所有: worker=s41_ui（ProductCaptureFactoryのみ）、document_author=s41_docs（functional-design/architectureのみ）、main=design/tasklist/証跡・最終diff。
++  - 完了状態: `ProductCaptureFactory`から`calendarNow: { Date() }`を注入し、準備条件成立時のRECを有効化。初回fps/二候補/日時の合意をdesignと関連docsへ同期。S12の共通保存とS16の既存一覧/原本再生への接続を満たし、今回のS41実装範囲を完了とする。I＝必要接続を含む実装済み、A＝E-S41-01/02、D0、R＝自動検証による部分証拠（PRD全受入ではない）。
++  - E-S41-02 / 追加検証: 同じproject/scheme/Test planと実在destinationを再確認。承認反映後170sourceで関連Unit13宣言/14展開ケースとUI1件が成功、失敗0/skip0/runtimeWarnings0。generic iOS署名なしbuild成功。Swift診断なし、AppIntents依存なしの既存SDK警告あり。前回48ケース全体を再実行せず、今回のfactory接続に関係する設定/coordinator/共通保存→実AVPlayer/UIに絞った。実機撮影を自動検証成功へ含めない。
++  - E-S41-02 / main最終差分: 今回baseline345file中5file変更/340file不変、新規/欠落/所有外変更0（証跡除外）。App/Test/project170fileは実行時hashと一致、前回実行版との差分はfactoryの時計注入1行のみ。`evidence/20261016-s41-approved/` にcommands/log/xcresult/summary/source hash/main-scope-review/changes.patch/変更後snapshotを保存。S41初回開始からは既存16変更＋新規16file、S27本体・保留証拠は保持。
++  - 現在のsubstatus: 設定・SDK二候補・通常UI・REC有効化・save/bind/一覧/既存原本再生接続・限定自動検証＝完了。実カメラ/両方式D01・G2B・権限拒否実機・Movie実出力metadata・Log/全編完全性・画質/負荷＝未確認。S16の未達アクセシビリティ監査は残る。S42以降・S27詳細検証・独立validationは開始していない。
++  - 2026-10-16 前回停止時の状態: **S41の設定/SDK/画面/共通保存/一覧再生の接続と限定自動検証は実施済み、本人判断待ちで通常RECは未有効化**。初回fpsを未選択にする案、Movie/sample writerの2候補を交換可能・実機採用保留で接続する案、暦撮影日時をREC受付時に一度確定する案を質問済み・回答未受領。`ProductCaptureFactory`は`calendarNow`未注入、coordinatorの既定nilで`canRecord=false`を維持。未回答を承認と扱わず全体doneにはしない。S42以降は未着手、S27詳細検証は保留。
++  - 前回停止時のsubstatus: 共有保存契約・希望設定永続・条件照合・SDK二候補・通常UI・save/bind/一覧/既存原本再生の接続・限定自動検証＝実装/確認済。製品REC有効化＝判断待ち。実カメラ/両方式D01・G2B・権限拒否実機・Movie実出力metadata・Log/全編完全性・画質/負荷＝未確認。S16の未達アクセシビリティ監査を解消扱いにせず、既存の部分接続を再利用した。
++  - 前回停止時の再開案（上記E-S41-02で実施済み）: 本人が3点を確定後、fps回答に合わせ必要なら初回draftのみ調整し、REC受付日時案なら`ProductCaptureFactory.make`から`calendarNow: { Date() }`を注入する。日時は同一観測をミリ秒精度へ一度揃えてintentと両出力metadataへ渡す候補。実記録開始日時を採る回答なら意図commit/metadata契約から再検討する。承認された判断だけdesign/関連docsへ同期し、変更に必要な確認を実施してS41完了可否を判定する。S42へ自動移行しない。
+   - 実装内容: カメラはuniqueIDで保存しformatは現在の条件から再照合、設定は`CapturePreferenceStore`で別atomic文書へ保存。希望/能力scope/読戻しを分離、未知/非対応/不一致/古い世代を採用しない。試験票・試験上限を通常経路から分離し、共通保存の予約済みURLを使ってintent commit後にREC。終端/実file→保存結果commit→内容bind→一覧refreshまで所有を保持し、途中STOP/背景/一覧refresh中の次RECを処理する。日時契約はschema7、旧記録はnilのまま非破壊読取移行。保存検査unknownを正常保存へ昇格せず既存原本再生へ接続。関連安定文書はfunctional-design/architectureの限定追記のみ。
+   - E-S41-01 / 検証: Simulator build-01成功、generic iOS署名なしbuild-01/02成功。限定Unitは**33テスト（引数展開48ケース）成功・失敗0/skip0**、新規通常設定/保存/metadata/共通保存→再open→一覧から実AVPlayer進行と旧保存/移行の重要条件を対象。UIは試験票なしの通常撮影入口→Simulator理由表示→一覧復帰**1件成功**。実MOVへ書いたcreationDateの再読取も成功（Movie実カメラmetadataは未確認）。Swift診断なし、既存AppIntents依存なしのSDK警告のみ、xcresult runtimeWarnings空。必要範囲以外のS27 HTTP/pytest/全体Unit・S16全監査は実行していない。
+   - 証跡/差分: `evidence/20261016-s41/` の`test-01-sources.json`（App/Test/project170file、Unit/UI/最終iOS build後hash一致）、各log、xcresult/summary、commands.json、main-scope-review.json、changes.patch。開始時329fileから既存15file変更＋新規16file、欠落0、所有外変更0（evidenceを除く）。S27は`PublicationHTTPFixtureTests`のreader→RenditionPlaybackInput互換3行だけ補正し、本体/保留証拠は保持。mainが差分/新規境界/旧変更保持を確認、独立validationは未実施。実装が完了した後の別工程は同じsteeringへの明示`$validate-implementation`。
+@@ -741,14 +747,14 @@
+ 
+ | 要求 | AC | 条件索引 | 旧P/T・CF/BI | 部分証拠 | 新本体task | 直接依存 | 担当 | I | A | D | R | 実機票 |
+ | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| FR-01 | AC-FR-01-01 | 音声付き4K24/30原本・写真非追加 | P05/P06/P09;CF-02/08 | EC,ES | S12,S41 | dep(S12,S41)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | I1 | A1 | D0 | R0 | DV-01、DV-02 |
+-| FR-01 | AC-FR-01-02 | 3形式・カメラ対応・無断代替禁止 | P05/P06/P09;CF-02/08 | EC,ES | S41 | dep(S41)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | I1 | A1 | D0 | R0 | DV-01 |
+-| FR-01 | AC-FR-01-03 | 手動値維持・ND再評価 | P05/P06/P09;CF-02/08 | EC,ES | S41,S46 | dep(S41,S46)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | I1 | A1 | D0 | R0 | DV-01、DV-07 |
+-| FR-01 | AC-FR-01-04 | 保存設定・WB/補正の条件復元 | P05/P06/P09;CF-02/08 | EC,ES | S41,S44 | dep(S41,S44)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | I1 | A1 | D0 | R0 | DV-01、DV-04 |
++| FR-01 | AC-FR-01-01 | 音声付き4K24/30原本・写真非追加 | P05/P06/P09;CF-02/08 | EC,ES | S12,S41 | dep(S12,S41)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 通常撮影・保存・一覧再生接続済（実Log/品質未確認） | E-S41-01/02: build・48case＋追加14case/UI | D0 | 部分証拠、実機未受入 | DV-01、DV-02 |
++| FR-01 | AC-FR-01-02 | 3形式・カメラ対応・無断代替禁止 | P05/P06/P09;CF-02/08 | EC,ES | S41 | dep(S41)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 現能力照合・希望/実値・自動代替拒否を製品接続済 | E-S41-01/02: 設定/条件照合・build | D0 | 部分証拠、全組合せ未確認 | DV-01 |
++| FR-01 | AC-FR-01-03 | 手動値維持・ND再評価 | P05/P06/P09;CF-02/08 | EC,ES | S41,S46 | dep(S41,S46)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | S41手動設定接続済、S46 ND未実装 | E-S41-01/02: 設定/適用部分のみ | D0 | 部分証拠、ND未受入 | DV-01、DV-07 |
++| FR-01 | AC-FR-01-04 | 保存設定・WB/補正の条件復元 | P05/P06/P09;CF-02/08 | EC,ES | S41,S44 | dep(S41,S44)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | S41希望設定保存/条件復元済、S44補正未実装 | E-S41-01/02: 永続/再照合部分のみ | D0 | 部分証拠、補正未受入 | DV-01、DV-04 |
+ | FR-02 | AC-FR-02-01 | 固定Rec.709表示・非焼込み | P06/P12;CF-05 | EC:表示拒否境界のみ | S48 | dep(S48)＋対応A/Q01 | O-CAPTURE | I0 | A1 | D0 | R0 | DV-05 |
+ | FR-02 | AC-FR-02-02 | 確認状態分離・描画/録画品質 | P06/P12;CF-05 | EC:表示拒否境界のみ | S48,S4V | dep(S48,S4V)＋対応A/Q01 | O-CAPTURE | I0 | A1 | D0 | R0 | DV-05、DV-11 |
+ | FR-03 | AC-FR-03-01 | OFF＋複数実モード | P05/P06/P13;CF-06 | EC:能力/適用契約 | S44 | dep(S44)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04 |
+-| FR-03 | AC-FR-03-02 | 初回候補・対応条件復元 | P05/P06/P13;CF-06 | EC:能力/適用契約 | S41,S44 | dep(S41,S44)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-01、DV-04 |
++| FR-03 | AC-FR-03-02 | 初回候補・対応条件復元 | P05/P06/P13;CF-06 | EC:能力/適用契約 | S41,S44 | dep(S41,S44)＋対応A/Q01 | O-CAPTURE | 共通設定保存/条件照合基盤済、補正候補/復元はS44待ち | E-S41-01/02: 共通基盤の部分証拠のみ | D0 | 部分証拠、実機未受入 | DV-01、DV-04 |
+ | FR-03 | AC-FR-03-03 | 3場面品質・設定不変 | P05/P06/P13;CF-06 | EC:能力/適用契約 | S44,S4V | dep(S44,S4V)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04、DV-11 |
+ | FR-03 | AC-FR-03-04 | 補正画角・予告・切替保持 | P05/P06/P13;CF-06 | EC:能力/適用契約 | S44,S47 | dep(S44,S47)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04、DV-08、DV-09 |
+ | FR-03 | AC-FR-03-05 | 標準不成立の制約と相談 | P05/P06/P13;CF-06 | EC:能力/適用契約 | S44 | dep(S44)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04 |
+@@ -1090,6 +1096,7 @@
+ | PLAN-01 | 2026-10-01、feature_planner／main | 計画3文書 | confirmed仕様・現行コードのread-only調査 | 要求／依存／所有／ID／リンクの静的照合、差分保全 | 計画照合済み: PRD79行／一意79、旧P21＋T28、CF11・BI34・DI18、DV18、task69件。未定義task参照・記名依存循環・相対リンク切れ・空白エラー0。mainのbaseline比較で既存151ファイル不変、新規は本3文書だけ。実装試験は未実施 | 本3文書、main保管の開始時baseline。旧証拠の現存はN00で確認 |
+ | PLAN-02 | 2026-10-01、feature_planner | S13／S31／S34／S3V、H01／Q01、A12／A14／A16／A17 | ユーザーのレビュー指摘修正依頼・同じconfirmed仕様 | design／tasklistの限定差分と正本条件、所有・引渡し・case別直接依存、ID／状態／相対リンクを静的照合 | Photosと削除の独立先行、内容対応の単一writer引渡し、実機票の枝条件を明確化。PRD79行／一意79・既存task ID／状態・PLAN-01を保持、requirements変更なし、相対リンク切れ・行末空白0。実装・build/test・実機・独立実装検証は未実施 | 修正はdesign／tasklistの2文書。Q01の実値・品質条件と旧証拠現存確認は未実施のまま保持 |
+ | E-S41-01 | 2026-10-16、worker/main | S41・限定V-CAPTURE/STORE/PLAY/UI | test-01-sources170file、Xcode27/Debug/iOS27 Simulator＋generic iOS | commands.json、共通保存→実MOV→bind→再open→Library→AVPlayer、設定/日時/旧schema/早期STOP、通常撮影UI | Simulator/iOS build成功、33Unit/48展開ケース・UI1成功、失敗0/skip0。日時provider未接続で製品REC無効 | `evidence/20261016-s41/`。初回fps/候補/日時観測点の本人回答待ち。実機D01/G2B/画質、S27詳細、独立validationは未確認 |
++| E-S41-02 | 2026-10-16、worker/document_author/main | S41承認反映・REC有効化・限定回帰 | test-01-sources170file、前回からfactory時計注入1行のみ | commands.json、設定/coordinator/実保存再生/UI、generic iOS build | Unit13宣言/14展開ケース・UI1成功、失敗0/skip0/runtimeWarnings0、iOS build成功。製品RECは条件成立時有効 | `evidence/20261016-s41-approved/`。S41実装完了、実機D01/G2B/画質・S27詳細・独立validationは未確認 |
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+ 
+@@ -1109,6 +1116,7 @@
+ | V-REVIEW-S24 | `evidence/20261013-s24-complete/` のsnapshot261/凍結support57/準備checkpoint | main | 最終先新FD全readと短い再fence commit、証拠/asset/session/job原子確定、旧入口拒否、SQL001保持、dir_fd実境界、実process終了後の同DB/media再openを確認 | guard12/pytest126/HTTP20＋5成功、全child終了/秘密削除/全接続0、App/Test/project126不変、所有外変更0。`main-review-001.json`と386file保全。独立validation/実機/変換/公開受入ではない |
+ | V-REVIEW-S26J | `evidence/20261014-s26j-complete/` のsnapshot265/凍結support65/準備checkpoint | main | exact保存証拠、候補版とclaimの分離、同一job retry、入力FD保持/全read、旧claimの成功/失敗/cleanup拒否、未公開fixtureとV1保持を確認 | pytest160成功、parent実exit0/全接続0、App/Test/project126不変、所有外変更0。345file保全。標準変換/公開/独立validationの完了ではない |
+ | V-REVIEW-S41部分 | test-01-sources170file/changes.patch、既存15＋新規16 | main | 共有予約/intent前REC禁止/早期STOP/世代/最新音声入力/保存・一覧更新中の所有/旧日時非補完/範囲を確認。非ready beginの一覧refreshと保存refresh終了前の再RECを修正。S27本体保持 | E-S41-01、main-scope-review.json。限定48case/UI1成功。本人判断未回答で製品REC無効/S41 blocked、独立validationではない |
++| V-REVIEW-S41 | E-S41-02のtest-01-sources170file、今回5file変更/340file不変 | main | 3点の本人合意、factory時計注入、design/関連docsとの整合、テスト版一致、S27保持とS42以降未変更を確認 | E-S41-02、`evidence/20261016-s41-approved/main-scope-review.json`。S41実装範囲done、実機未確認、独立validationではない |
+ 
+ ## 振り返り・引渡し
+ 
+--- before/FrameRelay/Composition/ProductCaptureFactory.swift
++++ after/FrameRelay/Composition/ProductCaptureFactory.swift
+@@ -21,7 +21,7 @@
+             let operation = MediaOperationID(rawValue: "capture-bind-" + UUID().uuidString)
+             if case .succeeded = await services.access.bind(reference, operation: operation) { return true }
+             return false
+-        }, didSave: didSave, captureNow: { ExplorationCaptureValues.now() })
++        }, didSave: didSave, calendarNow: { Date() }, captureNow: { ExplorationCaptureValues.now() })
+     }
+ 
+     private nonisolated static func permission(for media: AVMediaType) async -> Bool {
+--- before/docs/architecture.md
++++ after/docs/architecture.md
+@@ -6,7 +6,7 @@
+ - 入力: [機能設計](functional-design.md)のF1〜F5、D1〜D8、S1〜S7、I1〜I7。本書は責務・依存・実行・保存の技術設計を扱い、操作フローや受入条件の正本を置き換えない。
+ - 技術前提: Swift + SwiftUI + native iOS + Xcode。[PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md)の既存設定である最低対応iOS `27.0`、Swift言語モード `5.0`を維持する。Xcode・Swiftコンパイラ・SDKの実バージョンは未確定。言語モードとコンパイラのバージョンを同一視しない。
+ - 対象利用端末: 要求上のiPhone 18 ProとMac mini。端末名から可変絞り、Log/ProRes、手ブレ補正、ズーム等の成立を推定しない。使用するOS・カメラ・出力経路の組合せごとに検証する。
+-- 状態: 2026-09-25作成、2026-09-26にR3を同期した設計案。PRDの要求承認と、本書の技術判断・機能設計の未合意案・実装成立を区別する。U1〜U3のR3確定部分と残件、未合意のU4〜U8を区別し、本書の共通基盤を理由に未回答案を採用済みへ変えない。
++- 状態: 2026-09-25作成、2026-09-26にR3を同期した設計案。PRDの要求承認と、本書の技術判断・機能設計の未合意案・実装成立を区別する。U1〜U3のR3確定部分と残件、U4〜U8の確定部分と残件を区別し、本書の共通基盤を理由に未回答案を採用済みへ変えない。
+ - 優先する品質: 撮り逃しの抑制、設定と原本の保持、音声を含む記録の継続性、操作結果の復旧、対象を取り違えない手動削除。成立しない場合は理由・代替案を示し、P0を黙って縮小しない。
+ - 範囲: 既存Xcodeプロジェクト内の責務分離と、既存MediaVaultとの必要契約を定める。別project生成、外部依存導入、Mac mini側のSwiftへの書き換えは行わない。物理的なファイル配置・実装順序は後続文書・計画で定める。
+ - S41の追記は通常撮影の設定・保存・一覧接続に関する境界を限定して具体化する。進捗と検証結果は[現行tasklist](../.steering/20260929-device-independent-implementation/tasklist.md)を正本とし、記録方式の正式採用や実機G2Bの成立を表さない。
+@@ -187,9 +187,11 @@
+ 
+ ### 記録・表示・解析の経路
+ 
+-通常撮影の `ProductCaptureCoordinator` は、希望設定の読込み→現在の能力確認→適用・読戻しを担当する。`ProductCaptureFactory`はライブラリと同じ原本領域・共通writerを渡し、カメラの準備を撮影入口まで遅らせる。試験票なしの通常撮影でも既存の記録二候補を交換可能にし、共通保存が予約した出力先を使用して二重予約を避ける。
+-
+-記録意図のcommit後にRECへ進み、記録終端とファイル確定を `OriginalSaveCoordinator` へ渡す。保存結果のcommit後に原本の内容対応をbindし、一覧を再読込みして既存の原本再生へ渡す。保存結果とbindの成否は分離し、対応未確定を再生可能と偽装しない。暦日時を観測する時点、初回fps、記録方式の正式採用は未決として保持する。暦日時を供給する契約が製品経路へ接続されるまではRECを許可せず、通常撮影全体の動作完了とは扱わない。
++通常撮影の `ProductCaptureCoordinator` は、希望設定の読込み→現在の能力確認→適用・読戻しを担当する。初回fpsは未選択とし、本人が選んだ24/30fpsを保存して以後の復元に使う。`ProductCaptureFactory`はライブラリと同じ原本領域・共通writerを渡し、カメラの準備を撮影入口まで遅らせる。試験票なしの通常撮影でもMovie/sample writerの二候補を保持し、非対応時は自動切替しない。共通保存が予約した出力先を使用して二重予約を避ける。
++
++暦時計はCompositionから注入し、REC受付時に一度だけ観測する。ミリ秒精度へ揃えた同一値を `RecordingIntent.capturedAt` と両記録候補の媒体metadataへ渡し、単調時計の `acceptedAt`、実記録開始、最初のフレームの時刻とは区別する。後続の転送/Photosにもこの撮影日時を保持する。
++
++記録意図のcommit後に実記録開始へ進み、記録終端とファイル確定を `OriginalSaveCoordinator` へ渡す。保存結果のcommit後に原本の内容対応をbindし、一覧を再読込みして既存の原本再生へ渡す。保存結果とbindの成否は分離し、対応未確定を再生可能と偽装しない。初回fps・記録二候補の扱い・暦日時の観測点は2026-10-16のS41で合意済みだが、実機での記録方式の正式採用D01・G2B・画質は未確認として保持する。
+ 
+ 記録経路は音声/映像のタイムスタンプ、実適用設定、writer終端をCapturePort内で追跡する。REC時のWB固定をND完了やUI描画に依存させず、最後の記録フレーム後に待機Autoへ戻す。音量値がゼロであること、入力が届かないこと、書込が失敗したことを別の観測としてApplicationへ渡す。部分ファイル救済の成功を保証しない。
+ 
+--- before/docs/functional-design.md
++++ after/docs/functional-design.md
+@@ -5,7 +5,7 @@
+ - 対象: FrameRelay初期版の全P0要求（FR-01〜17、NFR-01〜04）。要求の正本は、補足R2を含め2026-09-25に全体承認され、2026-09-26の明示回答を補足R3として反映した[プロダクト要求定義書](product-requirements.md)（以下PRD）。R3は全体承認を維持する。初期要件へ要求の更新先を戻さない。
+ - 文書状態: 機能設計案。要求の合意、本文の設計判断、ユーザー判断待ち、実機検証待ち、既存実装確認待ちを区別する。設計・API・機種名が記載されていても、実装済み・対応確認済みを意味しない。
+ - 技術前提: [PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md)のSwift・SwiftUI・native iOS・既存Xcode projectを維持する。状態管理方式、通信プロトコル、永続化方式、ハッシュ方式、描画・撮影API、ディレクトリ配置はアーキテクチャ設計で決める。
+-- 本書で具体化するもの: 画面の責務、利用者イベント、状態と不変条件、サービス境界、復旧・競合、受入試験への対応。U1〜U3のR3確定部分と残件、未合意のU4〜U8を区別し、残る操作案は実装前に判断する。ユーザー判断待ちを理由にP0を任意機能へ落とさない。
++- 本書で具体化するもの: 画面の責務、利用者イベント、状態と不変条件、サービス境界、復旧・競合、受入試験への対応。U1〜U3のR3確定部分と残件、U4〜U8の確定部分と残件を区別し、残る操作案は実装前に判断する。ユーザー判断待ちを理由にP0を任意機能へ落とさない。
+ - 対象外・禁止動作はPRDを継承する。特に原本自動削除、無音録画継続、全体自動再起動、勝手な形式・露出・補正変更、クリップ間WB固定の持越しを導入しない。タイムライン編集・汎用取り込み・旧「写真」原本削除・LUT選択UI・Rec.709高品質版の常時生成も追加しない。
+ - S41の通常撮影に関する追記は、設定・保存・一覧接続の契約を扱う。実装進捗と検証証跡は[現行tasklist](../.steering/20260929-device-independent-implementation/tasklist.md)を正本とし、動線全体や実機受入の完了を意味しない。
+ 
+@@ -119,14 +119,14 @@
+ 
+ | 型・フィールド | Swiftの型例 | 必須性・欠損の意味 | 許容値・初期値・制約 |
+ | --- | --- | --- | --- |
+-| CapturePreference | `struct` | 保存設定なしは初回 | 解像度、24/30fps、ProRes LT/422/Proxy＋Log、シャッター、手動ISO、対応時の絞り、カメラ/倍率、補正選択。初回のfps等未合意の値を創作しない |
++| CapturePreference | `struct` | 保存設定なしは初回 | 解像度、24/30fps、ProRes LT/422/Proxy＋Log、シャッター、手動ISO、対応時の絞り、カメラ/倍率、補正選択。初回fpsは未選択とし、本人が24/30fpsから選ぶ |
+ | CaptureCombination / CapabilityStatus | `struct` / `enum` | 全組合せに判定状態が必要 | 端末/OS/カメラ/解像度/fps/コーデック/Log/補正の組合せで `unknown / supported / unsupported(reason)`。機種名だけでsupportedにしない |
+ | AppliedCapture | `struct` | 実適用確認前は値不明 | 実カメラID、実ISO・シャッター・絞り、倍率、補正、WB、形式、設定世代。希望値と分離。絞りの欠損は非対応/未確認を別属性で示す |
+ | WhiteBalanceState | `enum` | 常に存在 | `auto / locking / locked(value) / userReadjusting / unavailable`。固定値はクリップ内だけ。REC時点の取得値と記録適用の対応を保持 |
+ | AudioState | `enum` | 初期はchecking | `checking / valid / failed(reason) / recovering`。レベル値と別。入力経路ID・最終データ到着・書込結果を分ける。ゼロ音量だけでfailedにしない |
+ | CaptureSessionID / configurationRevision | `UUID` / `UInt64` | 必須 | 再構成・復帰で世代更新。古い適用完了・解析結果を現在状態へ戻さない |
+ 
+-通常撮影の設定保存は希望値と記録方式の候補を対象とする。復元時は現在のカメラ・形式・組合せを再照合し、適用後の読戻しを実適用値として表示する。以前の能力判定・実適用値・WB固定値は復元しない。保存済みのカメラや形式が使えない場合も希望値を保持し、別の条件へ自動変更しない。初回fpsの既定値と記録方式の正式採用は未決であり、候補の保存を実機での採用確認と扱わない。
++通常撮影の設定保存は希望値と記録方式の候補を対象とする。初回fpsは未選択から本人が24/30fpsを選び、以後は保存して条件付きで復元する。復元時は現在のカメラ・形式・組合せを再照合し、適用後の読戻しを実適用値として表示する。以前の能力判定・実適用値・WB固定値は復元しない。記録方式はMovie/sample writerの二候補を保持し、保存済みのカメラ・形式・記録方式が使えなくても希望値を保持して自動切替しない。候補の保持と選択は合意済みだが、実機での記録方式の正式採用・品質確認とは区別する。
+ 
+ ### D2 人物・ND・ズーム
+ 
+@@ -145,7 +145,7 @@
+ | 型・フィールド | Swiftの型例 | 必須性・欠損の意味 | 許容値・初期値・制約 |
+ | --- | --- | --- | --- |
+ | ClipRecord.id | `UUID` | REC受理時に必須 | 一撮影一ID。派生版、転送再試行、容量整理で増やさない |
+-| capturedAt | `Date?` | 新規の通常撮影意図では必須。未観測の旧記録はnil | 暦上の撮影日時。単調時計によるREC受付時刻とは別。旧記録のnilは「撮影日時不明」と表示し、現在時刻・取得日時・試験日時で補完しない |
++| capturedAt | `Date?` | 新規の通常撮影意図では必須。未観測の旧記録はnil | REC受付時に観測する暦上の撮影日時。単調時計による受付時刻とは別。旧記録のnilは「撮影日時不明」と表示し、現在時刻・取得日時・試験日時で補完しない |
+ | duration / byteCount | `Duration?` / `Int64?` | 未確定ならnil | 確定値は非負。30秒や2〜3分は利用傾向であり上限にしない |
+ | recordingOutcome | `enum` | 必須 | `recording / finalizing / saved / partial / unknown / failed`。savedには書込終了と必要な音声・映像の確認が必要。ファイルの存在だけではsavedにしない |
+ | LocalOriginalRef | `struct?` | nilは記録上の参照なし | アプリ管理領域内の不透明な参照、原本識別、内容世代、確定サイズ等。サーバーURLや「写真」アセットをローカル削除対象へ変換しない |
+@@ -153,7 +153,7 @@
+ | originalIdentity | `struct?` | ファイル未確定ならnil | 原本の不変IDと全内容を照合できる識別情報。方式はarchitectureで選定。名前、長さ、HTTP成功だけで同一性・全内容検証を証明しない |
+ | remote/preview/confirmation/photos | D4〜D7の参照 | 未開始を明示 | 別の事実として保持。ローカル原本破棄で検証済み・確認済みに書き換えない |
+ 
+-`RecordingIntent`は通常撮影で試験参照を省略でき、探索記録は従来の試験参照を保持する。暦日時は撮影側が観測して保存意図・媒体metadata・後続の転送/Photosへ同じ意味で渡す契約とするが、REC受付・実記録開始等のどの時点を採るかは未決である。観測点の合意と製品経路への接続が揃うまでは、通常撮影のREC動線を利用可能・完了と扱わない。
++`RecordingIntent`は通常撮影で試験参照を省略でき、探索記録は従来の試験参照を保持する。暦日時はREC受付時に一度だけ観測し、ミリ秒精度へ揃えた同じ値を保存意図と媒体metadataへ渡す。実記録開始や最初のフレームの時刻とは区別し、後続の転送/Photosでもこの撮影日時を保持する。この契約の合意を、実機の媒体metadata・記録品質・G2Bの検証完了と扱わない。
+ 
+ ### D4 Mac mini保存検証・軽量版
+ 
+@@ -406,7 +406,9 @@
+ 
+ ### ユーザー判断待ちの具体案
+ 
+-2026-09-26の明示回答をPRD補足R3として反映した。U1の操作別の複数選択範囲、U2のストリーミング第一候補、U3の既開始通信の条件付き自動再開は確定しており、再度の選択待ちへ戻さない。同じ行のその他の案とU4〜U8は未合意のまま後続の機能仕様で確認する。ストリーミングの成立性、品質・時間・容量等は未検証で、評価方法の合意と実機評価を要する。R3は大規模配信基盤導入、実装・実データ操作や未回答案の採用を承認するものではない。
++2026-09-26の明示回答をPRD補足R3として反映した。U1の操作別の複数選択範囲、U2のストリーミング第一候補、U3の既開始通信の条件付き自動再開は確定しており、再度の選択待ちへ戻さない。同じ行のその他の案とU4〜U8の残件は未合意のまま後続の機能仕様で確認する。ストリーミングの成立性、品質・時間・容量等は未検証で、評価方法の合意と実機評価を要する。R3は大規模配信基盤導入、実装・実データ操作や未回答案の採用を承認するものではない。
++
++2026-10-16のS41で、初回fpsの本人選択と保存・復元、記録二候補の保持と非対応時の自動切替禁止、REC受付時の暦日時の一度の観測について本人の承認を得た。D1・D3と下表U6の初回fpsに適用し、他の未決事項や実機採用判断は確定へ変更しない。
+ 
+ | ID・論点（PRDの対応） | R3確定部分と残る推奨案 | 影響・残件・判断時点 |
+ | --- | --- | --- |
+@@ -415,7 +417,7 @@
+ | U3 通信復帰・背景動作（Q12/R3） | **確定**: 本人が開始受理済み・未完了・未停止/未キャンセルの通信だけ、Wi-Fi・録画/保存等を再確認して自動再開。複数で開始した順番待ちも対象。**残る案**: 前景で再開、背景/ロックは保留、小さな状態照会もWi-Fi限定とする案。これらは今回採用済みにしない | 停止/再開条件の保存・復旧、二重送信/二重処理防止、操作の寿命、処理順/一部失敗後の方針、一括/個別停止UI、小さな状態照会、背景/ロック中の扱いは接続仕様前に合意・検証。背景継続や非Wi-Fiでの小さな照会も比較候補。動画本体のモバイル通信は禁止。自動再開は未実行削除・結果不明の写真追加・終了済み再生へ適用しない |
+ | U4 ズームUI（Q05） | 目標倍率の選択→寄る側は枠、引く側は対応が確認できた別表示または範囲の図示で予告→「移動」でゆっくり開始→「停止」で途中停止。検証済み停止候補を明示し、候補が近くになければ指定倍率へ進み画質を断定しない。初期案は無断吸着なし | 操作が一段増えるが予告だけで倍率が変わらない。代案は押している間だけ動く操作、候補への弱い吸着。速度・遅延・触覚・近傍判定・許容差は実機評価前に合意。引く範囲の取得方式/負荷は未検証 |
+ | U5 人物なし・主役UI（Q06） | 人物タップで主役指定、露出対象は別選択。追跡OFFは人物優先AF。人物なしでは画面位置指定を使う風景AFを候補にする。初回撮影意図は本人に選んでもらい以後復元。見失い時は控えめな保持表示と再指定 | AF位置指定の対応は要検証。代案は風景用の継続AF、手動フォーカス操作追加。保持秒数、同一主役再捕捉、距離/照明/移動の評価条件は合意・実測して確定。人物＋背景を全域同時合焦の保証にしない |
+-| U6 レンズISO・補正・設定（Q07/Q08） | 録画中は形式/fps/補正の手動切替を無効にし、実倍率/実カメラを表示。レンズを戻す場合も現在ISOを基準に限定補正し、手動ISO変更は以後の新しい基準にする。Lens Matchは必須に追加せず調査候補のまま | 代案はレンズ別ISO記憶、録画中補正切替、検証できたLens Match操作。補正上限・モードの数/名前/強さ・初回fps等は能力確認と操作合意が必要。OFF＋複数モードの要求は維持。標準不成立なら要求再確認 |
++| U6 レンズISO・補正・設定（Q07/Q08） | **S41確定**: 初回fpsは未選択から本人が24/30fpsを選び、以後保存して現在の条件と照合し復元する。**残る案**: 録画中は形式/fps/補正の手動切替を無効にし、実倍率/実カメラを表示。レンズを戻す場合も現在ISOを基準に限定補正し、手動ISO変更は以後の新しい基準にする。Lens Matchは必須に追加せず調査候補のまま | 代案はレンズ別ISO記憶、録画中補正切替、検証できたLens Match操作。補正上限・モードの数/名前/強さは能力確認と操作合意が必要。OFF＋複数モードの要求は維持。標準不成立なら要求再確認 |
+ | U7 音声復旧・負荷対応（Q10） | 入力名/入力状態/メーター/理由と「再試行」をまとめる。異常停止と保存結果確定後に必要範囲の音声再構成を有界に行い、直らなければ本人の開き直しを案内。負荷時はND/人物解析の頻度を落として保留表示にする候補 | 代案は再構成を毎回本人の再試行だけにする、解析停止の明示操作。障害判定の猶予、試行回数/時間、再構成範囲、熱/容量の基準は測定と合意が必要。音声省略・無限再試行・自動REC・勝手な補正/形式変更は不可 |
+ | U8 変換出力（Q09） | 1080p・HEVCを比較試験の第一候補とし、元fps・構図・向き・音声・撮影日時を保持する。固定の標準Rec.709変換を用い、味付けは加えない | 解像度/コーデック/品質・ビットレート/ビット深度/音声圧縮は未合意。容量と画質・再生互換を比較して決める。将来の版変更はS5に従い、LUT選択UIや一括再変換を初期版へ加えない |
+ 

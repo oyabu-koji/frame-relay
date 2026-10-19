@@ -1,0 +1,38 @@
+{
+  "env_names": [
+    "FR_REGISTRATION_PROBE",
+    "FR_REGISTRATION_BASE_URL",
+    "FR_REGISTRATION_BOOTSTRAP_TOKEN",
+    "FR_REGISTRATION_DESTINATION_ID"
+  ],
+  "executed": false,
+  "listener": [
+    "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+    "-I",
+    "-B",
+    "-S",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/source-snapshot/run_pytest.py",
+    "--config",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/run-config.json"
+  ],
+  "requires": "main review and permission for this listener and Xcode wrapper",
+  "simulator": [
+    "python3",
+    "-I",
+    "-B",
+    "-S",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/source-snapshot/run_registration_simulator_probe.py",
+    "--config",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/run-config.json",
+    "--execute-reviewed-xcode"
+  ],
+  "stop_request": [
+    "python3",
+    "-I",
+    "-B",
+    "-S",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/source-snapshot/request_listener_stop.py",
+    "--config",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/run-config.json"
+  ]
+}

@@ -52,6 +52,7 @@ nonisolated struct CaptureLifecycle: Sendable {
     private var automaticToken: CaptureCommandToken?
     private var stopReason: CaptureStopReason?
     private var lastAudioSequence: UInt64?
+    private var confirmedAudioFailure: CaptureAudioFailure?
     private var ordinal: UInt64 = 0
 
     init(context: CaptureContext, audio: CaptureAudioState) {
@@ -178,6 +179,7 @@ nonisolated struct CaptureLifecycle: Sendable {
             }
             lastAudioSequence = sequence
             audio = state
+            if let failure = state.confirmedFailure { confirmedAudioFailure = failure }
             if let failure = state.confirmedFailure, phase == .starting || phase == .recording {
                 return requestStop(.audioFailure(failure))
             }
@@ -218,7 +220,14 @@ nonisolated struct CaptureLifecycle: Sendable {
         return .accepted([.capture(.startRecording(token, intent))])
     }
 
-    private mutating func completeRecording(_ evidence: RecordingEndEvidence) -> CaptureTransition {
+    private mutating func completeRecording(_ reported: RecordingEndEvidence) -> CaptureTransition {
+        // A completed container cannot erase an observed audio failure, including a
+        // failure that arrived after the user's STOP had already been accepted.
+        let evidence: RecordingEndEvidence
+        if confirmedAudioFailure != nil, reported.writer == .completed {
+            evidence = .init(writer: .interrupted(.adapterFailure(code: "confirmed_audio_failure")),
+                ceasedAt: reported.ceasedAt, lastVideo: reported.lastVideo, lastAudio: reported.lastAudio)
+        } else { evidence = reported }
         guard let intent else { return .rejected(.wrongStage) }
         end = evidence
         phase = .ended

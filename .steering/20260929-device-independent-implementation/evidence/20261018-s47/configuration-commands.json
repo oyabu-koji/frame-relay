@@ -1,0 +1,74 @@
+[
+  {
+    "command": [
+      "xcode-select",
+      "-p"
+    ],
+    "exit": 0,
+    "output": "configuration-0.txt"
+  },
+  {
+    "command": [
+      "xcodebuild",
+      "-version"
+    ],
+    "exit": 0,
+    "output": "configuration-1.txt"
+  },
+  {
+    "command": [
+      "xcrun",
+      "swift",
+      "--version"
+    ],
+    "exit": 0,
+    "output": "configuration-2.txt"
+  },
+  {
+    "command": [
+      "xcodebuild",
+      "-list",
+      "-project",
+      "FrameRelay.xcodeproj",
+      "-json"
+    ],
+    "exit": 0,
+    "output": "configuration-3.txt"
+  },
+  {
+    "command": [
+      "xcodebuild",
+      "-project",
+      "FrameRelay.xcodeproj",
+      "-scheme",
+      "FrameRelay",
+      "-showdestinations"
+    ],
+    "exit": 0,
+    "output": "configuration-4.txt"
+  },
+  {
+    "command": [
+      "xcodebuild",
+      "-project",
+      "FrameRelay.xcodeproj",
+      "-scheme",
+      "FrameRelay",
+      "-showTestPlans"
+    ],
+    "exit": 0,
+    "output": "configuration-5.txt"
+  },
+  {
+    "command": [
+      "xcrun",
+      "simctl",
+      "list",
+      "devices",
+      "booted",
+      "-j"
+    ],
+    "exit": 0,
+    "output": "configuration-6.txt"
+  }
+]

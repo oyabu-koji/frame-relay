@@ -1,0 +1,73 @@
+[
+  {
+    "label": "xcode-select",
+    "command": [
+      "xcode-select",
+      "-p"
+    ],
+    "exitCode": 0
+  },
+  {
+    "label": "xcode-version",
+    "command": [
+      "xcodebuild",
+      "-version"
+    ],
+    "exitCode": 0
+  },
+  {
+    "label": "swift-version",
+    "command": [
+      "xcrun",
+      "swift",
+      "--version"
+    ],
+    "exitCode": 0
+  },
+  {
+    "label": "xcode-list",
+    "command": [
+      "xcodebuild",
+      "-project",
+      "FrameRelay.xcodeproj",
+      "-list"
+    ],
+    "exitCode": 0
+  },
+  {
+    "label": "destinations",
+    "command": [
+      "xcodebuild",
+      "-project",
+      "FrameRelay.xcodeproj",
+      "-scheme",
+      "FrameRelay",
+      "-showdestinations"
+    ],
+    "exitCode": 0
+  },
+  {
+    "label": "test-plans",
+    "command": [
+      "xcodebuild",
+      "-project",
+      "FrameRelay.xcodeproj",
+      "-scheme",
+      "FrameRelay",
+      "-showTestPlans"
+    ],
+    "exitCode": 0
+  },
+  {
+    "label": "simulator-devices",
+    "command": [
+      "xcrun",
+      "simctl",
+      "list",
+      "devices",
+      "available",
+      "--json"
+    ],
+    "exitCode": 0
+  }
+]

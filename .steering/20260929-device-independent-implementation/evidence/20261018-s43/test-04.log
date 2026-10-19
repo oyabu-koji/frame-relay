@@ -1,0 +1,725 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination "platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719" -derivedDataPath /private/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator -resultBundlePath /private/tmp/fr-s43-20261018-v4sxn_hx/test-04.xcresult -testPlan FrameRelay -parallel-testing-enabled NO -collect-test-diagnostics never -disableAutomaticPackageResolution "-only-testing:FrameRelayTests/ExplorationCoordinatorTests" "-only-testing:FrameRelayTests/ProductCaptureAudioCoordinatorTests" "-only-testing:FrameRelayTests/ProductCaptureAudioLifecycleTests" "-only-testing:FrameRelayTests/NativeCaptureAudioObservationTests" test
+
+2026-10-18 00:33:20.209 xcodebuild[29150:39855585] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+Writing result bundle at path:
+	/private/tmp/fr-s43-20261018-v4sxn_hx/test-04.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (3 targets)
+    Target 'FrameRelayTests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelayUITests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelay' in project 'FrameRelay' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+Build description signature: 9946302ed1cac5d04b4ff40ac6522ce1
+Build description path: /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/XCBuildData/9946302ed1cac5d04b4ff40ac6522ce1.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/oyabu/dev/rep/FrameRelay/FrameRelay.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+SwiftDriver FrameRelay normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelay -Onone @/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -F /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex -sdk-module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-generated-files.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-own-target-headers.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-project-headers.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources-normal/arm64 -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources/arm64 -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ FrameRelay (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+
+SwiftCompile normal arm64 Compiling\ ExplorationCoordinator.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Capture/ExplorationCoordinator.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Capture/ExplorationCoordinator.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ExplorationCoordinator.swift
+
+SwiftCompile normal arm64 Compiling\ ExplorationPorts.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/ExplorationPorts.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/ExplorationPorts.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ExplorationPorts.swift
+
+SwiftDriverJobDiscovery normal arm64 Compiling ExplorationPorts.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 Compiling\ ProductCaptureCoordinator.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductCaptureCoordinator.swift
+
+SwiftCompile normal arm64 Compiling\ ProductCapturePorts.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/ProductCapturePorts.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/ProductCapturePorts.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductCapturePorts.swift
+
+SwiftCompile normal arm64 Compiling\ ExplorationComposition.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Composition/ExplorationComposition.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Composition/ExplorationComposition.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ExplorationComposition.swift
+
+SwiftCompile normal arm64 Compiling\ ProductCaptureFactory.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Composition/ProductCaptureFactory.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Composition/ProductCaptureFactory.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductCaptureFactory.swift
+
+SwiftCompile normal arm64 Compiling\ ExplorationView.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Features/Capture/ExplorationView.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Features/Capture/ExplorationView.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ExplorationView.swift
+
+SwiftCompile normal arm64 Compiling\ ProductCaptureConfigurationMatcher.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Capture/ProductCaptureConfigurationMatcher.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Capture/ProductCaptureConfigurationMatcher.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductCaptureConfigurationMatcher.swift
+
+SwiftCompile normal arm64 Compiling\ NativeExplorationCapture.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/Capture/NativeExplorationCapture.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/Capture/NativeExplorationCapture.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile NativeExplorationCapture.swift
+
+SwiftCompile normal arm64 Compiling\ ExplorationDiagnosticsStore.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/Diagnostics/ExplorationDiagnosticsStore.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/Diagnostics/ExplorationDiagnosticsStore.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ExplorationDiagnosticsStore.swift
+
+SwiftCompile normal arm64 Compiling\ ProductCaptureView.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Features/Capture/ProductCaptureView.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Features/Capture/ProductCaptureView.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductCaptureView.swift
+
+SwiftDriverJobDiscovery normal arm64 Compiling ProductCapturePorts.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 Compiling\ ProductCaptureSettingsView.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Features/Capture/ProductCaptureSettingsView.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Features/Capture/ProductCaptureSettingsView.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductCaptureSettingsView.swift
+
+SwiftDriverJobDiscovery normal arm64 Compiling ProductCaptureConfigurationMatcher.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ProductCaptureFactory.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ExplorationDiagnosticsStore.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ExplorationComposition.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ExplorationView.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ProductCaptureCoordinator.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ExplorationCoordinator.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 Compiling\ ContentView.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/ContentView.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/ContentView.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ContentView.swift
+
+SwiftCompile normal arm64 Compiling\ FrameRelayApp.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/FrameRelayApp.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/FrameRelayApp.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile FrameRelayApp.swift
+
+SwiftCompile normal arm64 Compiling\ ProductComposition.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Composition/ProductComposition.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Composition/ProductComposition.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductComposition.swift
+
+SwiftDriverJobDiscovery normal arm64 Compiling ProductCaptureView.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ProductCaptureSettingsView.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling FrameRelayApp.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling NativeExplorationCapture.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ProductComposition.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ContentView.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriver\ Compilation FrameRelay normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelay -Onone @/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -F /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex -sdk-module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-generated-files.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-own-target-headers.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-project-headers.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources-normal/arm64 -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources/arm64 -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for FrameRelay (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriver\ Compilation\ Requirements FrameRelay normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelay -Onone @/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -F /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex -sdk-module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-generated-files.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-own-target-headers.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-project-headers.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources-normal/arm64 -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources/arm64 -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+Copy /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.swiftmodule/arm64-apple-ios-simulator.abi.json /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.abi.json (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.abi.json /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.swiftmodule/arm64-apple-ios-simulator.swiftmodule /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftmodule (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftmodule /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftsourceinfo (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftsourceinfo /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Ld /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib normal (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios27.0-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -F/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -filelist /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.LinkFileList -install_name @rpath/FrameRelay.debug.dylib -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftmodule -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -Xlinker -no_adhoc_codesign -o /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib
+
+ConstructStubExecutorLinkFileList /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-ExecutorLinkFileList-normal-arm64.txt (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    construct-stub-executor-link-file-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'FrameRelay' from project 'FrameRelay')
+
+Ld /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay normal (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios27.0-simulator -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -F/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-ExecutorLinkFileList-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __entitlements -Xlinker /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay.app-Simulated.xcent -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __ents_der -Xlinker /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay.app-Simulated.xcent.der /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib -Xlinker -no_adhoc_codesign -o /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay
+
+ExtractAppIntentsMetadata (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name FrameRelay --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 27.0 --bundle-identifier com.oyabu.FrameRelay --output /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app --target-triple arm64-apple-ios27.0-simulator --binary-file /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay --dependency-file /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_dependency_info.dat --stringsdata-file /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftFileList --metadata-file-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay.DependencyMetadataFileList --static-metadata-file-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay.DependencyStaticMetadataFileList --swift-const-vals-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-18 00:33:24.911 appintentsmetadataprocessor[29254:39856156] Starting appintentsmetadataprocessor export
+2026-10-18 00:33:24.912 appintentsmetadataprocessor[29254:39856156] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+ProcessInfoPlistFile /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist -producttype com.apple.product-type.application -genpkginfo /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/assetcatalog_generated_info.plist -o /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist
+
+SwiftDriver FrameRelayTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelayTests -Onone @/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex -sdk-module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-generated-files.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-own-target-headers.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-project-headers.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources-normal/arm64 -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources/arm64 -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+CopySwiftLibs /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib --scan-folder /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --scan-folder /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns --scan-folder /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/SystemExtensions --scan-folder /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist
+
+SwiftCompile normal arm64 Compiling\ OriginalPlaybackTests.swift,\ RenditionPlaybackTests.swift,\ PublicationCoordinatorTests.swift,\ KeychainRegistrationTests.swift,\ RegistrationCoordinatorTests.swift,\ RegistrationServerProbeTests.swift,\ RegistrationTransportProbeTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Playback/OriginalPlaybackTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Playback/RenditionPlaybackTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Publication/PublicationCoordinatorTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Registration/KeychainRegistrationTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Registration/RegistrationCoordinatorTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Registration/RegistrationServerProbeTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Registration/RegistrationTransportProbeTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Playback/OriginalPlaybackTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile OriginalPlaybackTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Playback/RenditionPlaybackTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RenditionPlaybackTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Publication/PublicationCoordinatorTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile PublicationCoordinatorTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Registration/KeychainRegistrationTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile KeychainRegistrationTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Registration/RegistrationCoordinatorTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RegistrationCoordinatorTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Registration/RegistrationServerProbeTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RegistrationServerProbeTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Registration/RegistrationTransportProbeTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RegistrationTransportProbeTests.swift
+
+SwiftCompile normal arm64 Compiling\ LegacyServerPlaybackProbeTests.swift,\ LegacyServerProbeSupport.swift,\ PublicationHTTPFixtureTests.swift,\ RenditionHTTPFixtureTests.swift,\ RenditionRangeCacheTests.swift,\ LibraryStoreReaderTests.swift,\ MediaOperationStoreTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Remote/LegacyServerPlaybackProbeTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Remote/LegacyServerProbeSupport.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Remote/PublicationHTTPFixtureTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Remote/RenditionHTTPFixtureTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Remote/RenditionRangeCacheTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/LibraryStoreReaderTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/MediaOperationStoreTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Remote/LegacyServerPlaybackProbeTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile LegacyServerPlaybackProbeTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Remote/LegacyServerProbeSupport.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile LegacyServerProbeSupport.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Remote/PublicationHTTPFixtureTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile PublicationHTTPFixtureTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Remote/RenditionHTTPFixtureTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RenditionHTTPFixtureTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Remote/RenditionRangeCacheTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RenditionRangeCacheTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/LibraryStoreReaderTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile LibraryStoreReaderTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/MediaOperationStoreTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile MediaOperationStoreTests.swift
+
+SwiftCompile normal arm64 Compiling\ CaptureReadinessTests.swift,\ PublicationWireTests.swift,\ RegistrationWireTests.swift,\ ProductCaptureSavePlaybackTests.swift,\ ProductCompositionTests.swift,\ ProductLibrarySeedTests.swift,\ RegistrationCompositionTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/CaptureReadinessTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/PublicationWireTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/RegistrationWireTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/ProductCaptureSavePlaybackTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/ProductCompositionTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/ProductLibrarySeedTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/RegistrationCompositionTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/CaptureReadinessTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile CaptureReadinessTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/PublicationWireTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile PublicationWireTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/RegistrationWireTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RegistrationWireTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/ProductCaptureSavePlaybackTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductCaptureSavePlaybackTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/ProductCompositionTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductCompositionTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/ProductLibrarySeedTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductLibrarySeedTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/RegistrationCompositionTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RegistrationCompositionTests.swift
+
+SwiftCompile normal arm64 Compiling\ MediaStoreLegacyMigrationTests.swift,\ MediaStoreRequestPersistenceTests.swift,\ OriginalBindingStoreTests.swift,\ OriginalInspectionReaderTests.swift,\ OriginalLeaseOrderingTests.swift,\ OriginalSaveRecoveryTests.swift,\ ProductRecordingPersistenceTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/MediaStoreLegacyMigrationTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/MediaStoreRequestPersistenceTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/OriginalBindingStoreTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/OriginalInspectionReaderTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/OriginalLeaseOrderingTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/OriginalSaveRecoveryTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/ProductRecordingPersistenceTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/MediaStoreLegacyMigrationTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile MediaStoreLegacyMigrationTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/MediaStoreRequestPersistenceTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile MediaStoreRequestPersistenceTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/OriginalBindingStoreTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile OriginalBindingStoreTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/OriginalInspectionReaderTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile OriginalInspectionReaderTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/OriginalLeaseOrderingTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile OriginalLeaseOrderingTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/OriginalSaveRecoveryTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile OriginalSaveRecoveryTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/ProductRecordingPersistenceTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductRecordingPersistenceTests.swift
+
+SwiftCompile normal arm64 Compiling\ ProductCaptureAudioLifecycleTests.swift,\ ProductCaptureCoordinatorTests.swift,\ RecordingSaveLifecycleTests.swift,\ BackendEvidenceRulesTests.swift,\ BackendOperationRulesTests.swift,\ BackendPublicationRulesTests.swift,\ CaptureRationalTimeTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/ProductCaptureAudioLifecycleTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/RecordingSaveLifecycleTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/BackendEvidenceRulesTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/BackendOperationRulesTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/BackendPublicationRulesTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/CaptureRationalTimeTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/ProductCaptureAudioLifecycleTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductCaptureAudioLifecycleTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductCaptureCoordinatorTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/RecordingSaveLifecycleTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RecordingSaveLifecycleTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/BackendEvidenceRulesTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile BackendEvidenceRulesTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/BackendOperationRulesTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile BackendOperationRulesTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/BackendPublicationRulesTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile BackendPublicationRulesTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/CaptureRationalTimeTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile CaptureRationalTimeTests.swift
+
+SwiftCompile normal arm64 Compiling\ RecordingStorePersistenceTests.swift,\ RecordingStoreTransactionBoundaryTests.swift,\ RegistrationStoreIdentityTests.swift,\ TemporaryMediaRecoveryTests.swift,\ TemporaryMediaTests.swift,\ ExplorationWBCommandOrderTests.swift,\ NativeCaptureAudioObservationTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/RecordingStorePersistenceTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/RecordingStoreTransactionBoundaryTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/RegistrationStoreIdentityTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/TemporaryMediaRecoveryTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/TemporaryMediaTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Capture/ExplorationWBCommandOrderTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Capture/NativeCaptureAudioObservationTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/RecordingStorePersistenceTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RecordingStorePersistenceTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/RecordingStoreTransactionBoundaryTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RecordingStoreTransactionBoundaryTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/RegistrationStoreIdentityTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RegistrationStoreIdentityTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/TemporaryMediaRecoveryTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile TemporaryMediaRecoveryTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/TemporaryMediaTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile TemporaryMediaTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Capture/ExplorationWBCommandOrderTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ExplorationWBCommandOrderTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Capture/NativeCaptureAudioObservationTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile NativeCaptureAudioObservationTests.swift
+
+SwiftCompile normal arm64 Compiling\ NativeRecordingStartAdmissionTests.swift,\ NativeRecordingTerminationTests.swift,\ ProductCaptureSettingsTests.swift,\ ExplorationDiagnosticsStoreTests.swift,\ ManagedOriginalStoreTests.swift,\ OriginalPresentationSpanTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Capture/NativeRecordingStartAdmissionTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Capture/NativeRecordingTerminationTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Capture/ProductCaptureSettingsTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Storage/ExplorationDiagnosticsStoreTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Storage/ManagedOriginalStoreTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Storage/OriginalPresentationSpanTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Capture/NativeRecordingStartAdmissionTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile NativeRecordingStartAdmissionTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Capture/NativeRecordingTerminationTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile NativeRecordingTerminationTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Capture/ProductCaptureSettingsTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductCaptureSettingsTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Storage/ExplorationDiagnosticsStoreTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ExplorationDiagnosticsStoreTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Storage/ManagedOriginalStoreTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ManagedOriginalStoreTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Storage/OriginalPresentationSpanTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile OriginalPresentationSpanTests.swift
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ FrameRelayTests (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+
+SwiftCompile normal arm64 Compiling\ CaptureFixture.swift,\ PublicationFixture.swift,\ RegistrationTestSupport.swift,\ RenditionFixture.swift,\ TemporaryMediaFaultStore.swift,\ FrameRelayTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/CaptureFixture.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/PublicationFixture.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/RegistrationTestSupport.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/RenditionFixture.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/TemporaryMediaFaultStore.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/FrameRelayTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/CaptureFixture.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile CaptureFixture.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/PublicationFixture.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile PublicationFixture.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/RegistrationTestSupport.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RegistrationTestSupport.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/RenditionFixture.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RenditionFixture.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/TemporaryMediaFaultStore.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile TemporaryMediaFaultStore.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/FrameRelayTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile FrameRelayTests.swift
+
+SwiftCompile normal arm64 Compiling\ RecordingStoreDecodeTests.swift,\ StorageFixture.swift,\ SyntheticMovieFixture.swift,\ BackendContractFakes.swift,\ BackendEvidenceFixture.swift,\ BackendOperationFixture.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Storage/RecordingStoreDecodeTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/Storage/StorageFixture.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/Storage/SyntheticMovieFixture.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/BackendContractFakes.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/BackendEvidenceFixture.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/BackendOperationFixture.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Platform/Storage/RecordingStoreDecodeTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile RecordingStoreDecodeTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/Storage/StorageFixture.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile StorageFixture.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/Storage/SyntheticMovieFixture.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile SyntheticMovieFixture.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/BackendContractFakes.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile BackendContractFakes.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/BackendEvidenceFixture.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile BackendEvidenceFixture.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Support/BackendOperationFixture.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile BackendOperationFixture.swift
+
+SwiftCompile normal arm64 Compiling\ LibraryModelTests.swift,\ LibraryProjectionTests.swift,\ BackendContractBoundaryTests.swift,\ CaptureAudioRecoveryTests.swift,\ CaptureLifecycleTests.swift,\ ExplorationCoordinatorTests.swift,\ ProductCaptureAudioCoordinatorTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/Library/LibraryModelTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/Library/LibraryProjectionTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/BackendContractBoundaryTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/CaptureAudioRecoveryTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/CaptureLifecycleTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/ExplorationCoordinatorTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/ProductCaptureAudioCoordinatorTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/Library/LibraryModelTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile LibraryModelTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/Library/LibraryProjectionTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile LibraryProjectionTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/BackendContractBoundaryTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile BackendContractBoundaryTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/CaptureAudioRecoveryTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile CaptureAudioRecoveryTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/CaptureLifecycleTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile CaptureLifecycleTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/ExplorationCoordinatorTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ExplorationCoordinatorTests.swift
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/ProductCaptureAudioCoordinatorTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductCaptureAudioCoordinatorTests.swift
+
+SwiftDriverJobDiscovery normal arm64 Compiling CaptureFixture.swift, PublicationFixture.swift, RegistrationTestSupport.swift, RenditionFixture.swift, TemporaryMediaFaultStore.swift, FrameRelayTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling RecordingStoreDecodeTests.swift, StorageFixture.swift, SyntheticMovieFixture.swift, BackendContractFakes.swift, BackendEvidenceFixture.swift, BackendOperationFixture.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling NativeRecordingStartAdmissionTests.swift, NativeRecordingTerminationTests.swift, ProductCaptureSettingsTests.swift, ExplorationDiagnosticsStoreTests.swift, ManagedOriginalStoreTests.swift, OriginalPresentationSpanTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for FrameRelayTests (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriver\ Compilation\ Requirements FrameRelayTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelayTests -Onone @/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex -sdk-module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-generated-files.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-own-target-headers.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-project-headers.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources-normal/arm64 -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources/arm64 -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+Copy /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftsourceinfo (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftsourceinfo /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Copy /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayTests.swiftmodule/arm64-apple-ios-simulator.abi.json /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.abi.json (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.abi.json /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayTests.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayTests.swiftmodule/arm64-apple-ios-simulator.swiftmodule /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftmodule (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftmodule /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayTests.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+SwiftDriverJobDiscovery normal arm64 Compiling CaptureReadinessTests.swift, PublicationWireTests.swift, RegistrationWireTests.swift, ProductCaptureSavePlaybackTests.swift, ProductCompositionTests.swift, ProductLibrarySeedTests.swift, RegistrationCompositionTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling RecordingStorePersistenceTests.swift, RecordingStoreTransactionBoundaryTests.swift, RegistrationStoreIdentityTests.swift, TemporaryMediaRecoveryTests.swift, TemporaryMediaTests.swift, ExplorationWBCommandOrderTests.swift, NativeCaptureAudioObservationTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ProductCaptureAudioLifecycleTests.swift, ProductCaptureCoordinatorTests.swift, RecordingSaveLifecycleTests.swift, BackendEvidenceRulesTests.swift, BackendOperationRulesTests.swift, BackendPublicationRulesTests.swift, CaptureRationalTimeTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling OriginalPlaybackTests.swift, RenditionPlaybackTests.swift, PublicationCoordinatorTests.swift, KeychainRegistrationTests.swift, RegistrationCoordinatorTests.swift, RegistrationServerProbeTests.swift, RegistrationTransportProbeTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling LegacyServerPlaybackProbeTests.swift, LegacyServerProbeSupport.swift, PublicationHTTPFixtureTests.swift, RenditionHTTPFixtureTests.swift, RenditionRangeCacheTests.swift, LibraryStoreReaderTests.swift, MediaOperationStoreTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling MediaStoreLegacyMigrationTests.swift, MediaStoreRequestPersistenceTests.swift, OriginalBindingStoreTests.swift, OriginalInspectionReaderTests.swift, OriginalLeaseOrderingTests.swift, OriginalSaveRecoveryTests.swift, ProductRecordingPersistenceTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling LibraryModelTests.swift, LibraryProjectionTests.swift, BackendContractBoundaryTests.swift, CaptureAudioRecoveryTests.swift, CaptureLifecycleTests.swift, ExplorationCoordinatorTests.swift, ProductCaptureAudioCoordinatorTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriver\ Compilation FrameRelayTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelayTests -Onone @/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex -sdk-module-cache-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-generated-files.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-own-target-headers.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-project-headers.hmap -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources-normal/arm64 -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources/arm64 -Xcc -I/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+Ld /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests normal (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios27.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -filelist /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.LinkFileList -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -bundle_loader /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay -Xlinker -object_path_lto -Xlinker /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftmodule -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib -Xlinker -no_adhoc_codesign -o /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests
+
+CopySwiftLibs /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests --scan-folder /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Frameworks --scan-folder /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/PlugIns --scan-folder /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/SystemExtensions --scan-folder /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ExtractAppIntentsMetadata (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name FrameRelayTests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 27.0 --bundle-identifier com.oyabu.FrameRelayTests --output /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest --target-triple arm64-apple-ios27.0-simulator --binary-file /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests --dependency-file /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_dependency_info.dat --stringsdata-file /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.SwiftFileList --metadata-file-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests.DependencyMetadataFileList --static-metadata-file-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests.DependencyStaticMetadataFileList --swift-const-vals-list /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-18 00:33:29.597 appintentsmetadataprocessor[29282:39856388] Starting appintentsmetadataprocessor export
+2026-10-18 00:33:29.598 appintentsmetadataprocessor[29282:39856388] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+CodeSign /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest
+
+CodeSign /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib
+
+CodeSign /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib
+/tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib: replacing existing signature
+
+CodeSign /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app
+
+Validate /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-validationUtility /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app -shallow-bundle -infoplist-subpath Info.plist
+
+ProcessInfoPlistFile /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/ProductTypeInfoPlistAdditions.plist -o /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist
+
+CopySwiftLibs /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/FrameRelayUITests --scan-folder /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Frameworks --scan-folder /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/PlugIns --scan-folder /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/SystemExtensions --scan-folder /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+PruneExplicitPrecompiledModules /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/fr-s43-20261018-v4sxn_hx/DerivedData-Simulator/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+2026-10-18 00:33:31.184346+0900 FrameRelay[29289:39856586] [XPCErrors] non-launching port is incompatible with service identifier "com.apple.PointerUI.pointeruid.default-service"
+2026-10-18 00:33:31.184999+0900 FrameRelay[29289:39856586] [API] cannot add handler to 0 from 0 - dropping
+2026-10-18 00:33:31.185348+0900 FrameRelay[29289:39856586] [API] cannot add handler to 0 from 0 - dropping
+2026-10-18 00:33:31.280933+0900 FrameRelay[29289:39856586] [API] cannot add handler to 0 from 0 - dropping
+2026-10-18 00:33:31.281025+0900 FrameRelay[29289:39856586] [API] cannot add handler to 0 from 0 - dropping
+Test Suite 'Selected tests' started at 2026-10-18 00:33:31.375.
+Test Suite 'FrameRelayTests.xctest' started at 2026-10-18 00:33:31.375.
+Test Suite 'FrameRelayTests.xctest' passed at 2026-10-18 00:33:31.375.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-10-18 00:33:31.376.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64-apple-ios17.0-simulator
+◇ Suite ExplorationCoordinatorTests started.
+◇ Test checkingPreparationAcceptsDelayedAudioWithoutPreparingAgain() started.
+✔ Test checkingPreparationAcceptsDelayedAudioWithoutPreparingAgain() passed after 0.003 seconds.
+◇ Test idleAudioFailureRejectsRECAndIgnoresOldGenerationAndSequence() started.
+✔ Test idleAudioFailureRejectsRECAndIgnoresOldGenerationAndSequence() passed after 0.001 seconds.
+◇ Test currentClipAudioSharesControlOrderingAndRejectsCallbacksAfterTerminal() started.
+✔ Test currentClipAudioSharesControlOrderingAndRejectsCallbacksAfterTerminal() passed after 0.001 seconds.
+◇ Test abandonedAudioSubscriptionCannotChangeRepreparedSession() started.
+✔ Test abandonedAudioSubscriptionCannotChangeRepreparedSession() passed after 0.011 seconds.
+◇ Test initializationAndSimulatorPreparationCannotCreateMediaOrRequestCapture() started.
+✔ Test initializationAndSimulatorPreparationCannotCreateMediaOrRequestCapture() passed after 0.001 seconds.
+◇ Test D02UnverifiedOnlyBlocksDisplayAlongsideRecording() started.
+✔ Test D02UnverifiedOnlyBlocksDisplayAlongsideRecording() passed after 0.001 seconds.
+◇ Test preparationFreezesCandidatesAndDoesNotTreatCapabilityAsRecording() started.
+✔ Test preparationFreezesCandidatesAndDoesNotTreatCapabilityAsRecording() passed after 0.001 seconds.
+◇ Test earlyWBRejectionOrSTOPRetainsEndUntilLateIntentCommit(rejectWB:) started.
+◇ Test case passing 1 argument rejectWB → true to earlyWBRejectionOrSTOPRetainsEndUntilLateIntentCommit(rejectWB:) started.
+​◇ Test case passing 1 argument rejectWB → false to earlyWBRejectionOrSTOPRetainsEndUntilLateIntentCommit(rejectWB:) started.
+​✔ Test earlyWBRejectionOrSTOPRetainsEndUntilLateIntentCommit(rejectWB:) with 2 test cases passed after 0.004 seconds.
+◇ Test malformedDecodedNumbersAndNewInvalidImportDoNotReuseOldTicket() started.
+✔ Test malformedDecodedNumbersAndNewInvalidImportDoNotReuseOldTicket() passed after 0.001 seconds.
+◇ Test ticketTransportFailureUnbindsThePreviousTicketAndCandidates() started.
+✔ Test ticketTransportFailureUnbindsThePreviousTicketAndCandidates() passed after 0.001 seconds.
+◇ Test receivedObservationsPersistInReceiveOrderWithOriginalTimes() started.
+✔ Test receivedObservationsPersistInReceiveOrderWithOriginalTimes() passed after 0.001 seconds.
+◇ Test diagnosticFailurePersistsAndBlocksNewRECWithoutDiscardingAnEarlyEnd(startActive:) started.
+◇ Test case passing 1 argument startActive → false to diagnosticFailurePersistsAndBlocksNewRECWithoutDiscardingAnEarlyEnd(startActive:) started.
+​◇ Test case passing 1 argument startActive → true to diagnosticFailurePersistsAndBlocksNewRECWithoutDiscardingAnEarlyEnd(startActive:) started.
+​✔ Test diagnosticFailurePersistsAndBlocksNewRECWithoutDiscardingAnEarlyEnd(startActive:) with 2 test cases passed after 0.002 seconds.
+✔ Suite ExplorationCoordinatorTests passed after 0.027 seconds.
+◇ Suite NativeCaptureAudioObservationTests started.
+◇ Test actualPCMSeparatesQuietSoundAndFullScale(nonInterleaved:) started.
+◇ Test case passing 1 argument nonInterleaved → false to actualPCMSeparatesQuietSoundAndFullScale(nonInterleaved:) started.
+​◇ Test case passing 1 argument nonInterleaved → true to actualPCMSeparatesQuietSoundAndFullScale(nonInterleaved:) started.
+​✔ Test actualPCMSeparatesQuietSoundAndFullScale(nonInterleaved:) with 2 test cases passed after 0.051 seconds.
+◇ Test integerPositiveAndNegativeFullScaleAndNearPeakRemainDistinct() started.
+✔ Test integerPositiveAndNegativeFullScaleAndNearPeakRemainDistinct() passed after 0.001 seconds.
+◇ Test nonfiniteMeterDoesNotInventSilenceOrLostInput() started.
+✔ Test nonfiniteMeterDoesNotInventSilenceOrLostInput() passed after 0.001 seconds.
+◇ Test silenceArrivalDeadlineAndReorderedSamplesUseActualSampleObservations() started.
+✔ Test silenceArrivalDeadlineAndReorderedSamplesUseActualSampleObservations() passed after 0.001 seconds.
+◇ Test noSamplesIsFiniteAndFailedWriteCannotBecomeCompleted() started.
+✔ Test noSamplesIsFiniteAndFailedWriteCannotBecomeCompleted() passed after 0.001 seconds.
+✔ Suite NativeCaptureAudioObservationTests passed after 0.052 seconds.
+◇ Suite ProductCaptureAudioCoordinatorTests started.
+◇ Test idleAudioChecksSilenceFailuresAndRejectsStaleSequencesAndGenerations() started.
+✔ Test idleAudioChecksSilenceFailuresAndRejectsStaleSequencesAndGenerations() passed after 0.001 seconds.
+◇ Test recoveryRequiresUserRECAndOldClipEventsCannotChangeTheNextClip() started.
+✔ Test recoveryRequiresUserRECAndOldClipEventsCannotChangeTheNextClip() passed after 0.001 seconds.
+◇ Test oldControlEventCannotOverwriteNewerSnapshotAndSaveMustSettleBeforeRetry() started.
+✔ Test oldControlEventCannotOverwriteNewerSnapshotAndSaveMustSettleBeforeRetry() passed after 0.001 seconds.
+◇ Test retryPolicyBoundsAttemptsAndPermissionDenialRequiresSettings() started.
+✔ Test retryPolicyBoundsAttemptsAndPermissionDenialRequiresSettings() passed after 0.001 seconds.
+◇ Test timeoutRetainsSDKOwnerUntilRealReleaseAndRejectsLateSuccess() started.
+✔ Test timeoutRetainsSDKOwnerUntilRealReleaseAndRejectsLateSuccess() passed after 0.032 seconds.
+◇ Test leavingDuringRecoveryRejectsLateSuccessAndReleasesOnlyAfterSDKReturns() started.
+✔ Test leavingDuringRecoveryRejectsLateSuccessAndReleasesOnlyAfterSDKReturns() passed after 0.001 seconds.
+◇ Test microphonePermissionDeniedBeforePreparationAppearsAsAudioFailure() started.
+✔ Test microphonePermissionDeniedBeforePreparationAppearsAsAudioFailure() passed after 0.001 seconds.
+✔ Suite ProductCaptureAudioCoordinatorTests passed after 0.037 seconds.
+◇ Suite ProductCaptureAudioLifecycleTests started.
+◇ Test confirmedFaultBeforeOrAfterUserStopCannotSaveAsNormal(movie:userStopFirst:) started.
+◇ Test case passing 2 arguments movie → false, userStopFirst → false to confirmedFaultBeforeOrAfterUserStopCannotSaveAsNormal(movie:userStopFirst:) started.
+​◇ Test case passing 2 arguments movie → false, userStopFirst → true to confirmedFaultBeforeOrAfterUserStopCannotSaveAsNormal(movie:userStopFirst:) started.
+​◇ Test case passing 2 arguments movie → true, userStopFirst → false to confirmedFaultBeforeOrAfterUserStopCannotSaveAsNormal(movie:userStopFirst:) started.
+​◇ Test case passing 2 arguments movie → true, userStopFirst → true to confirmedFaultBeforeOrAfterUserStopCannotSaveAsNormal(movie:userStopFirst:) started.
+​✔ Test confirmedFaultBeforeOrAfterUserStopCannotSaveAsNormal(movie:userStopFirst:) with 4 test cases passed after 0.001 seconds.
+◇ Test delayedGoodAudioCannotClearCurrentFaultAndOldClipIsRejected() started.
+✔ Test delayedGoodAudioCannotClearCurrentFaultAndOldClipIsRejected() passed after 0.001 seconds.
+✔ Suite ProductCaptureAudioLifecycleTests passed after 0.001 seconds.
+✔ Test run with 26 tests in 4 suites passed after 0.118 seconds.
+2026-10-18 00:33:31.794 xcodebuild[29150:39855585] [MT] IDETestOperationsObserverDebug: 2.062 elapsed -- Testing started completed.
+2026-10-18 00:33:31.794 xcodebuild[29150:39855585] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-18 00:33:31.794 xcodebuild[29150:39855585] [MT] IDETestOperationsObserverDebug: 2.062 sec, +2.062 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/fr-s43-20261018-v4sxn_hx/test-04.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

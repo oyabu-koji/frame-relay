@@ -1,0 +1,27 @@
+[
+  {
+    "log": "destinations.log",
+    "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -showdestinations",
+    "exitCode": 0
+  },
+  {
+    "log": "test-plans.log",
+    "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -showTestPlans",
+    "exitCode": 0
+  },
+  {
+    "log": "test-01.log",
+    "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination \"platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719\" -derivedDataPath /tmp/FrameRelay-S41-Simulator -resultBundlePath /tmp/FrameRelay-S41-approved-test-01.xcresult -parallel-testing-enabled NO \"-only-testing:FrameRelayTests/ProductCaptureCoordinatorTests\" \"-only-testing:FrameRelayTests/ProductCaptureSettingsTests\" \"-only-testing:FrameRelayTests/ProductCaptureSavePlaybackTests\" \"-only-testing:FrameRelayUITests/ProductCaptureFlowTests\" test",
+    "exitCode": 0
+  },
+  {
+    "log": "build-ios-01.log",
+    "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/FrameRelay-S41-iOS CODE_SIGNING_ALLOWED=NO build",
+    "exitCode": 0
+  },
+  {
+    "command": "xcrun xcresulttool get test-results summary --path /tmp/FrameRelay-S41-approved-test-01.xcresult",
+    "output": "test-01-summary.json",
+    "exitCode": 0
+  }
+]

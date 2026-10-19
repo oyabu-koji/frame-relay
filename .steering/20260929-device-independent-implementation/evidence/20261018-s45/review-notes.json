@@ -1,0 +1,73 @@
+{
+  "workflow": "implement-steering S45; independent validate-implementation not invoked",
+  "documentation": {
+    "authors": [
+      "s45_docs"
+    ],
+    "reviewer": "s45_doc_review",
+    "files": [
+      "docs/functional-design.md",
+      "docs/architecture.md"
+    ],
+    "findings": [],
+    "scope": "baseline差分と要求・実装契約のread-only照合。製品未注入・U5未合意・実機未確認を明記。"
+  },
+  "main_review_corrections": [
+    "記録用connectionの回転/mirrorを人物解析のために変更しない",
+    "SDKのpixel座標→metadata座標→preview/AFの変換",
+    "古いPTS・世代・WB・構図の解析を拒否",
+    "解析失敗/無効payload/変換欠落を人物不在にしない",
+    "AF適用読戻しと合焦品質の区別",
+    "設定再保存時の撮影意図保持",
+    "人物再出現時の追跡OFF人物優先AF"
+  ],
+  "pending_user_decisions": [
+    "人物なし時のAF（提案:タップ位置）",
+    "初回撮影意図（提案:本人選択・以後復元、REC非依存）",
+    "見失い猶予（提案:暫定3秒、終了後保持/再指定）"
+  ],
+  "unverified": [
+    "製品Factoryへのsubject policy注入",
+    "実機の人物同一性/通常合焦/前後追従/追跡OFF品質",
+    "Movie/sample writer実撮影・Log・補正crop/preview・負荷/記録継続",
+    "S46以降と独立implementation validation"
+  ],
+  "initial_test_01": "Unit73宣言のうち70成功、3件がVisionCode9推論初期化失敗。UI2成功。",
+  "test_02": "Unit76宣言/99展開中75宣言/98展開成功、別人拒否/再捕捉1宣言2issues失敗。",
+  "final_test_05": {
+    "declarations": 76,
+    "expandedCases": 99,
+    "passedDeclarations": 75,
+    "passedExpandedCases": 98,
+    "failedDeclarations": 1,
+    "issues": 2,
+    "skipped": 0,
+    "runtimeWarnings": 0,
+    "newDeclarations": 24,
+    "passedNewDeclarations": 23
+  },
+  "vision_diagnosis": {
+    "host": "同4ソースで別人拒否/同一再捕捉成功、限定証拠",
+    "simulator": "異なる実画素/ROIから同一768要素FeaturePrint、距離0。CPUで推論開始したが同一性testは失敗。",
+    "alphaHypothesis": "opaque alpha255を検証した04でもpixel/feature digestが03と不変で不支持。原因未確定。",
+    "thresholdsChanged": false,
+    "temporaryDiagnosticRemoved": true
+  },
+  "ui_evidence": {
+    "run": "test-01",
+    "passed": 2,
+    "directUICompositionAndFeatureChangesSinceRun": [],
+    "otherChangedFilesSinceRun": [
+      "FrameRelay/Platform/Capture/NativeExplorationCapture.swift",
+      "FrameRelayTests/Platform/Capture/NativeCaptureSubjectAnalysisTests.swift",
+      "FrameRelayTests/Platform/Capture/NativeCaptureSubjectGeometryTests.swift",
+      "FrameRelay/Domain/Capture/CaptureSubjects.swift",
+      "FrameRelay/Platform/Capture/NativeCaptureSubjectGeometry.swift",
+      "FrameRelay/Platform/Capture/NativeCaptureSubjectAnalysis.swift",
+      "FrameRelayTests/Domain/CaptureSubjectSessionTests.swift"
+    ],
+    "limit": "policy未注入の通常画面起動/設定/一覧復帰。人物操作や実カメラAF成功ではない。"
+  },
+  "final_build": "ios-build-03 succeeded; compiler/analyzer error/warning 0, existing AppIntents metadata warning in stdout.",
+  "final_status": "blocked: policy decisions unanswered and Simulator real Vision identity test failure unresolved"
+}

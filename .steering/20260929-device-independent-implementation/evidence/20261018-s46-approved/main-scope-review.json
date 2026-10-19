@@ -1,0 +1,61 @@
+{
+  "reviewedAt": "2026-10-18T13:04:53.743933+00:00",
+  "reviewer": "main",
+  "scope": "S46 approved product policy connection; not independent validation",
+  "baselineFileCount": 7503,
+  "baselineBytes": 165634783,
+  "unchangedBaselineFileCount": 7493,
+  "changedBaselineFiles": [
+    ".steering/20260929-device-independent-implementation/design.md",
+    ".steering/20260929-device-independent-implementation/requirements.md",
+    ".steering/20260929-device-independent-implementation/tasklist.md",
+    "FrameRelay/Composition/ProductCaptureFactory.swift",
+    "FrameRelay/Domain/Capture/CaptureNDAdvice.swift",
+    "FrameRelayTests/Application/ProductCaptureSubjectCoordinatorTests.swift",
+    "FrameRelayTests/Integration/Composition/ProductCaptureAudioCompositionTests.swift",
+    "FrameRelayUITests/Flows/ProductCaptureFlowTests.swift",
+    "docs/architecture.md",
+    "docs/functional-design.md"
+  ],
+  "newSourceFiles": [
+    "FrameRelayTests/Integration/Composition/ProductCaptureNDCompositionTests.swift"
+  ],
+  "deletedBaselineFiles": [],
+  "changesOutsideOwnership": [],
+  "newEvidenceDirectory": ".steering/20260929-device-independent-implementation/evidence/20261018-s46-approved/",
+  "codeAndTestsCount": 6,
+  "sourceChecks": {
+    "ios-build-01": {
+      "inputCount": 210,
+      "differentFromFinal": []
+    },
+    "test-01": {
+      "inputCount": 210,
+      "differentFromFinal": [
+        "FrameRelayTests/Integration/Composition/ProductCaptureNDCompositionTests.swift"
+      ]
+    },
+    "test-02": {
+      "inputCount": 210,
+      "differentFromFinal": []
+    }
+  },
+  "documentReviewHashMismatch": [],
+  "checks": [
+    "Approved provisional one-second maximum age and exchangeable uncalibrated reference bands recorded in requirements/design/tasklist and stable docs.",
+    "Same versioned policy passed through product device builder to Native and coordinator for both recording candidates; no backend dependency or REC gate added.",
+    "New Composition test uses tagged real pixels and the real bounded ND analysis queue; delayed delivery preserves input-time expiry, refreshed advice survives old timer, and recording remains available/continues.",
+    "Existing factory callsites and ordinary UI pending reason updated; underlying Native/coordinator algorithms unchanged.",
+    "All baseline file hashes compared; prior evidence, project configuration, README, memo and unrelated sources preserved.",
+    "Doc reviewer found no issues; reviewed source hashes match final documents."
+  ],
+  "status": "S46 implementation and selected automated checks complete; device acceptance remains pending",
+  "limitations": [
+    "No physical camera destination. Real signal, direction usefulness, WB KVO/continuous Auto behavior, ROI/crop and load remain DV-07; FR-06 acceptance is not complete.",
+    "Composition test substitutes capture control; it does not prove real camera/WB/recorded image quality.",
+    "No independent implementation validation workflow executed.",
+    "test-01 compilation failure executed zero tests; retained with source snapshot and diagnostics. Test-only local-value macro fix preserves actor/project settings.",
+    "Generic iOS build has zero tests and is counted only as a build. AppIntents no-dependency metadata warning remains in stdout."
+  ],
+  "rawArtifactsDirectory": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s46-approved-20261018-x4qojjkd"
+}

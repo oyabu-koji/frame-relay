@@ -1,0 +1,13 @@
+--- baseline/FrameRelay/Platform/Capture/ExplorationCaptureValues.swift
++++ FrameRelay/Platform/Capture/ExplorationCaptureValues.swift
+@@ -6,6 +6,10 @@
+         ("cinematicExtended", .cinematicExtended), ("previewOptimized", .previewOptimized),
+         ("cinematicExtendedEnhanced", .cinematicExtendedEnhanced)
+     ]
++
++    static func stabilizationName(_ value: AVCaptureVideoStabilizationMode) -> String? {
++        stabilizationModes.first { $0.1 == value }?.0
++    }
+ 
+     static func codec(_ value: CaptureCodec) -> AVVideoCodecType {
+         switch value {

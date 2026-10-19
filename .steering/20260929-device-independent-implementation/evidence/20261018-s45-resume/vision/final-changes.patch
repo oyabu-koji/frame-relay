@@ -1,0 +1,284 @@
+--- baseline/FrameRelay/Platform/Capture/NativeCaptureSubjectAnalysis.swift
++++ FrameRelay/Platform/Capture/NativeCaptureSubjectAnalysis.swift
+@@ -2,6 +2,7 @@
+ import Vision
+ import CoreML
+ import ImageIO
++import CryptoKit
+ 
+ nonisolated struct NativeSubjectAnalysisInstruction: Equatable, Sendable {
+     let context: CaptureSubjectContext
+@@ -92,11 +93,15 @@
+         let id: CapturePersonID
+         let bounds: CGRect // Vision normalized lower-left coordinates
+         let feature: VNFeaturePrintObservation
++        let collisionFeature: VNFeaturePrintObservation
++        let pixels: NativeSubjectImageFingerprint
+         let continuity: CapturePersonContinuity
+     }
+     private struct Anchor {
+         let id: CapturePersonID
+         let feature: VNFeaturePrintObservation
++        let collisionFeature: VNFeaturePrintObservation
++        let pixels: NativeSubjectImageFingerprint
+         var observation: VNDetectedObjectObservation
+         var missingSince: TimeInterval?
+     }
+@@ -120,7 +125,7 @@
+         if next.protagonist != instruction?.protagonist || (next.allowsReacquisition && instruction?.allowsReacquisition == false) {
+             anchor = next.protagonist.flatMap { id in
+                 people.first(where: { $0.id == id }).map {
+-                    Anchor(id: id, feature: $0.feature, observation: VNDetectedObjectObservation(boundingBox: $0.bounds))
++                    Anchor(id: id, feature: $0.feature, collisionFeature: $0.collisionFeature, pixels: $0.pixels, observation: VNDetectedObjectObservation(boundingBox: $0.bounds))
+                 }
+             }
+             sequenceHandler = VNSequenceRequestHandler()
+@@ -135,20 +140,19 @@
+         guard let detectionResults = detection.results else { throw NativeSubjectVisionError.missingDetectionEvidence }
+         let observations = Array(detectionResults.filter { $0.confidence >= policy.detectionConfidence }
+             .sorted { $0.confidence > $1.confidence }.prefix(policy.maximumPeople))
+-        var detected: [(CGRect, VNFeaturePrintObservation)] = []
++        var detected: [(CGRect, VNFeaturePrintObservation, VNFeaturePrintObservation, NativeSubjectImageFingerprint)] = []
+         for observation in observations {
+-            let feature = VNGenerateImageFeaturePrintRequest()
+-            feature.revision = VNGenerateImageFeaturePrintRequestRevision2
+             let bounds = observation.boundingBox.intersection(CGRect(x: 0, y: 0, width: 1, height: 1))
+             guard !bounds.isNull, !bounds.isEmpty, [bounds.minX, bounds.minY, bounds.width, bounds.height].allSatisfy(\.isFinite) else {
+                 throw NativeSubjectVisionError.invalidDetection
+             }
+-            feature.regionOfInterest = bounds
+-            feature.imageCropAndScaleOption = .scaleFit
+-            try configureCompute(feature)
+-            try handler.perform([feature])
+-            guard let value = feature.results?.first else { throw NativeSubjectVisionError.missingFeature }
+-            detected.append((bounds, value))
++            let value = try featurePrint(handler: handler, bounds: bounds)
++            // Bound reference preparation to two real requests over the same immutable
++            // crop. The second output only vetoes collisions; it never relaxes distance.
++            // Preparing it now also protects a selection followed immediately by another
++            // person, before any continuous frame of the selected person can arrive.
++            let confirmation = try featurePrint(handler: VNImageRequestHandler(cvPixelBuffer: buffer, orientation: .up), bounds: bounds)
++            detected.append((bounds, value, confirmation, try NativeSubjectImageFingerprint(buffer: buffer, bounds: bounds)))
+         }
+ 
+         var selectedIndex: Int?
+@@ -176,7 +180,12 @@
+                 let limit = continuous ? policy.continuousDistance : policy.reacquisitionDistance
+                 let unique = ranked.dropFirst().first.map { distances[$0] - distances[best] >= policy.ambiguityMargin } ?? true
+                 let withinGrace = selected.missingSince.map { observedAt - $0 <= policy.lostGrace } ?? true
+-                if unique && withinGrace && distances[best] <= limit {
++                // A feature extractor can return the exact same vector for different images.
++                // Equal features alone cannot establish continuity in that case. Reject the
++                // collision against the fixed reference; never replace it with this crop.
++                let collision = Self.collides((selected.feature, selected.collisionFeature), pixels: selected.pixels,
++                                              with: (detected[best].1, detected[best].2), pixels: detected[best].3)
++                if !collision && unique && withinGrace && distances[best] <= limit {
+                     selectedIndex = best
+                     selectedContinuity = continuous ? .continuous : .reacquired
+                     selected.observation = VNDetectedObjectObservation(boundingBox: detected[best].0)
+@@ -192,7 +201,7 @@
+         for (index, detection) in detected.enumerated() {
+             if index == selectedIndex, let anchor {
+                 used.insert(anchor.id)
+-                current.append(Person(id: anchor.id, bounds: detection.0, feature: detection.1, continuity: selectedContinuity))
++                current.append(Person(id: anchor.id, bounds: detection.0, feature: detection.1, collisionFeature: detection.2, pixels: detection.3, continuity: selectedContinuity))
+                 continue
+             }
+             // Other candidate IDs require both spatial continuity and unique appearance match.
+@@ -201,7 +210,9 @@
+             for previous in people where previous.id != next.protagonist && !used.contains(previous.id)
+                 && Self.overlap(previous.bounds, detection.0) >= 0.25 {
+                 let distance = try Self.distance(previous.feature, detection.1)
+-                if distance <= policy.continuousDistance {
++                if distance <= policy.continuousDistance
++                    && !Self.collides((previous.feature, previous.collisionFeature), pixels: previous.pixels,
++                                      with: (detection.1, detection.2), pixels: detection.3) {
+                     var ambiguous = false
+                     for (otherIndex, other) in detected.enumerated() where otherIndex != index
+                         && Self.overlap(previous.bounds, other.0) >= 0.25 {
+@@ -216,7 +227,7 @@
+             }
+             let id = match?.id ?? CapturePersonID()
+             used.insert(id)
+-            current.append(Person(id: id, bounds: detection.0, feature: detection.1,
++            current.append(Person(id: id, bounds: detection.0, feature: detection.1, collisionFeature: detection.2, pixels: detection.3,
+                                   continuity: match == nil ? .newDetection : .continuous))
+         }
+         people = current
+@@ -248,6 +259,24 @@
+         return result
+     }
+ 
++    private func featurePrint(handler: VNImageRequestHandler, bounds: CGRect) throws -> VNFeaturePrintObservation {
++        let request = VNGenerateImageFeaturePrintRequest()
++        request.revision = VNGenerateImageFeaturePrintRequestRevision2
++        request.regionOfInterest = bounds
++        request.imageCropAndScaleOption = .scaleFit
++        try configureCompute(request)
++        try handler.perform([request])
++        guard let result = request.results?.first else { throw NativeSubjectVisionError.missingFeature }
++        return result
++    }
++
++    private static func collides(_ first: (VNFeaturePrintObservation, VNFeaturePrintObservation), pixels firstPixels: NativeSubjectImageFingerprint,
++                                 with second: (VNFeaturePrintObservation, VNFeaturePrintObservation), pixels secondPixels: NativeSubjectImageFingerprint) -> Bool {
++        guard firstPixels != secondPixels else { return false }
++        return first.0.data == second.0.data || first.0.data == second.1.data
++            || first.1.data == second.0.data || first.1.data == second.1.data
++    }
++
+     private static func overlap(_ first: CGRect, _ second: CGRect) -> Double {
+         let area = first.intersection(second)
+         guard !area.isNull else { return 0 }
+@@ -257,5 +286,65 @@
+ }
+ 
+ nonisolated private enum NativeSubjectVisionError: Error {
+-    case cpuUnavailable, missingDetectionEvidence, invalidDetection, missingFeature
+-}
++    case cpuUnavailable, missingDetectionEvidence, invalidDetection, missingFeature, invalidPixelBuffer
++}
++
++/// An exact, ephemeral digest of the detected crop, independent of Vision's feature
++/// extraction. This is a collision veto, never an alternative identity score. Different
++/// crops with identical features remain unconfirmed even if they depict the same person.
++/// Raw pixels and digests never leave the analysis queue or survive its session.
++nonisolated struct NativeSubjectImageFingerprint: Equatable {
++    private struct Plane: Equatable {
++        let width: Int
++        let height: Int
++        let digest: SHA256.Digest
++    }
++    private let format: OSType
++    private let planes: [Plane]
++
++    init(buffer: CVPixelBuffer, bounds: CGRect) throws {
++        guard !bounds.isNull, !bounds.isEmpty,
++              [bounds.minX, bounds.minY, bounds.maxX, bounds.maxY].allSatisfy(\.isFinite),
++              bounds.minX >= 0, bounds.minY >= 0, bounds.maxX <= 1, bounds.maxY <= 1 else {
++            throw NativeSubjectVisionError.invalidDetection
++        }
++        format = CVPixelBufferGetPixelFormatType(buffer)
++        let bytesPerPixel: [Int]
++        switch format {
++        case kCVPixelFormatType_32BGRA: bytesPerPixel = [4]
++        case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
++            bytesPerPixel = [1, 2]
++        case kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_420YpCbCr10BiPlanarFullRange:
++            bytesPerPixel = [2, 4]
++        default: throw NativeSubjectVisionError.invalidPixelBuffer
++        }
++        guard CVPixelBufferLockBaseAddress(buffer, .readOnly) == kCVReturnSuccess else {
++            throw NativeSubjectVisionError.invalidPixelBuffer
++        }
++        defer { CVPixelBufferUnlockBaseAddress(buffer, .readOnly) }
++        let planar = CVPixelBufferIsPlanar(buffer)
++        guard planar ? CVPixelBufferGetPlaneCount(buffer) == bytesPerPixel.count : bytesPerPixel.count == 1 else {
++            throw NativeSubjectVisionError.invalidPixelBuffer
++        }
++        var result: [Plane] = []
++        for (index, pixelBytes) in bytesPerPixel.enumerated() {
++            let width = planar ? CVPixelBufferGetWidthOfPlane(buffer, index) : CVPixelBufferGetWidth(buffer)
++            let height = planar ? CVPixelBufferGetHeightOfPlane(buffer, index) : CVPixelBufferGetHeight(buffer)
++            let rowBytes = planar ? CVPixelBufferGetBytesPerRowOfPlane(buffer, index) : CVPixelBufferGetBytesPerRow(buffer)
++            let base = planar ? CVPixelBufferGetBaseAddressOfPlane(buffer, index) : CVPixelBufferGetBaseAddress(buffer)
++            guard let base, rowBytes >= width * pixelBytes else { throw NativeSubjectVisionError.invalidPixelBuffer }
++            let left = max(0, Int(floor(bounds.minX * Double(width))))
++            let right = min(width, Int(ceil(bounds.maxX * Double(width))))
++            let top = max(0, Int(floor((1 - bounds.maxY) * Double(height))))
++            let bottom = min(height, Int(ceil((1 - bounds.minY) * Double(height))))
++            guard left < right, top < bottom else { throw NativeSubjectVisionError.invalidPixelBuffer }
++            var hash = SHA256()
++            for row in top..<bottom {
++                hash.update(bufferPointer: UnsafeRawBufferPointer(start: base.advanced(by: row * rowBytes + left * pixelBytes),
++                                                                  count: (right - left) * pixelBytes))
++            }
++            result.append(Plane(width: right - left, height: bottom - top, digest: hash.finalize()))
++        }
++        planes = result
++    }
++}
+--- baseline/FrameRelayTests/Platform/Capture/NativeCaptureSubjectAnalysisTests.swift
++++ FrameRelayTests/Platform/Capture/NativeCaptureSubjectAnalysisTests.swift
+@@ -61,6 +61,81 @@
+         #expect(result.candidates.isEmpty)
+     }
+ 
++    @Test(arguments: [false, true])
++    func realVisionRejectsImmediateReplacementWithoutContinuousReferenceFrame(blankBeforeReplacement: Bool) throws {
++        let engine = NativeSubjectVisionEngine(policy: policy)
++        let sally = try image("sally-ride-1979")
++        let mae = try image("mae-jemison-1987")
++        let initialInstruction = instruction()
++        let initial = try engine.process(buffer([sally]), instruction: initialInstruction, sequence: 1, observedAt: 1)
++        let selected = try #require(initial.candidates.first)
++        let selection = NativeSubjectAnalysisInstruction(context: .init(generation: initialInstruction.context.generation,
++            framingRevision: 1, selectionRevision: 1), protagonist: selected.id, allowsReacquisition: true)
++        if blankBeforeReplacement {
++            let blank = try engine.process(buffer([]), instruction: selection, sequence: 2, observedAt: 1.1)
++            #expect(blank.available && blank.candidates.isEmpty)
++        }
++        let different = try engine.process(buffer([mae]), instruction: selection, sequence: 3, observedAt: 1.2)
++        #expect(different.available && !different.candidates.isEmpty)
++        #expect(!different.candidates.contains { $0.id == selected.id })
++        let returned = try engine.process(buffer([sally]), instruction: selection, sequence: 4, observedAt: 1.4)
++        #expect(returned.candidates.contains { $0.id == selected.id && $0.continuity == .reacquired })
++    }
++
++    @Test(arguments: [kCVPixelFormatType_32BGRA, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
++                      kCVPixelFormatType_420YpCbCr8BiPlanarFullRange, kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange,
++                      kCVPixelFormatType_420YpCbCr10BiPlanarFullRange])
++    func exactCropEvidenceIncludesEveryPlaneAndExcludesPaddingAndOutsidePixels(format: OSType) throws {
++        var allocated: CVPixelBuffer?
++        #expect(CVPixelBufferCreate(kCFAllocatorDefault, 32, 32, format, nil, &allocated) == kCVReturnSuccess)
++        let input = try #require(allocated)
++        let bounds = CGRect(x: 0.25, y: 0.25, width: 0.5, height: 0.5)
++        let planar = CVPixelBufferIsPlanar(input)
++        let count = planar ? CVPixelBufferGetPlaneCount(input) : 1
++        let componentBytes = format == kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
++            || format == kCVPixelFormatType_420YpCbCr10BiPlanarFullRange ? 2 : 1
++        func dimensions(_ plane: Int) -> (UnsafeMutablePointer<UInt8>, Int, Int, Int, Int) {
++            let base = planar ? CVPixelBufferGetBaseAddressOfPlane(input, plane) : CVPixelBufferGetBaseAddress(input)
++            let width = planar ? CVPixelBufferGetWidthOfPlane(input, plane) : CVPixelBufferGetWidth(input)
++            let height = planar ? CVPixelBufferGetHeightOfPlane(input, plane) : CVPixelBufferGetHeight(input)
++            let row = planar ? CVPixelBufferGetBytesPerRowOfPlane(input, plane) : CVPixelBufferGetBytesPerRow(input)
++            let pixel = planar ? componentBytes * (plane == 0 ? 1 : 2) : 4
++            return (base!.assumingMemoryBound(to: UInt8.self), width, height, row, pixel)
++        }
++        CVPixelBufferLockBaseAddress(input, [])
++        for plane in 0..<count {
++            let (base, _, height, row, _) = dimensions(plane)
++            base.initialize(repeating: 128, count: row * height)
++        }
++        CVPixelBufferUnlockBaseAddress(input, [])
++        let original = try NativeSubjectImageFingerprint(buffer: input, bounds: bounds)
++        CVPixelBufferLockBaseAddress(input, [])
++        for plane in 0..<count {
++            let (base, width, height, row, pixel) = dimensions(plane)
++            base[0] ^= 1
++            for y in 0..<height {
++                for padding in (width * pixel)..<row { base[y * row + padding] ^= 1 }
++            }
++        }
++        CVPixelBufferUnlockBaseAddress(input, [])
++        #expect(try NativeSubjectImageFingerprint(buffer: input, bounds: bounds) == original)
++        for plane in 0..<count {
++            CVPixelBufferLockBaseAddress(input, [])
++            let (base, width, height, row, pixel) = dimensions(plane)
++            let inside = (height / 2) * row + (width / 2) * pixel
++            base[inside] ^= 1
++            CVPixelBufferUnlockBaseAddress(input, [])
++            #expect(try NativeSubjectImageFingerprint(buffer: input, bounds: bounds) != original)
++            CVPixelBufferLockBaseAddress(input, [])
++            base[inside] ^= 1
++            CVPixelBufferUnlockBaseAddress(input, [])
++        }
++        for invalid in [CGRect.zero, CGRect(x: -0.1, y: 0, width: 1, height: 1),
++                        CGRect(x: 0, y: 0, width: 1.1, height: 1), CGRect.infinite] {
++            #expect(throws: (any Error).self) { try NativeSubjectImageFingerprint(buffer: input, bounds: invalid) }
++        }
++    }
++
+     private var policy: CaptureSubjectPolicy { .init(version: "test-only", lostGrace: 3, noPersonFocus: .tapPosition) }
+     private func instruction() -> NativeSubjectAnalysisInstruction {
+         .init(context: .init(generation: .init(session: .init(rawValue: "vision-fixture"), settings: 1), framingRevision: 1, selectionRevision: 0),

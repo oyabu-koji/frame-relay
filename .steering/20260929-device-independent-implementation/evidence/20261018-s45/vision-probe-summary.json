@@ -1,0 +1,28 @@
+{
+  "kind": "host SDK candidate probe; not app/iOS/AF acceptance",
+  "commands": [
+    {
+      "command": [
+        "xcrun",
+        "swift",
+        "/private/tmp/fr-s45-20261018-ow_sx8bp/vision-probe.swift"
+      ],
+      "exitCode": 133,
+      "result": "Vision rejected out-of-bounds returned human ROI; uncaught in standalone probe."
+    },
+    {
+      "command": [
+        "xcrun",
+        "swift",
+        "/private/tmp/fr-s45-20261018-ow_sx8bp/vision-probe-02.swift"
+      ],
+      "exitCode": 0,
+      "result": "Intersect normalized ROI; 2 images each with 1 human; feature-print same 0, different 0.6739229."
+    }
+  ],
+  "limits": [
+    "Only two nonprivate public portraits",
+    "No camera, no actual autofocus, no guarantee of person re-identification",
+    "No quality threshold adoption from these observations"
+  ]
+}

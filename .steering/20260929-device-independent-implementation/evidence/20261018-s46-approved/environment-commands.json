@@ -1,0 +1,70 @@
+{
+  "xcode-select": {
+    "command": [
+      "xcode-select",
+      "-p"
+    ],
+    "exitCode": 0
+  },
+  "xcode-version": {
+    "command": [
+      "xcodebuild",
+      "-version"
+    ],
+    "exitCode": 0
+  },
+  "swift-version": {
+    "command": [
+      "xcrun",
+      "swift",
+      "--version"
+    ],
+    "exitCode": 0
+  },
+  "project-list": {
+    "command": [
+      "xcodebuild",
+      "-project",
+      "FrameRelay.xcodeproj",
+      "-list",
+      "-json",
+      "-disableAutomaticPackageResolution"
+    ],
+    "exitCode": 0
+  },
+  "destinations": {
+    "command": [
+      "xcodebuild",
+      "-project",
+      "FrameRelay.xcodeproj",
+      "-scheme",
+      "FrameRelay",
+      "-showdestinations",
+      "-disableAutomaticPackageResolution"
+    ],
+    "exitCode": 0
+  },
+  "simulators": {
+    "command": [
+      "xcrun",
+      "simctl",
+      "list",
+      "devices",
+      "available",
+      "--json"
+    ],
+    "exitCode": 0
+  },
+  "testplans": {
+    "command": [
+      "xcodebuild",
+      "-project",
+      "FrameRelay.xcodeproj",
+      "-scheme",
+      "FrameRelay",
+      "-showTestPlans",
+      "-disableAutomaticPackageResolution"
+    ],
+    "exitCode": 0
+  }
+}

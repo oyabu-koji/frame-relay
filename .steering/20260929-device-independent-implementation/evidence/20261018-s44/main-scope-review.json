@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-18",
+  "task": "S44",
+  "result": "本体実装・関連自動検証完了、独立validation未実施",
+  "baselineFileCount": 6445,
+  "changed": [
+    ".steering/20260929-device-independent-implementation/design.md",
+    ".steering/20260929-device-independent-implementation/tasklist.md",
+    "FrameRelay/Application/Capture/ProductCaptureConfigurationMatcher.swift",
+    "FrameRelay/Application/Capture/ProductCaptureCoordinator.swift",
+    "FrameRelay/Application/Ports/ExplorationPorts.swift",
+    "FrameRelay/Application/Ports/ProductCapturePorts.swift",
+    "FrameRelay/Features/Capture/ProductCapturePreview.swift",
+    "FrameRelay/Features/Capture/ProductCaptureSettingsView.swift",
+    "FrameRelay/Features/Capture/ProductCaptureView.swift",
+    "FrameRelay/Platform/Capture/ExplorationCaptureValues.swift",
+    "FrameRelay/Platform/Capture/NativeExplorationCapture.swift",
+    "FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift",
+    "FrameRelayTests/Platform/Capture/ProductCaptureSettingsTests.swift",
+    "FrameRelayUITests/Flows/ProductCaptureFlowTests.swift",
+    "docs/architecture.md",
+    "docs/functional-design.md"
+  ],
+  "new": [
+    "FrameRelay/Domain/Capture/CaptureStabilization.swift",
+    "FrameRelay/Platform/Capture/NativeCaptureStabilization.swift",
+    "FrameRelayTests/Application/ProductCaptureStabilizationCoordinatorTests.swift",
+    "FrameRelayTests/Domain/CaptureStabilizationTests.swift",
+    "FrameRelayTests/Platform/Capture/NativeCaptureStabilizationTests.swift"
+  ],
+  "unchangedFileCount": 6429,
+  "missing": [],
+  "outsideOwnershipChanges": [],
+  "oldEvidenceChanges": [],
+  "finalSourceCount": 187,
+  "finalSourceMismatch": [],
+  "unitAndIOSSourceMatch": true,
+  "uiOnlyChangeAfterUnit": "FrameRelayUITests/Flows/ProductCaptureFlowTests.swift",
+  "unit": {
+    "declarations": 53,
+    "expandedCases": 76,
+    "passed": 76,
+    "failed": 0,
+    "skipped": 0,
+    "run": "test-03"
+  },
+  "ui": {
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "run": "ui-04"
+  },
+  "build": [
+    "test-03 Simulator test build succeeded",
+    "ui-04 Simulator test build succeeded",
+    "ios-build-01 generic iOS build succeeded"
+  ],
+  "earlierFailures": [
+    "test-01: Swift API name compile failure, 0 executed",
+    "test-02: mutating #expect compile failure, 0 executed",
+    "test-03: new UI picker text extraction assertion failed; Unit all passed"
+  ],
+  "docReview": "doc-review.json: 指摘なし",
+  "mainReviewed": [
+    "selected-condition candidate filtering and first/default/restored wishes",
+    "connection admission/request versus active facts for both outputs",
+    "SDK observation/current values/generation/sequence/invalidations",
+    "REC admission and post-reserve start share current scope checks",
+    "observation stream termination cannot restore stale prepare admission",
+    "WB/audio/save behavior and previous uncommitted edits preserved",
+    "source hashes and ownership, 79 AC rows retained"
+  ],
+  "remaining": [
+    "DV-04 real camera capability/effect/framing/audio-sync/continuity",
+    "stabilized crop and preview-record field correspondence",
+    "S47 framing/zoom consumer",
+    "independent validation",
+    "existing S27/S43/S42 and other task limitations preserved"
+  ],
+  "acRows": 79
+}

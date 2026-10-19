@@ -1,9 +1,19 @@
 import Foundation
 
 nonisolated struct RecordingStoreDocument: Codable {
-    static let currentSchema = 1
+    static let currentSchema = 7
     var schema = currentSchema
+    /// Nil for stores which have not explicitly established registration identity.
+    /// Reading or migrating a legacy document never generates one.
+    var storeIdentity: RegistrationStoreIdentity? = nil
     var entries: [Entry] = []
+    /// Store transaction order, independent of capture/settings/content generations.
+    var transactionRevision: UInt64 = 0
+    var originalJournal: [OriginalStoreJournalEntry] = []
+    var backendJournal: [BackendStoreJournalEntry] = []
+    /// Original entries at/before this revision retain schema-3 acceptance rules.
+    /// Never advances after migration; current guards do not invalidate old facts.
+    var legacyRevision: UInt64 = 0
 
     struct Entry: Codable {
         let intentToken: CaptureCommandToken
@@ -19,9 +29,66 @@ nonisolated struct RecordingStoreDocument: Codable {
         let header: Header
         do { header = try decoder.decode(Header.self, from: data) }
         catch { throw ExplorationStorageError.corruptStore }
-        guard header.schema == currentSchema else { throw ExplorationStorageError.unknownSchema }
+        guard (1...currentSchema).contains(header.schema) else { throw ExplorationStorageError.unknownSchema }
         do {
-            let document = try decoder.decode(Self.self, from: data)
+            let document: Self
+            if header.schema == 1 {
+                struct LegacyDocument: Decodable { let entries: [Entry] }
+                let legacy = try decoder.decode(LegacyDocument.self, from: data)
+                var migrated = Self()
+                migrated.entries = legacy.entries
+                for entry in legacy.entries {
+                    let next = migrated.transactionRevision.addingReportingOverflow(entry.revision)
+                    guard !next.overflow else { throw ExplorationStorageError.corruptStore }
+                    migrated.transactionRevision = next.partialValue
+                }
+                migrated.legacyRevision = migrated.transactionRevision
+                document = migrated
+            } else if header.schema == 2 {
+                struct PreviousDocument: Decodable {
+                    let entries: [Entry]
+                    let transactionRevision: UInt64
+                }
+                let previous = try decoder.decode(PreviousDocument.self, from: data)
+                var migrated = Self()
+                migrated.entries = previous.entries
+                migrated.transactionRevision = previous.transactionRevision
+                migrated.legacyRevision = previous.transactionRevision
+                document = migrated
+            } else if header.schema == 3 {
+                struct PreviousDocument: Decodable {
+                    let entries: [Entry]
+                    let transactionRevision: UInt64
+                    let originalJournal: [OriginalStoreJournalEntry]
+                }
+                let previous = try decoder.decode(PreviousDocument.self, from: data)
+                var migrated = Self()
+                migrated.entries = previous.entries
+                migrated.transactionRevision = previous.transactionRevision
+                migrated.originalJournal = previous.originalJournal
+                migrated.legacyRevision = previous.transactionRevision
+                document = migrated
+            } else if header.schema == 4 {
+                var migrated = try decoder.decode(Self.self, from: data)
+                guard migrated.storeIdentity == nil else { throw ExplorationStorageError.corruptStore }
+                migrated.schema = currentSchema
+                document = migrated
+            } else if header.schema == 5 || header.schema == 6 {
+                var migrated = try decoder.decode(Self.self, from: data)
+                migrated.schema = currentSchema
+                document = migrated
+            } else {
+                document = try decoder.decode(Self.self, from: data)
+            }
+            if header.schema < 7 {
+                // Before ordinary recording support every intent had a trial
+                // reference and no calendar observation. Missing old identity
+                // is corruption, not a product recording or an inferred date.
+                guard document.entries.allSatisfy({ $0.intent.trialReference != nil
+                    && $0.intent.capturedAt == nil }) else {
+                    throw ExplorationStorageError.corruptStore
+                }
+            }
             try document.validate()
             return document
         } catch { throw ExplorationStorageError.corruptStore }
@@ -32,7 +99,11 @@ nonisolated struct RecordingStoreDocument: Codable {
         var captures = Set<CaptureID>()
         var operations = Set<CaptureOperationID>()
         var originals = Set<CaptureOriginalReference>()
+        var recordingRevisions: UInt64 = 0
         for entry in entries {
+            let next = recordingRevisions.addingReportingOverflow(entry.revision)
+            guard !next.overflow else { throw CaptureContractError.invalidValue }
+            recordingRevisions = next.partialValue
             try RecordingStoredValueValidation.intent(entry.intent)
             guard captures.insert(entry.intent.context.capture).inserted,
                   operations.insert(entry.intent.operation).inserted,
@@ -52,6 +123,11 @@ nonisolated struct RecordingStoreDocument: Codable {
             default: throw CaptureContractError.evidenceMismatch
             }
         }
+        let recordingAndOriginalRevisionCount = recordingRevisions.addingReportingOverflow(UInt64(originalJournal.count))
+        let total = recordingAndOriginalRevisionCount.partialValue.addingReportingOverflow(UInt64(backendJournal.count))
+        guard !recordingAndOriginalRevisionCount.overflow, !total.overflow, transactionRevision == total.partialValue,
+              legacyRevision <= transactionRevision else { throw CaptureContractError.revisionConflict }
+        _ = try replayStore()
     }
 
     mutating func apply(_ command: RecordingStoreCommand) throws -> RecordingCommitReceipt {
@@ -91,6 +167,9 @@ nonisolated struct RecordingStoreDocument: Codable {
             entries[index].result = record
             entries[index].revision = 2
         }
+        let next = transactionRevision.addingReportingOverflow(1)
+        guard !next.overflow else { throw CaptureContractError.revisionConflict }
+        transactionRevision = next.partialValue
         try validate()
         return RecordingCommitReceipt(token: token, previousRevision: expected, committedRevision: expected + 1)
     }
@@ -165,7 +244,15 @@ nonisolated enum RecordingStoredValueValidation {
 
     static func intent(_ intent: RecordingIntent) throws {
         try text(intent.context.capture.rawValue); try text(intent.context.generation.session.rawValue)
-        try text(intent.operation.rawValue); try text(intent.applied.operation.rawValue); try text(intent.trialReference)
+        try text(intent.operation.rawValue); try text(intent.applied.operation.rawValue)
+        if let trialReference = intent.trialReference {
+            try text(trialReference)
+        } else if intent.capturedAt == nil {
+            throw CaptureContractError.invalidValue
+        }
+        if let capturedAt = intent.capturedAt {
+            guard capturedAt.timeIntervalSinceReferenceDate.isFinite else { throw CaptureContractError.invalidValue }
+        }
         do { try ExplorationRunDirectory.validateReference(intent.original) }
         catch { throw CaptureContractError.invalidValue }
         try settings(intent.desired.configuration, intent.desired.exposure, intent.desired.zoom)

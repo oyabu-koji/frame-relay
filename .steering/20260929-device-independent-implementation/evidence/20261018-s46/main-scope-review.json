@@ -1,0 +1,99 @@
+{
+  "reviewedAt": "2026-10-18T09:48:36.520944+00:00",
+  "reviewer": "main",
+  "scope": "S46 implementation integration and source preservation; not independent validation",
+  "baselineFileCount": 7311,
+  "baselineBytes": 159073473,
+  "unchangedBaselineFileCount": 7301,
+  "changedBaselineFiles": [
+    ".steering/20260929-device-independent-implementation/tasklist.md",
+    "FrameRelay/Application/Capture/ProductCaptureCoordinator.swift",
+    "FrameRelay/Application/Ports/ProductCapturePorts.swift",
+    "FrameRelay/Composition/ProductCaptureFactory.swift",
+    "FrameRelay/Features/Capture/ProductCaptureView.swift",
+    "FrameRelay/Platform/Capture/NativeCaptureSubjectGeometry.swift",
+    "FrameRelay/Platform/Capture/NativeExplorationCapture.swift",
+    "FrameRelayUITests/Flows/ProductCaptureFlowTests.swift",
+    "docs/architecture.md",
+    "docs/functional-design.md"
+  ],
+  "newSourceFiles": [
+    "FrameRelay/Domain/Capture/CaptureNDAdvice.swift",
+    "FrameRelay/Features/Capture/ProductCaptureNDView.swift",
+    "FrameRelay/Platform/Capture/NativeCaptureNDAnalysis.swift",
+    "FrameRelay/Platform/Capture/NativeCaptureNDPixels.swift",
+    "FrameRelayTests/Application/ProductCaptureNDCoordinatorTests.swift",
+    "FrameRelayTests/Platform/Capture/NativeCaptureNDTests.swift"
+  ],
+  "deletedBaselineFiles": [],
+  "changesOutsideOwnership": [],
+  "newEvidenceDirectory": ".steering/20260929-device-independent-implementation/evidence/20261018-s46/",
+  "sourceChecks": {
+    "worker/test-06": {
+      "inputCount": 201,
+      "differentFromFinal": [
+        "FrameRelay/Domain/Capture/CaptureNDAdvice.swift",
+        "FrameRelay/Platform/Capture/NativeExplorationCapture.swift",
+        "FrameRelayTests/Platform/Capture/NativeCaptureNDTests.swift"
+      ]
+    },
+    "worker/test-07": {
+      "inputCount": 201,
+      "differentFromFinal": [
+        "FrameRelay/Domain/Capture/CaptureNDAdvice.swift",
+        "FrameRelay/Platform/Capture/NativeExplorationCapture.swift",
+        "FrameRelayTests/Platform/Capture/NativeCaptureNDTests.swift"
+      ]
+    },
+    "worker/test-09": {
+      "inputCount": 201,
+      "differentFromFinal": []
+    },
+    "ui-final-01": {
+      "inputCount": 209,
+      "differentFromFinal": [
+        "FrameRelay/Domain/Capture/CaptureNDAdvice.swift",
+        "FrameRelay/Platform/Capture/NativeExplorationCapture.swift",
+        "FrameRelayTests/Platform/Capture/NativeCaptureNDTests.swift"
+      ]
+    },
+    "ios-build-final-01": {
+      "inputCount": 209,
+      "differentFromFinal": []
+    }
+  },
+  "documentReviewHashMismatch": [],
+  "finalOwnedSourceCount": 16,
+  "codeAndTestsCount": 13,
+  "ownedSnapshotsByRun": {
+    "test-03": 13,
+    "test-05": 13,
+    "test-06": 13,
+    "test-07": 13,
+    "test-08": 13,
+    "test-09": 13
+  },
+  "checks": [
+    "All 7311 preexisting file hashes compared; no deleted files or changes outside the 16 owned paths.",
+    "Prior evidence, project configuration, README, memo and unrelated store changes preserved.",
+    "Final test-09 201 Swift sources and iOS build 209 inputs match current files.",
+    "UI and broader tests precede the final time-boundary change in three paths; their unchanged UI/coordinator/factory evidence is inherited, not claimed as a rerun of all cases.",
+    "Doc reviewer findings empty and both reviewed document hashes match final files.",
+    "Main reviewed actual signal attachments, ROI, bounded queue, WB revision/time cutoff, invalidation, stale-result rejection, expiry, REC independence and unconfigured product factory."
+  ],
+  "status": "blocked: product policy answers pending; core/injected implementation and selected automated checks complete",
+  "pendingDecisions": [
+    "Provisional one-second result age",
+    "Exchangeable signal/intent-specific provisional bands for reference direction and reason display"
+  ],
+  "limitations": [
+    "Normal product factory policy remains nil; no FR-06 acceptance or whole steering completion.",
+    "No real camera, continuous Auto WB behavior, physical quality, direction accuracy or device load validation (DV-07).",
+    "No independent implementation validation workflow executed.",
+    "Full raw xcresult bundles, DerivedData and complete preexisting source snapshot remain in the temporary work directory.",
+    "test-01/02 retain command/log/source hashes but have no physical source snapshot.",
+    "test-01/02/03 compilation failures and diagnostic disable-batch test-04 are retained; compiler internal cause unproven.",
+    "Generic iOS build testCount=0 is not counted as test success; stdout AppIntents metadata warning retained."
+  ],
+  "rawArtifactsDirectory": "/private/tmp/fr-s46-20261018-ck1k643l"
+}

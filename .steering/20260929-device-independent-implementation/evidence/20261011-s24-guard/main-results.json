@@ -1,0 +1,146 @@
+{
+  "python_entry": "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+  "interpreter_matches_s22_record": true,
+  "cases": [
+    {
+      "case": "absolute_inside",
+      "passed": true,
+      "outcomes": [
+        "allowed"
+      ],
+      "outside_unchanged": true,
+      "actual_denials": 0,
+      "expected_denials": 0,
+      "correct_resolved_write_path": true
+    },
+    {
+      "case": "absolute_outside",
+      "passed": true,
+      "outcomes": [
+        "denied"
+      ],
+      "outside_unchanged": true,
+      "actual_denials": 1,
+      "expected_denials": 1,
+      "correct_resolved_write_path": true
+    },
+    {
+      "case": "inside",
+      "passed": true,
+      "outcomes": [
+        "allowed"
+      ],
+      "outside_unchanged": true,
+      "actual_denials": 0,
+      "expected_denials": 0,
+      "correct_resolved_write_path": true
+    },
+    {
+      "case": "invalid_fd",
+      "passed": true,
+      "outcomes": [
+        "errno-9"
+      ],
+      "outside_unchanged": true,
+      "actual_denials": 0,
+      "expected_denials": 0,
+      "correct_resolved_write_path": true
+    },
+    {
+      "case": "outside_fd",
+      "passed": true,
+      "outcomes": [
+        "denied"
+      ],
+      "outside_unchanged": true,
+      "actual_denials": 1,
+      "expected_denials": 1,
+      "correct_resolved_write_path": true
+    },
+    {
+      "case": "parent_escape",
+      "passed": true,
+      "outcomes": [
+        "denied"
+      ],
+      "outside_unchanged": true,
+      "actual_denials": 1,
+      "expected_denials": 1,
+      "correct_resolved_write_path": true
+    },
+    {
+      "case": "posix_inside",
+      "passed": true,
+      "outcomes": [
+        "allowed"
+      ],
+      "outside_unchanged": true,
+      "actual_denials": 0,
+      "expected_denials": 0,
+      "correct_resolved_write_path": true
+    },
+    {
+      "case": "read_only_fd",
+      "passed": true,
+      "outcomes": [
+        "allowed"
+      ],
+      "outside_unchanged": true,
+      "actual_denials": 0,
+      "expected_denials": 0,
+      "correct_resolved_write_path": true
+    },
+    {
+      "case": "reserved",
+      "passed": true,
+      "outcomes": [
+        "denied"
+      ],
+      "outside_unchanged": true,
+      "actual_denials": 1,
+      "expected_denials": 1,
+      "correct_resolved_write_path": true
+    },
+    {
+      "case": "symlink_escape",
+      "passed": true,
+      "outcomes": [
+        "denied"
+      ],
+      "outside_unchanged": true,
+      "actual_denials": 1,
+      "expected_denials": 1,
+      "correct_resolved_write_path": true
+    },
+    {
+      "case": "thread_inside",
+      "passed": true,
+      "outcomes": [
+        "allowed"
+      ],
+      "outside_unchanged": true,
+      "actual_denials": 0,
+      "expected_denials": 0,
+      "correct_resolved_write_path": true
+    },
+    {
+      "case": "thread_outside",
+      "passed": true,
+      "outcomes": [
+        "denied"
+      ],
+      "outside_unchanged": true,
+      "actual_denials": 1,
+      "expected_denials": 1,
+      "correct_resolved_write_path": true
+    }
+  ],
+  "passed": 12,
+  "failed": 0,
+  "archive_entries": 256,
+  "archive_mismatch": [],
+  "notes": [
+    "Dedicated disposable guard checks only; no backend import or HTTP.",
+    "Old temporary S22 snapshot/provenance now incomplete; archive is independently intact."
+  ]
+}

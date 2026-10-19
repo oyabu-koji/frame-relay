@@ -1,0 +1,28 @@
+{
+  "description": "Actual functions.exec exec_command results; not an Xcode build or runtime test. Product copy files prepend @testable import FrameRelay to check against existing App module.",
+  "checks": [
+    {
+      "kind": "wrapper",
+      "command": "xcrun swiftc -typecheck -swift-version 5 -target arm64-apple-ios27.0-simulator -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -I /private/tmp/fr-di-20261014-s25/DerivedData/Build/Products/Debug-iphonesimulator -module-cache-path /private/tmp/s25-swift-module-cache FrameRelayTests/Support/TemporaryMediaFaultStore.swift /private/tmp/s25-wrapper-typealias.swift",
+      "exit_code": 0,
+      "output": "",
+      "tool_chunk": "9e38f7"
+    },
+    {
+      "kind": "temporary",
+      "command": "xcrun swiftc -typecheck -swift-version 5 -default-isolation MainActor -target arm64-apple-ios27.0-simulator -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -I /private/tmp/fr-di-20261014-s25/DerivedData/Build/Products/Debug-iphonesimulator -module-cache-path /private/tmp/s25-swift-module-cache /private/tmp/s25-typecheck-ManagedTemporaryMedia.swift",
+      "exit_code": 0,
+      "output": "",
+      "tool_chunk": "d9c1a2"
+    },
+    {
+      "kind": "playback",
+      "command": "xcrun swiftc -typecheck -swift-version 5 -default-isolation MainActor -target arm64-apple-ios27.0-simulator -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -I /private/tmp/fr-di-20261014-s25/DerivedData/Build/Products/Debug-iphonesimulator -module-cache-path /private/tmp/s25-swift-module-cache /private/tmp/s25-typecheck-AVRenditionPlayback.swift",
+      "exit_code": 0,
+      "output": "",
+      "tool_chunk": "6667c6",
+      "sandbox_permissions": "require_escalated",
+      "note": "Initial sandbox macro invocation failed; approved identical rerun passed."
+    }
+  ]
+}

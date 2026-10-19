@@ -1,0 +1,527 @@
+import Foundation
+import Observation
+
+/// Composition-lived owner. View disappearance never cancels an in-flight intent or save.
+@MainActor @Observable
+final class ProductCaptureCoordinator {
+    private(set) var preferences = ProductCapturePreferences()
+    private(set) var cameras: [ExplorationCameraDescription] = []
+    private(set) var prepared: ExplorationPrepared?
+    private(set) var capture: CaptureLifecycle?
+    private(set) var previewSource: (any ProductCapturePreviewSource)?
+    private(set) var saveResult: RecordingSaveResult?
+    private(set) var issue: String?
+    private(set) var isPreparing = false
+    private(set) var isStarting = false
+    private(set) var isSaving = false
+    private(set) var preferencesLoaded = false
+    private(set) var captureVisit: UUID?
+    private(set) var observedAudio: CaptureAudioState?
+    private(set) var audioRecovery: ProductCaptureAudioRecoveryStatus = .idle
+    private(set) var isRecoveringAudio = false
+
+    @ObservationIgnored private let preferenceStore: any ProductCapturePreferencePort
+    @ObservationIgnored private let makeDevice: @Sendable (ExplorationOutputCandidate) async throws -> any ProductCaptureDevicePort
+    @ObservationIgnored private let save: any ProductCaptureSavePort
+    @ObservationIgnored private let bindOriginal: @Sendable (CaptureOriginalReference) async -> Bool
+    @ObservationIgnored private let didSave: @MainActor @Sendable () async -> Void
+    @ObservationIgnored private let calendarNow: (@Sendable () -> Date)?
+    @ObservationIgnored private let captureNow: @Sendable () -> CaptureTimeObservation
+    @ObservationIgnored private var device: (any ProductCaptureDevicePort)?
+    @ObservationIgnored private var eventTask: Task<Void, Never>?
+    @ObservationIgnored private var audioTask: Task<Void, Never>?
+    @ObservationIgnored private var audioSequence: UInt64?
+    @ObservationIgnored private let audioPolicy: ProductCaptureAudioPolicy?
+    @ObservationIgnored private var recoveryRequest: ProductCaptureAudioRecoveryRequest?
+    @ObservationIgnored private var recoveryTimeout: Task<Void, Never>?
+    @ObservationIgnored private var recoveryTimedOut = false
+    @ObservationIgnored private var generation: CaptureGeneration?
+    @ObservationIgnored private var activeIntent: RecordingIntent?
+    @ObservationIgnored private var pendingEnd: RecordingEndEvidence?
+    @ObservationIgnored private var pendingFile: CaptureFileEvidence?
+    @ObservationIgnored private var intentReady = false
+    @ObservationIgnored private var endDelivered = false
+    @ObservationIgnored private var saveFinished = false
+    @ObservationIgnored private var drainingSave = false
+    @ObservationIgnored private var leaveRequested = false
+    @ObservationIgnored private var eventEpoch = UUID()
+    @ObservationIgnored private var preparationOwner: UUID?
+
+    init(preferences: any ProductCapturePreferencePort,
+         makeDevice: @escaping @Sendable (ExplorationOutputCandidate) async throws -> any ProductCaptureDevicePort,
+         save: any ProductCaptureSavePort,
+         bindOriginal: @escaping @Sendable (CaptureOriginalReference) async -> Bool,
+         didSave: @escaping @MainActor @Sendable () async -> Void,
+         audioPolicy: ProductCaptureAudioPolicy? = nil,
+         calendarNow: (@Sendable () -> Date)? = nil,
+         captureNow: @escaping @Sendable () -> CaptureTimeObservation = { .unavailable(.notMeasured) }) {
+        preferenceStore = preferences; self.makeDevice = makeDevice; self.save = save
+        self.bindOriginal = bindOriginal; self.didSave = didSave
+        self.calendarNow = calendarNow; self.captureNow = captureNow
+        self.audioPolicy = audioPolicy
+    }
+
+    var isBusy: Bool {
+        isPreparing || isStarting || isSaving || isRecoveringAudio || capture.map {
+            $0.phase == .starting || $0.phase == .recording || $0.phase == .stopping
+        } == true
+    }
+
+    var canRecord: Bool {
+        guard !isBusy, !leaveRequested, captureVisit != nil, preferencesLoaded, issue == nil, calendarNow != nil, let generation, let prepared,
+              preferences.desired != nil, preferences.outputCandidate != nil,
+              currentAudio?.confirmedFailure == nil,
+              capture == nil || capture?.whiteBalance == .automatic else { return false }
+        return readiness(generation: generation, prepared: prepared).blockers.isEmpty
+    }
+
+    var canRefreshWhiteBalance: Bool {
+        guard !leaveRequested, captureVisit != nil, capture?.phase == .recording,
+              case .locked = capture?.whiteBalance,
+              prepared?.capabilities.whiteBalanceRefresh == .supported(true) else { return false }
+        return true
+    }
+
+    /// Only a visible screen's explicit entry may undo a prior leave request.
+    @discardableResult
+    func enterCapture() -> UUID {
+        let visit = UUID()
+        captureVisit = visit
+        leaveRequested = false
+        preparationOwner = nil
+        isPreparing = false
+        return visit
+    }
+
+    func load(visit requestedVisit: UUID? = nil) async {
+        let visit = requestedVisit ?? captureVisit
+        guard accepts(visit), !isBusy, !preferencesLoaded else { return }
+        let owner = beginPreparation()
+        defer { endPreparation(owner) }
+        do {
+            let loaded = try await preferenceStore.load()
+            guard accepts(visit) else { return }
+            if loaded != preferences {
+                // A previous visit's late settings commit can change the output candidate.
+                // This visit's reload must retire its old preparation before publishing it.
+                await releaseDevice()
+                guard accepts(visit) else { return }
+            }
+            preferences = loaded
+            preferencesLoaded = true
+        } catch {
+            if accepts(visit) { issue = "撮影設定を読み込めません。保存済み設定を保持しています。" }
+        }
+    }
+
+    func discover(visit requestedVisit: UUID? = nil) async {
+        let visit = requestedVisit ?? captureVisit
+        guard accepts(visit), !isBusy else { return }
+        let owner = beginPreparation()
+        defer { endPreparation(owner) }
+        do {
+            // This temporary output choice only enumerates hardware, never sets recording preferences.
+            let discovery = try await makeDevice(preferences.outputCandidate ?? .movieFile)
+            guard accepts(visit) else { await discovery.shutDown(); return }
+            do {
+                let discovered = try await discovery.discoverCameras()
+                await discovery.shutDown()
+                guard accepts(visit) else { return }
+                cameras = discovered
+            } catch {
+                await discovery.shutDown()
+                throw error
+            }
+        } catch { if accepts(visit) { issue = message(for: error) } }
+    }
+
+    func updatePreferences(_ value: ProductCapturePreferences, visit requestedVisit: UUID? = nil) async {
+        let visit = requestedVisit ?? captureVisit
+        guard accepts(visit), !isBusy else { return }
+        guard value.isValid else { issue = "撮影設定の値を確認してください。"; return }
+        // A corrupt/unknown settings file is not silently replaced by an ordinary edit.
+        guard preferencesLoaded else { issue = "保存済み設定を読み込めていないため変更できません。"; return }
+        let owner = beginPreparation()
+        defer { endPreparation(owner) }
+        await releaseDevice()
+        guard accepts(visit) else { return }
+        // A save may commit after its screen has left. The next visit must reload that
+        // durable value instead of treating its earlier cached wishes as current.
+        preferencesLoaded = false
+        do {
+            try await preferenceStore.save(value)
+            guard accepts(visit) else { preferencesLoaded = false; return }
+            preferences = value
+            preferencesLoaded = true
+            issue = nil
+        } catch {
+            preferencesLoaded = false
+            if accepts(visit) { issue = "撮影設定を保存できませんでした。" }
+        }
+    }
+
+    func prepare(visit requestedVisit: UUID? = nil) async {
+        let visit = requestedVisit ?? captureVisit
+        guard accepts(visit), !isBusy else { return }
+        guard preferencesLoaded, let desired = preferences.desired, let candidate = preferences.outputCandidate else {
+            issue = "撮影設定と記録方式を選択してください。"; return
+        }
+        let owner = beginPreparation()
+        issue = nil
+        defer { endPreparation(owner) }
+        await releaseDevice()
+        guard accepts(visit) else { return }
+        let nextGeneration = CaptureGeneration(session: .init(rawValue: UUID().uuidString), settings: 1)
+        do {
+            let created = try await makeDevice(candidate)
+            // Until every preparation await has finished, this invocation owns only this device.
+            // An obsolete invocation must never release a newer visit's published device.
+            do {
+                guard accepts(visit) else { await created.shutDown(); return }
+                let stream = await created.productEvents()
+                let audioStream = await created.audioSnapshots()
+                guard accepts(visit) else { await created.shutDown(); return }
+                let discovered = try await created.discoverCameras()
+                guard accepts(visit) else { await created.shutDown(); return }
+                guard ProductCaptureConfigurationMatcher.hasCurrentFormat(for: desired.configuration, cameras: discovered) else {
+                    throw ExplorationIssue.capabilityUnconfirmed("camera_or_format_no_longer_available")
+                }
+                let result = try await created.prepare(.init(desired: desired, generation: nextGeneration,
+                    operation: .init(rawValue: "prepare-\(UUID().uuidString)")))
+                guard accepts(visit) else { await created.shutDown(); return }
+                let preview = await created.previewSource()
+                guard accepts(visit) else { await created.shutDown(); return }
+                device = created
+                generation = nextGeneration
+                cameras = discovered
+                prepared = result
+                observedAudio = result.audio
+                audioSequence = nil
+                audioRecovery = .idle
+                previewSource = preview
+                let epoch = UUID()
+                eventEpoch = epoch
+                eventTask = Task { [weak self] in
+                    for await event in stream {
+                        guard !Task.isCancelled else { return }
+                        await self?.receive(event, epoch: epoch)
+                    }
+                }
+                audioTask = Task { [weak self] in
+                    for await snapshot in audioStream {
+                        guard !Task.isCancelled else { return }
+                        await self?.receiveAudio(snapshot, epoch: epoch)
+                    }
+                }
+                if readiness(generation: nextGeneration, prepared: result).blockers.contains(where: { $0 != .audioNotValid }) {
+                    issue = "希望設定を適用できません。現在の対応条件と実適用値を確認してください。"
+                }
+            } catch {
+                await created.shutDown()
+                throw error
+            }
+        } catch { if accepts(visit) { issue = message(for: error) } }
+    }
+
+    private func accepts(_ visit: UUID?) -> Bool {
+        visit != nil && captureVisit == visit && !leaveRequested && !Task.isCancelled
+    }
+
+    private func beginPreparation() -> UUID {
+        let owner = UUID()
+        preparationOwner = owner
+        isPreparing = true
+        return owner
+    }
+
+    private func endPreparation(_ owner: UUID) {
+        guard preparationOwner == owner else { return }
+        preparationOwner = nil
+        isPreparing = false
+    }
+
+    func record() async {
+        guard canRecord, let generation, let prepared, let desired = preferences.desired, let calendarNow else { return }
+        isStarting = true
+        let context = CaptureContext(generation: generation, capture: .init(rawValue: UUID().uuidString))
+        let operation = CaptureOperationID(rawValue: UUID().uuidString)
+        // Calendar observation is independent of the monotonic capture timeline.
+        // Millisecond precision is shared by store and QuickTime creation-date metadata.
+        let observed = calendarNow()
+        let capturedAt = Date(timeIntervalSince1970: floor(observed.timeIntervalSince1970 * 1_000) / 1_000)
+        let intent = RecordingIntent(context: context, operation: operation,
+            original: .init(rawValue: UUID().uuidString), desired: desired, applied: prepared.applied,
+            acceptedAt: captureNow(), capturedAt: capturedAt)
+        var initialAudio = currentAudio ?? prepared.audio
+        initialAudio.writing = .notStarted
+        observedAudio = initialAudio
+        var lifecycle = CaptureLifecycle(context: context, audio: initialAudio)
+        let transition = lifecycle.begin(intent, readiness: readiness(generation: generation, prepared: prepared), expectedStoreRevision: 0)
+        capture = lifecycle
+        activeIntent = intent
+        pendingEnd = nil; pendingFile = nil; intentReady = false
+        endDelivered = false; saveFinished = false; saveResult = nil
+        await perform(transition)
+        isStarting = false
+        await finishLeavingIfPossible()
+    }
+
+    func stop() async {
+        guard var lifecycle = capture else { return }
+        let transition = lifecycle.stop(operation: .init(rawValue: UUID().uuidString))
+        capture = lifecycle
+        await perform(transition)
+    }
+
+    /// Called only by the recording screen's explicit user action.
+    func refreshWhiteBalance() async {
+        guard canRefreshWhiteBalance, var lifecycle = capture else { return }
+        let transition = lifecycle.refreshWhiteBalance(operation: .init(rawValue: UUID().uuidString))
+        capture = lifecycle
+        await perform(transition)
+    }
+
+    /// Safe on navigation/background. Capture events and persistence continue until settled.
+    func leaveCapture() async {
+        leaveRequested = true
+        captureVisit = nil
+        preparationOwner = nil
+        isPreparing = false
+        if let request = recoveryRequest, let device { await device.cancelAudioRecovery(request) }
+        await stop()
+        await finishLeavingIfPossible()
+    }
+
+    var currentAudio: CaptureAudioState? { observedAudio ?? prepared?.audio }
+
+    var canRetryAudio: Bool {
+        guard !isBusy, !leaveRequested, captureVisit != nil, audioPolicy != nil,
+              let failure = currentAudio?.confirmedFailure, failure != .permissionDenied,
+              capture == nil || capture?.whiteBalance == .automatic else { return false }
+        return device != nil && generation != nil
+    }
+
+    /// An explicit user action; successful recovery only enables a later REC.
+    func retryAudio() async {
+        guard canRetryAudio, let device, let generation, let policy = audioPolicy,
+              let failure = currentAudio?.confirmedFailure, let visit = captureVisit else { return }
+        isRecoveringAudio = true
+        let context = CaptureContext(generation: generation, capture: .init(rawValue: "audio-recovery-" + UUID().uuidString))
+        var recovery = CaptureAudioRecovery(context: context, policy: policy.recovery)
+        guard var attempt = try? recovery.begin(after: failure) else { isRecoveringAudio = false; return }
+        while accepts(visit) {
+            let request = ProductCaptureAudioRecoveryRequest(generation: generation, operation: UUID(), ordinal: attempt.ordinal)
+            recoveryRequest = request
+            recoveryTimedOut = false
+            audioRecovery = .attempting(attempt.ordinal)
+            observedAudio?.input = .recovering(attempt: attempt.ordinal)
+            let timeoutSeconds = attempt.timeout.seconds
+            recoveryTimeout = Task { [weak self] in
+                do { try await Task.sleep(for: .seconds(timeoutSeconds)) }
+                catch { return }
+                guard let self, self.recoveryRequest == request else { return }
+                self.recoveryTimedOut = true
+                self.audioRecovery = .timedOutWaitingForRelease
+                // Cancellation is an acknowledged SDK ownership boundary. Until it returns,
+                // this owner stays busy even if the uncooperative SDK operation exceeded time.
+                await device.cancelAudioRecovery(request)
+            }
+            let result = await device.recoverAudio(request)
+            let timeoutTask = recoveryTimeout
+            let timedOut = recoveryTimedOut
+            timeoutTask?.cancel()
+            if timedOut { await timeoutTask?.value }
+            recoveryTimeout = nil
+            guard recoveryRequest == request else { break }
+            recoveryRequest = nil
+            guard accepts(visit) else { break }
+            let outcome: CaptureAudioRecoveryOutcome = timedOut
+                ? .failed(.routeInterrupted(.init(rawValue: "audio-recovery-timeout"))) : result
+            let next = try? recovery.complete(attempt, outcome: outcome)
+            switch outcome {
+            case .validInput(let route):
+                observedAudio?.input = .valid(route: route)
+                observedAudio?.writing = .notStarted
+                audioRecovery = .readyForUserREC
+            case .failed(let failure):
+                observedAudio?.input = .failed(failure)
+                audioRecovery = .failed
+            }
+            guard !timedOut, let next else { break }
+            attempt = next
+        }
+        recoveryRequest = nil
+        recoveryTimeout?.cancel(); recoveryTimeout = nil
+        isRecoveringAudio = false
+        await finishLeavingIfPossible()
+    }
+
+    private func receiveAudio(_ snapshot: ProductCaptureAudioSnapshot, epoch: UUID) async {
+        guard epoch == eventEpoch, snapshot.generation == generation,
+              audioSequence.map({ snapshot.sequence > $0 }) ?? true else { return }
+        if let clip = snapshot.capture {
+            guard clip == capture?.context.capture else { return }
+        } else if capture?.phase == .starting || capture?.phase == .recording || capture?.phase == .stopping {
+            return
+        }
+        audioSequence = snapshot.sequence
+        guard !isRecoveringAudio else { return }
+        observedAudio = snapshot.state
+        if let clip = snapshot.capture, var lifecycle = capture, lifecycle.context.capture == clip {
+            let transition = lifecycle.receive(.audioObserved(lifecycle.context, sequence: snapshot.sequence, snapshot.state))
+            capture = lifecycle
+            await perform(transition)
+        }
+    }
+
+    private func readiness(generation: CaptureGeneration, prepared: ExplorationPrepared) -> CaptureReadiness {
+        .init(generation: generation, desired: preferences.desired, capabilities: prepared.capabilities,
+              applied: prepared.applied, camera: .ready, audioInput: currentAudio?.input ?? prepared.audio.input,
+              destination: .ready, recordingResources: .ready)
+    }
+
+    private func perform(_ transition: CaptureTransition) async {
+        guard let device else { return }
+        guard case .accepted(let effects) = transition else { return }
+        // WB may complete or STOP may arrive while common-save begin is suspended.
+        for effect in effects {
+            if case .store(.commitIntent) = effect { isSaving = true }
+        }
+        for effect in effects {
+            if case .capture(let command) = effect {
+                if case .rejected(let token, let reason) = await device.submit(command) {
+                    await receive(.capture(.commandFailed(token, reason)), epoch: eventEpoch)
+                }
+            }
+        }
+        for effect in effects {
+            switch effect {
+            case .capture: break
+            case .store(.commitIntent(let token, _, let intent)):
+                let result = await save.begin(intent, token: token)
+                let storeResult: RecordingStoreResult
+                switch result {
+                case .ready(let receipt): intentReady = true; storeResult = .committed(receipt)
+                case .rejected(let error):
+                    storeResult = .rejected(token, error)
+                    issue = "保存意図を確定できません。録画は開始しませんでした。"
+                    saveFinished = true
+                default:
+                    storeResult = .unavailable(token, .resourceUnavailable)
+                    issue = "保存意図の結果が不明です。一覧から記録を確認してください。"
+                    saveFinished = true
+                }
+                if var lifecycle = capture, lifecycle.context == token.context {
+                    let next = lifecycle.receiveIntentStoreResult(storeResult)
+                    capture = lifecycle
+                    await perform(next)
+                    await drainSave()
+                    if !intentReady {
+                        await didSave()
+                        isSaving = false
+                    }
+                }
+            case .store(.commitResult): break // Result writes belong exclusively to OriginalSaveCoordinator.
+            case .recordingCeased(let end):
+                pendingEnd = end
+                await drainSave()
+            }
+        }
+    }
+
+    private func receive(_ event: ExplorationDeviceEvent, epoch: UUID) async {
+        guard epoch == eventEpoch else { return }
+        switch event {
+        case .capture(let event):
+            guard var lifecycle = capture else { return }
+            if case .audioObserved(let context, let sequence, _) = event {
+                guard context == lifecycle.context,
+                      audioSequence.map({ sequence > $0 }) ?? true else { return }
+            }
+            let transition = lifecycle.receive(event)
+            if case .audioObserved(_, let sequence, let state) = event, case .accepted = transition {
+                audioSequence = sequence
+                observedAudio = state
+            }
+            capture = lifecycle
+            await perform(transition)
+        case .fileFinalized(let file):
+            guard let intent = activeIntent, file.context == intent.context, file.original == intent.original,
+                  !saveFinished, pendingFile == nil else { return }
+            pendingFile = file
+            await drainSave()
+        case .observation(let observation):
+            if observation.code == "file_finalization_unconfirmed", observation.context == activeIntent?.context {
+                issue = "録画は停止しましたがファイルの確定を確認できません。一覧で照合してください。"
+                saveFinished = true
+                await didSave()
+                isSaving = false
+            }
+        }
+        await finishLeavingIfPossible()
+    }
+
+    private func drainSave() async {
+        guard !drainingSave, intentReady, !saveFinished, let intent = activeIntent, let end = pendingEnd else { return }
+        drainingSave = true
+        defer { drainingSave = false }
+        if !endDelivered {
+            guard case .accepted = await save.recordingEnded(context: intent.context, evidence: end) else {
+                issue = "記録終端の保存照合が必要です。"; saveFinished = true
+                await didSave(); isSaving = false; return
+            }
+            endDelivered = true
+        }
+        if end.writer == .notStarted {
+            issue = "録画は開始されませんでした。保存意図は一覧で要確認として残ります。"
+            saveFinished = true
+            await didSave(); isSaving = false; return
+        }
+        guard let file = pendingFile else { return }
+        let token = CaptureCommandToken(context: intent.context, operation: intent.operation, ordinal: 100)
+        let result = await save.fileFinalized(file, resultToken: token)
+        saveFinished = true
+        switch result {
+        case .committed(let record, _):
+            saveResult = record.result
+            if !(await bindOriginal(intent.original)) {
+                issue = "保存結果を記録しました。原本と一覧の対応は確認が必要です。"
+            }
+        default: issue = "保存結果を確定できません。一覧で原本と保存記録を確認してください。"
+        }
+        await didSave()
+        isSaving = false
+    }
+
+    private func finishLeavingIfPossible() async {
+        guard leaveRequested, !isPreparing, !isStarting, !isSaving, !isRecoveringAudio,
+              capture == nil || capture?.phase == .ended || capture?.phase == .ready else { return }
+        await releaseDevice()
+    }
+
+    private func releaseDevice() async {
+        eventEpoch = UUID()
+        let released = device
+        device = nil; previewSource = nil; prepared = nil; generation = nil; capture = nil
+        eventTask?.cancel(); eventTask = nil
+        audioTask?.cancel(); audioTask = nil
+        observedAudio = nil; audioSequence = nil; audioRecovery = .idle
+        // Detach before suspension so an old shutdown cannot clear a new preparation.
+        if let released { await released.shutDown() }
+    }
+
+    private func message(for error: Error) -> String {
+        if error is ProductCaptureAudioPreparationError {
+            observedAudio = .init(level: .unavailable(.permissionDenied), input: .failed(.permissionDenied),
+                arrival: .unobserved, writing: .notStarted)
+            return "マイクの使用を許可できません。設定アプリでマイクの許可を確認してください。"
+        }
+        switch error as? ExplorationIssue {
+        case .simulatorHasNoVerifiedCamera: return "Simulatorではカメラ撮影を利用できません。一覧と再生は利用できます。"
+        case .permissionDenied: return "カメラとマイクの使用許可を設定で確認してください。"
+        case .appliedValuesDiffer: return "希望設定と実際の適用値が一致しません。RECは開始できません。"
+        case .capabilityUnconfirmed: return "現在のカメラでは選択した条件を確認できません。設定を変更してください。"
+        default: return "カメラを準備できませんでした。条件を確認して再準備してください。"
+        }
+    }
+}

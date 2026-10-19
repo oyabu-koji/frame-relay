@@ -1,0 +1,38 @@
+{
+  "client1": [
+    "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+    "-I",
+    "-B",
+    "-S",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S24/http-preparation-001/source-snapshot/storage_http_probe.py",
+    "--config",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S24/http-preparation-001/phase-1-config.json"
+  ],
+  "client2": [
+    "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+    "-I",
+    "-B",
+    "-S",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S24/http-preparation-001/source-snapshot/storage_http_probe.py",
+    "--config",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S24/http-preparation-001/phase-2-config.json"
+  ],
+  "listener1": [
+    "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+    "-I",
+    "-B",
+    "-S",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S24/http-preparation-001/source-snapshot/run_pytest.py",
+    "--config",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S24/http-preparation-001/phase-1-config.json"
+  ],
+  "listener2": [
+    "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+    "-I",
+    "-B",
+    "-S",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S24/http-preparation-001/source-snapshot/run_pytest.py",
+    "--config",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S24/http-preparation-001/phase-2-config.json"
+  ]
+}

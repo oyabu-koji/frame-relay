@@ -1,0 +1,48 @@
+--- baseline/FrameRelay/Features/Capture/ProductCaptureView.swift
++++ FrameRelay/Features/Capture/ProductCaptureView.swift
+@@ -55,10 +55,19 @@
+                         .accessibilityIdentifier("capture.prepare")
+                     }
+                     VStack(alignment: .leading, spacing: 8) {
+-                        Text("現在の適用状態").font(.headline)
++                        Text("準備時に確認した適用値").font(.headline)
+                         Text(appliedDescription).accessibilityIdentifier("capture.applied")
+                         Text("実機での記録方式・画質の確認は未完了です。")
+                             .font(.footnote)
++                    }
++                    VStack(alignment: .leading, spacing: 8) {
++                        Text("現在の手ブレ補正").font(.headline)
++                        Text(stabilizationDescription).accessibilityIdentifier("capture.stabilization")
++                        if let constraint = model.stabilizationConstraint {
++                            Text(constraint).accessibilityIdentifier("capture.stabilizationConstraint")
++                        }
++                        Text("補正後の撮影範囲は未確認です。プレビューと記録の画角の一致は確認できていません。")
++                            .font(.footnote).accessibilityIdentifier("capture.framing")
+                     }
+                     VStack(alignment: .leading, spacing: 8) {
+                         Text("ホワイトバランス").font(.headline)
+@@ -152,6 +161,24 @@
+                                            camera: model.cameras.first { $0.id == values.configuration.camera }?.label)
+     }
+ 
++    private var stabilizationDescription: String {
++        let desired = (model.preferences.desired?.configuration.stabilizationMode)
++            .map { ProductCaptureText.stabilization($0) } ?? "未選択"
++        guard let snapshot = model.currentStabilization else {
++            return "希望：\(desired)\n現在の補正は未確認です。保存した希望はカメラの準備時に再確認します。"
++        }
++        let preferred = snapshot.preferredMode.map { ProductCaptureText.stabilization($0) } ?? "未確認"
++        let active = snapshot.activeMode.value.map { ProductCaptureText.stabilization($0) } ?? "未確認"
++        let values = "希望：\(desired) · 接続への要求：\(preferred) · 実動作：\(active)\n現在の倍率：\(snapshot.zoom.formatted())×"
++        switch snapshot.connection {
++        case .missing: return values + "\n記録出力の接続を確認できません。再準備してください。"
++        case .inactive: return values + "\n記録出力が動作していないため補正の現在値は未確認です。"
++        case .unsupported: return values + "\n記録出力は希望する補正に非対応です。OFFまたは対応モードを選んでください。"
++        case .ready:
++            return values + (snapshot.matchesRequest ? "\n実動作は希望と一致しています。" : "\n希望と実動作が一致していません。自動で希望を書き換えず、次のRECを抑止しています。")
++        }
++    }
++
+     private var canStop: Bool {
+         model.capture?.phase == .starting || model.capture?.phase == .recording
+     }

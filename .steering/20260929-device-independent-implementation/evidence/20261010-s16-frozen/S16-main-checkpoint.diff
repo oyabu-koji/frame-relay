@@ -1,0 +1,1124 @@
+--- S16-resume-start/FrameRelay/Features/Library/LibraryView.swift
++++ FrameRelay/Features/Library/LibraryView.swift
+@@ -25,6 +25,7 @@
+                             Text("原本の削除結果を照合できた破棄の記録です。原本を保管するゴミ箱ではありません。")
+                                 .font(.body)
+                                 .fixedSize(horizontal: false, vertical: true)
++                                .accessibilityIdentifier("library.historyExplanation")
+                         }
+                     }
+                     if items.isEmpty, model.failure == nil, !model.isLoading {
+@@ -38,10 +39,17 @@
+                             } label: {
+                                 VStack(alignment: .leading, spacing: 6) {
+                                     Text(item.title).font(.headline)
++                                        .accessibilityIdentifier("library.itemTitle.\(item.id.rawValue)")
+                                     Text(item.status(.save))
++                                        .accessibilityIdentifier("library.itemSave.\(item.id.rawValue)")
+                                     Text(item.status(.original))
++                                        .accessibilityIdentifier("library.itemOriginal.\(item.id.rawValue)")
+                                     Text(item.status(.removal))
+-                                    if item.requiresReconciliation { Text("要照合").bold() }
++                                        .accessibilityIdentifier("library.itemRemoval.\(item.id.rawValue)")
++                                    if item.requiresReconciliation {
++                                        Text("要照合").bold()
++                                            .accessibilityIdentifier("library.itemReconciliation.\(item.id.rawValue)")
++                                    }
+                                 }
+                                 .fixedSize(horizontal: false, vertical: true)
+                                 .accessibilityElement(children: .combine)
+@@ -120,8 +128,10 @@
+                         Text("保存記録と原本の状態に未確定の部分があります。再読み込みで現在状態を確認できます。未完了の削除や写真への追加は自動実行しません。")
+                             .font(.body)
+                             .fixedSize(horizontal: false, vertical: true)
++                            .accessibilityIdentifier("library.detailReconciliationExplanation")
+                     } header: {
+                         Text("確認が必要です").foregroundStyle(Color.primary)
++                            .accessibilityIdentifier("library.detailReconciliationHeading")
+                     }
+                 }
+                 if !item.isDiscardHistory {
+@@ -143,6 +153,8 @@
+                 Text("この動画の記録を取得できません。再読み込みしてください。")
+             }
+         }
++        .padding(.top)
++        .clipped()
+         .navigationTitle("動画の詳細")
+         // Keep the inline title readable when long status rows scroll behind it.
+         .toolbarBackground(Color(uiColor: .systemBackground), for: .navigationBar)
+@@ -189,6 +201,7 @@
+                 if action == .discard { discardTarget = captures.first }
+                 else { Task { await model.submit(action, captures: captures) } }
+             }
++            .buttonStyle(LibraryActionButtonStyle())
+             .disabled(availability != .available)
+             .accessibilityIdentifier("library.action.\(action.rawValue)")
+             if let reason = availability.reason {
+@@ -210,6 +223,15 @@
+                 Text("対象：\(model.item(target)?.title ?? target.rawValue)。iPhone内の原本を削除します。Mac miniや写真にコピーがなければ、この動画を失います。Mac miniと写真の動画は削除しません。")
+             }
+         }
++    }
++}
++
++private struct LibraryActionButtonStyle: ButtonStyle {
++    func makeBody(configuration: Configuration) -> some View {
++        // Availability is conveyed by the disabled trait and the adjacent reason.
++        configuration.label
++            .foregroundStyle(Color.primary)
++            .opacity(configuration.isPressed ? 0.75 : 1)
+     }
+ }
+ 
+@@ -239,15 +261,20 @@
+                     }
+                     VStack(alignment: .leading, spacing: 4) {
+                         Text(model.item(target.capture)?.title ?? "動画 \(target.capture.rawValue)").font(.headline)
++                            .accessibilityIdentifier("library.submission.title.\(target.capture.rawValue).\(submission.request.id.rawValue)")
+                         Text(submission.request.action.title)
++                            .accessibilityIdentifier("library.submission.action.\(target.capture.rawValue).\(submission.request.id.rawValue)")
+                         Text(result?.outcome.text ?? submission.phase.text)
++                            .accessibilityIdentifier("library.submission.phase.\(target.capture.rawValue).\(submission.request.id.rawValue)")
+                     }
+                     .fixedSize(horizontal: false, vertical: true)
+                     .accessibilityElement(children: .combine)
++                    .accessibilityIdentifier("library.submission.target.\(target.capture.rawValue).\(submission.request.id.rawValue)")
+                 }
+             } header: {
+                 Text("開始した操作の照合").foregroundStyle(Color.primary)
+-            }
+-        }
+-    }
+-}
++                    .accessibilityIdentifier("library.submission.header.\(submission.request.id.rawValue)")
++            }
++        }
++    }
++}
+--- S16-resume-start/FrameRelay/Features/Playback/OriginalPlaybackModel.swift
++++ FrameRelay/Features/Playback/OriginalPlaybackModel.swift
+@@ -14,23 +14,27 @@
+     /// Presentation/acceptance only; AVOriginalPlayback publishes actual SDK progress.
+     func open(_ target: LibraryCommandTarget, operation: MediaOperationID) -> Bool {
+         guard canOpen, let original = target.original, original.capture == target.capture else { return false }
++        playback.recordPresentation(.modelOpen)
+         self.target = target
+         let id = PlaybackSessionID(rawValue: UUID().uuidString)
+         sessionID = id
+         startTask = Task { @MainActor in
+             guard !Task.isCancelled else { return }
++            playback.recordPresentation(.modelStartTask)
+             _ = await playback.open(original, operation: operation, session: id)
+         }
+         return true
+     }
+ 
+     func stop() async {
++        playback.recordPresentation(.modelStop)
+         startTask?.cancel()
+         if let sessionID { await playback.stopOriginal(sessionID) }
+         await startTask?.value
+     }
+ 
+     func close() async {
++        playback.recordPresentation(.modelClose)
+         await stop()
+         // SDK admission is closed even when durable release needs reconciliation.
+         // Keep that session in the adapter, but let the user return to the library.
+--- S16-resume-start/FrameRelay/Features/Playback/OriginalPlaybackView.swift
++++ FrameRelay/Features/Playback/OriginalPlaybackView.swift
+@@ -14,6 +14,8 @@
+                         .frame(minHeight: 240)
+                         .accessibilityLabel("iPhone原本の動画プレーヤー")
+                         .accessibilityIdentifier("originalPlayback.player")
++                        .onAppear { model.playback.recordPresentation(.videoViewAppeared) }
++                        .onDisappear { model.playback.recordPresentation(.videoViewDisappeared) }
+                 }
+                 Text(status).accessibilityIdentifier("originalPlayback.status")
+                 Text("再生位置：\(model.playback.elapsedSeconds, format: .number.precision(.fractionLength(1)))秒")
+@@ -51,7 +53,11 @@
+             }
+         }
+         .interactiveDismissDisabled()
+-        .onDisappear { Task { await model.close() } }
++        .onAppear { model.playback.recordPresentation(.viewAppeared) }
++        .onDisappear {
++            model.playback.recordPresentation(.viewDisappeared)
++            Task { await model.close() }
++        }
+     }
+ 
+     private var status: String {
+--- S16-resume-start/FrameRelay/Platform/Playback/AVOriginalPlayback.swift
++++ FrameRelay/Platform/Playback/AVOriginalPlayback.swift
+@@ -1,6 +1,7 @@
+ import AVFoundation
+ import Foundation
+ import Observation
++import OSLog
+ 
+ nonisolated enum OriginalPlayerPhase: Equatable, Sendable {
+     case idle, preparing, playing, paused, stopping, ended, stopped, failed, releaseNeedsReconciliation
+@@ -11,6 +12,7 @@
+     private let access: ManagedOriginalAccess
+     private let beforeRead: (@Sendable () async -> Void)?
+     private let observesDecodedFrames: Bool
++    @ObservationIgnored private let diagnostics: OriginalPlaybackDiagnostics?
+     private var session: Session?
+     private var usedSessions: Set<PlaybackSessionID> = []
+     private(set) var player: AVPlayer?
+@@ -27,10 +29,12 @@
+     var isBusy: Bool { session != nil }
+ 
+     init(access: ManagedOriginalAccess, observesDecodedFrames: Bool = false,
+-         beforeRead: (@Sendable () async -> Void)? = nil) {
++         beforeRead: (@Sendable () async -> Void)? = nil,
++         diagnostics: OriginalPlaybackDiagnostics? = nil) {
+         self.access = access
+         self.observesDecodedFrames = observesDecodedFrames
+         self.beforeRead = beforeRead
++        self.diagnostics = diagnostics ?? OriginalPlaybackDiagnostics.forCurrentProcess()
+     }
+ 
+     func open(_ original: OriginalContent, operation: MediaOperationID,
+@@ -50,6 +54,8 @@
+ 
+     private func start(_ value: Session) async -> BackendOutcome<OriginalPlaybackProgress> {
+         session = value
++        diagnostics?.beginSession()
++        record(.start, value)
+         usedSessions.insert(value.id)
+         phase = .preparing; issue = nil; elapsedSeconds = 0; audioTrackCount = 0; decodedFrameCount = 0
+         maximumReadLength = 0; deliveredBytes = 0; lastRelease = .notExecuted
+@@ -59,6 +65,7 @@
+             let error = await setup.value
+             guard session === value, !value.stopping else { return .notExecuted }
+             if let error {
++                record(.prepareFailed, value)
+                 issue = "原本を再生できません。媒体と保存記録を確認してください。"
+                 await stop(value, finalPhase: .failed)
+                 return value.acquireUnknown ? .unknown : .failed(error)
+@@ -82,6 +89,8 @@
+ 
+     private func prepare(_ value: Session) async -> BackendFailure? {
+         if value.source == nil {
++            record(.acquireBegin, value)
++            defer { record(.acquireEnd, value) }
+             switch await access.acquirePlayback(value.original, operation: value.operation,
+                                                 leaseID: .init(rawValue: UUID().uuidString)) {
+             case .succeeded(let source): value.source = source
+@@ -91,28 +100,33 @@
+             }
+         }
+         guard let source = value.source, !value.stopping, !Task.isCancelled else { return .inaccessible }
++        record(.attachBegin, value)
+         switch await access.attachReader(source.lease, id: .init(rawValue: UUID().uuidString)) {
+         case .succeeded(let attachment): value.attachment = attachment
+         default: return .inaccessible
+         }
++        record(.attachEnd, value)
+         guard let attachment = value.attachment, !value.stopping, !Task.isCancelled else { return .inaccessible }
+         guard let url = URL(string: "fr-original://local/\(UUID().uuidString).mov") else { return .inaccessible }
+         let access = self.access, beforeRead = self.beforeRead
+-        let loader = OriginalResourceLoader(resourceURL: url, byteCount: source.lease.original.content.byteCount) { offset, count in
++        let loader = OriginalResourceLoader(resourceURL: url, byteCount: source.lease.original.content.byteCount,
++                                            diagnostics: diagnostics) { offset, count in
+             await beforeRead?()
+             return try await access.readBytes(attachment, offset: offset, maximumLength: count)
+         }
+         let asset = AVURLAsset(url: url, options: [
+             AVURLAssetReferenceRestrictionsKey: AVAssetReferenceRestrictions.forbidAll.rawValue])
+         value.loader = loader; value.asset = asset
++        record(.loaderReady, value)
+         asset.resourceLoader.setDelegate(loader, queue: .main)
+         let item = AVPlayerItem(asset: asset)
+         value.item = item
+         value.jumpObserver = NotificationCenter.default.addObserver(forName: AVPlayerItem.timeJumpedNotification,
+-            object: item, queue: .main) { [weak value] _ in
++            object: item, queue: .main) { [weak value, weak self] _ in
+                 // The SDK delivers this observer on the main queue. A seek/jump
+                 // invalidates the consecutive observations used as progress evidence.
+                 MainActor.assumeIsolated {
++                    if let value { self?.record(.jumped, value) }
+                     value?.previousPosition = nil
+                     value?.previousWasPlaying = false
+                 }
+@@ -126,22 +140,41 @@
+         player.automaticallyWaitsToMinimizeStalling = false
+         value.player = player
+         self.player = player
++        record(.playerPublished, value)
+         do {
++            record(.audioLoadBegin, value)
+             let audio = try await asset.loadTracks(withMediaType: .audio)
++            record(.audioLoadEnd, value)
+             guard !value.stopping, !Task.isCancelled else { return .inaccessible }
+             audioTrackCount = audio.count
+             player.play()
++            record(.playCalled, value)
+             return nil
+-        } catch { return .inaccessible }
++        } catch {
++            record(.prepareFailed, value, error: error)
++            return .inaccessible
++        }
+     }
+ 
+     private func observe(_ value: Session, startupDeadline: ContinuousClock.Instant) async {
+         guard let source = value.source else { return }
++        let beforeAwait = ProcessInfo.processInfo.systemUptime
++        let interval = value.previousMonitorUptime.map { (beforeAwait - $0) * 1000 }
++        value.previousMonitorUptime = beforeAwait
++        let observesAwait = diagnostics != nil && beforeAwait - value.lastMonitorDiagnostic >= 0.25
++        if observesAwait { record(.monitorAwaitBegin, value, monitorIntervalMS: interval) }
+         let stopRequested = await access.isReaderStopRequested(source.lease)
++        let afterAwait = ProcessInfo.processInfo.systemUptime
++        let awaitMS = (afterAwait - beforeAwait) * 1000
++        if diagnostics != nil, observesAwait || awaitMS >= 100 {
++            record(.monitor, value, monitorIntervalMS: interval, awaitMS: awaitMS)
++            value.lastMonitorDiagnostic = afterAwait
++        }
+         guard session === value, !value.stopping else { return }
+-        if stopRequested { await stop(value, finalPhase: .stopped); return }
++        if stopRequested { record(.readerStopObserved, value); await stop(value, finalPhase: .stopped); return }
+         guard let player = value.player, let item = value.item else { return }
+         if item.status == .failed {
++            record(.itemFailed, value)
+             issue = "原本の再生に失敗しました。原本の状態を確認してください。"
+             await stop(value, finalPhase: .failed); return
+         }
+@@ -167,8 +200,10 @@
+         }
+         let duration = item.duration.seconds
+         if duration.isFinite, duration > 0, seconds >= duration {
++            record(.durationEnded, value)
+             await stop(value, finalPhase: .ended)
+         } else if value.started != nil, ContinuousClock.now >= startupDeadline {
++            record(.startupTimeout, value)
+             issue = "再生の進行を確認できませんでした。原本の状態を確認してから再試行してください。"
+             await stop(value, finalPhase: .failed)
+         }
+@@ -182,6 +217,7 @@
+     private func stop(_ value: Session, finalPhase: OriginalPlayerPhase) async {
+         if let task = value.teardown { await task.value; return }
+         guard session === value else { return }
++        record(.stopBegin, value)
+         value.stopping = true
+         phase = .stopping
+         closeSDK(value)
+@@ -193,6 +229,7 @@
+             closeSDK(value)
+             if let source = value.source { await access.requestReaderStop(source.lease) }
+             await value.loader?.drain()
++            record(.loaderDrained, value)
+             maximumReadLength = value.loader?.maximumReadLength ?? 0
+             deliveredBytes = value.loader?.deliveredBytes ?? 0
+             if let attachment = value.attachment {
+@@ -207,6 +244,7 @@
+             } else if value.acquireUnknown {
+                 finishUncertain(value); return
+             }
++            record(.releaseSucceeded, value)
+             value.started?.resume(returning: finalPhase == .failed ? .failed(.inaccessible) : .notExecuted)
+             value.started = nil
+             value.item = nil; value.asset = nil; value.loader = nil; value.player = nil
+@@ -217,6 +255,7 @@
+     }
+ 
+     private func closeSDK(_ value: Session) {
++        record(.beforeSDKClose, value)
+         value.loader?.closeAdmission()
+         value.player?.pause()
+         value.player?.cancelPendingPrerolls()
+@@ -228,13 +267,44 @@
+             value.jumpObserver = nil
+         }
+         player = nil
++        record(.afterSDKClose, value)
+     }
+ 
+     private func finishUncertain(_ value: Session) {
++        record(.releaseUncertain, value)
+         phase = .releaseNeedsReconciliation
+         issue = "原本の読み取り終了を照合できません。再生を停止し、管理記録を保持しています。"
+         value.started?.resume(returning: .unknown)
+         value.started = nil
++    }
++
++    /// Presentation events use the same observer and monotonic clock as SDK/loader events.
++    func recordPresentation(_ kind: OriginalPlaybackDiagnosticEvent.Kind) {
++        record(kind, session)
++    }
++
++    private func record(_ kind: OriginalPlaybackDiagnosticEvent.Kind, _ value: Session?,
++                        monitorIntervalMS: Double? = nil, awaitMS: Double? = nil, error: (any Error)? = nil) {
++        guard let diagnostics else { return }
++        let sdk: OriginalPlaybackSDKDiagnostic?
++        if let player = value?.player {
++            let waiting: String
++            switch player.reasonForWaitingToPlay {
++            case .some(.toMinimizeStalls): waiting = "minimizeStalls"
++            case .some(.evaluatingBufferingRate): waiting = "bufferingRate"
++            case .some(.noItemToPlay): waiting = "noItem"
++            case .none: waiting = "none"
++            default: waiting = "other"
++            }
++            let item = value?.item
++            let seconds = player.currentTime().seconds
++            sdk = .init(rate: player.rate, timeControl: player.timeControlStatus.rawValue,
++                waiting: waiting, currentItemPresent: player.currentItem != nil, itemStatus: item?.status.rawValue,
++                currentSeconds: seconds.isFinite ? seconds : nil,
++                itemError: item?.error.map(OriginalPlaybackNumericError.init))
++        } else { sdk = nil }
++        diagnostics.record(kind, sdk: sdk, loader: value?.loader?.diagnosticSnapshot,
++                           monitorIntervalMS: monitorIntervalMS, awaitMS: awaitMS, error: error)
+     }
+ 
+     @MainActor private final class Session {
+@@ -249,6 +319,8 @@
+         var player: AVPlayer?
+         var videoOutput: AVPlayerItemVideoOutput?
+         var jumpObserver: NSObjectProtocol?
++        var previousMonitorUptime: Double?
++        var lastMonitorDiagnostic: Double = 0
+         var previousPosition: Double?
+         var previousWasPlaying = false
+         var hasAdvanced = false
+@@ -263,3 +335,174 @@
+         }
+     }
+ }
++
++/// Anonymous, bounded technical observation. No media identity, URL, path,
++/// credential, NSError text/userInfo, or independent persistent log is retained.
++nonisolated struct OriginalPlaybackDiagnosticEvent: Codable, Sendable {
++    enum Kind: String, Codable, Sendable {
++        case modelOpen, modelStartTask, modelStop, modelClose
++        case viewAppeared, viewDisappeared, videoViewAppeared, videoViewDisappeared
++        case start, acquireBegin, acquireEnd, attachBegin, attachEnd, loaderReady
++        case playerPublished, audioLoadBegin, audioLoadEnd, playCalled, prepareFailed
++        case monitorAwaitBegin, monitor, jumped, readerStopObserved, itemFailed, startupTimeout, durationEnded
++        case stopBegin, beforeSDKClose, afterSDKClose, loaderDrained, releaseSucceeded, releaseUncertain
++        case loaderRequest, loaderRejected, loaderReadBegin, loaderReadEnd, loaderReadFailed
++        case loaderCancelled, loaderFinished, loaderTaskEnded, loaderClosed
++    }
++    let sequence: Int
++    let uptime: Double
++    let session: Int
++    let kind: Kind
++    let sdk: OriginalPlaybackSDKDiagnostic?
++    let loader: OriginalLoaderDiagnostic?
++    let monitorIntervalMS: Double?
++    let awaitMS: Double?
++    let error: OriginalPlaybackNumericError?
++}
++
++nonisolated struct OriginalPlaybackNumericError: Codable, Sendable {
++    let domain: String
++    let code: Int
++    init(_ error: any Error) {
++        let value = error as NSError
++        switch value.domain {
++        case AVFoundationErrorDomain: domain = "avfoundation"
++        case NSOSStatusErrorDomain: domain = "osstatus"
++        case NSURLErrorDomain: domain = "url"
++        case NSCocoaErrorDomain: domain = "cocoa"
++        default: domain = "other"
++        }
++        code = value.code
++    }
++}
++
++nonisolated struct OriginalPlaybackSDKDiagnostic: Codable, Sendable {
++    let rate: Float
++    let timeControl: Int
++    let waiting: String
++    let currentItemPresent: Bool
++    let itemStatus: Int?
++    let currentSeconds: Double?
++    let itemError: OriginalPlaybackNumericError?
++}
++
++nonisolated struct OriginalPlaybackTerminalDiagnostic: Codable, Sendable {
++    let kind: OriginalPlaybackDiagnosticEvent.Kind
++    let uptime: Double
++    let session: Int
++    let beforeSDKClose: OriginalPlaybackSDKDiagnostic?
++    let finalSDK: OriginalPlaybackSDKDiagnostic?
++    let loader: OriginalLoaderDiagnostic?
++    let totalEvents: Int
++    let droppedEvents: Int
++    let suppressedLogEvents: Int
++}
++
++nonisolated struct OriginalPlaybackDiagnosticReport: Codable, Sendable {
++    let capacity: Int
++    let totalEvents: Int
++    let droppedEvents: Int
++    let emittedLogEvents: Int
++    let suppressedLogEvents: Int
++    let terminal: OriginalPlaybackTerminalDiagnostic?
++    let events: [OriginalPlaybackDiagnosticEvent]
++}
++
++@MainActor final class OriginalPlaybackDiagnostics {
++    static let capacity = 512
++    private static let logger = Logger(subsystem: "jp.oyabu.FrameRelay.playback", category: "original-diagnostics")
++    private let run = UUID().uuidString.lowercased()
++    private(set) var events: [OriginalPlaybackDiagnosticEvent] = []
++    private(set) var droppedEvents = 0
++    private(set) var session = 0
++    private var sequence = 0
++    private var emitted = 0
++    private var emittedByCategory: [LogCategory: Int] = [:]
++    private var suppressedLogEvents = 0
++    private var beforeSDKClose: OriginalPlaybackSDKDiagnostic?
++    private(set) var terminal: OriginalPlaybackTerminalDiagnostic?
++    private let encoder = JSONEncoder()
++
++    static func forCurrentProcess() -> OriginalPlaybackDiagnostics? {
++        #if DEBUG && targetEnvironment(simulator)
++        guard ProcessInfo.processInfo.environment["FR_ORIGINAL_PLAYBACK_DIAGNOSTICS"] == "1" else { return nil }
++        return OriginalPlaybackDiagnostics()
++        #else
++        return nil
++        #endif
++    }
++
++    var report: OriginalPlaybackDiagnosticReport {
++        .init(capacity: Self.capacity, totalEvents: sequence, droppedEvents: droppedEvents,
++              emittedLogEvents: emitted, suppressedLogEvents: suppressedLogEvents,
++              terminal: terminal, events: events)
++    }
++
++    func beginSession() {
++        session += 1
++        beforeSDKClose = nil
++        terminal = nil
++    }
++
++    func record(_ kind: OriginalPlaybackDiagnosticEvent.Kind, sdk: OriginalPlaybackSDKDiagnostic? = nil,
++                loader: OriginalLoaderDiagnostic? = nil, monitorIntervalMS: Double? = nil,
++                awaitMS: Double? = nil, error: (any Error)? = nil) {
++        sequence += 1
++        let event = OriginalPlaybackDiagnosticEvent(sequence: sequence, uptime: ProcessInfo.processInfo.systemUptime,
++            session: session, kind: kind, sdk: sdk, loader: loader,
++            monitorIntervalMS: monitorIntervalMS, awaitMS: awaitMS, error: error.map(OriginalPlaybackNumericError.init))
++        // Preserve the first setup observations and the latest terminal observations.
++        if events.count == Self.capacity { events.remove(at: 128); droppedEvents += 1 }
++        events.append(event)
++        if kind == .beforeSDKClose, beforeSDKClose == nil || sdk?.currentItemPresent == true {
++            beforeSDKClose = sdk
++        }
++        if kind == .releaseSucceeded || kind == .releaseUncertain {
++            // One compact terminal summary retains the immediate pre-close SDK
++            // state even after high-frequency loader samples are dropped.
++            let summary = OriginalPlaybackTerminalDiagnostic(kind: kind, uptime: event.uptime, session: session,
++                beforeSDKClose: beforeSDKClose, finalSDK: sdk, loader: loader,
++                totalEvents: sequence, droppedEvents: droppedEvents, suppressedLogEvents: suppressedLogEvents)
++            terminal = summary
++            guard canEmit(.terminal), let data = try? encoder.encode(summary),
++                  let line = String(data: data, encoding: .utf8) else { suppressedLogEvents += 1; return }
++            didEmit(.terminal)
++            Self.logger.notice("run=\(self.run, privacy: .public) terminal=\(line, privacy: .public)")
++            return
++        }
++        // Loader activity during audio-track loading must not consume the
++        // later monitor observations or presentation/terminal event budgets.
++        let category: LogCategory
++        switch kind {
++        case .monitorAwaitBegin, .monitor: category = .monitor
++        case .jumped, .loaderRequest, .loaderRejected,
++             .loaderReadBegin, .loaderReadEnd, .loaderReadFailed, .loaderCancelled,
++             .loaderFinished, .loaderTaskEnded, .loaderClosed: category = .loader
++        default: category = .lifecycle
++        }
++        guard canEmit(category), let data = try? encoder.encode(event),
++              let line = String(data: data, encoding: .utf8) else { suppressedLogEvents += 1; return }
++        didEmit(category)
++        Self.logger.notice("run=\(self.run, privacy: .public) event=\(line, privacy: .public)")
++    }
++
++    private enum LogCategory: Hashable {
++        case loader, monitor, lifecycle, terminal
++        var limit: Int {
++            switch self {
++            case .loader, .monitor: 192
++            case .lifecycle: 96
++            case .terminal: 32
++            }
++        }
++    }
++
++    private func canEmit(_ category: LogCategory) -> Bool {
++        emitted < Self.capacity && emittedByCategory[category, default: 0] < category.limit
++    }
++
++    private func didEmit(_ category: LogCategory) {
++        emittedByCategory[category, default: 0] += 1
++        emitted += 1
++    }
++}
+--- S16-resume-start/FrameRelay/Platform/Playback/OriginalResourceLoader.swift
++++ FrameRelay/Platform/Playback/OriginalResourceLoader.swift
+@@ -9,28 +9,51 @@
+     private let resourceURL: URL
+     private let byteCount: UInt64
+     private let read: Read
++    private let diagnostics: OriginalPlaybackDiagnostics?
++    private var observed = OriginalLoaderDiagnostic()
+     private var tasks: [ObjectIdentifier: Task<Void, Never>] = [:]
+     private var requests: [ObjectIdentifier: AVAssetResourceLoadingRequest] = [:]
+     private(set) var isClosed = false
+     private(set) var deliveredBytes: UInt64 = 0
+     private(set) var maximumReadLength = 0
+     var pendingCount: Int { tasks.count }
++    var diagnosticSnapshot: OriginalLoaderDiagnostic {
++        var value = observed
++        value.pending = tasks.count
++        value.bytes = deliveredBytes
++        value.maximumRead = maximumReadLength
++        return value
++    }
+ 
+-    init(resourceURL: URL, byteCount: UInt64, read: @escaping Read) {
++    init(resourceURL: URL, byteCount: UInt64, diagnostics: OriginalPlaybackDiagnostics? = nil,
++         read: @escaping Read) {
+         self.resourceURL = resourceURL; self.byteCount = byteCount; self.read = read
++        self.diagnostics = diagnostics
+     }
+ 
+     func resourceLoader(_ resourceLoader: AVAssetResourceLoader,
+                         shouldWaitForLoadingOfRequestedResource request: AVAssetResourceLoadingRequest) -> Bool {
+-        guard request.request.url == resourceURL else { return false }
++        observed.requests += 1
++        diagnostics?.record(.loaderRequest, loader: diagnosticSnapshot)
++        guard request.request.url == resourceURL else {
++            observed.rejected += 1
++            diagnostics?.record(.loaderRejected, loader: diagnosticSnapshot)
++            return false
++        }
+         guard !isClosed, byteCount <= UInt64(Int64.max) else {
++            observed.rejected += 1
+             request.finishLoading(with: CancellationError())
++            observed.finishes += 1; observed.errorFinishes += 1
++            diagnostics?.record(.loaderRejected, loader: diagnosticSnapshot)
+             return true
+         }
+         let id = ObjectIdentifier(request)
+         requests[id] = request
+         tasks[id] = Task { @MainActor in
+-            defer { tasks.removeValue(forKey: id); requests.removeValue(forKey: id) }
++            defer {
++                tasks.removeValue(forKey: id); requests.removeValue(forKey: id)
++                diagnostics?.record(.loaderTaskEnded, loader: diagnosticSnapshot)
++            }
+             do {
+                 guard !isClosed, !request.isCancelled else { throw CancellationError() }
+                 if let information = request.contentInformationRequest {
+@@ -62,7 +85,18 @@
+                         guard !isClosed, !request.isCancelled else { throw CancellationError() }
+                         let length = Int(min(65_536, end - offset))
+                         maximumReadLength = max(maximumReadLength, length)
+-                        let bytes = try await read(offset, length)
++                        observed.reads += 1
++                        diagnostics?.record(.loaderReadBegin, loader: diagnosticSnapshot)
++                        let bytes: Data
++                        do {
++                            bytes = try await read(offset, length)
++                            observed.readReturns += 1
++                            diagnostics?.record(.loaderReadEnd, loader: diagnosticSnapshot)
++                        } catch {
++                            observed.readFailures += 1
++                            diagnostics?.record(.loaderReadFailed, loader: diagnosticSnapshot, error: error)
++                            throw error
++                        }
+                         // Cancellation can happen during an actual read that ignores Task cancellation.
+                         try Task.checkCancellation()
+                         guard !isClosed, !request.isCancelled else { throw CancellationError() }
+@@ -72,25 +106,38 @@
+                         deliveredBytes += UInt64(bytes.count)
+                     }
+                 }
+-                if !request.isCancelled, !request.isFinished { request.finishLoading() }
++                if !request.isCancelled, !request.isFinished {
++                    request.finishLoading()
++                    observed.finishes += 1
++                    diagnostics?.record(.loaderFinished, loader: diagnosticSnapshot)
++                }
+             } catch {
+-                if !request.isCancelled, !request.isFinished { request.finishLoading(with: error) }
++                if !request.isCancelled, !request.isFinished {
++                    request.finishLoading(with: error)
++                    observed.finishes += 1; observed.errorFinishes += 1
++                    diagnostics?.record(.loaderFinished, loader: diagnosticSnapshot, error: error)
++                }
+             }
+         }
+         return true
+     }
+ 
+     func resourceLoader(_ resourceLoader: AVAssetResourceLoader, didCancel request: AVAssetResourceLoadingRequest) {
++        observed.cancellations += 1
++        diagnostics?.record(.loaderCancelled, loader: diagnosticSnapshot)
+         // Keep the task tracked until its underlying await actually returns.
+         tasks[ObjectIdentifier(request)]?.cancel()
+     }
+ 
+     func closeAdmission() {
+         isClosed = true
++        observed.closeCalls += 1
+         for task in tasks.values { task.cancel() }
+         for request in requests.values where !request.isCancelled && !request.isFinished {
+             request.finishLoading(with: CancellationError())
++            observed.finishes += 1; observed.errorFinishes += 1
+         }
++        diagnostics?.record(.loaderClosed, loader: diagnosticSnapshot)
+     }
+ 
+     func drain() async {
+@@ -101,3 +148,18 @@
+         // SDK callback is rejected above and cannot acquire another original read.
+     }
+ }
++
++nonisolated struct OriginalLoaderDiagnostic: Codable, Sendable {
++    var requests = 0
++    var rejected = 0
++    var reads = 0
++    var readReturns = 0
++    var readFailures = 0
++    var cancellations = 0
++    var finishes = 0
++    var errorFinishes = 0
++    var closeCalls = 0
++    var pending = 0
++    var bytes: UInt64 = 0
++    var maximumRead = 0
++}
+--- S16-resume-start/FrameRelayTests/Integration/Playback/OriginalPlaybackTests.swift
++++ FrameRelayTests/Integration/Playback/OriginalPlaybackTests.swift
+@@ -47,6 +47,61 @@
+         }
+     }
+ 
++    @Test func thirtySecondProductConfigurationAdvancesWithoutVideoOutputAndReleases() async throws {
++        try await withStorageRun { run in
++            let binding = try await makePlaybackFixtureBinding(run, durationSeconds: 30)
++            let store = try SQLiteRecordingStore(run: run, mode: .openExisting)
++            let files = ManagedOriginalStore(run: run)
++            let access = ManagedOriginalAccess(store: store, originals: files)
++            try #require(await access.bind(binding.reference, operation: .init(rawValue: "bind-30-seconds")) == .succeeded(binding))
++            let before = await store.loadRecordings()
++            let digestBefore = try await files.digest(for: binding.reference)
++            let diagnostics = OriginalPlaybackDiagnostics()
++            let player = AVOriginalPlayback(access: access, observesDecodedFrames: false, diagnostics: diagnostics)
++            defer {
++                if let data = try? JSONEncoder().encode(diagnostics.report) {
++                    Attachment.record(String(decoding: data, as: UTF8.self), named: "original-playback-30-seconds-diagnostics.json")
++                } else { Issue.record("Could not encode anonymous playback observations") }
++            }
++            let id = PlaybackSessionID(rawValue: "play-30-seconds-no-video-output")
++            let result = await player.open(binding.original, operation: .init(rawValue: "play-30-seconds"), session: id)
++            guard case .succeeded(let progress) = result else {
++                await player.stopOriginal(id)
++                try await assertPlaybackReleased(access, store: store, original: binding.original)
++                Issue.record("Thirty-second product configuration did not advance; inspect anonymous diagnostics")
++                return
++            }
++            #expect(progress.source.lease.original == binding.original)
++            #expect(progress.elapsedSeconds > 0)
++            #expect(player.audioTrackCount == 1)
++            #expect(player.decodedFrameCount == 0)
++            let sdk = try #require(player.player)
++            let duration = try #require(sdk.currentItem).duration.seconds
++            #expect(duration.isFinite && abs(duration - 30) < 0.1)
++            await player.stopOriginal(id)
++            #expect(player.phase == .stopped)
++            #expect(sdk.currentItem == nil && sdk.rate == 0)
++            #expect(player.lastRelease == .succeeded(.init(lease: progress.source.lease)))
++            try await assertPlaybackReleased(access, store: store, original: binding.original)
++            #expect(try await files.digest(for: binding.reference) == digestBefore)
++            guard case .loaded(let initial) = before, case .loaded(let final) = await store.loadRecordings() else {
++                Issue.record("Recording facts unavailable"); return
++            }
++            #expect(final.recordings == initial.recordings)
++            #expect(diagnostics.events.contains { $0.kind == .playCalled })
++            #expect(diagnostics.events.contains { $0.kind == .beforeSDKClose && $0.sdk?.itemStatus != nil })
++            #expect(diagnostics.events.contains { $0.kind == .loaderDrained && $0.loader?.pending == 0 })
++            #expect(diagnostics.events.contains { $0.kind == .releaseSucceeded })
++            #expect(diagnostics.events.count <= OriginalPlaybackDiagnostics.capacity)
++            #expect(diagnostics.report.totalEvents == diagnostics.events.count + diagnostics.droppedEvents)
++            #expect(diagnostics.report.emittedLogEvents <= OriginalPlaybackDiagnostics.capacity)
++            #expect(diagnostics.terminal?.kind == .releaseSucceeded)
++            #expect(diagnostics.terminal?.beforeSDKClose?.currentItemPresent == true)
++            #expect(diagnostics.terminal?.finalSDK?.currentItemPresent == false)
++            #expect(diagnostics.terminal?.loader?.pending == 0)
++        }
++    }
++
+     @Test func stopRequestStopsBufferedPlayerAndAnOldSessionCannotStopTheNextOne() async throws {
+         try await withStorageRun { run in
+             let binding = try await makeBindingMovie(run: run)
+@@ -80,7 +135,7 @@
+ 
+     @Test func invalidMovieFailsWithoutSavingOrConfirmingAndClosesReader() async throws {
+         try await withStorageRun { run in
+-            let binding = try await makeUnplayableBinding(run)
++            let binding = try await makePlaybackFixtureBinding(run)
+             let store = try SQLiteRecordingStore(run: run, mode: .openExisting)
+             let files = ManagedOriginalStore(run: run)
+             let access = ManagedOriginalAccess(store: store, originals: files)
+@@ -279,14 +334,18 @@
+     }
+ }
+ 
+-nonisolated private func makeUnplayableBinding(_ run: ExplorationRunDirectory) async throws -> OriginalBinding {
++nonisolated private func makePlaybackFixtureBinding(_ run: ExplorationRunDirectory, durationSeconds: Double? = nil) async throws -> OriginalBinding {
+     let fixture = try CaptureFixture()
+     let store = try SQLiteRecordingStore(run: run, mode: .createNew)
+     let files = ManagedOriginalStore(run: run)
+     let coordinator = OriginalSaveCoordinator(store: store, originals: files, inspection: AVOriginalInspectionAdapter(originals: files))
+     _ = await coordinator.begin(fixture.intent, token: fixture.token(1))
+     let url = try await files.reservedURL(for: fixture.intent.original)
+-    try Data(repeating: 0x37, count: 4096).write(to: url, options: .withoutOverwriting)
++    if let durationSeconds {
++        try await SyntheticMovieFixture.write(to: url, withAudio: true, durationSeconds: durationSeconds)
++    } else {
++        try Data(repeating: 0x37, count: 4096).write(to: url, options: .withoutOverwriting)
++    }
+     _ = await coordinator.recordingEnded(context: fixture.context, evidence: fixture.end)
+     let digest = try await files.digest(for: fixture.intent.original)
+     let file = CaptureFileEvidence(context: fixture.context, original: fixture.intent.original,
+--- S16-resume-start/FrameRelayUITests/Flows/LibraryFlowTests.swift
++++ FrameRelayUITests/Flows/LibraryFlowTests.swift
+@@ -64,6 +64,23 @@
+         attach(app, "library-relaunch-retained-seed")
+     }
+ 
++    /// Narrow comparison with the same pre-existing 30-second product original.
++    /// Seed/repair and accessibility-audit changes are deliberately separate runs.
++    @MainActor func testOriginalPlaybackDiagnosticStartStop() throws {
++        let app = XCUIApplication()
++        registerPlaybackCleanup(for: app, diagnostics: true)
++        app.launch(); try waitForLibrary(app)
++        openOriginal(app)
++        waitForProgress(app)
++        attach(app, "diagnostic-original-progress")
++        reveal(app.buttons["originalPlayback.stop"], app)
++        app.buttons["originalPlayback.stop"].tap()
++        waitForText(element("originalPlayback.status", app), "再生を停止しました")
++        attach(app, "diagnostic-original-stopped")
++        app.buttons["originalPlayback.close"].tap()
++        XCTAssertFalse(element("originalPlayback.status", app).exists)
++    }
++
+     @MainActor func testOriginalPlaybackProgressStopBackgroundAndRestart() throws {
+         let app = XCUIApplication()
+         registerPlaybackCleanup(for: app)
+@@ -80,7 +97,7 @@
+         reveal(replay, app)
+         XCTAssertTrue(replay.waitForExistence(timeout: 5))
+         XCTAssertTrue(replay.isEnabled)
+-        replay.tap()
++        tapOriginalPlay(replay)
+         waitForProgress(app)
+         XCUIDevice.shared.press(.home)
+         XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
+@@ -102,26 +119,89 @@
+         XCTAssertFalse(element("originalPlayback.status", app).exists)
+     }
+ 
+-    @MainActor func testAccessibilityAcrossLibraryDetailHistoryAndPlayer() throws {
++    @MainActor func testAccessibilityLibraryAndDetail() throws {
+         let app = XCUIApplication()
+         registerPlaybackCleanup(for: app)
+         app.launch(); try waitForLibrary(app)
+         try audit(app, "library")
+-        let original = element("library.item.s16v2-original", app)
+-        reveal(original, app); original.tap()
++        openOriginalDetail(app)
+         try audit(app, "detail-top")
+-        let play = app.buttons["library.action.playOriginal"]
+-        reveal(play, app)
++        reveal(app.buttons["library.action.playOriginal"], app)
+         try audit(app, "detail-actions")
+-        play.tap(); waitForProgress(app)
+-        reveal(app.buttons["originalPlayback.stop"], app)
+-        app.buttons["originalPlayback.stop"].tap()
+-        waitForText(element("originalPlayback.status", app), "再生を停止しました")
+-        try audit(app, "player-stopped")
+-        app.buttons["originalPlayback.close"].tap()
++    }
++
++    @MainActor func testAccessibilityFreshHistory() throws {
++        let app = XCUIApplication()
++        registerPlaybackCleanup(for: app)
++        app.launch(); try waitForLibrary(app)
++        showHistory(app)
++        reveal(element("library.historyExplanation", app), app)
++        XCTAssertFalse(elementWithPrefix("library.submission.header.", app).exists)
++        try audit(app, "history-fresh-explanation")
++        reveal(element("library.item.s16v2-discard", app), app)
++        try audit(app, "history-fresh-record")
++    }
++
++    @MainActor func testAccessibilityHistoryAfterPlaybackHandoff() throws {
++        let app = XCUIApplication()
++        registerPlaybackCleanup(for: app)
++        app.launch(); try waitForLibrary(app)
++        openOriginal(app)
++        let status = element("originalPlayback.status", app)
++        XCTAssertTrue(status.waitForExistence(timeout: 10))
++        let close = app.buttons["originalPlayback.close"]
++        XCTAssertTrue(close.waitForExistence(timeout: 5))
++        close.tap()
++        let closed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
++            !close.exists && !status.exists
++        }, object: nil)
++        XCTAssertEqual(XCTWaiter.wait(for: [closed], timeout: 15), .completed)
+         app.navigationBars.buttons.element(boundBy: 0).tap()
+         top(app); showHistory(app)
+-        try audit(app, "history")
++        reveal(element("library.historyExplanation", app), app)
++        try audit(app, "history-after-handoff-explanation")
++        reveal(element("library.item.s16v2-discard", app), app)
++        try audit(app, "history-after-handoff-record")
++        revealPlaybackSubmission(app)
++        try audit(app, "history-after-handoff-submission")
++    }
++
++    @MainActor func testAccessibilityStoppedPlayer() throws {
++        let app = XCUIApplication()
++        registerPlaybackCleanup(for: app)
++        app.launch(); try waitForLibrary(app)
++        openOriginal(app)
++        let status = element("originalPlayback.status", app)
++        XCTAssertTrue(status.waitForExistence(timeout: 10))
++        let stop = app.buttons["originalPlayback.stop"]
++        reveal(stop, app)
++        XCTAssertTrue(stop.isEnabled)
++        stop.tap()
++        waitForText(status, "再生を停止しました")
++        try audit(app, "player-stopped")
++    }
++
++    @MainActor func testAccessibilityDetailActionsContrastOnly() throws {
++        let app = XCUIApplication()
++        registerPlaybackCleanup(for: app)
++        app.launch(); try waitForLibrary(app)
++        openOriginalDetail(app)
++        reveal(app.buttons["library.action.playOriginal"], app)
++        try audit(app, "detail-actions-contrast-only", types: [.contrast])
++        reveal(element("library.reason.discard", app), app)
++        try audit(app, "detail-actions-bottom-contrast-only", types: [.contrast])
++    }
++
++    @MainActor func testAccessibilityReconciliationDescriptionDynamicTypeOnly() throws {
++        let app = XCUIApplication()
++        registerPlaybackCleanup(for: app)
++        app.launch(); try waitForLibrary(app)
++        openOriginalDetail(app)
++        let explanation = element("library.detailReconciliationExplanation", app)
++        reveal(explanation, app)
++        XCTAssertTrue(explanation.exists)
++        // The SDK audits the visible screen; neighboring elements remain unfiltered.
++        try audit(app, "detail-reconciliation-dynamic-type-only", types: [.dynamicType])
+     }
+ 
+     @MainActor func testVoiceOverReadsLibraryStateAndActions() throws {
+@@ -169,11 +249,16 @@
+         top(app)
+     }
+ 
+-    @MainActor private func openOriginal(_ app: XCUIApplication) {
++    @MainActor private func openOriginalDetail(_ app: XCUIApplication) {
+         let original = element("library.item.s16v2-original", app)
+         reveal(original, app); original.tap()
++        XCTAssertTrue(element("library.detailIdentity", app).waitForExistence(timeout: 5))
++    }
++
++    @MainActor private func openOriginal(_ app: XCUIApplication) {
++        openOriginalDetail(app)
+         let play = app.buttons["library.action.playOriginal"]
+-        reveal(play, app); XCTAssertTrue(play.isEnabled); play.tap()
++        reveal(play, app); XCTAssertTrue(play.isEnabled); tapOriginalPlay(play)
+     }
+ 
+     @MainActor private func selectVideo(_ capture: String, _ app: XCUIApplication) {
+@@ -195,16 +280,75 @@
+         app.buttons["破棄の履歴"].tap()
+     }
+ 
++    @MainActor private func revealPlaybackSubmission(_ app: XCUIApplication) {
++        let header = elementWithPrefix("library.submission.header.", app)
++        reveal(header, app)
++        XCTAssertEqual(header.label, "開始した操作の照合")
++        let group = elementWithPrefix("library.submission.target.s16v2-original.", app)
++        reveal(group, app)
++        let parts = [
++            ("title", "動画 s16v2-original"),
++            ("action", "iPhone原本を再生"),
++            ("phase", "再生機能に引き渡しました。再生状態はプレーヤーで確認してください。")
++        ]
++        for (part, expected) in parts {
++            let child = elementWithPrefix("library.submission." + part + ".s16v2-original.", app)
++            if child.exists {
++                reveal(child, app)
++                XCTAssertTrue(child.label.contains(expected))
++            } else {
++                // Preserve the existing SwiftUI combine semantics: the three
++                // texts may be exposed through their aggregate AX element.
++                reveal(group, app)
++                XCTAssertTrue(group.label.contains(expected), "Combined submission must expose " + part)
++            }
++        }
++        attach(app, "history-after-handoff-four-submission-texts")
++    }
++
+     @MainActor private func waitForProgress(_ app: XCUIApplication) {
+         let elapsed = element("originalPlayback.elapsed", app)
+-        XCTAssertTrue(elapsed.waitForExistence(timeout: 10))
++        attachPlaybackTime("progress-wait-begin")
++        let exists = elapsed.waitForExistence(timeout: 10)
++        if !exists { attachPlaybackFailure(app, stage: "elapsed-missing") }
++        XCTAssertTrue(exists)
++        guard exists else { return }
+         let progress = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+             let value = elapsed.value as? String ?? ""
+             let numbers = value.components(separatedBy: CharacterSet(charactersIn: "0123456789.").inverted).filter { !$0.isEmpty }
+             return numbers.contains { (Double($0) ?? 0) > 0.2 }
+         }, object: nil)
+-        XCTAssertEqual(XCTWaiter.wait(for: [progress], timeout: 15), .completed)
+-        XCTAssertTrue(element("originalPlayback.player", app).exists)
++        let result = XCTWaiter.wait(for: [progress], timeout: 15)
++        attachPlaybackTime("progress-wait-ended-\(result.rawValue)")
++        if result != .completed { attachPlaybackFailure(app, stage: "progress-timeout") }
++        XCTAssertEqual(result, .completed)
++        let playerExists = element("originalPlayback.player", app).exists
++        if !playerExists { attachPlaybackFailure(app, stage: "player-missing-after-progress") }
++        XCTAssertTrue(playerExists)
++    }
++
++    @MainActor private func tapOriginalPlay(_ button: XCUIElement) {
++        attachPlaybackTime("play-tap-begin")
++        button.tap()
++        attachPlaybackTime("play-tap-returned")
++    }
++
++    @MainActor private func attachPlaybackTime(_ stage: String) {
++        let value = XCTAttachment(string: "uptime=\(ProcessInfo.processInfo.systemUptime) stage=\(stage)")
++        value.name = "playback-timing-" + stage; value.lifetime = .keepAlways
++        add(value)
++    }
++
++    @MainActor private func attachPlaybackFailure(_ app: XCUIApplication, stage: String) {
++        // Collect before an assertion with continueAfterFailure=false can abort.
++        let phase = element("originalPlayback.status", app)
++        let elapsed = element("originalPlayback.elapsed", app)
++        let value = XCTAttachment(string: "uptime=\(ProcessInfo.processInfo.systemUptime) stage=\(stage)\n"
++            + "phase=\(phase.exists ? phase.label : "missing")\n"
++            + "elapsed=\(elapsed.exists ? String(describing: elapsed.value) : "missing")")
++        value.name = "playback-failure-" + stage + "-phase"; value.lifetime = .keepAlways
++        add(value)
++        attach(app, "playback-failure-" + stage)
+     }
+ 
+     @MainActor private func waitForText(_ value: XCUIElement, _ text: String) {
+@@ -212,21 +356,53 @@
+         XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: 10), .completed)
+     }
+ 
+-    @MainActor private func audit(_ app: XCUIApplication, _ name: String) throws {
+-        attach(app, "accessibility-" + name)
++    @MainActor private func audit(_ app: XCUIApplication, _ name: String,
++        types: XCUIAccessibilityAuditType = [.dynamicType, .textClipped, .sufficientElementDescription,
++                                            .trait, .hitRegion, .elementDetection, .contrast]) throws {
++        attach(app, "accessibility-" + name + "-before")
++        attachAuditCandidates(app, "accessibility-" + name + "-before")
+         let previousFailurePolicy = continueAfterFailure
+         continueAfterFailure = true
+-        defer { continueAfterFailure = previousFailurePolicy }
+-        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .sufficientElementDescription,
+-                                               .trait, .hitRegion, .elementDetection, .contrast]) { issue in
+-            let details = [issue.compactDescription, issue.detailedDescription,
++        defer {
++            attach(app, "accessibility-" + name + "-after")
++            attachAuditCandidates(app, "accessibility-" + name + "-after")
++            continueAfterFailure = previousFailurePolicy
++        }
++        try app.performAccessibilityAudit(for: types) { issue in
++            var details = [issue.compactDescription, issue.detailedDescription,
+                            "auditType=\(issue.auditType.rawValue)",
+-                           issue.element?.debugDescription ?? "SDK supplied no associated element"].joined(separator: "\n")
+-            let attachment = XCTAttachment(string: details)
++                           "uptime=\(ProcessInfo.processInfo.systemUptime)",
++                           "associatedElement=\(issue.element != nil)"]
++            if let associated = issue.element {
++                details.append(self.auditMetadata(associated))
++                details.append(associated.debugDescription)
++            } else { details.append("SDK supplied no associated element") }
++            let attachment = XCTAttachment(string: details.joined(separator: "\n"))
+             attachment.name = "accessibility-" + name + "-unhandled-issue"
+             attachment.lifetime = .keepAlways; self.add(attachment)
+-            return false // Record every issue as a failure; this is not an exclusion filter.
+-        }
++            return false // Every SDK issue remains unhandled and is recorded as a failure.
++        }
++    }
++
++    @MainActor private func attachAuditCandidates(_ app: XCUIApplication, _ name: String) {
++        let prefixes = ["library.action.", "library.reason.", "library.status.", "library.detailReconciliation",
++                        "library.historyExplanation", "library.item.s16v2-discard", "library.submission.",
++                        "originalPlayback."]
++        let predicate = NSPredicate(format: prefixes.map { _ in "identifier BEGINSWITH %@" }.joined(separator: " OR "),
++                                    argumentArray: prefixes)
++        let candidates = app.descendants(matching: .any).matching(predicate).allElementsBoundByIndex
++        var lines = ["uptime=\(ProcessInfo.processInfo.systemUptime) candidates=\(candidates.count)"]
++        for candidate in candidates.prefix(64) { lines.append(auditMetadata(candidate)) }
++        for bar in app.navigationBars.allElementsBoundByIndex { lines.append(auditMetadata(bar)) }
++        for list in app.collectionViews.allElementsBoundByIndex { lines.append(auditMetadata(list)) }
++        let value = XCTAttachment(string: lines.joined(separator: "\n"))
++        value.name = name + "-candidate-frames"; value.lifetime = .keepAlways
++        add(value)
++    }
++
++    @MainActor private func auditMetadata(_ value: XCUIElement) -> String {
++        "identifier=\(value.identifier) type=\(value.elementType.rawValue) frame=\(value.frame) "
++            + "enabled=\(value.isEnabled) label=\(value.label)"
+     }
+ 
+     @MainActor private func attach(_ app: XCUIApplication, _ name: String) {
+@@ -256,3 +432,7 @@
+     }
+     XCTFail("Cannot reach library scope")
+ }
++
++@MainActor private func elementWithPrefix(_ prefix: String, _ app: XCUIApplication) -> XCUIElement {
++    app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", prefix)).firstMatch
++}
+--- S16-resume-start/FrameRelayUITests/Flows/PlaybackTestCleanup.swift
++++ FrameRelayUITests/Flows/PlaybackTestCleanup.swift
+@@ -3,7 +3,10 @@
+ extension XCTestCase {
+     /// Register before launch so an assertion/audit failure still closes a live
+     /// product player through its UI. Never erase or repair the reader ledger.
+-    @MainActor func registerPlaybackCleanup(for app: XCUIApplication) {
++    @MainActor func registerPlaybackCleanup(for app: XCUIApplication, diagnostics: Bool = false) {
++        // DEBUG Simulator observation only: standard OSLog + bounded memory,
++        // no alternative playback behavior or product-store fixture branch.
++        app.launchEnvironment["FR_ORIGINAL_PLAYBACK_DIAGNOSTICS"] = diagnostics ? "1" : "0"
+         addTeardownBlock { @MainActor in
+             guard app.state != .notRunning else { return }
+             if app.state != .runningForeground { app.activate() }
+@@ -17,6 +20,9 @@
+             }, object: nil)
+             let result = XCTWaiter.wait(for: [settled], timeout: 15)
+             if result != .completed || status.label == "読み取り終了の照合が必要です" {
++                let screenshot = XCTAttachment(screenshot: app.screenshot())
++                screenshot.name = "playback-cleanup-unresolved-screen"; screenshot.lifetime = .keepAlways
++                self.add(screenshot)
+                 let evidence = XCTAttachment(string: app.debugDescription)
+                 evidence.name = "playback-cleanup-unresolved"; evidence.lifetime = .keepAlways
+                 self.add(evidence)

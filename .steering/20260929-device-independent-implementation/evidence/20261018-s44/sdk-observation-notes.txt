@@ -1,0 +1,9 @@
+2026-10-18 read-only explorer SDK audit, Xcode 27.0 (27A266a)
+SDK root: /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/AVFoundation.framework/Headers/
+AVCaptureSession.h:1209-1233: preferred is not active evidence; active supports KVO, unsupported preference resolves to off, connection support must be checked.
+AVCaptureDevice.h:3308: previewOptimized applies only to preview layer or preview-sized VideoDataOutput.
+AVCaptureDevice.h:3390-3397: videoFieldOfView is format horizontal FOV, not measured stabilized crop.
+AVCaptureDevice.h:2450 and AVCaptureSession.h:1261: stabilization warp/intrinsic limits; cannot derive stabilized crop from raw intrinsics.
+AVCaptureVideoPreviewLayer.h:108-125/148/178/208: independent preview connection and coordinate conversions, no guarantee of record crop correspondence.
+AVCaptureDevice.h:2057-2068/923-930/356-367: KVO actual zoom, active primary constituent, active format. Virtual camera primary can change with exposure/focus, not only zoom; nil is not a measured primary.
+S44 boundary: observed conditions/generation supplied to future S47; stabilized crop and preview-record correspondence remain unconfirmed, including when off. No synthetic crop factors or quality acceptance.

@@ -26,6 +26,9 @@ final class ExplorationCoordinator {
     @ObservationIgnored private let ticketLoader: @Sendable (URL) async throws -> Data
     @ObservationIgnored private var services: ExplorationServices?
     @ObservationIgnored private var eventTask: Task<Void, Never>?
+    @ObservationIgnored private var audioTask: Task<Void, Never>?
+    @ObservationIgnored private var streamEpoch = UUID()
+    @ObservationIgnored private var audioSequence: UInt64?
     @ObservationIgnored private var pendingEnd: (CaptureContext, RecordingEndEvidence)?
     @ObservationIgnored private var pendingDiagnostics: [ExplorationDeviceEvent] = []
     @ObservationIgnored private var eventHandlingDepth = 0
@@ -105,17 +108,27 @@ final class ExplorationCoordinator {
             let created = try await factory.makeServices(ticket: ticket, output: outputCandidate, store: storeCandidate)
             services = created
             diagnosticsReady = true
+            let epoch = UUID()
+            streamEpoch = epoch
+            audioSequence = nil
             let stream = await created.device.explorationEvents()
+            let audioStream = await created.device.audioSnapshots()
             eventTask = Task { [weak self] in
                 for await event in stream {
                     guard !Task.isCancelled else { return }
-                    await self?.receive(event)
+                    await self?.receive(event, epoch: epoch)
                 }
             }
             cameras = try await created.device.discover()
             let result = try await created.device.prepare(.init(ticket: ticket, generation: created.generation,
                                                                  operation: .init(rawValue: "prepare-\(created.generation.session.rawValue)")))
             prepared = result
+            audioTask = Task { [weak self] in
+                for await snapshot in audioStream {
+                    guard !Task.isCancelled else { return }
+                    await self?.receiveAudio(snapshot, epoch: epoch)
+                }
+            }
             guard result.applied.values.value?.matches(ticket.desired) == true else {
                 throw ExplorationIssue.appliedValuesDiffer
             }
@@ -129,10 +142,13 @@ final class ExplorationCoordinator {
     }
 
     private func abandonPreparation() async {
-        if let services { await services.device.shutDown() }
+        streamEpoch = UUID()
+        let released = services
         services = nil
-        eventTask?.cancel()
-        eventTask = nil
+        eventTask?.cancel(); eventTask = nil
+        audioTask?.cancel(); audioTask = nil
+        audioSequence = nil
+        if let released { await released.device.shutDown() }
         // Readback is retained when it differed, for honest desired/applied display.
     }
 
@@ -150,10 +166,12 @@ final class ExplorationCoordinator {
         let intent = RecordingIntent(context: context, operation: operation, original: original,
                                      trialReference: "\(ticket.caseID)-\(ticket.repetitionID)-\(ticket.conditionVersion)",
                                      desired: ticket.desired, applied: prepared.applied, acceptedAt: time)
-        var lifecycle = CaptureLifecycle(context: context, audio: prepared.audio)
+        // Runtime/identity calls can suspend while a fresh audio observation arrives.
+        let audio = self.prepared?.audio ?? prepared.audio
+        var lifecycle = CaptureLifecycle(context: context, audio: audio)
         let readiness = CaptureReadiness(generation: services.generation, desired: ticket.desired,
                                          capabilities: prepared.capabilities, applied: prepared.applied,
-                                         camera: .ready, audioInput: prepared.audio.input,
+                                         camera: .ready, audioInput: audio.input,
                                          destination: .ready, recordingResources: .ready)
         let transition = lifecycle.begin(intent, readiness: readiness, expectedStoreRevision: 0)
         capture = lifecycle
@@ -237,7 +255,8 @@ final class ExplorationCoordinator {
         } catch { saveIssue = "記録終端と保存意図の照合が必要です" }
     }
 
-    private func receive(_ event: ExplorationDeviceEvent) async {
+    private func receive(_ event: ExplorationDeviceEvent, epoch: UUID? = nil) async {
+        if let epoch, epoch != streamEpoch { return }
         guard let diagnostics = services?.diagnostics else { return }
         pendingDiagnostics.append(event)
         eventHandlingDepth += 1
@@ -272,7 +291,15 @@ final class ExplorationCoordinator {
         switch event {
         case .capture(let event):
             guard var lifecycle = capture else { return }
+            if case .audioObserved(let context, let sequence, _) = event {
+                guard context == lifecycle.context, lifecycle.end == nil,
+                      audioSequence.map({ sequence > $0 }) ?? true else { return }
+            }
             let transition = lifecycle.receive(event)
+            if case .audioObserved(_, let sequence, let state) = event, case .accepted = transition {
+                audioSequence = sequence
+                updatePreparedAudio(state)
+            }
             capture = lifecycle
             appendObservation(code: "capture_event", detail: eventName(event))
             await perform(transition)
@@ -302,6 +329,31 @@ final class ExplorationCoordinator {
             observations.append(observation)
             if observations.count > 100 { observations.removeFirst(observations.count - 100) }
         }
+    }
+
+    /// Compatibility with the shared Native audio observer. Meter traffic stays
+    /// outside the ordered control/diagnostic stream and never creates disk writes.
+    private func receiveAudio(_ snapshot: ProductCaptureAudioSnapshot, epoch: UUID) async {
+        guard epoch == streamEpoch, snapshot.generation == services?.generation,
+              audioSequence.map({ snapshot.sequence > $0 }) ?? true else { return }
+        if let clip = snapshot.capture {
+            guard var lifecycle = capture, lifecycle.context.capture == clip, lifecycle.end == nil else { return }
+            let transition = lifecycle.receive(.audioObserved(lifecycle.context, sequence: snapshot.sequence, snapshot.state))
+            guard case .accepted = transition else { return }
+            audioSequence = snapshot.sequence
+            updatePreparedAudio(snapshot.state)
+            capture = lifecycle
+            await perform(transition)
+        } else {
+            guard capture?.phase != .starting, capture?.phase != .recording, capture?.phase != .stopping else { return }
+            audioSequence = snapshot.sequence
+            updatePreparedAudio(snapshot.state)
+        }
+    }
+
+    private func updatePreparedAudio(_ audio: CaptureAudioState) {
+        guard let prepared else { return }
+        self.prepared = .init(capabilities: prepared.capabilities, applied: prepared.applied, audio: audio)
     }
 
     private func appendObservation(code: String, detail: String) {

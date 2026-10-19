@@ -4,7 +4,10 @@ final class ExplorationFlowTests: XCTestCase {
     @MainActor
     func testUnboundPreparationDoesNotClaimCameraCapabilityOrStartRecording() {
         let app = XCUIApplication()
+        registerPlaybackCleanup(for: app)
         app.launch()
+        XCTAssertTrue(app.buttons["product.exploration"].waitForExistence(timeout: 5))
+        app.buttons["product.exploration"].tap()
         XCTAssertTrue(app.staticTexts["exploration.purpose"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["exploration.ticketStatus"].exists)
         reveal(app.staticTexts["exploration.capabilityStatus"], in: app, upwards: true)

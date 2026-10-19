@@ -1,0 +1,342 @@
+--- before/.steering/20260929-device-independent-implementation/design.md
++++ after/.steering/20260929-device-independent-implementation/design.md
+@@ -89,7 +89,7 @@
+ 
+ S43の音声接続（2026-10-18）: 両記録候補で観測用AudioDataOutputを使い、到着した実sampleの形式に従って音量を算出する。入力確認・到着・書込を別軸とし、無音sampleは正常到着、メーター解析不能は音量未確認のまま扱う。Movieへの書込成功は観測用sampleから推定しない。最新1件の音声snapshotと障害/記録終端の制御通知を分け、セッション/設定世代・クリップ・単調な通知順序で旧結果を拒否する。音声障害は停止通知より前にNativeで保持し、先行するWB故障も成功へ戻さない。録画終端・保存結果・WB Auto復帰を確認してから、本人操作による音声入力/出力だけの復旧を試みる処理を設ける。実sampleの再到着で成功を判定し、時間切れ/離脱では旧試行を失効させ、SDK所有の終了が確認できるまで次REC・重複試行を抑止する。
+ 
+-無到着の猶予と復旧回数/時間は注入契約で分離する。製品値・復旧の開始方法/再構成範囲はU7の未合意事項であり、現ProductCaptureFactoryではpolicy未注入のため、通常経路の無到着期限判定と本人再試行は未有効。本人へ提示した暫定案は回答前に採用しない。合意後の接続・関連検証をS43の残件として記録し、実音声/同期/OS障害・復旧品質はDV-10へ残す。
++無到着の猶予と復旧回数/時間は注入契約で分離する。2026-10-18に本人が暫定案を承認し、無到着2秒、本人の再試行操作ごとに音声入力/出力だけ1回再構成、復旧上限5秒を変更可能な製品設定として合意した。復旧中も2秒の無到着判定を適用するため、5秒は成功待ちを保証する時間ではなく試行全体の上限である。ProductCaptureFactoryが版付きの同一policyをNativeとcoordinatorへ明示注入する。失敗後の再試行には改めて本人操作を要し、タイムアウト後もSDKの処理終了まで次REC・重複試行を抑止する。製品接続・関連検証の進捗はS43に記録し、実音声/同期/OS障害・復旧品質と数値の実機採用はDV-10へ残す。U7の他の負荷・容量判断はこの合意に含めない。
+ 
+ ズームは目標選択時点では実倍率を変えない。制御中の観測実倍率で目標超過を防ぎ、目標・途中停止を同じ制御器へ渡す。停止支援候補は実カメラ・形式・解像度・補正の根拠付きとし、整数倍率だけで品質保証しない。設定は目的・根拠・適用範囲・版・変更箇所・未採用フラグ付きの暫定値、DV-08後の採用値を別記録する。数値・吸着方式・詳細設定画面を計画で追加決定しない。
+ 
+--- before/.steering/20260929-device-independent-implementation/tasklist.md
++++ after/.steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,7 +12,14 @@
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-18、S43部分実装・本人判断待ち）
++## 現在の再開点（2026-10-18、S43実装完了・独立検証は別セッション）
++
++- **S43 / done（合意反映・製品接続・関連検証完了）**: 本人が「提案通り進めてください」と回答。無到着2秒、本人の再試行ごとに音声入力/出力だけ1回再構成、復旧上限5秒を変更可能な暫定製品設定v1として合意。同一policyをNativeとcoordinatorへ注入した。復旧中も2秒の無到着判定が働き、5秒は全体上限である。実機採用・品質合格にはしない。
++- **今回の検証 / E-S43-02**: test-03はUnit19宣言/23展開ケース＋UI1が成功、失敗/skip/runtimeWarnings 0。Simulator test buildとgeneric iOS署名なしbuild成功。test-01の新規test記法修正後、test-02の未変更actor隔離診断は、ソース無変更の新DerivedDataでtest-03が成功。途中2回のcompile失敗/0件実行を保持。最終182入力一致、iOS buildとの差分はUnit test1fileだけでApp/project入力は一致。
++- **今回の保全・所有**: 開始時6205file/116,464,636bytesのhashと証跡外355fileを `/private/tmp/fr-s43-approved-20261018-1rjgalcn/` へ保全。既存8file変更/6197不変、新規test1file、欠落/旧証跡変更/所有外変更0（今回追加証跡除外）。mainがtasklist/design/証跡/関連実行検証/最終diff、workerがFactory/関連test/Recoveryの説明コメント1箇所、document_authorがfunctional-design/architectureの音声箇所とPRD Q10音声行を所有。文書P2は修正・再確認済み。証跡は `evidence/20261018-s43-approved/`。
++- **引渡し残件**: S42修正後の独立再検証報告は本文/保存先未受領のため反映保留。修正前報告やS43成功で判定を補わない。S43の独立検証は同steeringを指定した `$validate-implementation` による別セッション。実機DV-10/D01/G2B等の既知残件、S27詳細保留・S44以降未着手を保持する。
++
++以下は前回部分実装時の記録。
+ 
+ - **S43 / blocked（製品policy合意・接続待ち）**: 音量/入力/到着/書込の実観測と通常UI、確認済み障害のREC抑止/停止/保存分類、旧通知拒否を接続。有限復旧の本体/注入試験も完了したが、現ProductCaptureFactoryはaudioPolicy未注入で通常経路の無到着期限判定・本人再試行は未有効。提示した「無到着2秒、本人retryごと音声入力/出力だけ1回、5秒timeout」の暫定案は回答未受領のため製品採用しない。合意後に同じS43の接続・必要検証を再開する。
+ - **検証**: test-03＝Unit60宣言/87展開＋UI1、既存探索の互換修正後test-04＝Unit26宣言/32展開が全成功。重複を除く73宣言/102展開ケース、失敗/skip/runtimeWarnings 0。最終Simulator test buildとgeneric iOS署名なしbuild-02成功、181入力と現物hash一致。初回compile失敗0件・test-02の1件失敗/4issuesも保持。E-S43-01、`evidence/20261018-s43/` を参照。
+@@ -579,6 +586,7 @@
+ ### S42 WB固定・再固定・記録終端を完成
+ 
+ - [x] Status: done
++  - 2026-10-18 S43合意後の報告引渡し状況: 音声復旧案への承認は受領したが、S42修正後の独立再検証報告本文/保存先は未受領。依頼された判定・指摘・範囲の反映は保留する。`evidence/20261018-s43-approved/handoff-notes.txt` に未受領と探索範囲を記録。S43実装完了をS42独立再検証の結果へ転用しない。
+   - 2026-10-18引渡し: 今回の修正後独立再検証結果は本文/保存先の受領待ち。以下の「独立検証未実施」は修正完了時の履歴であり今回判定を表さない。前回test-01の174管理対象入力とS43開始baseline、git ignoredのscheme管理plist1件と構成照会後の現物が一致（計175入力、`evidence/20261018-s43/s42-handoff-check.json`）。修正前P2報告・実装時成功を今回結果に転用しない。
+   - E-S42-02 / 2026-10-17 P2修正完了: Nativeのrefresh開始throwをcommandFailed通知前に現在録画contextへ記録し、adapterFailure STOPも保持する。本番共用のNativeRecordingTerminationでMovie/sample writer終端へ渡し、STOP時の固定成功で失敗を.completedへ戻さない。本人STOPが先行してLifecycleから追加のadapterFailure STOPが出ない場合も保持する。初回REC/旧clip/非activeのcommand失敗を混入させず、リセット位置と既存音声/SDK終端失敗優先を維持した。
+   - E-S42-02 / 関連検証: 実Lifecycle→本番WB順序→本番共用終端→実SaveLifecycleで両方式×本人STOP先行有無を確認。完全な合成検査でも部分保存(元理由)、次clipは通常保存。新規3宣言/7ケースを含む関連Unit43宣言/65展開＋UI1成功、失敗/skip/runtimeWarnings 0。Simulator test buildとgeneric iOS署名なしbuild成功、compiler/analyzer診断0、既存AppIntents metadata警告あり。Xcode27.0(27A266a)/Swift6.4・言語5.0・iOS27.0、FrameRelay.xcodeproj / scheme・plan FrameRelay / Debug、実在Simulator `DFE46693-E8DD-4814-8957-4F327699F719` と3target/Test actionを再確認。
+@@ -604,10 +612,19 @@
+ 
+ ### S43 音声メーター・障害・有限復旧を完成
+ 
+-- [ ] Status: blocked
++- [x] Status: done
++  - E-S43-02 / 合意・接続完了: `ProductCaptureFactory.provisionalAudioPolicyV1` に無到着2秒・本人再試行ごと1回・復旧上限5秒を集約し、同一policyをNative/coordinatorへ明示注入。音声入出力だけの再構成、復旧中の無到着2秒判定、SDK終了待ち、自動REC禁止は既存本体を接続。design/functional-design/architecture/PRD Q10の音声合意を同期した。暫定設定と実機採用は分離する。
++  - E-S43-02 / 現在のsubstatus: E-S43-01の音量/入力/到着/書込、静寂正常、障害時の抑止/停止/保存結果、通常UI/探索互換に加え、暫定製品policy合意・Factory接続・有限復旧/手動RECの関連検証/main差分確認を完了。S43の実装範囲はdone。実音声/同期/OS故障/両方式/復旧品質はA10/DV-10未確認、独立validationは別セッション。S42報告未受領は独立した引渡し残件として保持。
++  - E-S43-02 / 最終検証: Xcode27.0(27A266a)/Swift6.4、`FrameRelay.xcodeproj` / scheme・testPlan `FrameRelay` / Debug、実在iOS27.0 iPhone18 Pro Simulator `DFE46693-E8DD-4814-8957-4F327699F719` のApp/Unit/UI Test actionを確認。test-03はUnit19宣言/23展開＋UI1成功（新規2宣言）、失敗/skip/runtimeWarnings 0。Factory経由の同policy/実5秒timeout、1本人操作1試行、失敗/timeout後の本人再試行、重複拒否/実終了待ち/自動RECなし、無到着2秒境界、旧音声規則・保存/実原本再生・通常画面起動/一覧復帰を確認。Simulator test buildとgeneric iOS署名なしbuild-01成功、compiler/analyzer診断0（ログに既存AppIntents依存なしmetadata警告）。
++  - E-S43-02 / 失敗と版照合: test-01は新規testのmacro内throw2箇所でcompile失敗/0件実行し、workerが期待値構築だけをmacro外へ移した。test-02は未変更actor3宣言の隔離診断/同期init警告3件でcompile失敗/0件実行。explorerが旧成功版hash・設定不変を照合し、同一182入力の新DerivedDataによるtest-03成功を確認した。増分状態/型属性推論は仮説のまま、原因を断定せず記録。最終182入力と現物一致。generic iOS build後の差分は新規Unit test1fileのみで、App/project不変のため同build成功を継承。
++  - E-S43-02 / 証跡・main差分確認: `evidence/20261018-s43-approved/` に実行command/環境/ログ/summary/source hash、変更前後/最終source snapshot、patch、所有照合、文書レビュー、S42報告引渡し状況を保存。xcresult/DerivedDataと開始時証跡外355fileは `/private/tmp/fr-s43-approved-20261018-1rjgalcn/`。既存8file変更/6197不変、新規test1file、欠落/旧証跡変更/所有外変更0（追加証跡除外）、git diff --check成功。requirements/project/共有Ports/store/保存契約/Native/coordinator本体/S27は不変。doc_reviewerのP2（既存の復旧失敗案内を未決に戻す文言）は同U7行の修正後に解消・追加指摘なし。
++  - 次工程: 同steeringへの明示 `$validate-implementation` をS43限定で別セッション実施。今回の実装内test/main差分確認は独立検証ではない。S27詳細・S44以降へ進まない。以下は今回と前回の実装経過。
++  - 2026-10-18 合意後再開: 本人が無到着2秒・本人retryごと音声入出力のみ1回・復旧上限5秒（復旧中も無到着2秒判定）の暫定案を承認。同一policyの製品Factory接続と関連試験を本S43内で実施する。過去の判断待ち記録は履歴として保持。S42再検証報告本文/保存先は別の未受領事項として残す。
++  - 合意後test-01: 実在構成を再確認して限定testを実行。新規Composition試験のthrowing値を含むSwift Testing macro 2か所でcompile失敗、exit65/実行0件。generic iOS署名なしbuild-01は成功。各182入力は実行中不変。証跡を `/private/tmp/fr-s43-approved-20261018-1rjgalcn/` に保持し、workerへ新規testだけの修正を戻した。製品接続本体のcompile診断は0、既存AppIntents依存なしSDK警告のみ。
++  - 合意後test-02: 新規testの期待値構築をmacro外へ移して再実行。既存ProductCaptureCoordinatorTestsの未変更actor3宣言でnonisolated適用診断・同期init警告3件が発生し、exit65/実行0件。初回失敗後の増分状態と新testの参照の影響を限定調査中。ソース182入力は実行中不変、失敗結果を保持する。
+   - E-S43-01 / 部分引渡し: 両記録候補の実PCM観測、音量/入力/到着/書込表示、静寂・音量上限と故障の分離、開始抑止/停止/保存分類、旧通知拒否を接続。Movie観測sampleを個別書込成功にせず取得不能を保持。本人STOP先行/SDK完了でも障害を正常保存へ戻さず先行WB理由を保持。既存探索もchecking準備後の遅延sampleを受け取り再準備なしでRECへ進む。
+-  - 現在のsubstatus: 音声観測/確認済み故障処理/通常UI/探索互換/有限復旧本体/注入試験/main差分確認＝完了。無到着猶予・復旧policyの製品採用/Factory接続＝本人判断待ち。未接続を「実機未確認だけ」と扱わない。実機音声/同期/OS故障/両方式/復旧品質はA10/DV-10へ残す。
+-  - 再開条件: 本人が猶予・開始方法/回数/timeout/再構成範囲を確定後、Nativeとcoordinatorへ同policyを注入し関連検証する。S42報告は受領後に反映する。S27詳細・S44以降・独立validationを自動開始しない。
++  - 前回部分実装時のsubstatus: 音声観測/確認済み故障処理/通常UI/探索互換/有限復旧本体/注入試験/main差分確認＝完了。無到着猶予・復旧policyの製品採用/Factory接続＝本人判断待ち。未接続を「実機未確認だけ」と扱わない。実機音声/同期/OS故障/両方式/復旧品質はA10/DV-10へ残す。
++  - 当時の再開条件（音声はE-S43-02で解決）: 本人が猶予・開始方法/回数/timeout/再構成範囲を確定後、Nativeとcoordinatorへ同policyを注入し関連検証する。S42報告は受領後に反映する。S27詳細・S44以降・独立validationを自動開始しない。
+   - E-S43-01 / 最終検証: test-03 Unit60宣言/87展開＋UI1、test-04 Unit26宣言/32展開が全成功。test-03から最終版はExplorationPorts/Coordinator/対応testの3fileだけが変わり、その範囲をtest-04で再検証して他の不変証跡を継承。重複除外73宣言/102展開ケース、失敗/skip/runtimeWarnings 0。最終181入力はtest-04/ios-build-02/現物一致。Simulator test build・generic iOS署名なしbuild成功、compiler/analyzer診断0（既存AppIntents SDK警告のみ）。新規試験計19宣言、既存UI1件の音声未確認/再試行無効表示も確認。実録画UI/実カメラ音声の合格ではない。
+   - E-S43-01 / 証跡・main照合: `evidence/20261018-s43/` に各runのcommand/source/hash/log/xcresult/summary、途中失敗、環境、変更前後copy/差分、文書レビュー/所有照合を保存。開始時5521file中17変更/5504不変、新規6source、欠落/旧証跡変更/所有外変更0（archive追加除外）。git diff --check成功。requirements/project/言語/OS/共有store/保存契約/S27差分は保持。以下は実装経過。
+   - 2026-10-18開始: S43限定の明示implementを受領。mainが本tasklist・判断・証跡・構成確認・限定build/test・最終差分を所有し、`s43_map` explorerが既存音声契約/SDK/製品接続を読取調査する。書込workerの具体所有は調査後に束縛する。未合意の障害猶予・復旧回数/時間・再構成範囲を製品採用済みにせず、必要判断を切り分ける。
+@@ -831,10 +848,10 @@
+ | FR-08 | AC-FR-08-01 | 限定ISOと切替後保持 | P05/P14;CF-07 | EC:実値/限定ISO契約のみ | S47 | dep(S47)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-09 |
+ | FR-08 | AC-FR-08-02 | 実値表示・非対応切替拒否 | P05/P14;CF-07 | EC:実値/限定ISO契約のみ | S47,S44 | dep(S47,S44)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04、DV-09 |
+ | FR-08 | AC-FR-08-03 | 映像音声・切替継続品質 | P05/P14;CF-07 | EC:実値/限定ISO契約のみ | S47,S4V | dep(S47,S4V)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-09、DV-11 |
+-| FR-09 | AC-FR-09-01 | 待機/録画音量・静寂と障害 | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43 | dep(S43)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 音量/入力/到着の製品接続済・無到着policy未接続 | E-S43-01:実PCM/静寂/待機/旧通知/UI | D0 | 部分証拠・実機未評価 | DV-10 |
+-| FR-09 | AC-FR-09-02 | 確認済障害で停止・保存分類 | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43,S12 | dep(S43,S12)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 入力/書込故障の抑止・停止/保存接続済・無到着policy未接続 | E-S43-01:障害/本人STOP/終端/保存分類 | D0 | 部分証拠・全障害実機未評価 | DV-02、DV-10 |
+-| FR-09 | AC-FR-09-03 | 有限復旧・手動REC | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43 | dep(S43)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 有限復旧本体実装済・製品policy未接続 | E-S43-01:注入policy/上限/timeout/実所有/手動REC | D0 | 未達:製品接続・実機未確認 | DV-10 |
+-| FR-09 | AC-FR-09-04 | 到着/書込み・保存音声 | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43,S12 | dep(S43,S12)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 実到着/書込観測接続済・Movie個別書込取得不能保持 | E-S43-01:実PCM/書込故障/実保存再生回帰 | D0 | 部分証拠・保存実音声未確認 | DV-02、DV-10 |
++| FR-09 | AC-FR-09-01 | 待機/録画音量・静寂と障害 | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43 | dep(S43)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 音量/入力/到着・暫定無到着policyの製品接続済 | E-S43-01/02:実PCM/静寂/待機/旧通知/UI/合意2秒境界 | D0 | 部分証拠・実機未評価 | DV-10 |
++| FR-09 | AC-FR-09-02 | 確認済障害で停止・保存分類 | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43,S12 | dep(S43,S12)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 入力/書込故障の抑止・停止/保存・暫定無到着policy接続済 | E-S43-01/02:障害/本人STOP/終端/保存分類/2秒境界 | D0 | 部分証拠・全障害実機未評価 | DV-02、DV-10 |
++| FR-09 | AC-FR-09-03 | 有限復旧・手動REC | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43 | dep(S43)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 有限復旧・暫定製品policyを含む必要接続済 | E-S43-01/02:Factory/1本人操作1試行/実5秒timeout/実所有/手動REC | D0 | 部分証拠・復旧品質/実機未確認 | DV-10 |
++| FR-09 | AC-FR-09-04 | 到着/書込み・保存音声 | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43,S12 | dep(S43,S12)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 実到着/書込観測接続済・Movie個別書込取得不能保持 | E-S43-01/02:実PCM/書込故障/実保存再生回帰 | D0 | 部分証拠・保存実音声未確認 | DV-02、DV-10 |
+ | FR-10 | AC-FR-10-01 | 原本/軽量版再生・複数結果/単数操作 | P08/P09/P21,T15/T20;CF-01/08,BI-15/33 | ES,EB,E-S13/14/15/25 | S14,S15,S25,S28,S34 | dep(S14,S15,S25,S28,S34)＋対応A/Q01 | O-LIBRARY | 原本製品入口と固定軽量版下位I/O/AVPlayer実装済、S16監査・S27 wire/S28 UI未完 | E-S13:50/E-S14:44/E-S15:33、E-S16通常3/最大文字2成功、E-S25新Unit27/全Unit等286・HTTP10成功/全reader解放。旧失敗保持 | D0 | 原本製品操作と合成軽量版の部分証拠・製品配布/UI/実機未確認 | DV-14、DV-16、DV-17 |
+ | FR-10 | AC-FR-10-02 | 保存中断再起動の4分類 | P08/P09/P21,T15/T20;CF-01/08,BI-15/33 | ES,EB,E-S11,E-S12 | S12,S14 | dep(S12,S14)＋対応A/Q01 | O-LIBRARY | S12保存/復旧＋S14分類投影/製品UI接続済、実Capture未接続 | E-S12:54/E-S14:44、E-S16保存unknown/要照合の実表示・post-UI再open | D0 | 保存/reopen/分類/製品UIの部分証拠・実Capture未確認 | DV-02 |
+ | FR-10 | AC-FR-10-03 | 整理後offline・再接続等非強制 | P08/P09/P21,T15/T20;CF-01/08,BI-15/33 | ES,EB（実再生なし） | S14,S32,S34 | dep(S14,S32,S34)＋対応A/Q01 | O-LIBRARY | S14整理後通常一覧の製品UI投影済・実整理未接続 | E-S14:44、E-S16通常UIの整理/破棄投影・履歴操作成功（test seed） | D0 | 投影/製品表示の部分証拠・実整理未確認 | DV-14、DV-17 |
+@@ -1159,6 +1176,7 @@
+ | E-S42-V01 | 2026-10-17、implementation_validator/main | S42修正前限定独立検証 | E-S42-01の173入力/最終13fileと元xcresult一致、検証前後5307file不変 | WB固定/再固定/終端、通知順序、S41回帰、例外経路をread-only照合 | 要修正P2 1件、再測定開始失敗理由の終端引継ぎ漏れ。追加build/testなし | `evidence/20261017-s42-p2-fix/validation-report.txt`。実機品質/既知残件は別管理 |
+ | E-S42-02 | 2026-10-17、explorer/worker/main | S42 P2限定修正・関連回帰 | test-01/ios-build-01の175入力一致、Xcode27/Debug/iOS27 Simulator＋generic iOS | Native共用理由保持/終端、両方式×先行本人STOP、完全検査の部分保存/次clip成功、旧通知/S41/保存再生/UI | Unit43宣言/65展開＋UI1成功、新規7ケース、失敗/skip/runtimeWarnings0、Simulator/iOS build成功 | `evidence/20261017-s42-p2-fix/`。実SDK throw/実機品質/修正後独立validation未確認 |
+ | E-S43-01 | 2026-10-18、explorer/worker/document_author/doc_reviewer/main | S43部分・AC-FR-09-01〜04/AC-CF-04・探索互換 | 最終181入力一致、test-03不変範囲継承、Xcode27/Debug/iOS27 Simulator＋generic iOS | 各run.json、実PCM/静寂/故障保存/順序/有限復旧/所有/手動REC/遅延観測、UI・実保存再生回帰 | test-03 Unit60/87展開＋UI1、test-04 Unit26/32展開成功、build成功。途中失敗保持 | `evidence/20261018-s43/`。製品policy未合意/未接続でblocked、実機/DV-10/S42報告反映は未完 |
++| E-S43-02 | 2026-10-18、worker/explorer/document_author/doc_reviewer/main | S43暫定製品policy合意・接続・限定回帰 | 最終182入力一致、test-02/03同一版、Xcode27/Debug/iOS27 Simulator＋generic iOS（App入力一致） | 各run.json、Factory/2秒無到着/1本人操作1試行/実5秒timeout/SDK終了待ち/再試行/自動RECなし、音声/保存再生/UI | test-03 Unit19宣言/23展開＋UI1成功、失敗/skip/runtimeWarnings0、build成功。compile失敗2回/0件実行も保持 | `evidence/20261018-s43-approved/`。S43実装done、実機/DV-10/S42報告受領/別セッション独立検証は残る |
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+ 
+@@ -1185,6 +1203,7 @@
+ | V-INDEPENDENT-S42 | E-S42-V01、P2修正前のS42版 | implementation_validator/main | 6観点をread-only確認し、再測定開始失敗から終端への理由漏れ1件を検出 | E-S42-V01、要修正P2 1件。修正後は別明示validation |
+ | V-REVIEW-S42-P2 | E-S42-02の175入力、既存2file変更/新規2file | main | 通知前の故障保持、本人STOP競合、STOP理由/両終端の本番共用、旧clip除外、次clip reset、完全検査でも部分保存、所有範囲を照合 | E-S42-02、`evidence/20261017-s42-p2-fix/main-scope-review.json`。修正・関連検証完了、独立validationではない |
+ | V-REVIEW-S43部分 | E-S43-01の最終181入力、既存17file/新6file | main、文書はdoc_reviewer | PCM/4軸分離、STOP前故障保持/先行WB理由、観測順序、復旧所有、探索互換、製品未接続、旧差分/証跡保持を確認。文書P2は未有効明記で解消 | `evidence/20261018-s43/main-scope-review.json`。関連試験成功、S43全体blocked。独立validationではない |
++| V-REVIEW-S43接続 | E-S43-02の最終182入力、既存8file/新test1file | main、文書はdoc_reviewer | 本人合意と同policyのNative/coordinator注入、実機未採用、1本人操作1試行/実5秒上限/SDK終了待ち/非自動REC、S42未受領、旧差分・所有を照合。文書P2修正後解消 | `evidence/20261018-s43-approved/main-scope-review.json`。S43実装done、独立validationは別セッション |
+ 
+ ## 振り返り・引渡し
+ 
+--- before/FrameRelay/Application/Recovery/CaptureAudioRecovery.swift
++++ after/FrameRelay/Application/Recovery/CaptureAudioRecovery.swift
+@@ -1,4 +1,4 @@
+-/// Values come from a bound trial. They are not product retry/grace defaults.
++/// Values are explicitly supplied by a bound trial or versioned product policy.
+ nonisolated struct CaptureAudioRecoveryPolicy: Equatable, Sendable {
+     let maximumAttempts: Int
+     let attemptTimeout: CaptureRationalTime
+--- before/FrameRelay/Composition/ProductCaptureFactory.swift
++++ after/FrameRelay/Composition/ProductCaptureFactory.swift
+@@ -4,12 +4,21 @@
+ /// Shares the product writer and original directory. Creating the model does
+ /// not request capture permissions or open a capture session.
+ @MainActor enum ProductCaptureFactory {
++    /// S43 v1, agreed 2026-10-18. Provisional until DV-10 device evaluation.
++    /// The two-second arrival deadline also applies during recovery. The outer
++    /// timeout is five seconds; SDK ownership remains held until actual release.
++    nonisolated static let provisionalAudioPolicyV1: ProductCaptureAudioPolicy = {
++        do {
++            return try ProductCaptureAudioPolicy(noArrivalGrace: .init(ticks: 2, timescale: 1),
++                recovery: .init(maximumAttempts: 1, attemptTimeout: .init(ticks: 5, timescale: 1)))
++        } catch {
++            preconditionFailure("Invalid S43 v1 audio policy: \(error)")
++        }
++    }()
++
+     static func make(services: ProductLibraryServices,
+                      didSave: @escaping @MainActor @Sendable () async -> Void) -> ProductCaptureCoordinator {
+-        let preferences = CapturePreferenceStore(url: services.run.url.appendingPathComponent("capture-preferences.json"))
+-        let save = OriginalSaveCoordinator(store: services.store, originals: services.originals,
+-                                           inspection: AVOriginalInspectionAdapter(originals: services.originals))
+-        return ProductCaptureCoordinator(preferences: preferences, makeDevice: { candidate in
++        make(services: services, didSave: didSave, makeDevice: { candidate, audioPolicy in
+             #if !targetEnvironment(simulator)
+             guard await permission(for: .video) else { throw ExplorationIssue.permissionDenied }
+             guard await permission(for: .audio) else {
+@@ -17,12 +26,27 @@
+             }
+             #endif
+             return NativeExplorationCapture(candidate: candidate,
+-                originals: ProductReservedOriginalDestination(store: services.originals))
++                originals: ProductReservedOriginalDestination(store: services.originals), audioPolicy: audioPolicy)
++        })
++    }
++
++    /// Keep the device builder and coordinator on the same versioned policy.
++    static func make(services: ProductLibraryServices,
++                     didSave: @escaping @MainActor @Sendable () async -> Void,
++                     makeDevice: @escaping @Sendable (ExplorationOutputCandidate, ProductCaptureAudioPolicy) async throws
++                        -> any ProductCaptureDevicePort) -> ProductCaptureCoordinator {
++        let audioPolicy = provisionalAudioPolicyV1
++        let preferences = CapturePreferenceStore(url: services.run.url.appendingPathComponent("capture-preferences.json"))
++        let save = OriginalSaveCoordinator(store: services.store, originals: services.originals,
++                                           inspection: AVOriginalInspectionAdapter(originals: services.originals))
++        return ProductCaptureCoordinator(preferences: preferences, makeDevice: { candidate in
++            try await makeDevice(candidate, audioPolicy)
+         }, save: save, bindOriginal: { reference in
+             let operation = MediaOperationID(rawValue: "capture-bind-" + UUID().uuidString)
+             if case .succeeded = await services.access.bind(reference, operation: operation) { return true }
+             return false
+-        }, didSave: didSave, calendarNow: { Date() }, captureNow: { ExplorationCaptureValues.now() })
++        }, didSave: didSave, audioPolicy: audioPolicy,
++            calendarNow: { Date() }, captureNow: { ExplorationCaptureValues.now() })
+     }
+ 
+     private nonisolated static func permission(for media: AVMediaType) async -> Bool {
+--- /dev/null
++++ after/FrameRelayTests/Integration/Composition/ProductCaptureAudioCompositionTests.swift
+@@ -0,0 +1,78 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@MainActor
++struct ProductCaptureAudioCompositionTests {
++    @Test func productPolicyAllowsOneAttemptPerUserActionAndWaitsForReleaseAfterFiveSeconds() async throws {
++        let parent = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
++            .appendingPathComponent("FrameRelay-capture-audio-policy-" + UUID().uuidString, isDirectory: true)
++        try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: false)
++        // Keep the isolated store until process teardown; test completion does not close SQLite descriptors.
++        let services = try await ProductLibraryFactory(supportDirectory: parent).open()
++        let fixture = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: fixture)
++        let failure = CaptureAudioFailure.confirmedNoSamples(.init(rawValue: "product-no-arrival"))
++        let expectedGrace = try CaptureRationalTime(ticks: 2, timescale: 1)
++        let expectedTimeout = try CaptureRationalTime(ticks: 5, timescale: 1)
++        await device.configureAudioRecovery(outcomes: [.failed(failure)])
++        let model = ProductCaptureFactory.make(services: services, didSave: {}, makeDevice: { candidate, policy in
++            #expect(candidate == .sampleWriter)
++            #expect(policy.noArrivalGrace == expectedGrace)
++            #expect(policy.recovery.maximumAttempts == 1)
++            #expect(policy.recovery.attemptTimeout == expectedTimeout)
++            return device
++        })
++        model.enterCapture()
++        await model.load()
++        await model.updatePreferences(.init(desired: fixture.desired, outputCandidate: .sampleWriter))
++        await model.prepare()
++        try #require(model.canRecord)
++        var audio = fixture.audio
++        audio.input = .failed(failure)
++        await device.emitAudio(audio, sequence: 1)
++        try #require(await eventually { model.canRetryAudio })
++
++        await model.retryAudio()
++        #expect(await device.audioRecoveryCalls == 1)
++        #expect(model.audioRecovery == .failed)
++        #expect(model.canRetryAudio && !model.canRecord)
++
++        await device.configureAudioRecovery(outcomes: [], hold: true)
++        let beganAt = ContinuousClock.now
++        let retry = Task { await model.retryAudio() }
++        try #require(await eventually { model.isRecoveringAudio })
++        #expect(await eventually { await device.audioRecoveryCalls == 2 })
++        await model.retryAudio()
++        #expect(await device.audioRecoveryCalls == 2)
++        #expect(await eventually(timeout: .seconds(8)) { model.audioRecovery == .timedOutWaitingForRelease })
++        #expect(beganAt.duration(to: .now) >= .seconds(5))
++        #expect(model.isBusy && !model.canRecord && !model.canRetryAudio)
++        await model.retryAudio()
++        #expect(await device.audioRecoveryCalls == 2)
++
++        await device.completeAudioRecovery(.validInput(route: "late test mic"))
++        await retry.value
++        #expect(model.audioRecovery == .failed)
++        #expect(model.canRetryAudio && !model.canRecord && !model.isBusy)
++        #expect(await device.startCount == 0)
++
++        await device.configureAudioRecovery(outcomes: [.validInput(route: "fresh test mic")])
++        await model.retryAudio()
++        #expect(await device.audioRecoveryCalls == 3)
++        #expect(model.audioRecovery == .readyForUserREC)
++        #expect(model.canRecord && !model.canRetryAudio)
++        #expect(await device.startCount == 0)
++        await model.leaveCapture()
++    }
++
++    private func eventually(timeout: Duration = .seconds(2), _ condition: @MainActor () async -> Bool) async -> Bool {
++        let deadline = ContinuousClock.now.advanced(by: timeout)
++        while ContinuousClock.now < deadline {
++            if await condition() { return true }
++            do { try await Task.sleep(for: .milliseconds(10)) }
++            catch { return false }
++        }
++        return await condition()
++    }
++}
+--- before/FrameRelayTests/Platform/Capture/NativeCaptureAudioObservationTests.swift
++++ after/FrameRelayTests/Platform/Capture/NativeCaptureAudioObservationTests.swift
+@@ -99,6 +99,22 @@
+         #expect(observedResult9 != nil)
+     }
+ 
++    @Test func productArrivalDeadlineStillAppliesAfterUserRecoveryReset() throws {
++        let policy = ProductCaptureFactory.provisionalAudioPolicyV1
++        let evidence = CaptureEvidenceID(rawValue: "product-recovery-no-arrival")
++        var observation = NativeCaptureAudioObservation(beganAt: 0)
++        let originalFailure = observation.checkArrival(now: 2, grace: policy.noArrivalGrace.seconds, evidence: evidence)
++        #expect(originalFailure == .confirmedNoSamples(evidence))
++        observation.reset(at: 10)
++        #expect(observation.state.input == .checking)
++        let beforeDeadline = observation.checkArrival(now: 11.999, grace: policy.noArrivalGrace.seconds, evidence: evidence)
++        #expect(beforeDeadline == nil)
++        let recoveryFailure = observation.checkArrival(now: 12, grace: policy.noArrivalGrace.seconds, evidence: evidence)
++        #expect(recoveryFailure == .confirmedNoSamples(evidence))
++        // Reconfiguration does not extend no-arrival detection to the five-second outer timeout.
++        #expect(policy.noArrivalGrace.seconds < policy.recovery.attemptTimeout.seconds)
++    }
++
+     private func withPCM<Value>(_ values: [Value], flags: AudioFormatFlags, channels: UInt32 = 1,
+                                         nonInterleaved: Bool = false, at: CMTime = .zero,
+                                         body: (CMSampleBuffer) throws -> Void) throws {
+--- before/docs/architecture.md
++++ after/docs/architecture.md
+@@ -203,7 +203,7 @@
+ 
+ メーター表示は最新1件のsnapshot経路で更新し、確認済み障害・停止・記録終端を扱う制御イベント経路と分ける。snapshotにはセッション/設定世代・任意のクリップID・単調な通知順序を付け、`ProductCaptureCoordinator` は現在の所有者に一致するものだけ受け取る。待機の観測で録画中のクリップ状態を上書きせず、旧セッションや旧クリップの通知を拒否する。確定した故障理由は後続の正常sampleや音量更新だけで解除せず、停止クリップの保存結果を次の入力復旧と別に扱う。
+ 
+-無到着期限判定と有限復旧はpolicy注入時の処理として実装している。現 `ProductCaptureFactory` は `audioPolicy` を注入していないため、通常経路の無到着期限判定・本人再試行は未有効であり、合意・接続後の確認を要する。注入時の音声復旧は試行ごとの世代・操作ID・順番で所有し、完了・時間切れ・取消を照合する。取消要求だけでSDK資源を解放済みにせず、同じ試行の終了を確認するまで次RECと重複復旧を抑止する。成功は実入力到着の再確認で判定し、本人のREC待機へ戻す。障害判定猶予と有限復旧の回数/時間は注入する値であり、製品値と再構成範囲の採用はU7の合意待ちを維持する。S43の進捗・検証証跡は現行tasklistを正本とし、実機の音声・同期・復旧品質はDV-10の未確認範囲として保持する。
++無到着期限判定と有限復旧には、2026-10-18のS43で本人が合意した変更可能な暫定製品policyを使う。`ProductCaptureFactory` は無到着2秒、本人の再試行ごとに1回、復旧上限5秒の同一 `audioPolicy` をNativeとcoordinatorへ注入する。Nativeの再構成範囲は音声入力/出力だけとし、カメラ・形式・WB・Movie出力は保持する。復旧中も2秒の無到着判定が働き、5秒は復旧全体の上限である。音声復旧は試行ごとの世代・操作ID・順番で所有し、完了・時間切れ・取消を照合する。取消要求だけでSDK資源を解放済みにせず、同じ試行の終了を確認するまで次RECと重複復旧を抑止する。成功は実入力到着の再確認で判定し、本人のREC待機へ戻す。S43の製品接続・実装完了判定・検証証跡は現行tasklistを正本とし、暫定合意を実機採用・品質合格へ昇格しない。実機の音声・同期・復旧品質はDV-10の未確認範囲として保持する。
+ 
+ S41のカメラ表示は構図確認用で、標準Rec.709変換を備えた表示の達成証拠にはしない。標準表示変換の実装と検証はS48の範囲として残す。
+ 
+@@ -340,10 +340,10 @@
+ | U4 | ズーム操作、予告表示、吸着/停止候補、速度/許容差 | 予告と実倍率、観測/推定、根拠と品質を分離 |
+ | U5 | 人物なしAF、対象指定、初回意図、保持秒数、手動フォーカス詳細 | 主役と露出対象を分離し、同一主役が不明なら他人へ自動移行しない |
+ | U6 | ISO基準/上限、補正モード名/数/強さ、録画中の操作、Lens Match | 希望/実値と組合せ評価。限定ISO補正以外の無断変更を認めない。OFF＋複数モード要求を維持 |
+-| U7 | 障害判定猶予・復旧回数/時間/範囲、負荷削減・熱/容量基準 | 音声障害と静寂/解析遅延を分離。有界復旧、自動REC/全体再起動禁止 |
++| U7 | S43暫定合意: 無到着2秒、本人再試行ごと音声入力/出力のみ1回再構成、復旧上限5秒。復旧中も無到着2秒判定。残件: 音声policyの実機採用・品質、負荷削減・熱/容量基準 | 音声障害と静寂/解析遅延を分離。変更可能な暫定製品設定とDV-10の実機採用を区別し、有界復旧、自動REC/全体再起動禁止を維持 |
+ | U8 | 解像度/コーデック/品質/ビット深度/音声圧縮 | 1080p/HEVCは候補。原本不変、Rec.709実変換、元fps/構図/向き/音声/撮影日時の保持 |
+ 
+-U1〜U3の上記確定部分はR3の回答済み方針として維持する。同じ行の残件とU4〜U8は未合意であり、推奨案を実装必須の確定事項へ昇格させない。streamingの第一候補は成立確認済み・無条件採用を意味しない。値を後で決めることは対応するP0機能を後回しの任意機能へ変更する意味ではない。
++U1〜U3の上記確定部分はR3の回答済み方針として維持する。U7の音声policyはS43で暫定合意済みとし、同じ行の残件とU4〜U8のその他未合意案を実装必須の確定事項へ昇格させない。streamingの第一候補は成立確認済み・無条件採用を意味しない。値を後で決めることは対応するP0機能を後回しの任意機能へ変更する意味ではない。
+ 
+ ### 技術成立・接続契約の検証待ち
+ 
+--- before/docs/functional-design.md
++++ after/docs/functional-design.md
+@@ -229,12 +229,12 @@
+ - **通信停止**: REC受理時に端末上の動画送受信へ一時停止を発行し、再開条件を閉じる。サーバーの確認応答を待つ設計にはしない。実際に通信を止められない/記録資源を確保できない場合は開始中の理由を表示し、停止要求を出しただけで両立を達成したと扱わない。影響時間とOSの停止動作は実機検証する。
+ - **保存との分離**: 撮影セッションが次の準備へ進んでも、停止したClipRecordはS3のfinalizingを保持できる。保存・異常終了のI/Oが残る間は大きな通信を再開しない。次REC可否は必要資源の準備から判断し、管理表示・サムネイル待ちを加えない。
+ - **音声**: checkingでは有効確認ができるまで準備中を示す。静寂・小音量・音割れと入力到着/書込障害を分ける。確認済み障害は録画中表示を終えて停止・部分保存を試みる。入力正常でも書込失敗は正常録画として扱わない。
+-- **復旧**: 保存結果の照合を優先し、入力の再構成は音声に必要な範囲から試す。復旧後はreadyに戻すだけで自動RECしない。無限再試行を防ぐ有界の試行・タイムアウトはU7と実機検証で確定し、効果不明な全体再起動をしない。
++- **復旧**: 保存結果の照合を優先し、本人の「再試行」ごとに音声入力/出力だけを1回再構成する。復旧後はreadyに戻すだけで自動RECしない。無到着2秒・復旧上限5秒をU7の変更可能な暫定製品設定として使い、実機採用・品質はDV-10で確認する。効果不明な全体再起動をしない。
+ - **中断・復帰**: OS中断・画面ロック・バックグラウンドで録画継続を保証しない。中断時は可能な停止・確定を試み、復帰/再起動はS3の照合後に準備する。中断前がrecordingでも画面上だけ録画中へ復元せず、自動再録画もしない。
+ 
+ 通常撮影の音声表示は待機中から実sampleの到着と入力経路を確認し、録画中も音量・入力・到着・書込を別々に示す。静寂のsampleも正常な到着であり、音量上限の表示と確認済み障害の赤い×・理由を区別する。音量を計算できない形式は音量未観測とし、そのことだけで入力障害にしない。Movie方式で観測用sampleが届いても、Movie内の音声書込成功とは扱わず、個別の書込結果が取得不能であることと保存後の検査を示す。
+ 
+-確認済み障害は音量更新や後続sampleだけで消さず、開始抑止または記録停止へつなぐ。停止したクリップの保存結果と、次の撮影に向けた音声復旧の結果を分けて表示する。無到着期限判定と有限復旧はpolicy注入時の処理として実装している。現 `ProductCaptureFactory` では未注入のため通常経路の無到着期限判定・本人再試行は未有効であり、合意・接続後の確認を要する。注入時の有限復旧は実入力到着を確認して本人のREC待機へ戻し、自動録画しない。復旧処理が時間切れになっても、処理の終了・資源解放が確認できるまでは次のRECや重複再試行を許可しない。障害判定猶予・復旧回数/時間/再構成範囲はU7の未合意を維持し、S43の進捗・検証証跡は現行tasklist、実音声・同期・復旧品質はDV-10で扱う。
++確認済み障害は音量更新や後続sampleだけで消さず、開始抑止または記録停止へつなぐ。停止したクリップの保存結果と、次の撮影に向けた音声復旧の結果を分けて表示する。2026-10-18のS43で、無到着2秒、本人の再試行ごとに音声入力/出力だけ1回再構成、復旧上限5秒を変更可能な暫定製品設定として本人が合意した。通常経路では `ProductCaptureFactory` からNativeとcoordinatorへ同じpolicyを注入し、無到着期限判定と本人再試行を有効にする。復旧中も2秒の無到着判定が働き、5秒は復旧全体の上限である。有限復旧は実入力到着を確認して本人のREC待機へ戻し、自動録画しない。復旧処理が時間切れになっても、処理の終了・資源解放が確認できるまでは次のRECや重複再試行を許可しない。製品接続・実装完了判定・検証証跡は現行tasklistを正本とし、暫定合意を実機採用・品質合格へ昇格しない。実音声・同期・復旧品質はDV-10で扱う。
+ 
+ ### S2 撮影制御・解析・ズームの独立状態
+ 
+@@ -252,7 +252,7 @@
+ 
+ 合わせ直し中にSTOPを受けた場合は測定を打ち切り、その時点のWB固定を適用してから記録停止へ進む。固定の適用待ちと記録終端後のAuto復帰を区別し、STOP受付だけで待機Autoへ戻さない。次クリップは待機Autoから新しく測定する。色変化・録画継続性・最終フレームの品質は実機評価の対象として残す。
+ 
+-解析の受付結果はセッション・設定・対象・構図世代と有効期間が一致するときだけ採用する。WB更新・倍率/実カメラ変更・補正変更・アプリ中断で該当する解析を失効させる。有効期間・AF保持秒数・障害判定猶予は実測前に固定数値を作らず、T05/T06/T09で評価条件と併せて決める。録画品質が維持できないときの補助処理削減案はU7で決め、削減を理由に補正や撮影設定を無断変更しない。
++解析の受付結果はセッション・設定・対象・構図世代と有効期間が一致するときだけ採用する。WB更新・倍率/実カメラ変更・補正変更・アプリ中断で該当する解析を失効させる。有効期間・AF保持秒数は実測前に固定数値を作らず、T05/T06で評価条件と併せて決める。音声の障害判定猶予はS1・U7の暫定合意とT09/DV-10の実機評価を区別する。録画品質が維持できないときの補助処理削減案はU7で決め、削減を理由に補正や撮影設定を無断変更しない。
+ 
+ ### S3 原本保存と起動時の復旧
+ 
+@@ -418,6 +418,8 @@
+ 
+ 2026-10-16のS41で、初回fpsの本人選択と保存・復元、記録二候補の保持と非対応時の自動切替禁止、REC受付時の暦日時の一度の観測について本人の承認を得た。D1・D3と下表U6の初回fpsに適用し、他の未決事項や実機採用判断は確定へ変更しない。
+ 
++2026-10-18のS43で、音声の無到着2秒、本人再試行ごとの音声入力/出力だけ1回の再構成、復旧上限5秒について本人の承認を得た。復旧中も2秒の無到着判定が働く変更可能な暫定製品設定としてS1・U7へ適用し、実機採用・品質合格や負荷対応の未決事項は確定へ変更しない。
++
+ | ID・論点（PRDの対応） | R3確定部分と残る推奨案 | 影響・残件・判断時点 |
+ | --- | --- | --- |
+ | U1 ライブラリと破棄操作（Q03/Q04/Q11/R2/R3） | **確定**: 原本転送/写真保存/条件を満たす容量整理は複数選択してまとめて開始・実行、順次処理可、動画別に成否/未処理を表示。再生/明示確認/破棄は1本ずつ。**残る案**: 一撮影一行、録画後は撮影画面に留まる、容量整理/破棄の別ボタンと対象確認画面、破棄後の行保持。録画/保存中は新たな削除を待たせ、転送中は本人の停止後に対象/リスクを再確認 | 選択UI・全選択、処理順、一部失敗後の続行/停止、停止UI、競合待機の具体方式、破棄後の表示/記録保持は未合意。破棄済み専用一覧等も候補。録画中の別原本削除を許す案は負荷/競合評価が必要。複数整理でも動画別の安全条件は緩和せず、実装前に残件を合意 |
+@@ -426,7 +428,7 @@
+ | U4 ズームUI（Q05） | 目標倍率の選択→寄る側は枠、引く側は対応が確認できた別表示または範囲の図示で予告→「移動」でゆっくり開始→「停止」で途中停止。検証済み停止候補を明示し、候補が近くになければ指定倍率へ進み画質を断定しない。初期案は無断吸着なし | 操作が一段増えるが予告だけで倍率が変わらない。代案は押している間だけ動く操作、候補への弱い吸着。速度・遅延・触覚・近傍判定・許容差は実機評価前に合意。引く範囲の取得方式/負荷は未検証 |
+ | U5 人物なし・主役UI（Q06） | 人物タップで主役指定、露出対象は別選択。追跡OFFは人物優先AF。人物なしでは画面位置指定を使う風景AFを候補にする。初回撮影意図は本人に選んでもらい以後復元。見失い時は控えめな保持表示と再指定 | AF位置指定の対応は要検証。代案は風景用の継続AF、手動フォーカス操作追加。保持秒数、同一主役再捕捉、距離/照明/移動の評価条件は合意・実測して確定。人物＋背景を全域同時合焦の保証にしない |
+ | U6 レンズISO・補正・設定（Q07/Q08） | **S41確定**: 初回fpsは未選択から本人が24/30fpsを選び、以後保存して現在の条件と照合し復元する。**残る案**: 録画中は形式/fps/補正の手動切替を無効にし、実倍率/実カメラを表示。レンズを戻す場合も現在ISOを基準に限定補正し、手動ISO変更は以後の新しい基準にする。Lens Matchは必須に追加せず調査候補のまま | 代案はレンズ別ISO記憶、録画中補正切替、検証できたLens Match操作。補正上限・モードの数/名前/強さは能力確認と操作合意が必要。OFF＋複数モードの要求は維持。標準不成立なら要求再確認 |
+-| U7 音声復旧・負荷対応（Q10） | 入力名/入力状態/メーター/理由と「再試行」をまとめる。異常停止と保存結果確定後に必要範囲の音声再構成を有界に行い、直らなければ本人の開き直しを案内。負荷時はND/人物解析の頻度を落として保留表示にする候補 | 代案は再構成を毎回本人の再試行だけにする、解析停止の明示操作。障害判定の猶予、試行回数/時間、再構成範囲、熱/容量の基準は測定と合意が必要。音声省略・無限再試行・自動REC・勝手な補正/形式変更は不可 |
++| U7 音声復旧・負荷対応（Q10） | **S43暫定合意**: 無到着2秒、本人の「再試行」ごとに音声入力/出力だけ1回再構成、復旧上限5秒。復旧中も2秒の無到着判定を適用する。入力名/入力状態/メーター/理由と再試行をまとめ、異常停止と保存結果確定後に復旧する。**既存確定要件**: 再試行で直らなければ保存結果を示して本人の開き直し等を案内する。**残る案**: 案内の具体UI、負荷時にND/人物解析の頻度を落として保留表示にする方法 | 音声の数値・再構成範囲は変更可能な暫定製品設定で、実機採用・音声/同期/復旧品質はDV-10で確認する。負荷時の代案は解析停止の明示操作。負荷削減・熱/容量の基準は測定と合意が必要。音声省略・無限再試行・自動REC・勝手な補正/形式変更は不可 |
+ | U8 変換出力（Q09） | 1080p・HEVCを比較試験の第一候補とし、元fps・構図・向き・音声・撮影日時を保持する。固定の標準Rec.709変換を用い、味付けは加えない | 解像度/コーデック/品質・ビットレート/ビット深度/音声圧縮は未合意。容量と画質・再生互換を比較して決める。将来の版変更はS5に従い、LUT選択UIや一括再変換を初期版へ加えない |
+ 
+ ### 実機検証待ち
+--- before/docs/product-requirements.md
++++ after/docs/product-requirements.md
+@@ -473,7 +473,7 @@
+ | Q07 レンズ切替 | 元レンズへ戻す際のISO、補正上限、手動ISO変更後の基準、Lens Match操作の採否・条件 | 露出・レンズ切替の機能仕様と実機評価 |
+ | Q08 手ブレ補正等 | 採用済みのOFF＋複数モードの具体的な数・名前・強さ・UI・対応条件・制限・代替動作。外部機器の対応範囲は未決 | 撮影基盤の設計・実機評価 |
+ | Q09 変換 | 解像度・コーデック・品質／ビットレート・ビット深度・音声圧縮。1080p・HEVCは候補。将来のLUT変更・再生成・写真での版管理 | 変換・保存の機能仕様と比較試験。初期版対象外のUIを混入させない |
+-| Q10 音声・異常 | メーター・入力名・理由・再試行UI、障害判定の時間・猶予・対象、再構成範囲・上限・タイムアウト、音声復旧中の優先順位 | 録画・復旧の機能仕様と実機評価 |
++| Q10 音声・異常 | S43暫定合意（2026-10-18）: 無到着2秒、本人の再試行ごとに音声入力/出力だけ1回再構成、復旧上限5秒。復旧中も無到着2秒判定を適用する。残件: メーター・入力名・理由・再試行UIの詳細、その他の障害判定対象、音声復旧中の優先順位、暫定policyの実機採用・品質 | 変更可能な暫定製品設定として接続し、進捗・検証証跡はS43のtasklistを正本とする。実音声・同期・復旧品質はDV-10で確認し、今回合意を実機受入合格にしない |
+ | Q10 負荷等の候補 | 熱・負荷で減らす補助処理、容量の予約・開始不可／停止基準、OS中断の復旧と部分ファイル、警告方法 | 録画・復旧の機能仕様。初期要件第17.2節の提案を一律に確定動作へしない |
+ | Q11 確認・削除 | 確定: 同じMac生成軽量映像の版固定・streaming第一候補、端末失効commit後の応答と全必要応答後の公開、失効後の旧確認非復活、原本単位の失効／削除順序、再登録で旧確認を自動復元しないこと。戻らない旧登録は該当差し替えを無期限保留。残件: 配信／認証との実成立、一時使用量・解放、具体schema・照合／復旧方式、明示確認の文言等 | 連携仕様BI-08〜11とFR-13・14を維持。streamingの大きな制約時は一時取得との比較・代案を示し、全量取得必須へ無断変更しない。ローカル削除照合にMac再接続を求めない |
+ | Q12 通信 | 確定: 全媒体Wi-Fi、OSが許す既開始upload／downloadの背景・ロック継続、媒体を含まないモバイル状態同期、全条件再確認後の自動再開、個別停止／再開／キャンセル・全件媒体停止、個別失敗後の独立続行と共通問題の待機。残件: API・OS接続、保存／復旧・二重処理防止、処理順・配置、通信量／頻度等の具体方式・値 | 連携仕様BI-03〜06に従って先行実装と実機成立を分離。前景成功だけで背景達成にせず、実機未確認を理由に確定対象を前景だけへ縮小しない |

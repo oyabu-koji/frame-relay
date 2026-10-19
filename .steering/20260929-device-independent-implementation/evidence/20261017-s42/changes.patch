@@ -1,0 +1,775 @@
+--- a/.steering/20260929-device-independent-implementation/design.md
++++ b/.steering/20260929-device-independent-implementation/design.md
+@@ -85,6 +85,8 @@
+ 
+ WBは記録終端まで固定し、本人再固定だけを許す。音声は音量・入力・到着・書込みを別々に実装する。障害確認で開始抑止／停止・可能部分保存、復旧は有限で手動RECへ戻す。解析は映像の解析用分岐を消費し、録画へ結果画像を戻さない。AFの主役・露出対象、NDの設定／WB／対象世代、ズーム予告のカメラ／補正／倍率世代を別に扱う。
+ 
++S42の再固定制御（2026-10-17）: 録画中の本人操作を、現在の再測定能力が確認できる場合だけ受け付ける。後方互換のoptional能力がnilなら未確認を保持する。対応するSDKのone-shot `autoWhiteBalance`から`locked`への遷移を観測し、現在gainの固定適用完了を再固定の確定に使う。固定秒数・品質閾値は導入せず、機器のmode/custom gains対応を照合する。測定中のSTOPは観測を失効させて現在gainを固定し、適用完了後に記録停止へ進む。旧context/tokenの観測・適用callbackは拒否し、記録終端後だけ待機Autoへ戻す。露出値は変更せず、次クリップは新しく測定する。実機の色・連続性・最終フレームの対応はDV-03で別に評価する。
++
+ ズームは目標選択時点では実倍率を変えない。制御中の観測実倍率で目標超過を防ぎ、目標・途中停止を同じ制御器へ渡す。停止支援候補は実カメラ・形式・解像度・補正の根拠付きとし、整数倍率だけで品質保証しない。設定は目的・根拠・適用範囲・版・変更箇所・未採用フラグ付きの暫定値、DV-08後の採用値を別記録する。数値・吸着方式・詳細設定画面を計画で追加決定しない。
+ 
+ D02資材は由来・版・利用条件・入力Log適合を先に確認する。資材適合待ちはS26変換本体／S48表示変換だけへ局所化し、周辺版管理・描画分離・既知入力機能試験を先行する。既知入力の技術試験は本人の画質採用試験ではない。出力1080p HEVC等は候補のまま、G3事前合意→DV-13評価→G5採用を維持する。
+--- a/.steering/20260929-device-independent-implementation/tasklist.md
++++ b/.steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,7 +12,12 @@
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-17、S41独立検証指摘2件の修正・限定検証完了）
++## 現在の再開点（2026-10-17、S41独立検証合格・S42実装完了）
++
++- **S41独立検証合格**: 本人の明示validateにより `implementation_validator` がS41修正後をread-only検証し、指摘なし・限定合格。E-S41-03の173入力と検証時現物hashは全一致、E-S41-02の実MOV→共通保存→再open→一覧→AVPlayer成功は関連依存不変を照合して継承。追加build/test不要と判定、検証中347fileとgit status不変。実機D01/G2B/Log/ProRes/画質・既知未完了を保持する。
++- **S42実装完了 / done**: 続く本人の条件付き明示implementに従い、通常撮影のWB固定・本人再固定・記録終端を接続。最終Unit64宣言/89展開ケース＋UI1件、Simulator testのbuildとgeneric iOS署名なしbuildが成功、失敗/skip/runtimeWarnings 0。173入力は実行版と一致。開始時347file/4,063,807bytesを `/private/tmp/fr-s42-20261017-9w3w5h1m/baseline/` に保全し、今回13file変更/334不変、新規/欠落/所有外変更0（追加証跡を除く）。証跡は `evidence/20261017-s42/`。実機色・継続性・最終フレーム品質は未確認。S42の独立最終検証は未実施で、次工程は同steeringの明示 `$validate-implementation` によるS42限定検証。S27詳細検証・S43以降は開始していない。
++
++### 直前の修正記録（履歴）
+ 
+ - **S41修正完了 / done**: 独立検証のP1（開始拒否後の終端欠落）とP2（遅延準備が離脱を解除）を修正。最終版の関連Unit50宣言/71展開ケース（新規23ケースを含む）とUI1件、Simulator build・generic iOS署名なしbuildが成功。失敗/skip/runtimeWarnings 0。E-S41-03と `evidence/20261017-s41-fixes/` に実行コマンド・結果・差分・版を記録。開始時345fileを `/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s41-fixes-20261017-l5fssrub/baseline/` に保全し、既存5ソース変更＋新規2ソースとtasklistだけを加算。実機D01/G2B/Log/ProRes・既知未完了項目は維持。次工程は同steeringの明示 `$validate-implementation`。S27詳細検証・S42以降・独立validationは開始していない。以下の2026-10-16記録は修正前の履歴。
+ 
+@@ -530,6 +535,7 @@
+ ### S41 撮影設定・実適用・記録保存を製品接続
+ 
+ - [x] Status: done
++  - E-S41-V01 / 2026-10-17 独立検証: `implementation_validator` がP1/P2修正後を限定合格・指摘なしと判定。173入力と旧保存再生統合の依存不変を照合し追加build/test不要、検証中347file不変。報告/構成確認/照合は `evidence/20261017-s42/s41-validation-report.txt` と同名関連証跡を参照。その後のS42変更はS42の限定回帰で確認し、S42独立検証は別に残す。以下E-S41-03の未検証表記は当時の履歴。
+   - E-S41-03 / 2026-10-17 修正完了: P1はNative本番submitが使用する開始判定で、現行WB所有・未試行の開始要求のSDK前提不成立だけに `notStarted` 終端を一度生成。旧世代/別context/重複/開始済み要求へ終端を偽装せず、一般commandFailed規則は保持。coordinatorの保存待機が終わり、再準備→再RECと離脱解放に進める。未開始をファイル確定・正常保存へ昇格しない。
+   - E-S41-03 / 離脱境界: 明示入場ごとにvisitを発行し、load/discover/設定適用/prepareとViewの連続呼出しを同visitへ束縛。各await後にvisit/離脱/取消を照合し、準備完了前は各呼出しが自身のdeviceを所有。旧処理・旧shutdownが新しいdeviceやbusy状態を消さない。録画/保存ownerは終端まで継続。背景後は新しい本人操作で再準備する。離脱中に遅延設定saveが完了した場合は再読込を要求し、変更された記録方式の旧準備を再利用しない。
+   - E-S41-03 / 検証: Xcode27.0(27A266a)/Swift6.4、`FrameRelay.xcodeproj` / scheme・testPlan `FrameRelay` / Debug、実在Simulator `DFE46693-E8DD-4814-8957-4F327699F719`（iPhone18 Pro、iOS27.0）を再確認。最終 `final-tests` はUnit50宣言/71展開ケース＋UI1件成功、失敗0/skip0/runtimeWarnings0。新規23ケースはNative開始前WB/session/audio拒否・不正/重複開始、coordinator終端/再準備/離脱、遅延load/discover、factory/discover/prepare/previewの離脱と取消、再入場・旧shutdown・記録方式変更を故障注入。既存保存/保存再open、REC/STOP、探索経路、設定、Simulator通常撮影→一覧復帰も確認した。最終Simulator buildとgeneric iOS `CODE_SIGNING_ALLOWED=NO` build成功。Swift/compiler/analyzer診断0、ログには既存AppIntents依存なしのmetadata警告あり。初回同範囲成功後、遅延設定save後のload整合を修正し最終版で再実行した。
+@@ -563,7 +569,17 @@
+ 
+ ### S42 WB固定・再固定・記録終端を完成
+ 
+-- [ ] Status: pending
++- [x] Status: done
++  - E-S42-01 / 完了状態: 通常撮影にWB状態/未確認理由/本人合わせ直しを接続。現在能力が確認できた録画中だけ有効とし、連打・開始中・停止中・離脱後を拒否。Nativeのone-shot測定→Locked観測→現在値固定の適用と実gain読戻しを接続。STOP/離脱/音声障害は測定を失効して固定適用後に記録停止、固定失敗は中断を保持する。初回RECは安定待ちなし、記録終端後Auto、次clipは新測定。旧KVO/固定callbackをcontext/tokenで拒否し他露出設定APIは変更しない。
++  - E-S42-01 / 最終検証: Xcode27.0(27A266a)/Swift6.4・言語5.0・iOS27.0、FrameRelay.xcodeproj / scheme・test plan FrameRelay / Debug、実在Simulator `DFE46693-E8DD-4814-8957-4F327699F719` を再確認。test-02はUnit64宣言/89展開ケース＋UI1件成功、失敗/skip/runtimeWarnings 0。本人再固定・測定/適用待ちSTOP・離脱・音声障害・固定失敗・旧/逆順通知・二本・他手動値維持・未確認能力decodeを確認。S41開始拒否/遅延準備の回帰、実MOV→共通保存→再open→一覧→実AVPlayerも成功。Simulator testのbuildとgeneric iOS署名なしbuild-02成功、compiler/analyzer診断0、既存AppIntents metadata警告あり。
++  - E-S42-01 / 証跡・main差分: `evidence/20261017-s42/` に実行command/log/summary/source hash、初回compile失敗、S41独立検証報告、開始時manifest、今回差分と変更前後copyを保全。最終2実行の173入力と現物hash一致、13file変更/334不変、所有外/欠落/新規ソース0、`git diff --check`成功。既存のproject/Ports/保存/store/Composition/S27差分は不変。code9file、永続docs2file、design/tasklist2fileだけを加算した。
++  - substatus: WB境界・SDK候補・通常UI・S41製品接続・関連自動検証＝完了。実one-shot/KVO・実カメラ故障・色/最終フレーム・録画継続性・D01/G2Bは未確認、A03/DV-03へ引渡す。Simulator UIは未確認/無効表示と一覧復帰だけで、実録画中のUI操作を実機成功としない。旧探索P10の保留UI、S16監査、S27詳細保留、S43以降未着手を保持。S42独立最終検証は未実施。
++  - 2026-10-17開始: S41独立検証合格後、本人の明示implementでS42だけ開始。既存WB契約/Native候補を継承し、S41のnotStarted終端・visit/取消・SDK所有解放を保持する。substatus: 調査in-progress、WB境界/UI製品接続/関連自動検証pending、実機色/連続性は未確認。
++  - 所有: main＝本tasklist・証跡・build/test実行・最終diff。`s42_map`＝読取調査。予定worker `s42_impl`＝Application/Capture（RecordingSaveLifecycleを除く）、Domain/Capture、Platform/CaptureのWB制御、Features/Captureと対応testのみ。共有Ports/Composition/保存/store/project/docs変更が必要なら着手前にmainへ依頼し、重複所有しない。
++  - 調査/内部方式（2026-10-17）: `s42_map` の読取調査とXcode27 SDKのAVCaptureDevice契約を根拠に、本人操作で対応するone-shot Autoを開始し、Lockedへの遷移観測→現在gain固定の適用完了で再固定を確定する。固定の測定秒数・色の品質閾値は追加しない。機器のmode/custom gains能力を照合し、未確認/非対応を成功にしない。STOP競合は測定観測を失効させ、現在値の固定適用後に記録停止する。SDKと同じ順序制御を故障注入対象とし、実機色/継続性はDV-03へ残す。
++  - worker `s42_impl` へ上記所有を正式束縛。Domainの後方互換optional再固定能力、Native制御、coordinator操作/可否、WB状態/操作UIと関連testを実装中。既存通常撮影UI fixtureはないため、専用Composition導線は追加せず、Simulatorの未確認/無効表示と一覧復帰をUI検証し、録画中の境界はApplication/Native共用制御testで検証する。
++  - 初回検証: 確認済みXcode27/Debug/FrameRelay scheme・test plan/iOS27 Simulatorで関連test-01を実行したが、新規WB順序testのmutating呼出しを直接 `#expect` に渡したマクロ展開がcompile errorとなりexit65、テスト0件。generic iOS署名なしbuild-01は成功。両実行の172ソース入力は実行中不変。旧失敗は一時rootのlog/xcresult/summaryへ保持し、workerがtest記述とcurrent-gains固定時の実適用読戻しを限定補強中。成功へ読み替えない。
++  - 文書所有追加: `s42_docs` document_authorがfunctional-design/architectureのWB操作/SDK境界だけを限定同期。mainがdesignのS42内部方式を追記。既存文書差分を保持し、実機品質の達成や要求変更は記載しない。
+   - Depends: Start＝N01・既存WB契約（境界制御・UI・単体試験）。Finish＝S41の実接続。着手時に独立部分と接続部分を別substatusで記録し、接続まで満たす前はtask全体をdoneにしない。
+   - Owner / Files: O-CAPTURE／`FrameRelay/Application/Capture/`・`FrameRelay/Platform/Capture/` のWB制御、`FrameRelay/Features/Capture/` と対応test。
+   - Done when: 安定待ちなしREC、本人再固定、最後の記録フレームまで固定、終端後Auto・次クリップ新測定。
+@@ -767,9 +783,9 @@
+ | FR-03 | AC-FR-03-03 | 3場面品質・設定不変 | P05/P06/P13;CF-06 | EC:能力/適用契約 | S44,S4V | dep(S44,S4V)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04、DV-11 |
+ | FR-03 | AC-FR-03-04 | 補正画角・予告・切替保持 | P05/P06/P13;CF-06 | EC:能力/適用契約 | S44,S47 | dep(S44,S47)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04、DV-08、DV-09 |
+ | FR-03 | AC-FR-03-05 | 標準不成立の制約と相談 | P05/P06/P13;CF-06 | EC:能力/適用契約 | S44 | dep(S44)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04 |
+-| FR-04 | AC-FR-04-01 | 安定前RECと固定 | P05/P06/P10;CF-03 | EC:WB順序規則/探索 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-03 |
+-| FR-04 | AC-FR-04-02 | 本人再固定・他設定維持・品質 | P05/P06/P10;CF-03 | EC:WB順序規則/探索 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-03 |
+-| FR-04 | AC-FR-04-03 | 最終フレーム・待機Auto・二本 | P05/P06/P10;CF-03 | EC:WB順序規則/探索 | S42,S46 | dep(S42,S46)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-03、DV-07 |
++| FR-04 | AC-FR-04-01 | 安定前RECと固定 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | 安定待ちなしの既存固定・製品接続済 | Unit89/UI1・iOS build成功、早期STOP/旧callback回帰 | D0 | 制御の部分証拠・実色/記録開始未確認 | DV-03 |
++| FR-04 | AC-FR-04-02 | 本人再固定・他設定維持・品質 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | 対応能力確認/SDK再測定/固定/本人UI接続済 | Unit89/UI1・iOS build成功、重複/STOP/離脱/失敗/他手動値保持 | D0 | 本体/制御の部分証拠・実機色/継続性未確認 | DV-03 |
++| FR-04 | AC-FR-04-03 | 最終フレーム・待機Auto・二本 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42,S46 | dep(S42,S46)＋対応A/Q01 | O-CAPTURE | 終端後Auto/二本新測定/旧通知拒否接続済、NDはS46 | Unit89/UI1・iOS build成功、測定/固定待ちSTOP/二本/逆順 | D0 | 終端制御の部分証拠・実最終フレーム/ND統合未確認 | DV-03、DV-07 |
+ | FR-05 | AC-FR-05-01 | 複数露出対象と単一主役・意図 | P05のREC非依存のみ;CF-09部分/後続必須 | E0（旧計画の後続要求のみ） | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | I0 | A0 | D0 | R0 | DV-06 |
+ | FR-05 | AC-FR-05-02 | 見失い保持・同一再捕捉・再指定 | P05のREC非依存のみ;CF-09部分/後続必須 | E0（旧計画の後続要求のみ） | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | I0 | A0 | D0 | R0 | DV-06 |
+ | FR-05 | AC-FR-05-03 | 人物未確定でもREC | P05のREC非依存のみ;CF-09部分/後続必須 | EC:REC非依存規則のみ | S45,S41 | dep(S45,S41)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-06 |
+@@ -923,6 +939,7 @@
+ ### A03 / DV-03 WB
+ 
+ - [ ] Status: pending
++  - 先行引渡し E-S42-01: 通常撮影の本人再固定、測定/固定適用とSTOPの順序、終端後Auto、二本/旧通知拒否を接続し、関連Unit89ケース/UI1・iOS build成功。Simulatorは実カメラでのone-shot測定/KVO、色、最終フレーム、継続性を証明しない。両記録候補・対応能力・実機版を束縛して下記操作を実施する。
+   - Depends: S42,Q01,A01の該当記録経路。
+   - 関連AC・gate: AC-FR-04-01〜03、AC-CF-03。
+   - 対象・操作: 1. Auto安定前にREC。2. 録画中に本人が再固定、他手動値も記録。3. STOP直後に待機Autoを確認し次の1本。4. 最後の記録フレームまで設定と色を照合。
+@@ -1107,6 +1124,8 @@
+ | E-S41-01 | 2026-10-16、worker/main | S41・限定V-CAPTURE/STORE/PLAY/UI | test-01-sources170file、Xcode27/Debug/iOS27 Simulator＋generic iOS | commands.json、共通保存→実MOV→bind→再open→Library→AVPlayer、設定/日時/旧schema/早期STOP、通常撮影UI | Simulator/iOS build成功、33Unit/48展開ケース・UI1成功、失敗0/skip0。日時provider未接続で製品REC無効 | `evidence/20261016-s41/`。初回fps/候補/日時観測点の本人回答待ち。実機D01/G2B/画質、S27詳細、独立validationは未確認 |
+ | E-S41-02 | 2026-10-16、worker/document_author/main | S41承認反映・REC有効化・限定回帰 | test-01-sources170file、前回からfactory時計注入1行のみ | commands.json、設定/coordinator/実保存再生/UI、generic iOS build | Unit13宣言/14展開ケース・UI1成功、失敗0/skip0/runtimeWarnings0、iOS build成功。製品RECは条件成立時有効 | `evidence/20261016-s41-approved/`。S41実装完了、実機D01/G2B/画質・S27詳細・独立validationは未確認 |
+ | E-S41-03 | 2026-10-17、explorer/worker/main | S41独立指摘P1/P2修正・限定回帰 | final-tests/final-buildの173入力file一致、Xcode27/Debug/iOS27 Simulator＋generic iOS | commands.txt、Native開始前拒否の終端、遅延load/discover/prepare/取消/再入場/旧shutdown/設定保存、既存保存・UI | 最終Unit50宣言/71展開ケース（新規23）・UI1成功、失敗0/skip0/runtimeWarnings0、Simulator/iOS build成功 | `evidence/20261017-s41-fixes/`。実機D01/G2B/画質・既知未完了事項保持。独立validation未実施 |
++| E-S41-V01 | 2026-10-17、implementation_validator/main | S41修正後限定独立検証 | E-S41-03の173入力、S42開始前347file不変 | 保存証拠/現物hash・構成/差分・故障境界を照合、旧保存再生証拠継承 | 合格・指摘なし、追加build/testなし | `evidence/20261017-s42/s41-validation-report.txt`。S41限定、実機/全体/S42は判定外 |
++| E-S42-01 | 2026-10-17、explorer/worker/document_author/main | S42、AC-FR-04-01〜03/AC-CF-03、限定回帰 | test-02/ios-build-02の173入力一致、Xcode27/Debug/iOS27 Simulator＋generic iOS | `*-run.json`、WB測定/STOP/遅延/二本/失敗、S41回帰、実MOV保存→一覧→AVPlayer、UI | Unit64宣言/89展開＋UI1成功、失敗/skip/runtimeWarnings0、build成功。初回test compile失敗0実行は保持 | `evidence/20261017-s42/`。実機/DV-03/既知残件/S42独立validation未確認 |
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+ 
+@@ -1128,6 +1147,8 @@
+ | V-REVIEW-S41部分 | test-01-sources170file/changes.patch、既存15＋新規16 | main | 共有予約/intent前REC禁止/早期STOP/世代/最新音声入力/保存・一覧更新中の所有/旧日時非補完/範囲を確認。非ready beginの一覧refreshと保存refresh終了前の再RECを修正。S27本体保持 | E-S41-01、main-scope-review.json。限定48case/UI1成功。本人判断未回答で製品REC無効/S41 blocked、独立validationではない |
+ | V-REVIEW-S41 | E-S41-02のtest-01-sources170file、今回5file変更/340file不変 | main | 3点の本人合意、factory時計注入、design/関連docsとの整合、テスト版一致、S27保持とS42以降未変更を確認 | E-S41-02、`evidence/20261016-s41-approved/main-scope-review.json`。S41実装範囲done、実機未確認、独立validationではない |
+ | V-REVIEW-S41修正 | E-S41-03のfinal-tests-sources173file、既存6file変更/339不変＋新規2ソース | main | Native本番と同じ終端producer、保存非成功、画面visit/取消/SDK owner解放、旧処理の混入防止、遅延設定変更時の再準備、既存差分/所有範囲を確認 | E-S41-03、`evidence/20261017-s41-fixes/main-scope-review.json`。S41修正done、独立validationではない |
++| V-INDEPENDENT-S41 | E-S41-V01、S42開始前のS41修正版 | implementation_validator/main | 開始拒否終端・未開始非正常保存、visit/取消/旧shutdown、保存/一覧/再生回帰を確認 | E-S41-V01、限定合格・指摘なし。validation中変更0 |
++| V-REVIEW-S42 | E-S42-01の173入力、今回13file差分 | main | 本人操作/能力未知保持、SDK one-shot/実gain、STOP時固定→終端、旧通知拒否、S41保持、他露出API未変更、旧docs保持を照合 | E-S42-01、`evidence/20261017-s42/main-scope-review.json`。S42実装done、独立validationではない |
+ 
+ ## 振り返り・引渡し
+ 
+--- a/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift
++++ b/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift
+@@ -61,6 +61,13 @@
+               preferences.desired != nil, preferences.outputCandidate != nil,
+               capture == nil || capture?.whiteBalance == .automatic else { return false }
+         return readiness(generation: generation, prepared: prepared).blockers.isEmpty
++    }
++
++    var canRefreshWhiteBalance: Bool {
++        guard !leaveRequested, captureVisit != nil, capture?.phase == .recording,
++              case .locked = capture?.whiteBalance,
++              prepared?.capabilities.whiteBalanceRefresh == .supported(true) else { return false }
++        return true
+     }
+ 
+     /// Only a visible screen's explicit entry may undo a prior leave request.
+@@ -241,6 +248,14 @@
+         await perform(transition)
+     }
+ 
++    /// Called only by the recording screen's explicit user action.
++    func refreshWhiteBalance() async {
++        guard canRefreshWhiteBalance, var lifecycle = capture else { return }
++        let transition = lifecycle.refreshWhiteBalance(operation: .init(rawValue: UUID().uuidString))
++        capture = lifecycle
++        await perform(transition)
++    }
++
+     /// Safe on navigation/background. Capture events and persistence continue until settled.
+     func leaveCapture() async {
+         leaveRequested = true
+--- a/FrameRelay/Domain/Capture/CaptureSettings.swift
++++ b/FrameRelay/Domain/Capture/CaptureSettings.swift
+@@ -78,6 +78,8 @@
+     let controlsForConfiguration: CaptureConfiguration?
+     let manualControls: CaptureCapability<CaptureManualLimits>
+     let whiteBalanceLock: CaptureCapability<Bool>
++    /// Optional for old persisted observations; missing is unconfirmed, never support.
++    var whiteBalanceRefresh: CaptureCapability<Bool>? = nil
+ }
+ 
+ nonisolated struct AppliedCaptureValues: Equatable, Sendable, Codable {
+--- a/FrameRelay/Features/Capture/ProductCaptureView.swift
++++ b/FrameRelay/Features/Capture/ProductCaptureView.swift
+@@ -61,6 +61,20 @@
+                             .font(.footnote)
+                     }
+                     VStack(alignment: .leading, spacing: 8) {
++                        Text("ホワイトバランス").font(.headline)
++                        Text(whiteBalanceDescription).accessibilityIdentifier("capture.whiteBalance")
++                        Button("WBを合わせ直す", systemImage: "white.balance.sun") {
++                            Task { await model.refreshWhiteBalance() }
++                        }
++                        .disabled(!model.canRefreshWhiteBalance || isClosing)
++                        .accessibilityIdentifier("capture.refreshWhiteBalance")
++                        if model.prepared != nil,
++                           model.prepared?.capabilities.whiteBalanceRefresh != .supported(true) {
++                            Text("この撮影条件ではWBの合わせ直しを利用できません。")
++                                .font(.footnote)
++                        }
++                    }
++                    VStack(alignment: .leading, spacing: 8) {
+                         Text("録画と直近の保存結果").font(.headline)
+                         Text(phaseDescription).accessibilityIdentifier("capture.phase")
+                         Text(saveDescription).accessibilityIdentifier("capture.save")
+@@ -140,6 +154,19 @@
+         model.capture?.phase == .starting || model.capture?.phase == .recording
+     }
+ 
++    private var whiteBalanceDescription: String {
++        guard model.prepared != nil else { return "未確認。カメラの準備後に状態を表示します。" }
++        switch model.capture?.whiteBalance {
++        case .automatic, nil: return "Auto・録画開始時の値で固定します"
++        case .locking: return "REC時点のWBを固定しています"
++        case .locked: return "固定中"
++        case .refreshing:
++            return model.capture?.phase == .stopping ? "停止に向けてWBを再固定しています" : "WBを再測定・再固定しています"
++        case .restoringAutomatic: return "録画終了・Autoへ戻しています"
++        case .unavailable: return "WBの適用を確認できません。撮影条件を確認して再準備してください。"
++        }
++    }
++
+     private var phaseDescription: String {
+         switch model.capture?.phase {
+         case .ready, nil: return model.canRecord ? "録画できます" : "準備待ち"
+--- a/FrameRelay/Platform/Capture/ExplorationWBCommandOrder.swift
++++ b/FrameRelay/Platform/Capture/ExplorationWBCommandOrder.swift
+@@ -1,11 +1,13 @@
+ /// Per-capture ordering, independent of camera I/O. An old clip cannot re-lock or
+ /// restore Auto over a later clip, even when ordinals restart at the same value.
+ nonisolated struct ExplorationWBCommandOrder: Sendable {
+-    private enum Stage { case locking, locked, restoring, automatic }
++    enum StopAction: Equatable { case stop, lockCurrent(CaptureCommandToken), waitForLock }
++    private enum Stage { case measuring, locking, locked, restoring, automatic }
+     let generation: CaptureGeneration
+     private var latest: CaptureCommandToken?
+     private var stage: Stage = .automatic
+     private var completed: Set<CaptureContext> = []
++    private var stopping = false
+ 
+     mutating func requestLock(_ token: CaptureCommandToken) -> Bool {
+         guard token.context.generation == generation, !completed.contains(token.context) else { return false }
+@@ -18,7 +20,38 @@
+         }
+         latest = token
+         stage = .locking
++        stopping = false
+         return true
++    }
++
++    mutating func requestRefresh(_ token: CaptureCommandToken) -> Bool {
++        guard let latest, latest.context == token.context, token.ordinal > latest.ordinal,
++              stage == .locked, !stopping, !completed.contains(token.context) else { return false }
++        self.latest = token
++        stage = .measuring
++        return true
++    }
++
++    /// Only the current one-shot measurement may initiate another SDK lock.
++    mutating func measurementCompleted(_ token: CaptureCommandToken) -> Bool {
++        guard latest == token, stage == .measuring, !stopping else { return false }
++        stage = .locking
++        return true
++    }
++
++    /// STOP cancels measuring Auto and waits for the current values to be fixed.
++    mutating func holdForStop(_ context: CaptureContext) -> StopAction {
++        guard let latest, latest.context == context else { return .stop }
++        stopping = true
++        switch stage {
++        case .measuring: stage = .locking; return .lockCurrent(latest)
++        case .locking: return .waitForLock
++        default: return .stop
++        }
++    }
++
++    func shouldStopAfterLock(_ token: CaptureCommandToken) -> Bool {
++        latest == token && stage == .locked && stopping
+     }
+ 
+     mutating func appliedLock(_ token: CaptureCommandToken) -> Bool {
+@@ -32,6 +65,7 @@
+               !completed.contains(token.context) else { return false }
+         self.latest = token
+         stage = .restoring
++        stopping = false
+         return true
+     }
+ 
+--- a/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
++++ b/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
+@@ -31,6 +31,7 @@
+     private var activeIntent: RecordingIntent?
+     private var activeToken: CaptureCommandToken?
+     private var wbOrder: ExplorationWBCommandOrder?
++    private var whiteBalanceObservation: NSKeyValueObservation?
+     private var startAdmission = NativeRecordingStartAdmission()
+     private var writer: AVAssetWriter?
+     private var videoReceiver: AVAssetWriterInput.SampleBufferReceiver?
+@@ -319,7 +320,8 @@
+             manualControls: .supported(.init(shutterSeconds: CMTimeGetSeconds(format.minExposureDuration)...CMTimeGetSeconds(format.maxExposureDuration),
+                                              iso: Double(format.minISO)...Double(format.maxISO), aperture: aperture,
+                                              zoom: Double(device.minAvailableVideoZoomFactor)...Double(device.maxAvailableVideoZoomFactor))),
+-            whiteBalanceLock: .supported(device.isWhiteBalanceModeSupported(.locked)))
++            whiteBalanceLock: .supported(device.isWhiteBalanceModeSupported(.locked)),
++            whiteBalanceRefresh: .supported(device.isWhiteBalanceModeSupported(.autoWhiteBalance)))
+         observe("aperture_readback", context: nil, time: observationTime, detail: "lens_aperture=\(device.lensAperture)")
+         return ExplorationPrepared(capabilities: capabilities, applied: applied, audio: audioState(writing: .notStarted))
+     }
+@@ -335,12 +337,15 @@
+                 guard activeToken == nil, wbOrder?.requestLock(token) == true else { return .rejected(token, .evidenceMismatch) }
+                 try lockCurrentWB(token)
+             case .refreshAndLockWhiteBalance:
+-                // P10 binds the explicit remeasurement interval; never fake a new Auto measurement.
+-                return .rejected(token, .adapterFailure(code: "wb_refresh_interval_unbound"))
++                guard activeToken?.context == token.context, !isFinishing, let device,
++                      device.isWhiteBalanceModeSupported(.autoWhiteBalance),
++                      wbOrder?.requestRefresh(token) == true else { return .rejected(token, .evidenceMismatch) }
++                try refreshWhiteBalance(token, device: device)
+             case .restoreAutomaticWhiteBalance:
+                 guard activeToken == nil, let device, wbOrder?.requestAutomatic(token) == true else {
+                     return .rejected(token, .evidenceMismatch)
+                 }
++                clearWhiteBalanceObservation()
+                 try device.lockForConfiguration()
+                 device.whiteBalanceMode = .continuousAutoWhiteBalance
+                 device.unlockForConfiguration()
+@@ -390,18 +395,66 @@
+         guard [gains.redGain, gains.greenGain, gains.blueGain].allSatisfy({ $0 >= 1 && $0 <= maximum }) else {
+             throw ExplorationIssue.capabilityUnconfirmed("wb_gains")
+         }
+-        let values = try CaptureWhiteBalanceGains(red: Double(gains.redGain), green: Double(gains.greenGain), blue: Double(gains.blueGain))
+         let measured = ExplorationCaptureValues.now()
+-        device.setWhiteBalanceModeLocked(with: gains) { [weak self] time in
+-            Task { await self?.whiteBalanceApplied(token: token, gains: values, measured: measured, time: time) }
+-        }
+-    }
+-
+-    private func whiteBalanceApplied(token: CaptureCommandToken, gains: CaptureWhiteBalanceGains,
+-                                     measured: CaptureTimeObservation, time: CMTime) {
+-        guard wbOrder?.appliedLock(token) == true, let preparation else { return }
++        observe("wb_lock_requested", context: token.context, time: measured, detail: "current_gains_no_stability_wait")
++        // Current-gains locking remains supported when custom device gains are not.
++        let requestedGains = device.isLockingWhiteBalanceWithCustomDeviceGainsSupported
++            ? gains : AVCaptureDevice.currentWhiteBalanceGains
++        device.setWhiteBalanceModeLocked(with: requestedGains) { [weak self] time in
++            Task { await self?.whiteBalanceApplied(token: token, time: time) }
++        }
++    }
++
++    private func refreshWhiteBalance(_ token: CaptureCommandToken, device: AVCaptureDevice) throws {
++        try device.lockForConfiguration()
++        defer { device.unlockForConfiguration() }
++        clearWhiteBalanceObservation()
++        // No initial notification: the previous locked state cannot finish this request.
++        // SDK one-shot Auto returns to locked when its measurement finishes; no timer
++        // or app-defined colour/stability threshold is used.
++        whiteBalanceObservation = device.observe(\.whiteBalanceMode, options: [.new]) { [weak self] _, change in
++            guard change.newValue == .locked else { return }
++            Task { await self?.whiteBalanceMeasurementCompleted(token) }
++        }
++        device.whiteBalanceMode = .autoWhiteBalance
++    }
++
++    private func whiteBalanceMeasurementCompleted(_ token: CaptureCommandToken) {
++        guard activeToken?.context == token.context, !isFinishing,
++              wbOrder?.measurementCompleted(token) == true else { return }
++        clearWhiteBalanceObservation()
++        do { try lockCurrentWB(token) }
++        catch { whiteBalanceFailedDuringRecording(token) }
++    }
++
++    private func clearWhiteBalanceObservation() {
++        whiteBalanceObservation?.invalidate()
++        whiteBalanceObservation = nil
++    }
++
++    private func whiteBalanceFailedDuringRecording(_ token: CaptureCommandToken) {
++        clearWhiteBalanceObservation()
++        let reason = CaptureUnavailableReason.adapterFailure(code: "wb_refix_failed")
++        stopFailure = reason
++        emit(.commandFailed(token, reason))
++        // A failed camera lock must not strand recording behind a missing callback.
++        finishStopRecording()
++    }
++
++    private func whiteBalanceApplied(token: CaptureCommandToken, time: CMTime) {
++        guard wbOrder?.appliedLock(token) == true, let preparation, let device else { return }
++        let actual = device.deviceWhiteBalanceGains
++        guard device.whiteBalanceMode == .locked,
++              let gains = try? CaptureWhiteBalanceGains(red: Double(actual.redGain), green: Double(actual.greenGain),
++                                                        blue: Double(actual.blueGain)) else {
++            let reason = CaptureUnavailableReason.adapterFailure(code: "wb_lock_readback_unconfirmed")
++            emit(.commandFailed(token, reason))
++            if activeToken != nil { stopFailure = reason; finishStopRecording() }
++            return
++        }
+         let applied = ExplorationCaptureValues.time(time, clock: .captureDevice(camera: preparation.desired.configuration.camera), source: "WB-completion")
+-        emit(.whiteBalanceLocked(token, .init(gains: gains, measuredAt: measured, appliedAt: applied)))
++        emit(.whiteBalanceLocked(token, .init(gains: gains, measuredAt: ExplorationCaptureValues.now(), appliedAt: applied)))
++        if wbOrder?.shouldStopAfterLock(token) == true { finishStopRecording() }
+         // Clock conversion is recorded as a derived mapping, not as an identical clock.
+         if let deviceClock, let clock = session?.synchronizationClock {
+             let mapped = CMSyncConvertTime(time, from: deviceClock, to: clock)
+@@ -437,6 +490,8 @@
+ 
+     func shutDown() {
+         guard activeToken == nil else { stopRecording(); return }
++        clearWhiteBalanceObservation()
++        wbOrder = nil
+         session?.stopRunning()
+         videoOutput?.setSampleBufferDelegate(nil, queue: nil)
+         audioOutput?.setSampleBufferDelegate(nil, queue: nil)
+@@ -650,6 +705,18 @@
+     }
+ 
+     private func stopRecording() {
++        guard let activeToken, !isFinishing else { return }
++        switch wbOrder?.holdForStop(activeToken.context) ?? .stop {
++        case .stop: finishStopRecording()
++        case .waitForLock: break
++        case .lockCurrent(let token):
++            clearWhiteBalanceObservation()
++            do { try lockCurrentWB(token) }
++            catch { whiteBalanceFailedDuringRecording(token) }
++        }
++    }
++
++    private func finishStopRecording() {
+         guard activeToken != nil, !isFinishing else { return }
+         isFinishing = true
+         durationTask?.cancel()
+@@ -701,6 +768,7 @@
+ 
+     private func finish(token: CaptureCommandToken, evidence: RecordingEndEvidence) async {
+         guard activeToken == token, let intent = activeIntent else { return }
++        clearWhiteBalanceObservation()
+         durationTask?.cancel()
+         durationTask = nil
+         activeToken = nil
+--- a/FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift
++++ b/FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift
+@@ -4,6 +4,144 @@
+ 
+ @MainActor
+ struct ProductCaptureCoordinatorTests {
++    @Test func explicitRefreshKeepsRecordingAndManualSettingsThenNextClipMeasuresAgain() async throws {
++        let fixture = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: fixture, holdRefresh: true)
++        let save = ProductCaptureTestSave()
++        let model = model(preferences: ProductCaptureTestPreferences(fixture: fixture), device: device, save: save)
++        await model.load(); await model.prepare()
++        #expect(!model.canRefreshWhiteBalance)
++        await model.refreshWhiteBalance()
++        #expect(await device.refreshCount == 0)
++        await model.record()
++        await eventually { model.canRefreshWhiteBalance }
++        let values = model.prepared?.applied.values
++        let refreshed = CaptureWhiteBalanceLock(gains: try .init(red: 2, green: 1, blue: 1.5),
++                                                measuredAt: fixture.time, appliedAt: fixture.time)
++        await device.setNextWhiteBalance(refreshed)
++        await model.refreshWhiteBalance()
++        #expect(model.capture?.phase == .recording)
++        #expect(!model.canRefreshWhiteBalance)
++        await model.refreshWhiteBalance()
++        #expect(await device.refreshCount == 1)
++        await device.completeWhiteBalanceMeasurement()
++        #expect(!model.canRefreshWhiteBalance) // SDK measurement alone is not an applied lock.
++        await device.completeWhiteBalanceLock()
++        await eventually { model.canRefreshWhiteBalance }
++        #expect(model.capture?.whiteBalance == .locked(refreshed))
++        #expect(model.prepared?.applied.values == values)
++        #expect(model.preferences.desired?.exposure == fixture.desired.exposure)
++        #expect(await device.startCount == 1)
++        #expect(await save.ends.isEmpty)
++        let oldContext = try #require(model.capture?.context)
++        let oldRefresh = try #require(await device.commands.compactMap { command -> CaptureCommandToken? in
++            if case .refreshAndLockWhiteBalance(let token) = command { return token }; return nil
++        }.first)
++        await model.stop()
++        await eventually { model.canRecord }
++        #expect(model.capture?.whiteBalance == .automatic)
++        let second = CaptureWhiteBalanceLock(gains: try .init(red: 1.7, green: 1, blue: 2),
++                                             measuredAt: fixture.time, appliedAt: fixture.time)
++        await device.setNextWhiteBalance(second)
++        await model.record()
++        await eventually { model.canRefreshWhiteBalance }
++        #expect(model.capture?.context != oldContext)
++        #expect(model.capture?.whiteBalance == .locked(second))
++        await device.emit(.capture(.whiteBalanceLocked(oldRefresh, refreshed)))
++        await device.repeatLastEndAndFile()
++        for _ in 0..<20 { await Task.yield() }
++        #expect(model.capture?.whiteBalance == .locked(second))
++        #expect(model.capture?.phase == .recording)
++        #expect(await save.ends.count == 1)
++        #expect(await device.startCount == 2)
++        await model.stop()
++        await eventually { model.canRecord }
++        #expect(await save.ends.count == 2)
++        #expect(await save.files.count == 2)
++        await model.leaveCapture()
++    }
++
++    @Test(arguments: ["stop", "leave", "audio", "lockFailure"])
++    func refreshCancellationRefixesBeforeTerminationAndOldCallbacksCannotReviveIt(cause: String) async throws {
++        let fixture = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: fixture, holdRefresh: true)
++        let save = ProductCaptureTestSave()
++        let model = model(preferences: ProductCaptureTestPreferences(fixture: fixture), device: device, save: save)
++        await model.load(); await model.prepare(); await model.record()
++        await eventually { model.canRefreshWhiteBalance }
++        await model.refreshWhiteBalance()
++        let context = try #require(model.capture?.context)
++        switch cause {
++        case "leave": await model.leaveCapture()
++        case "audio":
++            var failed = fixture.audio
++            failed.input = .failed(.confirmedNoSamples(.init(rawValue: "synthetic-audio")))
++            await device.emit(.capture(.audioObserved(context, sequence: 1, failed)))
++            await eventually { model.capture?.phase == .stopping }
++        case "lockFailure": await device.failWhiteBalanceLock()
++        default: await model.stop()
++        }
++        if cause != "lockFailure" {
++            #expect(model.capture?.phase == .stopping)
++            #expect(await save.ends.isEmpty)
++            #expect(await device.shutdowns == 0)
++            await device.completeWhiteBalanceMeasurement() // cancelled KVO is ignored
++            #expect(await save.ends.isEmpty)
++            await device.completeWhiteBalanceLock()
++        }
++        await eventually { !model.isSaving }
++        if cause == "leave" { await eventually { model.capture == nil } }
++        else { await eventually { model.capture?.whiteBalance == .automatic } }
++        #expect(await save.ends.count == 1)
++        #expect(await save.files.count == 1)
++        if cause == "lockFailure" {
++            #expect(await save.ends.first?.writer == .interrupted(.adapterFailure(code: "synthetic-wb-lock")))
++        }
++        await device.completeWhiteBalanceMeasurement()
++        await device.completeWhiteBalanceLock()
++        for _ in 0..<20 { await Task.yield() }
++        #expect(await device.startCount == 1)
++        #expect(await save.ends.count == 1)
++        #expect(!model.canRefreshWhiteBalance)
++        await model.leaveCapture()
++    }
++
++    @Test func earlySTOPDoesNotWaitForInitialWBCallbackOrAcceptItAfterTerminal() async throws {
++        let fixture = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: fixture, holdInitialLock: true)
++        let save = ProductCaptureTestSave()
++        let model = model(preferences: ProductCaptureTestPreferences(fixture: fixture), device: device, save: save)
++        await model.load(); await model.prepare(); await model.record()
++        #expect(model.capture?.phase == .starting)
++        await model.stop()
++        await eventually { !model.isSaving && model.capture?.whiteBalance == .automatic }
++        #expect(await device.startCount == 0)
++        #expect(await save.ends.first?.writer == .notStarted)
++        await device.completeWhiteBalanceLock()
++        for _ in 0..<20 { await Task.yield() }
++        #expect(model.capture?.whiteBalance == .automatic)
++        #expect(await device.startCount == 0)
++        #expect(model.saveResult == nil)
++        await model.leaveCapture()
++    }
++
++    @Test func unsupportedRefreshDoesNotBlockRECOrSubmitAnUnsupportedCommand() async throws {
++        let fixture = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: fixture, refreshSupported: false)
++        let model = model(preferences: ProductCaptureTestPreferences(fixture: fixture), device: device, save: ProductCaptureTestSave())
++        await model.load(); await model.prepare()
++        #expect(model.canRecord)
++        await model.record()
++        await eventually { model.capture?.phase == .recording }
++        #expect(!model.canRefreshWhiteBalance)
++        await model.refreshWhiteBalance()
++        #expect(await device.refreshCount == 0)
++        #expect(model.capture?.phase == .recording)
++        await model.stop()
++        await eventually { model.canRecord }
++        await model.leaveCapture()
++    }
++
+     @Test func wishesPersistIndependentlyAndMissingChoicesNeverStartRecording() async throws {
+         let fixture = try CaptureFixture()
+         let preferences = ProductCaptureTestPreferences()
+@@ -468,6 +606,9 @@
+     private let fixture: CaptureFixture
+     private let differ: Bool
+     private let rejectStart: Bool
++    private let holdInitialLock: Bool
++    private let holdRefresh: Bool
++    private let refreshSupported: Bool
+     private let discoverGate: ProductCaptureTestGate?
+     private let prepareGate: ProductCaptureTestGate?
+     private let previewGate: ProductCaptureTestGate?
+@@ -476,6 +617,10 @@
+     private var wbOrder: ExplorationWBCommandOrder?
+     private var generation: CaptureGeneration?
+     private var activeToken: CaptureCommandToken?
++    private var pendingLock: CaptureCommandToken?
++    private var pendingMeasurement: CaptureCommandToken?
++    private var pendingStop: CaptureCommandToken?
++    private var nextLock: CaptureWhiteBalanceLock
+     private(set) var preparations = 0
+     private(set) var sessionActive = false
+     private let stream: AsyncStream<ExplorationDeviceEvent>
+@@ -485,10 +630,14 @@
+     private(set) var commands: [CaptureIOCommand] = []
+     private(set) var shutdowns = 0
+     var startCount: Int { commands.filter { if case .startRecording = $0 { return true }; return false }.count }
++    var refreshCount: Int { commands.filter { if case .refreshAndLockWhiteBalance = $0 { return true }; return false }.count }
+     init(fixture: CaptureFixture, differ: Bool = false, rejectStart: Bool = false,
+          discoverGate: ProductCaptureTestGate? = nil, prepareGate: ProductCaptureTestGate? = nil,
+-         previewGate: ProductCaptureTestGate? = nil, shutdownGate: ProductCaptureTestGate? = nil) {
++         previewGate: ProductCaptureTestGate? = nil, shutdownGate: ProductCaptureTestGate? = nil,
++         holdInitialLock: Bool = false, holdRefresh: Bool = false, refreshSupported: Bool = true) {
+         self.fixture = fixture; self.differ = differ; self.rejectStart = rejectStart
++        self.holdInitialLock = holdInitialLock; self.holdRefresh = holdRefresh; self.refreshSupported = refreshSupported
++        nextLock = fixture.lock
+         self.discoverGate = discoverGate; self.prepareGate = prepareGate
+         self.previewGate = previewGate; self.shutdownGate = shutdownGate
+         let pair = AsyncStream<ExplorationDeviceEvent>.makeStream()
+@@ -519,7 +668,8 @@
+         let c = fixture.capabilities
+         let exposure = differ ? try CaptureManualExposure(shutter: fixture.desired.exposure.shutter, iso: 161, aperture: nil) : fixture.desired.exposure
+         return .init(capabilities: .init(generation: request.generation, configurations: c.configurations,
+-            controlsForConfiguration: c.controlsForConfiguration, manualControls: c.manualControls, whiteBalanceLock: c.whiteBalanceLock),
++            controlsForConfiguration: c.controlsForConfiguration, manualControls: c.manualControls,
++            whiteBalanceLock: c.whiteBalanceLock, whiteBalanceRefresh: .supported(refreshSupported)),
+             applied: .init(generation: request.generation, operation: request.operation,
+                 values: .observed(.init(configuration: request.desired.configuration, exposure: exposure, zoom: request.desired.zoom),
+                     at: fixture.time, method: .direct(source: "synthetic"))), audio: fixture.audio)
+@@ -528,8 +678,9 @@
+         commands.append(command)
+         switch command {
+         case .lockCurrentWhiteBalance(let token):
+-            guard wbOrder?.requestLock(token) == true, wbOrder?.appliedLock(token) == true else { return .rejected(token, .evidenceMismatch) }
+-            emit(.capture(.whiteBalanceLocked(token, fixture.lock)))
++            guard wbOrder?.requestLock(token) == true else { return .rejected(token, .evidenceMismatch) }
++            pendingLock = token
++            if !holdInitialLock { completeWhiteBalanceLock() }
+         case .restoreAutomaticWhiteBalance(let token):
+             guard wbOrder?.requestAutomatic(token) == true, wbOrder?.appliedAutomatic(token) == true else { return .rejected(token, .evidenceMismatch) }
+             emit(.capture(.automaticWhiteBalanceRestored(token, fixture.time)))
+@@ -546,14 +697,48 @@
+             activeToken = token
+             emit(.capture(.recordingStarted(token, fixture.time)))
+         case .stopRecording(let token, _):
+-            guard activeToken == token, let intent else { return .rejected(token, .evidenceMismatch) }
+-            activeToken = nil
+-            lastEvents = [.capture(.recordingEnded(token, fixture.end)),
+-                .fileFinalized(.init(context: intent.context, original: intent.original, byteCount: 4096, finalizedAt: fixture.time))]
+-            for event in lastEvents { emit(event) }
+-        case .refreshAndLockWhiteBalance: break
++            guard activeToken == token else { return .rejected(token, .evidenceMismatch) }
++            pendingStop = token
++            switch wbOrder?.holdForStop(token.context) ?? .stop {
++            case .stop: finishRecording(token)
++            case .lockCurrent(let refresh):
++                pendingLock = refresh
++                if !holdRefresh { completeWhiteBalanceLock() }
++            case .waitForLock: break
++            }
++        case .refreshAndLockWhiteBalance(let token):
++            guard refreshSupported, wbOrder?.requestRefresh(token) == true else { return .rejected(token, .unsupported) }
++            pendingMeasurement = token
++            if !holdRefresh { completeWhiteBalanceMeasurement(); completeWhiteBalanceLock() }
+         }
+         return .accepted(command.token)
++    }
++    func setNextWhiteBalance(_ lock: CaptureWhiteBalanceLock) { nextLock = lock }
++    func completeWhiteBalanceMeasurement() {
++        guard let token = pendingMeasurement, wbOrder?.measurementCompleted(token) == true else { return }
++        pendingMeasurement = nil
++        pendingLock = token
++    }
++    func completeWhiteBalanceLock() {
++        guard let token = pendingLock, wbOrder?.appliedLock(token) == true else { return }
++        pendingLock = nil
++        emit(.capture(.whiteBalanceLocked(token, nextLock)))
++        if wbOrder?.shouldStopAfterLock(token) == true, let stop = pendingStop { finishRecording(stop) }
++    }
++    func failWhiteBalanceLock() {
++        guard let token = pendingLock ?? pendingMeasurement else { return }
++        emit(.capture(.commandFailed(token, .adapterFailure(code: "synthetic-wb-lock"))))
++        if let activeToken { finishRecording(activeToken, failed: true) }
++    }
++    private func finishRecording(_ token: CaptureCommandToken, failed: Bool = false) {
++        guard activeToken == token, let intent else { return }
++        activeToken = nil
++        pendingStop = nil
++        let end = failed ? RecordingEndEvidence(writer: .interrupted(.adapterFailure(code: "synthetic-wb-lock")),
++            ceasedAt: fixture.time, lastVideo: fixture.time, lastAudio: fixture.time) : fixture.end
++        lastEvents = [.capture(.recordingEnded(token, end)),
++            .fileFinalized(.init(context: intent.context, original: intent.original, byteCount: 4096, finalizedAt: fixture.time))]
++        for event in lastEvents { emit(event) }
+     }
+     func emit(_ event: ExplorationDeviceEvent) { continuation.yield(event) }
+     func repeatLastEndAndFile() { for event in lastEvents { emit(event) } }
+--- a/FrameRelayTests/Platform/Capture/ExplorationWBCommandOrderTests.swift
++++ b/FrameRelayTests/Platform/Capture/ExplorationWBCommandOrderTests.swift
+@@ -2,6 +2,57 @@
+ @testable import FrameRelay
+ 
+ struct ExplorationWBCommandOrderTests {
++    @Test(arguments: [true, false])
++    func stopDuringMeasurementOrDelayedRelockWaitsForAppliedCurrentValues(measurementEnded: Bool) throws {
++        let fixture = try CaptureFixture()
++        var order = ExplorationWBCommandOrder(generation: fixture.context.generation)
++        #expect(order.requestLock(fixture.token(2)) == true)
++        #expect(order.appliedLock(fixture.token(2)) == true)
++        let refresh = fixture.token(4)
++        #expect(order.requestRefresh(refresh) == true)
++        #expect(!order.canStart(fixture.context))
++        #expect(order.requestRefresh(fixture.token(5)) == false)
++        if measurementEnded { #expect(order.measurementCompleted(refresh) == true) }
++        #expect(order.holdForStop(fixture.context) == (measurementEnded ? .waitForLock : .lockCurrent(refresh)))
++        #expect(order.measurementCompleted(refresh) == false) // delayed/duplicate KVO cannot start another lock
++        #expect(order.holdForStop(fixture.context) == .waitForLock)
++        #expect(!order.shouldStopAfterLock(refresh))
++        #expect(order.appliedLock(fixture.token(2)) == false) // earlier completion delivered out of order
++        #expect(order.appliedLock(refresh) == true)
++        #expect(order.shouldStopAfterLock(refresh))
++        #expect(order.appliedLock(refresh) == false)
++        #expect(order.holdForStop(fixture.context) == .stop)
++        #expect(order.requestAutomatic(fixture.token(6)) == true)
++        #expect(order.appliedAutomatic(fixture.token(6)) == true)
++        #expect(order.measurementCompleted(refresh) == false)
++        #expect(order.appliedLock(refresh) == false)
++    }
++
++    @Test func oneShotMeasurementIsExplicitAndCompletedOnlyOnce() throws {
++        let fixture = try CaptureFixture()
++        var order = ExplorationWBCommandOrder(generation: fixture.context.generation)
++        #expect(order.requestRefresh(fixture.token(1)) == false) // standby cannot start Auto remeasurement
++        #expect(order.requestLock(fixture.token(2)) == true)
++        #expect(order.requestRefresh(fixture.token(3)) == false) // initial lock not yet applied
++        #expect(order.appliedLock(fixture.token(2)) == true)
++        #expect(order.measurementCompleted(fixture.token(4)) == false) // no request, even if SDK reports locked
++        #expect(order.requestRefresh(fixture.token(4)) == true)
++        #expect(order.appliedLock(fixture.token(4)) == false) // measurement is not yet an applied lock
++        #expect(order.measurementCompleted(fixture.token(4)) == true)
++        #expect(order.measurementCompleted(fixture.token(4)) == false)
++        #expect(order.appliedLock(fixture.token(4)) == true)
++        #expect(!order.shouldStopAfterLock(fixture.token(4)))
++        #expect(order.requestRefresh(fixture.token(5)) == true)
++        #expect(order.requestAutomatic(fixture.token(6)) == true) // unexpected recording end supersedes measurement
++        #expect(order.measurementCompleted(fixture.token(5)) == false)
++        #expect(order.appliedAutomatic(fixture.token(6)) == true)
++        let second = try CaptureFixture(clip: "second")
++        #expect(order.requestLock(second.token(2)) == true)
++        #expect(order.measurementCompleted(fixture.token(5)) == false)
++        #expect(order.appliedLock(fixture.token(5)) == false)
++        #expect(order.appliedLock(second.token(2)) == true)
++    }
++
+     @Test func twoClipsRestartOrdinalsWithoutAcceptingTheOldClip() throws {
+         let first = try CaptureFixture()
+         let second = try CaptureFixture(clip: "synthetic-second")
+--- a/FrameRelayTests/Platform/Capture/ProductCaptureSettingsTests.swift
++++ b/FrameRelayTests/Platform/Capture/ProductCaptureSettingsTests.swift
+@@ -4,6 +4,16 @@
+ @testable import FrameRelay
+ 
+ struct ProductCaptureSettingsTests {
++    @Test func olderCapabilitiesWithoutRefreshEvidenceRemainDecodableAndUnconfirmed() throws {
++        let fixture = try CaptureFixture()
++        let data = try JSONEncoder().encode(fixture.capabilities)
++        let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
++        #expect(object["whiteBalanceRefresh"] == nil)
++        let restored = try JSONDecoder().decode(CaptureCapabilities.self, from: data)
++        #expect(restored.whiteBalanceRefresh == nil)
++        #expect(restored.whiteBalanceLock == .supported(true))
++    }
++
+     @Test func settingStoreReopenPreservesWishesWithoutCapabilitiesOrWBLock() async throws {
+         let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("settings.json")
+         defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+--- a/FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
++++ b/FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
+@@ -16,6 +16,11 @@
+         XCTAssertTrue(issue.waitForExistence(timeout: 10))
+         XCTAssertTrue(issue.label.contains("Simulator"))
+         XCTAssertFalse(app.buttons["capture.rec"].isEnabled)
++        let whiteBalance = app.staticTexts["capture.whiteBalance"]
++        if !whiteBalance.isHittable { app.swipeUp() }
++        XCTAssertTrue(whiteBalance.exists)
++        XCTAssertTrue(whiteBalance.label.contains("未確認"))
++        XCTAssertFalse(app.buttons["capture.refreshWhiteBalance"].isEnabled)
+         XCTAssertFalse(app.buttons["exploration.import"].exists)
+         app.buttons["capture.closeToolbar"].tap()
+         XCTAssertTrue(entry.waitForExistence(timeout: 5))
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -195,7 +195,11 @@
+ 
+ 記録経路は音声/映像のタイムスタンプ、実適用設定、writer終端をCapturePort内で追跡する。REC時のWB固定をND完了やUI描画に依存させず、最後の記録フレーム後に待機Autoへ戻す。音量値がゼロであること、入力が届かないこと、書込が失敗したことを別の観測としてApplicationへ渡す。部分ファイル救済の成功を保証しない。
+ 
+-S41のカメラ表示は構図確認用で、標準Rec.709変換を備えた表示の達成証拠にはしない。WB再固定・音声メーター/復旧・標準表示変換の実装と検証はそれぞれS42・S43・S48の範囲として残す。
++WB再固定はApplicationが録画状態と現在の対応能力から本人操作の可否を判定し、Native側が機器のmode・custom gains対応を照合する。後方互換のoptional能力値がnilの場合は未確認とし、対応済みへ補完しない。対応する機器では本人操作でone-shot `autoWhiteBalance`を開始し、`locked`への遷移観測後に現在のgainを固定する。その適用完了を再固定の確定とし、固定の測定秒数や色の品質閾値を追加しない。ISO・絞り・シャッターは変更しない。
++
++合わせ直しとSTOPが競合した場合、Native側は測定観測を失効させ、現在のgainの固定適用後に記録停止へ進む。記録終端までは固定を保持し、その後に待機Autoへ戻す。KVO観測と適用完了callbackはcontext・tokenを照合し、旧操作・旧クリップの通知を現在の状態へ反映しない。次クリップへ固定値を持ち越さず、実機での色・録画継続性・最終フレーム品質はDV-03の未確認範囲として保持する。S42の進捗と検証証跡は対象steeringのtasklistを正本とする。
++
++S41のカメラ表示は構図確認用で、標準Rec.709変換を備えた表示の達成証拠にはしない。音声メーター/復旧・標準表示変換の実装と検証はそれぞれS43・S48の範囲として残す。
+ 
+ 表示変換は入力Log種別と色特性が判明した経路だけに適用し、二重変換を避ける。Apple LogとApple Log 2には異なる色空間定義があるため、機種名やファイル名から一律に同じ変換を適用しない。採用するLog種別と変換係数・LUTの由来、表示とMac miniの変換整合は別途検証する。[AVCaptureColorSpace.appleLog](https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog)
+ 
+--- a/docs/functional-design.md
++++ b/docs/functional-design.md
+@@ -244,6 +244,10 @@
+ | 予告・ズーム | 目標選択→予告のみ→本人の移動開始→ゆっくり移動→目標/本人停止。予告中は実倍率不変 | 予告の原本焼込みなし。別カメラの画質/ボケ/視差の再現を保証しない。引く方向の観測できない範囲を現在映像から創作しない。操作案・候補吸着はU4 |
+ | レンズ切替 | 切替条件を確認→移行中に限定ISO補正→切替後は実ISOを維持。補正/記録条件を維持できる経路だけ実行 | 常時Auto ISOへ移らず、シャッター/FPS/WB方針を維持。切替不成立時は録画継続を優先して現在側を保ち理由を表示。途切れ等の許容は実機合意が必要 |
+ 
++WBの合わせ直しは、録画中で現在の対応能力が確認済みの場合だけ本人操作を有効にする。WB状態と操作できない理由を表示し、能力が未取得・未確認の場合を対応済みと扱わない。合わせ直し中は重複操作を受け付けず、測定と再固定の完了を確認して状態を更新する。固定の待ち時間で完了を推定せず、ISO・絞り・シャッターは維持する。
++
++合わせ直し中にSTOPを受けた場合は測定を打ち切り、その時点のWB固定を適用してから記録停止へ進む。固定の適用待ちと記録終端後のAuto復帰を区別し、STOP受付だけで待機Autoへ戻さない。次クリップは待機Autoから新しく測定する。色変化・録画継続性・最終フレームの品質は実機評価の対象として残す。
++
+ 解析の受付結果はセッション・設定・対象・構図世代と有効期間が一致するときだけ採用する。WB更新・倍率/実カメラ変更・補正変更・アプリ中断で該当する解析を失効させる。有効期間・AF保持秒数・障害判定猶予は実測前に固定数値を作らず、T05/T06/T09で評価条件と併せて決める。録画品質が維持できないときの補助処理削減案はU7で決め、削減を理由に補正や撮影設定を無断変更しない。
+ 
+ ### S3 原本保存と起動時の復旧

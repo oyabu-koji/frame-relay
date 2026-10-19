@@ -1,0 +1,24 @@
+2026-10-15 21:35:14.594 xcodebuild[53389:34606925] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+Writing result bundle at path:
+	/private/tmp/fr-di-20261014-s25/S25-test-01.xcresult
+
+2026-10-15 21:35:18.066 xcodebuild[53389:34606925] [MT] IDETestOperationsObserverDebug: 3.386 elapsed -- Testing started completed.
+2026-10-15 21:35:18.066 xcodebuild[53389:34606925] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-15 21:35:18.066 xcodebuild[53389:34606925] [MT] IDETestOperationsObserverDebug: 3.386 sec, +3.386 sec -- end
+Failing tests:
+	RenditionPlaybackTests.completeTemporaryFilePlaysOfflineThenDetachesAndClosesItsUse()
+	-[RenditionPlaybackTests invalidationStopsAlreadyBufferedLocalPlayerAndKeepsOriginalCaptureTime(concurrentEnd:)]
+	RenditionPlaybackTests.setupFailureJoinsMonitorBeforeScopeReportsTerminal()
+	-[TemporaryMediaRecoveryTests acquireAndReleaseFailuresCannotSplitUsageFromLease(afterCommit:)]
+	TemporaryMediaRecoveryTests.reopensAndFinishesCommittedReclamationAfterUnlinkWithoutReleasingOldActiveUses()
+	TemporaryMediaRecoveryTests.scopeClosesAdmissionButWaitsForPhotoCallbackAndReleasesRootOnlyAfterAllOwnersTerminate()
+	TemporaryMediaRecoveryTests.heldReaderRejectsLeafReplacementAndDoesNotUnlinkReplacement()
+	TemporaryMediaRecoveryTests.photoTerminalDetectsTruncationAndRetainsOtherUsageAndReconciliationState()
+	-[TemporaryMediaTests completeFileMultipleUsesRetainUntilPhotoCallbackAndFinalClose(candidate:)]
+	TemporaryMediaTests.rangeHoleAndWholeHashMismatchNeverProducePhotoHandoff()
+	TemporaryMediaTests.reopenPreservesOldUsageAndRejectsOldEpochReleaseAndSameLengthTamper()
+	TemporaryMediaTests.partialReadAndReusedUsageIDAreRejectedWithoutRemovingFirstUse()
+
+** TEST EXECUTE FAILED **
+
+Testing started

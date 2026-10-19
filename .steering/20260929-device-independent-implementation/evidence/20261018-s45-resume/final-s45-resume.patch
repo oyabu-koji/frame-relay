@@ -1,0 +1,875 @@
+--- baseline/.steering/20260929-device-independent-implementation/design.md
++++ .steering/20260929-device-independent-implementation/design.md
+@@ -77,7 +77,7 @@
+ 
+ ## 撮影・解析・描画
+ 
+-既存二候補を交換可能に保ち、能力→希望→実適用→保存結果を結ぶ。標準4K24/30・LT／422／Proxy・実Log・補正の能力を仮定せず、製品撮影が不可でもライブラリ／設定／復旧が起動できるCompositionにする。人物なしAF、初回意図、レンズ戻しISO基準・上限、復旧範囲等の未合意重大判断は判断台帳へ残す。
++既存二候補を交換可能に保ち、能力→希望→実適用→保存結果を結ぶ。標準4K24/30・LT／422／Proxy・実Log・補正の能力を仮定せず、製品撮影が不可でもライブラリ／設定／復旧が起動できるCompositionにする。人物なしAF・初回意図のS45合意は下記へ記録し、レンズ戻しISO基準・上限等の未合意重大判断は判断台帳へ残す。
+ 
+ S41の本人確定判断（2026-10-16）: 初回fpsは既定値を補わず未選択とし、本人が24/30fpsを選ぶ。選択後の希望設定は保存し、現在のカメラ・形式・能力scopeを照合して復元する。Movie出力とsample writerの二候補は交換可能に保持し、選択方式が非対応でも自動切替しない。二候補の製品接続とD01の実機正式採用は別に扱う。
+ 
+@@ -96,6 +96,10 @@
+ NativeはMovie/sample writerの記録connectionを確認し、preferred要求とactive読戻しを分ける。補正・実倍率・format・主カメラ・セッション状態の変更を世代/連番付きsnapshotで渡し、Applicationは旧世代/逆順/別希望scopeを拒否する。失効後も同世代の通知高水位を保持し、再準備/離脱で旧画角を捨てる。REC受理前と原本予約後の実開始直前は共通規則で希望/出力/カメラ/寸法/倍率/準備時formatとの一致を再確認し、録画中に希望値を書き戻す補正変更は行わない。画面は準備時の適用値と現在の補正観測を分ける。
+ 
+ S47への供給は画角revisionと観測条件までとし、formatの水平FOVを補正後cropへ換算しない。補正後画角は取得不能、独立したpreview connectionと記録の画角一致はOFFでも未確認として保持する。これらの未観測だけをREC阻害条件へ追加せず、構図予告/停止支援consumerの接続はS47、補正効果/構図/同期/継続性はDV-04の実機評価に残す。S44の実装・自動検証進捗はtasklistを正本とする。
++
++S45の本人承認（2026-10-18）: 人物がいないときはプレビューでタップした位置へAFする。撮影意図は初回に本人が選択し、選択後は保存・復元する。未選択・保存中・人物未確定・解析待ちをRECの阻害条件にしない。見失い猶予は変更可能な暫定3秒とし、猶予中もピントを保持し、同じ主役と確認できた場合だけ復帰する。期限後は保持したまま本人の再指定を待ち、別人へ自動移行しない。`ProductCaptureFactory` が版付きの同一 `CaptureSubjectPolicy` をNativeとcoordinatorへ注入する。撮影意図と露出対象の選択はISO・シャッターの自動変更を意味しない。
++
++人物候補・主役・特徴量はセッション内だけに保持し、永続的な人物台帳を作らない。撮影意図だけを既存設定storeへ保存する。解析は処理中1件と置換可能な待機1件に制限し、古い世代・逆順・期限超過の結果を拒否する。SDKの検出/追跡IDや画像特徴量は人物同一性の保証にしない。技術的な画像照合閾値は変更可能な実装設定であり、3秒の本人承認やSimulator試験を実機品質の採用へ昇格させない。合焦・前後追従・別人通過・同一主役再捕捉・人物優先AF・距離/照明・補正cropとpreview座標・Log入力・継続/負荷はDV-06で未確認として残す。Simulatorで別画像から同一FeaturePrintと初回微差を観測したため、固定参照の同一ROIから上限2回取得した特徴量と、Visionとは独立した実画素digestを照合する。特徴量が完全一致しても実画素が異なる場合は同一IDの継続・再捕捉を拒否する。距離閾値は緩和せず、別画像で固定参照を更新しない。raw bufferを追加保持せず、digestはセッション内だけに置く。SimulatorのSDK内部原因は未確定で、この防御をSDK自体の修復と扱わない。同じ人物も画素変化と特徴量衝突で保持になり得る制約、2回生成の追加負荷は実機未確認として残す。S45の接続・検証結果はtasklistに記録する。
+ 
+ ズームは目標選択時点では実倍率を変えない。制御中の観測実倍率で目標超過を防ぎ、目標・途中停止を同じ制御器へ渡す。停止支援候補は実カメラ・形式・解像度・補正の根拠付きとし、整数倍率だけで品質保証しない。設定は目的・根拠・適用範囲・版・変更箇所・未採用フラグ付きの暫定値、DV-08後の採用値を別記録する。数値・吸着方式・詳細設定画面を計画で追加決定しない。
+ 
+@@ -150,7 +154,7 @@
+ | --- | --- |
+ | 軽微可逆 | 配置、表示順、内部adapter分割、版付き試験設定は根拠・適用範囲・変更箇所・未採用性をtaskに記録して進行 |
+ | 内部方式 | 既存store拡張／wire／配信負荷改善は実効契約・disk／隔離証拠で選定。実機未確認部分を採用理由へ含めない |
+-| 重大／未合意 | 人物なしAF、初回意図、ISO基準／上限、実機必須方式、権限による再保存意味、要求縮小・消失判断は対象処理だけ保留しmainから相談 |
++| 重大／未合意 | S45承認外のAF詳細、ISO基準／上限、実機必須方式、権限による再保存意味、要求縮小・消失判断は対象処理だけ保留しmainから相談 |
+ | 品質採用 | Q01で組合せ・場面・操作・比較・測定・許容範囲を事前合意し、DV結果・条件版に対応。後付け閾値で過去結果を合格化しない |
+ 
+ 各記録は `判断ID／対象task・AC／根拠／候補／暫定か採用か／影響／再開条件／担当／版` を持つ。未合意項目は全体のconfirmedを取り消さず、依存する処理の状態へ残す。
+--- baseline/.steering/20260929-device-independent-implementation/requirements.md
++++ .steering/20260929-device-independent-implementation/requirements.md
+@@ -65,7 +65,7 @@
+ ### R5: 撮影・AF・ND・ズーム・表示（DI-07〜08）
+ 
+ - 希望値、能力、実適用、実機評価済みを分ける。WB 安定・ND・人物検出待ちだけで REC を止めない。静寂と音声障害を分け、有限復旧後も自動 REC しない。
+-- AF は複数露出対象と単一主役、通常合焦・前後追従・同一主役再捕捉・別人へ移行なし・追跡 OFF の人物優先 AF まで含める。人物なし方式等は未合意候補を採用済みにしない。
++- AF は複数露出対象と単一主役、通常合焦・前後追従・同一主役再捕捉・別人へ移行なし・追跡 OFF の人物優先 AF まで含める。2026-10-18のS45本人承認に従い、人物なし時はタップ位置AF、初回意図は本人選択・保存復元・REC非阻害、見失い猶予は変更可能な暫定3秒後に保持/再指定待ちとする。実機品質や他の未合意候補を採用済みにしない。
+ - ND は解析入力と根拠から方向／理由／両立困難を扱い、遅延・停止・不確かな世代で旧 OK を失効する。常に保留だけでは完成にしない。
+ - ズーム予告で実倍率を変えず、原本へ焼き込まない。目標／途中停止と近傍停止支援を持ち、速度・精度・吸着許容差を版付き暫定設定と実機採用値に分ける。
+ - 適合する実 Log と由来・版・利用条件の確認済み標準資材だけを Rec.709 変換へ使う。compress-only、タグ変更、独自係数は代用しない。
+--- baseline/.steering/20260929-device-independent-implementation/tasklist.md
++++ .steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,12 +12,11 @@
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-18、S45部分実装・判断/検証待ち）
+-
+-- **S45 / blocked**: 人物解析・主役AF・状態/設定/UIの注入可能な本体を実装。本人判断3点が未回答で、通常Factoryのpolicy注入は保留。さらにSimulatorの実Vision別人拒否1件が失敗しており、通常経路の有効化/全体doneには進まない。REC非依存は維持。
+-- **保全・所有**: 開始時7057file/147,107,413bytesのhashと証跡外361fileを `/private/tmp/fr-s45-20261018-ow_sx8bp/` に保全。既存変更へ加算し、旧証跡・README・memo・他taskを戻さない。main＝本steering/証跡/最終差分、explorer `s45_explore`＝read-only調査。実装workerの限定所有と最終差分はS45欄に記録。
+-- **S45検証 / E-S45-01**: 最終Unit76宣言/99展開ケース中75宣言/98展開成功、1宣言2issues失敗、skip/runtimeWarnings 0。通常画面UI2件はtest-01で成功。Simulator test buildとgeneric iOS build成功。公開肖像のhost同ソース解析成功はSimulator/実機成功へ転用しない。証跡 `evidence/20261018-s45/`。
+-- **S45再開条件**: 人物なしAF・初回意図・見失い猶予の本人回答、実Visionの同一特徴量問題の原因/対応確認後、同policyの製品注入と必要検証。実機DV-06、S46以降、既知の他task残件、独立validationは未実施のまま。
++## 現在の再開点（2026-10-18、S45実装・自動検証完了）
++
++- **S45 / done（実装・自動検証範囲）**: 前セッションの本体を継承し、Simulatorで同一特徴量を別人へ誤適用する問題を修正。本人承認の位置指定AF・撮影意図選択/保存復元・暫定3秒の猶予を、同一policyで通常FactoryのNative/coordinatorへ接続した。REC非阻害を維持。
++- **E-S45-02**: 最終Unit81宣言/112展開ケース、通常UI3件すべて成功、skip/runtimeWarnings 0。Simulator test build・generic iOS署名なしbuild成功、compiler/analyzer診断0。202入力は各最終run/現物で一致。証跡 `evidence/20261018-s45-resume/`。
++- **保全・残件**: 開始時7218fileのhashと証跡外snapshotは `/private/tmp/fr-s45-resume-20261018-1tlmtf7y/`。過去のE-S45-01失敗履歴を保持。DV-06の実機AF/同一性/追従/負荷品質、SimulatorのSDK内部原因、S46以降・他task既知残件・独立validationは未確認。今回はS45だけを実施した。
+ 
+ ### 直前のS44実装完了記録
+ 
+@@ -675,15 +674,25 @@
+ 
+ ### S45 人物解析・主役AFの本体と接続
+ 
+-- [ ] Status: blocked
++- [x] Status: done
++  - E-S45-02 / 再開（2026-10-18）: 本人が人物なし時のタップ位置AF、初回撮影意図の本人選択・保存復元・REC非阻害、変更可能な暫定3秒の見失い猶予後の保持/再指定・別人自動移行なしを承認。E-S45-01の本体を継承し、Simulator別人拒否失敗の調査修正、通常Factory接続、必要検証だけを進める。
++  - E-S45-02 / 保全・所有: 開始時7218file/155,818,979bytesのhashと証跡外snapshotを `/private/tmp/fr-s45-resume-20261018-1tlmtf7y/` に保存。未コミット/未追跡成果へ加算し、既存証跡・他task・project設定を戻さない。main＝steering/証跡/実行検証/最終差分、explorer＝読み取り調査、worker＝後記S45限定コード、document_author＝関連永続文書のみ。S46以降・独立validationは開始しない。
++  - E-S45-02 / 完了範囲: 既存Domain/SDK/選択UI/意図storeを再実装せず継承。`ProductCaptureFactory.provisionalSubjectPolicyV1`（`s45-provisional-v1`、tapPosition、lostGrace=3）をNativeとcoordinatorへ同一注入。初回意図nil・本人選択後のdisk保存/復元、未選択/保存待ち/解析なしのREC非阻害、複数露出対象と一人の主役の分離、追跡OFF人物優先AF、期限後の保持/再指定を接続した。
++  - E-S45-02 / 失敗原因と修正: 確認済SimulatorのFeaturePrint rev2 CPU経路で、異なる実画像が同じ768要素を返すことと初回のみ距離約0.0017806の微差を再現。ROI/明示crop/scale/CGImage/JPEG/CI software/CPU APIの比較でも残り、SDK内部原因は未確定。アプリがこの出力をそのまま同一性根拠にした欠陥を修正。同一固定ROIから上限2回得る特徴量と、Visionを通さず読む実画素digestを保持し、完全一致した特徴量なのに画素が異なる場合は同一IDの継続/再捕捉を拒否する。別画像で固定参照を更新せず、既存距離閾値・assertを緩和しない。raw buffer追加保持なし、digest/特徴量はセッション内だけ。BGRA・8/10bit 420 video/fullの全planeを扱い、不正bounds/未知形式は解析不確実へ戻す。
++  - E-S45-02 / 有効性と限界: 元の別人拒否/同一画像復帰/曖昧候補拒否3件を維持。選択直後に他人が現れる直接置換/blank後置換を追加し、新appプロセス単独でも2展開成功。実画素が違う同一人物も特徴量衝突時は保持となる。Simulatorの動く人物追跡を修復・保証した意味ではなく、一般的な人物同一性/実AF/2回生成の追加負荷はDV-06未確認。
++  - E-S45-02 / 最終検証: Xcode27.0(27A266a)/Swift6.4、FrameRelay.xcodeproj/scheme・testPlan FrameRelay、Debug、App/Unit/UI、Swift言語5/最低iOS27.0を確認。実在Simulator DFE46693-E8DD-4814-8957-4F327699F719（iPhone18Pro/iOS27.0）で`test-final-01`のUnit81宣言/112展開が全成功、`ui-final-01`の通常画面3件（意図選択→再起動復元を含む）が全成功。skip/runtimeWarnings 0、compiler/analyzer/error 0。`ios-build-final-01`のgeneric iOS署名なしbuild成功、compiler/analyzer/error 0。各runの202入力は実行中不変・相互一致。UIのSimulator設定は停止中退避し、実行後に元の不存在へ復元済み。buildと起動/操作を別証拠にした。
++  - E-S45-02 / 実行・証跡: 完全なxcodebuild引数/日時/exit/sourcehashは `evidence/20261018-s45-resume/*-run.json`、`*-sources.json`、logs、summary/tests/build-resultsへ保存。`vision/`に診断01/02、単一参照の修正失敗、初回微差診断、最終限定成功/cold成功、診断ソースとworker-reportを保存。xcresult/DerivedData原本は `/private/tmp/fr-s45-resume-20261018-1tlmtf7y/`（Visionは同配下vision）。stdoutの既存AppIntents metadata警告・NASA JPEG decoder診断等はログに保持し、成功を実機品質へ昇格しない。
++  - E-S45-02 / 所有・最終確認: worker `s45_product_connect`＝FactoryとSubjectCoordinator/SubjectSession/既存AudioComposition/UI testの5file、worker `s45_vision_fix`＝NativeCaptureSubjectAnalysisと同testの2file、document_author `s45_resume_docs`＝関連永続5文書、main＝本steering3文書/証跡。mainは最終diff・要求対応・所有範囲を確認、既存15変更/7203不変、欠落/旧証跡変更/所有外変更0（詳細main-scope-review.json）。doc_reviewerは総則の未合意表現3箇所を指摘し修正後は指摘なし。実装内test/main確認であり独立validationではない。
++  - E-S45-02 / 実機未確認と次工程: 実カメラを利用可能なdestinationがなく、実合焦/前後追従/別人通過・遮蔽・同一主役復帰/追跡OFF人物優先AF/タップ座標/補正crop・preview一致/実Log入力/両記録方式の継続・同期・解析負荷/暫定3秒の実機採用はDV-06へ残す。FR-05受入は未達のまま。独立検証は明示 `$validate-implementation .steering/20260929-device-independent-implementation/` が次工程。S46以降は開始しない。
++  - 以下のE-S45-01は前セッション当時の履歴。未回答/未接続/失敗は当時の状態であり、今回の確定状態はE-S45-02を参照する。
+   - E-S45-01 / 部分実装: 複数露出対象と単一主役、追跡OFF人物優先AF、見失い保持/固定参照による再捕捉/再指定、撮影意図のoptional保存、通常画面/preview操作を注入可能な経路へ接続。SDKの検出/追跡UUIDを人物同一性へ流用せず、固定FeaturePrintと曖昧候補拒否を使用。入力は処理中1件+置換待機1件、解析専用dropを録画失敗にせず、記録用connectionの回転/mirrorを変更しない。世代/構図/WB/選択/時刻の照合、解析失敗・座標変換失敗と人物不在の分離、AF適用読戻しを実装した。
+-  - 現在のsubstatus: Domain/SDK候補/操作UI/設定保存/関連自動検証の部分＝実装済。通常Factoryのpolicy注入＝本人判断待ち、実Visionの人物同一性確認＝Simulator1件失敗。通常アプリでは人物機能未有効、撮影意図pickerも未有効。人物未確定/意図未選択/解析失敗はREC条件に追加していない。
+-  - 本人判断待ち: 人物なし時のAF（提案:画面タップ位置）、初回意図（提案:本人選択後に保存/復元しREC非依存）、見失い猶予（提案:暫定3秒後に保持/再指定）。質問済み・回答未受領。試験の3秒や技術閾値を製品の合意済み値へ昇格しない。requirements/designは変更せず、製品注入を保留する。
++  - E-S45-01時点のsubstatus: Domain/SDK候補/操作UI/設定保存/関連自動検証の部分＝実装済。通常Factoryのpolicy注入＝本人判断待ち、実Visionの人物同一性確認＝Simulator1件失敗。通常アプリでは人物機能未有効、撮影意図pickerも未有効。人物未確定/意図未選択/解析失敗はREC条件に追加していない。
++  - E-S45-01時点の本人判断待ち: 人物なし時のAF（提案:画面タップ位置）、初回意図（提案:本人選択後に保存/復元しREC非依存）、見失い猶予（提案:暫定3秒後に保持/再指定）。質問済み・回答未受領。試験の3秒や技術閾値を製品の合意済み値へ昇格しない。requirements/designは変更せず、製品注入を保留する。
+   - E-S45-01 / 最終検証: 確認済みFrameRelay.xcodeproj/scheme・testPlan FrameRelay/Debug/App・Unit・UI、Xcode27.0(27A266a)/Swift6.4・言語5/最低iOS27.0。実在Simulator DFE46693-E8DD-4814-8957-4F327699F719で`test-final-05`はUnit76宣言/99展開中75宣言/98展開成功、1宣言2issues失敗（skip/runtimeWarnings 0）。新規24宣言のうち23成功。状態境界/世代失効/REC非阻害/設定保存/座標/AF計画/既存音声・WB・保存再生は成功。`test-01`の通常撮影/設定UI2件成功はUI不変・policy未注入の範囲で継承し、人物操作実機成功とはしない。Simulator test build・`ios-build-03` generic iOS署名なしbuild成功、compiler/analyzer診断0（stdoutに既存AppIntents依存なしmetadata警告）。
+-  - 未解決失敗: `realVisionDetectsTracksRejectsAnotherPersonAndReacquiresFixedReference`で別人に主役IDを与え、復帰の再捕捉区分も失敗。CPU指定後の診断03/04では、異なる実画素/検出ROIのNASA公開肖像2件から完全同一の768要素FeaturePrint（距離0）が返ることを観測。画像をmainが確認し、opaque BGRA/alpha=255を検証しても不変で透明度仮説は不支持。hostの同4ソースでは距離0.7411（自動）/0.7247（CPU）、別人拒否/同一復帰を観測した。Simulator差の原因は未確定。閾値調整・assert緩和・skipで成功化せず、最終失敗を保持する。
++  - E-S45-01時点の未解決失敗: `realVisionDetectsTracksRejectsAnotherPersonAndReacquiresFixedReference`で別人に主役IDを与え、復帰の再捕捉区分も失敗。CPU指定後の診断03/04では、異なる実画素/検出ROIのNASA公開肖像2件から完全同一の768要素FeaturePrint（距離0）が返ることを観測。画像をmainが確認し、opaque BGRA/alpha=255を検証しても不変で透明度仮説は不支持。hostの同4ソースでは距離0.7411（自動）/0.7247（CPU）、別人拒否/同一復帰を観測した。Simulator差の原因は未確定。閾値調整・assert緩和・skipで成功化せず、最終失敗を保持する。
+   - 失敗履歴/限定性: ios-build-01のVNObservation型診断、enumeration-01のmutating `#expect` 記法は修正。初回host probeの範囲外ROI拒否を交差処理で修正。test-01のVision Code9推論context失敗はSimulatorのみ標準compute APIのCPU指定で解析可能になったが、test-02/診断03/04/最終05の同一特徴量問題は未解決。一時診断は証跡へ保存してtest本体から撤去。公開画像はtest targetだけに含め、人物識別/合焦/Log/ライブ継続/負荷/両方式/補正crop・preview一致/向きの品質を証明しない（DV-06）。
+   - E-S45-01 / main差分・証跡: 最終203入力はtest-final-05/ios-build-03/現物hash一致。開始時7057fileから既存11変更/7046不変、新規13file（公開fixture2件/出典を含む）、欠落/旧証跡変更/所有外変更0。requirements/design/project/設定/README/memo/S27等の既存差分を保持。`evidence/20261018-s45/`へ各runのcommands/log/summary/source hash、失敗版/変更前後snapshot/patch/main-scope-review/文書レビュー/出典を保存。xcresult/DerivedData原本は `/private/tmp/fr-s45-20261018-ow_sx8bp/`。doc_reviewerは関連2文書の限定差分を指摘なしと報告。mainの実装内確認であり独立validationではない。
+-  - 再開条件: 上記3回答と実Vision未解決問題を確認後に同policyをNative/coordinatorへ注入し、通常経路を限定検証する。S45全体done・実機採用・S46以降・独立validationへ暗黙移行しない。以下は実装経過。
++  - E-S45-01時点の再開条件: 上記3回答と実Vision未解決問題を確認後に同policyをNative/coordinatorへ注入し、通常経路を限定検証する。S45全体done・実機採用・S46以降・独立validationへ暗黙移行しない。以下は実装経過。
+   - 再開記録（2026-10-18）: 明示implementを受領。開始時baselineは `/private/tmp/fr-s45-20261018-ow_sx8bp/`。未コミット/未追跡成果を保全し同じ現物へ加算する。mainが本steering・証跡・差分確認を所有し、`s45_explore` がSDK/接続点をread-only調査。
+   - substatus: 規則/解析SDK候補/注入可能UI・接続＝一次実装、通常Factoryへのpolicy注入＝本人判断待ち、検証＝進行中。人物なしAF・初回撮影意図・再捕捉待ちの保持秒数は確認中。仮の製品既定で補わず、独立部分を先行する。
+   - 実装所有: worker `s45_impl`＝S45のDomain/Capture新規型、ProductCaptureCoordinator/新規人物調停、ProductCapturePorts、NativeExplorationCapture/新規人物解析・AF、Capture画面、ProductCapturePreferences/CapturePreferenceStoreの意図保存、ProductCaptureFactoryのS45注入、対応UnitとProductCaptureFlowTests。その他共有コード・project・docsは所有外。mainがsteering/証跡/実行検証を所有し、同じファイルへ並行書込しない。
+@@ -869,11 +878,11 @@
+ | FR-04 | AC-FR-04-01 | 安定前RECと固定 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | 安定待ちなしの既存固定・製品接続済 | Unit89/UI1・iOS build成功、早期STOP/旧callback回帰 | D0 | 制御の部分証拠・実色/記録開始未確認 | DV-03 |
+ | FR-04 | AC-FR-04-02 | 本人再固定・他設定維持・品質 | P05/P06/P10;CF-03 | EC,E-S42-01,E-S42-V01,E-S42-02 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | 対応能力確認/SDK再測定/固定/本人UI接続済、開始失敗理由の終端保持P2修正済 | E-S42-01 Unit89/UI1＋P2修正Unit65/UI1・iOS build成功、本人STOP競合/完全検査でも部分保存 | D0 | 本体/制御の部分証拠・修正後独立検証/実機色/継続性未確認 | DV-03 |
+ | FR-04 | AC-FR-04-03 | 最終フレーム・待機Auto・二本 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42,S46 | dep(S42,S46)＋対応A/Q01 | O-CAPTURE | 終端後Auto/二本新測定/旧通知拒否接続済、NDはS46 | Unit89/UI1・iOS build成功、測定/固定待ちSTOP/二本/逆順 | D0 | 終端制御の部分証拠・実最終フレーム/ND統合未確認 | DV-03、DV-07 |
+-| FR-05 | AC-FR-05-01 | 複数露出対象と単一主役・意図 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | 主役/複数露出/意図保存/UI本体済、Factory未注入 | E-S45-01: 分離/意図保存・復元/世代/UI未有効 | D0 | 部分証拠、本人判断/製品有効化待ち | DV-06 |
+-| FR-05 | AC-FR-05-02 | 見失い保持・同一再捕捉・再指定 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | 固定参照/保持/再指定の本体済、製品未注入 | E-S45-01: Domain成功、Simulator別人拒否1件失敗 | D0 | 未受入、実Vision同一特徴量問題未解決 | DV-06 |
+-| FR-05 | AC-FR-05-03 | 人物未確定でもREC | P05のREC非依存のみ;CF-09部分/後続必須 | EC,E-S45-01 | S45,S41 | dep(S45,S41)＋対応A/Q01 | O-CAPTURE | 人物/意図/解析をREC条件へ追加せず接続 | E-S45-01: 未選択/解析なし/遅延保存中もREC・継続 | D0 | REC非阻害の部分証拠、実機未受入 | DV-06 |
+-| FR-05 | AC-FR-05-04 | 通常合焦・前後追従品質 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | SDK AF計画/読戻し/不成立表示済、製品未注入 | E-S45-01: AF計画/座標/状態境界のみ | D0 | 実通常合焦/前後追従品質未受入 | DV-06 |
+-| FR-05 | AC-FR-05-05 | 追跡OFFの人物優先AF品質 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | 追跡OFF人物優先AFとscene後復帰済、製品未注入 | E-S45-01: OFF非固定/人物再登場/AF計画 | D0 | 実人物優先AF品質未受入 | DV-06 |
++| FR-05 | AC-FR-05-01 | 複数露出対象と単一主役・意図 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01,E-S45-02 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | 本体・通常Factory接続済、意図保存復元/位置指定AF | E-S45-02: 分離/両候補policy/実disk復元/通常UI成功 | D0 | 実装・自動検証済、実機未受入 | DV-06 |
++| FR-05 | AC-FR-05-02 | 見失い保持・同一再捕捉・再指定 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01,E-S45-02 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | 固定参照/衝突拒否/暫定3秒保持/再指定を製品接続 | E-S45-02: 実Vision別人拒否・即時置換・同一画像復帰/猶予変更成功 | D0 | 静止fixtureの技術証拠、動く人物/同一性品質未受入 | DV-06 |
++| FR-05 | AC-FR-05-03 | 人物未確定でもREC | P05のREC非依存のみ;CF-09部分/後続必須 | EC,E-S45-01,E-S45-02 | S45,S41 | dep(S45,S41)＋対応A/Q01 | O-CAPTURE | 人物/意図/解析をREC条件へ追加せず通常接続 | E-S45-02: 未選択/解析なし/遅延保存中REC・継続/両候補Factory成功 | D0 | REC非阻害の自動検証済、実機未受入 | DV-06 |
++| FR-05 | AC-FR-05-04 | 通常合焦・前後追従品質 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01,E-S45-02 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | SDK AF計画/読戻し/不成立表示を製品接続 | E-S45-02: AF計画/座標/状態境界成功 | D0 | 実合焦/前後追従・衝突防御の保持制約/負荷品質未受入 | DV-06 |
++| FR-05 | AC-FR-05-05 | 追跡OFFの人物優先AF品質 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01,E-S45-02 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | 追跡OFF人物優先AFとscene後復帰を製品接続 | E-S45-02: OFF非固定/人物再登場/AF計画成功 | D0 | 実人物優先AF品質未受入 | DV-06 |
+ | FR-06 | AC-FR-06-01 | 濃く/薄くの方向と理由 | P05/P10設定事実;CF-09部分/後続必須 | E0（旧計画の後続要求のみ） | S46 | dep(S46)＋対応A/Q01 | O-CAPTURE | I0 | A0 | D0 | R0 | DV-07 |
+ | FR-06 | AC-FR-06-02 | 人物背景両立困難・太陽反射黒 | P05/P10設定事実;CF-09部分/後続必須 | E0（旧計画の後続要求のみ） | S46 | dep(S46)＋対応A/Q01 | O-CAPTURE | I0 | A0 | D0 | R0 | DV-07 |
+ | FR-06 | AC-FR-06-03 | 停止遅延保留・旧OK失効・REC | P05/P10設定事実;CF-09部分/後続必須 | EC:REC非依存/設定WB事実のみ | S46,S41 | dep(S46,S41)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-07 |
+@@ -1058,7 +1067,7 @@
+   - 対象・操作: 1. 複数露出対象と一人主役を選択。2. 主役前後移動・退出／同一復帰・別人通過・保持期限超過・再指定。3. 追跡OFFで人物優先AF。4. 人物なし・検出未完了RECを確認。
+   - 期待結果: 通常合焦・前後追従、同一主役再捕捉、別人自動移行なし、OFFは固定でなく人物AF、REC非阻害。
+   - Verify / 証拠: 対象／距離／光／移動・保持設定版、主役状態と原本・合焦記録。
+-  - 事前合意・Stop: 人物なし方式／初回意図の未合意部分、保持時間、距離・照明・移動と品質を事前合意。未束縛条件はQ01、未接続は対応本体taskへ戻す。
++  - 事前合意・Stop: S45で人物なしタップAF・初回本人意図選択/保存復元/REC非阻害・変更可能な暫定3秒後保持/再指定を承認済み。距離・照明・移動・補正/Log条件と許容品質、暫定値の実機採用は未合意/未確認。未束縛条件はQ01、未接続は対応本体taskへ戻す。
+ 
+ ### A07 / DV-07 ND
+ 
+@@ -1215,6 +1224,7 @@
+ | E-S43-02 | 2026-10-18、worker/explorer/document_author/doc_reviewer/main | S43暫定製品policy合意・接続・限定回帰 | 最終182入力一致、test-02/03同一版、Xcode27/Debug/iOS27 Simulator＋generic iOS（App入力一致） | 各run.json、Factory/2秒無到着/1本人操作1試行/実5秒timeout/SDK終了待ち/再試行/自動RECなし、音声/保存再生/UI | test-03 Unit19宣言/23展開＋UI1成功、失敗/skip/runtimeWarnings0、build成功。compile失敗2回/0件実行も保持 | `evidence/20261018-s43-approved/`。S43実装done、実機/DV-10/S42報告受領/別セッション独立検証は残る |
+ | E-S44-01 | 2026-10-18、explorer/worker/document_author/doc_reviewer/main | S44、AC-FR-03-01〜05/AC-CF-06・限定回帰 | test-03/ios-build-01の187入力、最終差分UI test1fileのみ | 各run.json、補正候補/希望復元/実active/画角失効/REC前再照合/旧通知/音声・保存再生/UI | Unit53宣言/76展開成功、最終UI2成功、build成功、最終失敗/skip/runtimeWarnings0。compile失敗2run/0件・途中UI1失敗保持 | `evidence/20261018-s44/`。実機品質/crop/preview一致/S47 consumer/独立validation未確認 |
+ | E-S45-01 | 2026-10-18、explorer/worker/document_author/doc_reviewer/main | S45部分・AC-FR-05-01〜05と限定回帰 | 最終203入力、test-final-05/ios-build-03一致 | 各run.json、公開画像実Vision/世代/状態/設定保存/REC非阻害/AF計画/座標/UI、host同ソース診断 | Unit76宣言/99展開中75/98成功・1宣言2issues失敗、UI2成功、build成功、skip/runtimeWarnings0。途中失敗保持 | `evidence/20261018-s45/`。本人判断/Factory注入・Simulator同一特徴量問題でblocked。実機/独立validation未確認 |
++| E-S45-02 | 2026-10-18、explorer/workers/document_author/doc_reviewer/main | S45再開・AC-FR-05-01〜05と限定回帰 | 最終202入力・Unit/UI/iOSbuild/現物一致 | 各run.json、公開画像実Vision/即時別人拒否/猶予変更/5画素形式/両候補Factory/意図実disk復元/通常UI | Unit81宣言112展開/UI3件全成功、build成功、skip/runtimeWarnings/compiler/analyzer0。診断途中失敗保持 | `evidence/20261018-s45-resume/`。S45実装・自動検証done、SDK内部原因/実機品質/独立validation未確認 |
+ 
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+@@ -1245,6 +1255,7 @@
+ | V-REVIEW-S43接続 | E-S43-02の最終182入力、既存8file/新test1file | main、文書はdoc_reviewer | 本人合意と同policyのNative/coordinator注入、実機未採用、1本人操作1試行/実5秒上限/SDK終了待ち/非自動REC、S42未受領、旧差分・所有を照合。文書P2修正後解消 | `evidence/20261018-s43-approved/main-scope-review.json`。S43実装done、独立validationは別セッション |
+ | V-REVIEW-S44 | E-S44-01、最終187入力・既存16file/新5ソース | main、文書はdoc_reviewer | 条件候補/両出力/要求・実値/旧画角・高水位/REC再照合/観測終了/互換/旧差分保護を照合。失敗原因を修正し、App/Unit不変範囲の証拠を継承 | `evidence/20261018-s44/main-scope-review.json`。S44実装done、実機/独立validation未確認 |
+ | V-REVIEW-S45部分 | E-S45-01、最終203入力・既存11/新13file | main、文書はdoc_reviewer | 記録経路非変更/有界解析/人物不在と解析失敗の分離/世代/REC非依存/意図保持/固定参照/適用と品質/未注入/保全を照合 | `evidence/20261018-s45/main-scope-review.json`。別人拒否1失敗を保持、本人判断/製品未注入でS45 blocked。独立validationではない |
++| V-REVIEW-S45再開 | E-S45-02、最終202入力・既存15file変更 | main、文書はdoc_reviewer | 既存成果継承/本人承認/同policy注入/固定参照衝突拒否/即時置換/REC非阻害/実機境界/保全を照合 | `evidence/20261018-s45-resume/main-scope-review.json`、`doc-review.json`。独立validationではない |
+ 
+ ## 振り返り・引渡し
+ 
+--- baseline/FrameRelay/Composition/ProductCaptureFactory.swift
++++ FrameRelay/Composition/ProductCaptureFactory.swift
+@@ -16,9 +16,14 @@
+         }
+     }()
+ 
++    /// S45 v1, agreed 2026-10-18. These values remain changeable pending DV-06
++    /// device evaluation; image-similarity thresholds are not identity proof.
++    nonisolated static let provisionalSubjectPolicyV1 = CaptureSubjectPolicy(
++        version: "s45-provisional-v1", lostGrace: 3, noPersonFocus: .tapPosition)
++
+     static func make(services: ProductLibraryServices,
+                      didSave: @escaping @MainActor @Sendable () async -> Void) -> ProductCaptureCoordinator {
+-        make(services: services, didSave: didSave, makeDevice: { candidate, audioPolicy in
++        make(services: services, didSave: didSave, makeDevice: { candidate, audioPolicy, subjectPolicy in
+             #if !targetEnvironment(simulator)
+             guard await permission(for: .video) else { throw ExplorationIssue.permissionDenied }
+             guard await permission(for: .audio) else {
+@@ -26,26 +31,28 @@
+             }
+             #endif
+             return NativeExplorationCapture(candidate: candidate,
+-                originals: ProductReservedOriginalDestination(store: services.originals), audioPolicy: audioPolicy)
++                originals: ProductReservedOriginalDestination(store: services.originals),
++                audioPolicy: audioPolicy, subjectPolicy: subjectPolicy)
+         })
+     }
+ 
+     /// Keep the device builder and coordinator on the same versioned policy.
+     static func make(services: ProductLibraryServices,
+                      didSave: @escaping @MainActor @Sendable () async -> Void,
+-                     makeDevice: @escaping @Sendable (ExplorationOutputCandidate, ProductCaptureAudioPolicy) async throws
++                     makeDevice: @escaping @Sendable (ExplorationOutputCandidate, ProductCaptureAudioPolicy, CaptureSubjectPolicy) async throws
+                         -> any ProductCaptureDevicePort) -> ProductCaptureCoordinator {
+         let audioPolicy = provisionalAudioPolicyV1
++        let subjectPolicy = provisionalSubjectPolicyV1
+         let preferences = CapturePreferenceStore(url: services.run.url.appendingPathComponent("capture-preferences.json"))
+         let save = OriginalSaveCoordinator(store: services.store, originals: services.originals,
+                                            inspection: AVOriginalInspectionAdapter(originals: services.originals))
+         return ProductCaptureCoordinator(preferences: preferences, makeDevice: { candidate in
+-            try await makeDevice(candidate, audioPolicy)
++            try await makeDevice(candidate, audioPolicy, subjectPolicy)
+         }, save: save, bindOriginal: { reference in
+             let operation = MediaOperationID(rawValue: "capture-bind-" + UUID().uuidString)
+             if case .succeeded = await services.access.bind(reference, operation: operation) { return true }
+             return false
+-        }, didSave: didSave, audioPolicy: audioPolicy,
++        }, didSave: didSave, audioPolicy: audioPolicy, subjectPolicy: subjectPolicy,
+             calendarNow: { Date() }, captureNow: { ExplorationCaptureValues.now() })
+     }
+ 
+--- baseline/FrameRelay/Platform/Capture/NativeCaptureSubjectAnalysis.swift
++++ FrameRelay/Platform/Capture/NativeCaptureSubjectAnalysis.swift
+@@ -2,6 +2,7 @@
+ import Vision
+ import CoreML
+ import ImageIO
++import CryptoKit
+ 
+ nonisolated struct NativeSubjectAnalysisInstruction: Equatable, Sendable {
+     let context: CaptureSubjectContext
+@@ -92,11 +93,15 @@
+         let id: CapturePersonID
+         let bounds: CGRect // Vision normalized lower-left coordinates
+         let feature: VNFeaturePrintObservation
++        let collisionFeature: VNFeaturePrintObservation
++        let pixels: NativeSubjectImageFingerprint
+         let continuity: CapturePersonContinuity
+     }
+     private struct Anchor {
+         let id: CapturePersonID
+         let feature: VNFeaturePrintObservation
++        let collisionFeature: VNFeaturePrintObservation
++        let pixels: NativeSubjectImageFingerprint
+         var observation: VNDetectedObjectObservation
+         var missingSince: TimeInterval?
+     }
+@@ -120,7 +125,7 @@
+         if next.protagonist != instruction?.protagonist || (next.allowsReacquisition && instruction?.allowsReacquisition == false) {
+             anchor = next.protagonist.flatMap { id in
+                 people.first(where: { $0.id == id }).map {
+-                    Anchor(id: id, feature: $0.feature, observation: VNDetectedObjectObservation(boundingBox: $0.bounds))
++                    Anchor(id: id, feature: $0.feature, collisionFeature: $0.collisionFeature, pixels: $0.pixels, observation: VNDetectedObjectObservation(boundingBox: $0.bounds))
+                 }
+             }
+             sequenceHandler = VNSequenceRequestHandler()
+@@ -135,20 +140,19 @@
+         guard let detectionResults = detection.results else { throw NativeSubjectVisionError.missingDetectionEvidence }
+         let observations = Array(detectionResults.filter { $0.confidence >= policy.detectionConfidence }
+             .sorted { $0.confidence > $1.confidence }.prefix(policy.maximumPeople))
+-        var detected: [(CGRect, VNFeaturePrintObservation)] = []
++        var detected: [(CGRect, VNFeaturePrintObservation, VNFeaturePrintObservation, NativeSubjectImageFingerprint)] = []
+         for observation in observations {
+-            let feature = VNGenerateImageFeaturePrintRequest()
+-            feature.revision = VNGenerateImageFeaturePrintRequestRevision2
+             let bounds = observation.boundingBox.intersection(CGRect(x: 0, y: 0, width: 1, height: 1))
+             guard !bounds.isNull, !bounds.isEmpty, [bounds.minX, bounds.minY, bounds.width, bounds.height].allSatisfy(\.isFinite) else {
+                 throw NativeSubjectVisionError.invalidDetection
+             }
+-            feature.regionOfInterest = bounds
+-            feature.imageCropAndScaleOption = .scaleFit
+-            try configureCompute(feature)
+-            try handler.perform([feature])
+-            guard let value = feature.results?.first else { throw NativeSubjectVisionError.missingFeature }
+-            detected.append((bounds, value))
++            let value = try featurePrint(handler: handler, bounds: bounds)
++            // Bound reference preparation to two real requests over the same immutable
++            // crop. The second output only vetoes collisions; it never relaxes distance.
++            // Preparing it now also protects a selection followed immediately by another
++            // person, before any continuous frame of the selected person can arrive.
++            let confirmation = try featurePrint(handler: VNImageRequestHandler(cvPixelBuffer: buffer, orientation: .up), bounds: bounds)
++            detected.append((bounds, value, confirmation, try NativeSubjectImageFingerprint(buffer: buffer, bounds: bounds)))
+         }
+ 
+         var selectedIndex: Int?
+@@ -176,7 +180,12 @@
+                 let limit = continuous ? policy.continuousDistance : policy.reacquisitionDistance
+                 let unique = ranked.dropFirst().first.map { distances[$0] - distances[best] >= policy.ambiguityMargin } ?? true
+                 let withinGrace = selected.missingSince.map { observedAt - $0 <= policy.lostGrace } ?? true
+-                if unique && withinGrace && distances[best] <= limit {
++                // A feature extractor can return the exact same vector for different images.
++                // Equal features alone cannot establish continuity in that case. Reject the
++                // collision against the fixed reference; never replace it with this crop.
++                let collision = Self.collides((selected.feature, selected.collisionFeature), pixels: selected.pixels,
++                                              with: (detected[best].1, detected[best].2), pixels: detected[best].3)
++                if !collision && unique && withinGrace && distances[best] <= limit {
+                     selectedIndex = best
+                     selectedContinuity = continuous ? .continuous : .reacquired
+                     selected.observation = VNDetectedObjectObservation(boundingBox: detected[best].0)
+@@ -192,7 +201,7 @@
+         for (index, detection) in detected.enumerated() {
+             if index == selectedIndex, let anchor {
+                 used.insert(anchor.id)
+-                current.append(Person(id: anchor.id, bounds: detection.0, feature: detection.1, continuity: selectedContinuity))
++                current.append(Person(id: anchor.id, bounds: detection.0, feature: detection.1, collisionFeature: detection.2, pixels: detection.3, continuity: selectedContinuity))
+                 continue
+             }
+             // Other candidate IDs require both spatial continuity and unique appearance match.
+@@ -201,7 +210,9 @@
+             for previous in people where previous.id != next.protagonist && !used.contains(previous.id)
+                 && Self.overlap(previous.bounds, detection.0) >= 0.25 {
+                 let distance = try Self.distance(previous.feature, detection.1)
+-                if distance <= policy.continuousDistance {
++                if distance <= policy.continuousDistance
++                    && !Self.collides((previous.feature, previous.collisionFeature), pixels: previous.pixels,
++                                      with: (detection.1, detection.2), pixels: detection.3) {
+                     var ambiguous = false
+                     for (otherIndex, other) in detected.enumerated() where otherIndex != index
+                         && Self.overlap(previous.bounds, other.0) >= 0.25 {
+@@ -216,7 +227,7 @@
+             }
+             let id = match?.id ?? CapturePersonID()
+             used.insert(id)
+-            current.append(Person(id: id, bounds: detection.0, feature: detection.1,
++            current.append(Person(id: id, bounds: detection.0, feature: detection.1, collisionFeature: detection.2, pixels: detection.3,
+                                   continuity: match == nil ? .newDetection : .continuous))
+         }
+         people = current
+@@ -248,6 +259,24 @@
+         return result
+     }
+ 
++    private func featurePrint(handler: VNImageRequestHandler, bounds: CGRect) throws -> VNFeaturePrintObservation {
++        let request = VNGenerateImageFeaturePrintRequest()
++        request.revision = VNGenerateImageFeaturePrintRequestRevision2
++        request.regionOfInterest = bounds
++        request.imageCropAndScaleOption = .scaleFit
++        try configureCompute(request)
++        try handler.perform([request])
++        guard let result = request.results?.first else { throw NativeSubjectVisionError.missingFeature }
++        return result
++    }
++
++    private static func collides(_ first: (VNFeaturePrintObservation, VNFeaturePrintObservation), pixels firstPixels: NativeSubjectImageFingerprint,
++                                 with second: (VNFeaturePrintObservation, VNFeaturePrintObservation), pixels secondPixels: NativeSubjectImageFingerprint) -> Bool {
++        guard firstPixels != secondPixels else { return false }
++        return first.0.data == second.0.data || first.0.data == second.1.data
++            || first.1.data == second.0.data || first.1.data == second.1.data
++    }
++
+     private static func overlap(_ first: CGRect, _ second: CGRect) -> Double {
+         let area = first.intersection(second)
+         guard !area.isNull else { return 0 }
+@@ -257,5 +286,65 @@
+ }
+ 
+ nonisolated private enum NativeSubjectVisionError: Error {
+-    case cpuUnavailable, missingDetectionEvidence, invalidDetection, missingFeature
+-}
++    case cpuUnavailable, missingDetectionEvidence, invalidDetection, missingFeature, invalidPixelBuffer
++}
++
++/// An exact, ephemeral digest of the detected crop, independent of Vision's feature
++/// extraction. This is a collision veto, never an alternative identity score. Different
++/// crops with identical features remain unconfirmed even if they depict the same person.
++/// Raw pixels and digests never leave the analysis queue or survive its session.
++nonisolated struct NativeSubjectImageFingerprint: Equatable {
++    private struct Plane: Equatable {
++        let width: Int
++        let height: Int
++        let digest: SHA256.Digest
++    }
++    private let format: OSType
++    private let planes: [Plane]
++
++    init(buffer: CVPixelBuffer, bounds: CGRect) throws {
++        guard !bounds.isNull, !bounds.isEmpty,
++              [bounds.minX, bounds.minY, bounds.maxX, bounds.maxY].allSatisfy(\.isFinite),
++              bounds.minX >= 0, bounds.minY >= 0, bounds.maxX <= 1, bounds.maxY <= 1 else {
++            throw NativeSubjectVisionError.invalidDetection
++        }
++        format = CVPixelBufferGetPixelFormatType(buffer)
++        let bytesPerPixel: [Int]
++        switch format {
++        case kCVPixelFormatType_32BGRA: bytesPerPixel = [4]
++        case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
++            bytesPerPixel = [1, 2]
++        case kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_420YpCbCr10BiPlanarFullRange:
++            bytesPerPixel = [2, 4]
++        default: throw NativeSubjectVisionError.invalidPixelBuffer
++        }
++        guard CVPixelBufferLockBaseAddress(buffer, .readOnly) == kCVReturnSuccess else {
++            throw NativeSubjectVisionError.invalidPixelBuffer
++        }
++        defer { CVPixelBufferUnlockBaseAddress(buffer, .readOnly) }
++        let planar = CVPixelBufferIsPlanar(buffer)
++        guard planar ? CVPixelBufferGetPlaneCount(buffer) == bytesPerPixel.count : bytesPerPixel.count == 1 else {
++            throw NativeSubjectVisionError.invalidPixelBuffer
++        }
++        var result: [Plane] = []
++        for (index, pixelBytes) in bytesPerPixel.enumerated() {
++            let width = planar ? CVPixelBufferGetWidthOfPlane(buffer, index) : CVPixelBufferGetWidth(buffer)
++            let height = planar ? CVPixelBufferGetHeightOfPlane(buffer, index) : CVPixelBufferGetHeight(buffer)
++            let rowBytes = planar ? CVPixelBufferGetBytesPerRowOfPlane(buffer, index) : CVPixelBufferGetBytesPerRow(buffer)
++            let base = planar ? CVPixelBufferGetBaseAddressOfPlane(buffer, index) : CVPixelBufferGetBaseAddress(buffer)
++            guard let base, rowBytes >= width * pixelBytes else { throw NativeSubjectVisionError.invalidPixelBuffer }
++            let left = max(0, Int(floor(bounds.minX * Double(width))))
++            let right = min(width, Int(ceil(bounds.maxX * Double(width))))
++            let top = max(0, Int(floor((1 - bounds.maxY) * Double(height))))
++            let bottom = min(height, Int(ceil((1 - bounds.minY) * Double(height))))
++            guard left < right, top < bottom else { throw NativeSubjectVisionError.invalidPixelBuffer }
++            var hash = SHA256()
++            for row in top..<bottom {
++                hash.update(bufferPointer: UnsafeRawBufferPointer(start: base.advanced(by: row * rowBytes + left * pixelBytes),
++                                                                  count: (right - left) * pixelBytes))
++            }
++            result.append(Plane(width: right - left, height: bottom - top, digest: hash.finalize()))
++        }
++        planes = result
++    }
++}
+--- baseline/FrameRelayTests/Application/ProductCaptureSubjectCoordinatorTests.swift
++++ FrameRelayTests/Application/ProductCaptureSubjectCoordinatorTests.swift
+@@ -4,6 +4,58 @@
+ 
+ @MainActor
+ struct ProductCaptureSubjectCoordinatorTests {
++    @Test(arguments: [ExplorationOutputCandidate.sampleWriter, .movieFile])
++    func productFactoryConnectsApprovedPolicySceneTapAndRestoresOnlyChosenIntent(candidate: ExplorationOutputCandidate) async throws {
++        let parent = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
++            .appendingPathComponent("FrameRelay-capture-subject-policy-" + UUID().uuidString, isDirectory: true)
++        try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: false)
++        // SQLite descriptors belong to the product service lifetime; retain this isolated store until teardown.
++        let services = try await ProductLibraryFactory(supportDirectory: parent).open()
++        let fixture = try CaptureFixture()
++        let device = SubjectCoordinatorDevice(fixture: fixture)
++        let model = ProductCaptureFactory.make(services: services, didSave: {}, makeDevice: { selected, _, policy in
++            #expect(selected == candidate)
++            #expect(policy == ProductCaptureFactory.provisionalSubjectPolicyV1)
++            #expect(policy.version == "s45-provisional-v1")
++            #expect(policy.lostGrace == 3)
++            #expect(policy.noPersonFocus == .tapPosition)
++            return device
++        })
++        model.enterCapture()
++        await model.load()
++        #expect(model.subjectControlsConfigured)
++        #expect(model.preferences.shootingIntent == nil)
++        await model.updatePreferences(.init(desired: fixture.desired, outputCandidate: candidate))
++        await model.prepare()
++        #expect(model.canRecord)
++        #expect(!model.allowsSceneTap)
++        await device.emit(sequence: 1, state: .personPriorityAF)
++        await eventually { model.allowsSceneTap }
++        let point = CaptureSubjectPoint(x: 0.3, y: 0.7)
++        let context = try #require(model.subjects?.context)
++        await model.changeSubjects(.scenePoint(point))
++        #expect(await device.commands == [.init(context: context, command: .scenePoint(point))])
++        #expect(model.canRecord)
++        await model.chooseShootingIntent(.peopleAndBackground)
++        #expect(model.preferences.shootingIntent == .peopleAndBackground)
++        #expect(model.canRecord)
++        await model.leaveCapture()
++
++        let restored = ProductCaptureFactory.make(services: services, didSave: {}, makeDevice: { _, _, _ in
++            SubjectCoordinatorDevice(fixture: fixture)
++        })
++        restored.enterCapture()
++        await restored.load()
++        #expect(restored.preferences.shootingIntent == .peopleAndBackground)
++        #expect(restored.preferences.outputCandidate == candidate)
++        #expect(restored.preferences.desired == fixture.desired)
++        #expect(restored.subjects == nil && restored.prepared == nil)
++        #expect(!restored.canRecord)
++        await restored.prepare()
++        #expect(restored.canRecord)
++        await restored.leaveCapture()
++    }
++
+     @Test func absentIntentAndAnalysisNeverBlockRECOrStopRecording() async throws {
+         let fixture = try CaptureFixture()
+         let device = SubjectCoordinatorDevice(fixture: fixture)
+--- baseline/FrameRelayTests/Domain/CaptureSubjectSessionTests.swift
++++ FrameRelayTests/Domain/CaptureSubjectSessionTests.swift
+@@ -190,9 +190,30 @@
+         #expect(session.state == .heldAwaitingSelection)
+     }
+ 
+-    private func makeSession(noPerson: CaptureSubjectPolicy.NoPersonFocus = .tapPosition) -> CaptureSubjectSession {
++    @Test(arguments: [0.5, 3.0, 7.0])
++    func configuredGraceExpiresIntoHoldAndNeverTransfersToOtherPerson(grace: TimeInterval) {
++        var session = makeSession(lostGrace: grace)
++        let selected = person(), other = person(x: 0.6)
++        _ = session.receive(result(session, 1, 1, [selected]), now: 1)
++        _ = session.command(.init(context: session.context, command: .selectProtagonist(selected.id)), now: 1)
++        _ = session.receive(result(session, 2, 2, [other]), now: 2)
++        #expect(session.state == .lostHolding(selected.id))
++        _ = session.expire(now: 2 + grace + 0.01)
++        #expect(session.state == .heldAwaitingSelection)
++        #expect(session.action == .hold)
++        let returned = CapturePersonCandidate(id: selected.id, bounds: selected.bounds, continuity: .reacquired)
++        _ = session.receive(result(session, 3, 2 + grace + 0.02, [returned, other]), now: 2 + grace + 0.02)
++        #expect(session.state == .heldAwaitingSelection)
++        #expect(session.protagonist == selected.id)
++        #expect(session.action == .hold)
++        _ = session.command(.init(context: session.context, command: .selectProtagonist(other.id)), now: 2 + grace + 0.02)
++        #expect(session.state == .following(other.id))
++    }
++
++    private func makeSession(noPerson: CaptureSubjectPolicy.NoPersonFocus = .tapPosition,
++                             lostGrace: TimeInterval = 3) -> CaptureSubjectSession {
+         .init(context: .init(generation: .init(session: .init(rawValue: "subjects"), settings: 1), framingRevision: 1, selectionRevision: 0),
+-              policy: .init(version: "test-only", lostGrace: 3, noPersonFocus: noPerson))
++              policy: .init(version: "test-only", lostGrace: lostGrace, noPersonFocus: noPerson))
+     }
+     private func person(x: Double = 0.1) -> CapturePersonCandidate {
+         .init(id: .init(), bounds: .init(x: x, y: 0.1, width: 0.2, height: 0.5), continuity: .newDetection)
+--- baseline/FrameRelayTests/Integration/Composition/ProductCaptureAudioCompositionTests.swift
++++ FrameRelayTests/Integration/Composition/ProductCaptureAudioCompositionTests.swift
+@@ -16,7 +16,7 @@
+         let expectedGrace = try CaptureRationalTime(ticks: 2, timescale: 1)
+         let expectedTimeout = try CaptureRationalTime(ticks: 5, timescale: 1)
+         await device.configureAudioRecovery(outcomes: [.failed(failure)])
+-        let model = ProductCaptureFactory.make(services: services, didSave: {}, makeDevice: { candidate, policy in
++        let model = ProductCaptureFactory.make(services: services, didSave: {}, makeDevice: { candidate, policy, _ in
+             #expect(candidate == .sampleWriter)
+             #expect(policy.noArrivalGrace == expectedGrace)
+             #expect(policy.recovery.maximumAttempts == 1)
+--- baseline/FrameRelayTests/Platform/Capture/NativeCaptureSubjectAnalysisTests.swift
++++ FrameRelayTests/Platform/Capture/NativeCaptureSubjectAnalysisTests.swift
+@@ -61,6 +61,81 @@
+         #expect(result.candidates.isEmpty)
+     }
+ 
++    @Test(arguments: [false, true])
++    func realVisionRejectsImmediateReplacementWithoutContinuousReferenceFrame(blankBeforeReplacement: Bool) throws {
++        let engine = NativeSubjectVisionEngine(policy: policy)
++        let sally = try image("sally-ride-1979")
++        let mae = try image("mae-jemison-1987")
++        let initialInstruction = instruction()
++        let initial = try engine.process(buffer([sally]), instruction: initialInstruction, sequence: 1, observedAt: 1)
++        let selected = try #require(initial.candidates.first)
++        let selection = NativeSubjectAnalysisInstruction(context: .init(generation: initialInstruction.context.generation,
++            framingRevision: 1, selectionRevision: 1), protagonist: selected.id, allowsReacquisition: true)
++        if blankBeforeReplacement {
++            let blank = try engine.process(buffer([]), instruction: selection, sequence: 2, observedAt: 1.1)
++            #expect(blank.available && blank.candidates.isEmpty)
++        }
++        let different = try engine.process(buffer([mae]), instruction: selection, sequence: 3, observedAt: 1.2)
++        #expect(different.available && !different.candidates.isEmpty)
++        #expect(!different.candidates.contains { $0.id == selected.id })
++        let returned = try engine.process(buffer([sally]), instruction: selection, sequence: 4, observedAt: 1.4)
++        #expect(returned.candidates.contains { $0.id == selected.id && $0.continuity == .reacquired })
++    }
++
++    @Test(arguments: [kCVPixelFormatType_32BGRA, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
++                      kCVPixelFormatType_420YpCbCr8BiPlanarFullRange, kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange,
++                      kCVPixelFormatType_420YpCbCr10BiPlanarFullRange])
++    func exactCropEvidenceIncludesEveryPlaneAndExcludesPaddingAndOutsidePixels(format: OSType) throws {
++        var allocated: CVPixelBuffer?
++        #expect(CVPixelBufferCreate(kCFAllocatorDefault, 32, 32, format, nil, &allocated) == kCVReturnSuccess)
++        let input = try #require(allocated)
++        let bounds = CGRect(x: 0.25, y: 0.25, width: 0.5, height: 0.5)
++        let planar = CVPixelBufferIsPlanar(input)
++        let count = planar ? CVPixelBufferGetPlaneCount(input) : 1
++        let componentBytes = format == kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
++            || format == kCVPixelFormatType_420YpCbCr10BiPlanarFullRange ? 2 : 1
++        func dimensions(_ plane: Int) -> (UnsafeMutablePointer<UInt8>, Int, Int, Int, Int) {
++            let base = planar ? CVPixelBufferGetBaseAddressOfPlane(input, plane) : CVPixelBufferGetBaseAddress(input)
++            let width = planar ? CVPixelBufferGetWidthOfPlane(input, plane) : CVPixelBufferGetWidth(input)
++            let height = planar ? CVPixelBufferGetHeightOfPlane(input, plane) : CVPixelBufferGetHeight(input)
++            let row = planar ? CVPixelBufferGetBytesPerRowOfPlane(input, plane) : CVPixelBufferGetBytesPerRow(input)
++            let pixel = planar ? componentBytes * (plane == 0 ? 1 : 2) : 4
++            return (base!.assumingMemoryBound(to: UInt8.self), width, height, row, pixel)
++        }
++        CVPixelBufferLockBaseAddress(input, [])
++        for plane in 0..<count {
++            let (base, _, height, row, _) = dimensions(plane)
++            base.initialize(repeating: 128, count: row * height)
++        }
++        CVPixelBufferUnlockBaseAddress(input, [])
++        let original = try NativeSubjectImageFingerprint(buffer: input, bounds: bounds)
++        CVPixelBufferLockBaseAddress(input, [])
++        for plane in 0..<count {
++            let (base, width, height, row, pixel) = dimensions(plane)
++            base[0] ^= 1
++            for y in 0..<height {
++                for padding in (width * pixel)..<row { base[y * row + padding] ^= 1 }
++            }
++        }
++        CVPixelBufferUnlockBaseAddress(input, [])
++        #expect(try NativeSubjectImageFingerprint(buffer: input, bounds: bounds) == original)
++        for plane in 0..<count {
++            CVPixelBufferLockBaseAddress(input, [])
++            let (base, width, height, row, pixel) = dimensions(plane)
++            let inside = (height / 2) * row + (width / 2) * pixel
++            base[inside] ^= 1
++            CVPixelBufferUnlockBaseAddress(input, [])
++            #expect(try NativeSubjectImageFingerprint(buffer: input, bounds: bounds) != original)
++            CVPixelBufferLockBaseAddress(input, [])
++            base[inside] ^= 1
++            CVPixelBufferUnlockBaseAddress(input, [])
++        }
++        for invalid in [CGRect.zero, CGRect(x: -0.1, y: 0, width: 1, height: 1),
++                        CGRect(x: 0, y: 0, width: 1.1, height: 1), CGRect.infinite] {
++            #expect(throws: (any Error).self) { try NativeSubjectImageFingerprint(buffer: input, bounds: invalid) }
++        }
++    }
++
+     private var policy: CaptureSubjectPolicy { .init(version: "test-only", lostGrace: 3, noPersonFocus: .tapPosition) }
+     private func instruction() -> NativeSubjectAnalysisInstruction {
+         .init(context: .init(generation: .init(session: .init(rawValue: "vision-fixture"), settings: 1), framingRevision: 1, selectionRevision: 0),
+--- baseline/FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
++++ FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
+@@ -75,6 +75,62 @@
+         #endif
+     }
+ 
++    /// The run owner preserves/restores the Simulator's preference file while the
++    /// app is stopped. Initial nil intent is covered with an isolated product store.
++    @MainActor func testShootingIntentCanBeChosenWithoutCameraAndRestoresAfterRelaunch() throws {
++        #if !targetEnvironment(simulator)
++        throw XCTSkip("Simulatorで通常画面の撮影意図保存・復元を検証します")
++        #else
++        let app = XCUIApplication()
++        app.launch()
++        openCaptureAndRevealIntent(in: app)
++        let picker = app.buttons["capture.subject.intent"]
++        XCTAssertTrue(picker.isEnabled)
++        let originalText = pickerDisplayedText(picker, attachmentName: "Original shooting intent")
++        let original = ["人物のみ", "人物＋背景", "景色優先"].first { originalText.contains($0) }
++        let chosen = original == "人物＋背景" ? "景色優先" : "人物＋背景"
++        chooseShootingIntent(chosen, in: app)
++        XCTAssertFalse(app.buttons["capture.rec"].isEnabled)
++        XCTAssertTrue(app.staticTexts["capture.subject.state"].label.contains("未確認"))
++
++        app.terminate()
++        app.launch()
++        openCaptureAndRevealIntent(in: app)
++        let restored = pickerDisplayedText(app.buttons["capture.subject.intent"], attachmentName: "Restored shooting intent")
++        XCTAssertTrue(restored.contains(chosen), restored)
++        XCTAssertFalse(app.buttons["capture.rec"].isEnabled)
++        XCTAssertTrue(app.staticTexts["capture.subject.state"].label.contains("未確認"))
++        if let original { chooseShootingIntent(original, in: app) }
++        app.buttons["capture.closeToolbar"].tap()
++        XCTAssertTrue(app.buttons["product.capture"].waitForExistence(timeout: 5))
++        #endif
++    }
++
++    @MainActor private func openCaptureAndRevealIntent(in app: XCUIApplication) {
++        let entry = app.buttons["product.capture"]
++        XCTAssertTrue(entry.waitForExistence(timeout: 10))
++        entry.tap()
++        let issue = app.staticTexts["capture.issue"]
++        XCTAssertTrue(issue.waitForExistence(timeout: 10))
++        XCTAssertTrue(issue.label.contains("Simulator"))
++        let picker = app.buttons["capture.subject.intent"]
++        for _ in 0..<6 where !picker.isHittable { app.swipeUp() }
++        XCTAssertTrue(picker.isHittable)
++    }
++
++    @MainActor private func chooseShootingIntent(_ title: String, in app: XCUIApplication) {
++        let picker = app.buttons["capture.subject.intent"]
++        picker.tap()
++        let option = app.buttons[title].firstMatch
++        XCTAssertTrue(option.waitForExistence(timeout: 5))
++        option.tap()
++        let selected = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
++            let labels = [picker.label] + picker.staticTexts.allElementsBoundByIndex.map(\.label)
++            return (labels + [picker.value.map { String(describing: $0) } ?? ""]).joined(separator: "\n").contains(title)
++        }, object: nil)
++        XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 5), .completed)
++    }
++
+     /// SwiftUI menu pickers can expose the displayed selection in the label or a
+     /// child static text while their value is a non-nil unrelated control value.
+     /// Scope all text to this picker, so another row's placeholder cannot satisfy it.
+--- baseline/docs/architecture.md
++++ docs/architecture.md
+@@ -99,7 +99,7 @@
+ | Swift Concurrency＋端末APIの直列queue | 言語モード5.0を維持しSDK適合を確認 | 状態所有、task寿命、UI隔離。リアルタイムI/OはAPIの実行制約に従う | 全部をMainActorに載せない。独自並行runtimeは不要。callback橋渡しと中断を検証 |
+ | AVFoundation / Core Media | OS同梱。使用symbolを組合せごとに確認 | カメラ・音声・時間・書込・再生。既存framework内で記録と表示を分離 | MovieFileOutputとDataOutput＋AssetWriterの選択は未確定。LT/Proxy＋Log、補正、手動値、音声監視の同時成立で比較 |
+ | Core Image / Metal | 表示実装の候補。導入済みとしない | 固定Rec.709表示の候補 | ND規則自体をframeworkへ委ねない。CPU方式とも負荷・精度を比較 |
+-| Vision | S45の注入可能な人物解析本体で使用。通常経路はpolicy未注入 | 端末内の上半身検出、追跡候補、画像特徴量の照合 | SDKの追跡IDや画像類似度を人物同一性の証明にしない。再捕捉・AF・負荷の実機品質は未確認 |
++| Vision | S45の人物解析本体で使用。通常経路のpolicy接続・検証はS45で管理 | 端末内の上半身検出、追跡候補、画像特徴量の照合 | SDKの追跡IDや画像類似度を人物同一性の証明にしない。再捕捉・AF・負荷の実機品質は未確認 |
+ | Core Data（ローカルSQLite store） | ストア実装の第一案。model versionを管理 | 確認/失効と操作記録をまとめて保存し、単一writer経路を作る。媒体は格納しない | SwiftDataは保存境界の検証が必要、Codableファイル分散は複数記録の整合管理が増える、SQLite直接操作は保守範囲が増える。具体schema/障害時保証は未検証 |
+ | FoundationファイルI/O＋CryptoKit SHA-256 | OS同梱。内容識別の設計案 | 大きな原本を逐次読取り、ファイル全体の同一性をサイズとdigestで照合 | ファイル名/日時/サイズだけでは不足。サーバー側方式と合意が必要で、既存方式を確認せず置換しない |
+ | URLSession＋Network | 動画通信adapterの第一案 | 動画ゲート、cellular禁止設定、経路変化、停止/照合を共通化 | 監視だけでWi-Fi強制としない。第一候補のstreamingにおけるAVPlayer独自通信等と既存配信/認証/版管理は追加検証。背景sessionはU3未決 |
+@@ -179,7 +179,7 @@
+ | --- | --- | --- | --- |
+ | カメラ/記録 | AVFoundationでカメラ・format・出力を照合。4K/24・30fps/LT・422・Proxy/Apple Log、補正、WB、手動値の組合せを実機確認 | 未確認/非対応を区別。無断形式変更なし。絞り操作は実制御可能と確認したカメラだけ | カメラ用途説明と権限が必要。現projectで設定済みとは扱わない |
+ | 音声 | 入力到着、入力経路、音量、writer結果を分離して観測 | 入力確認中は準備中、確認済み障害で開始禁止/録画停止、部分保存を試行。有界復旧後も本人REC | マイク用途説明と権限。外部マイク等の対応を先取りしない |
+-| プレビュー/解析 | 記録のLog経路から分岐し表示だけ固定Rec.709変換。人物/ND/予告は有界の入力を使用 | 古い解析を保留。表示の成立・負荷は未検証。予告のための複数カメラ常時起動を前提にしない | 追加の顔識別サービス・クラウド権限は要求しない。人物にはS45のVision部分実装があり、通常経路は未有効。表示変換はS48 |
++| プレビュー/解析 | 記録のLog経路から分岐し表示だけ固定Rec.709変換。人物/ND/予告は有界の入力を使用 | 古い解析を保留。表示の成立・負荷は未検証。予告のための複数カメラ常時起動を前提にしない | 追加の顔識別サービス・クラウド権限は要求しない。人物のVision本体と通常経路への接続はS45、実機品質はDV-06。表示変換はS48 |
+ | 動画通信 | 共通ゲートを通るURLSession等。cellular禁止設定と経路判定・停止を併用する案 | Wi-Fi消失/REC/保存で待機。停止要求と実停止を区別し、結果不明を照合 | 接続先に応じたローカルネットワーク用途説明、Bonjour等の要否を確認。通信経路未確定のまま権限/例外を一括追加しない |
+ | 再生 | ローカル原本、版固定したRec.709軽量版。軽量版確認は1本ずつstreamingを第一候補とし、AVFoundation/AVKitを検討 | ローカル再生はオフライン可。未取得の軽量版でオフライン再生は保証しない。既存配信/認証/版管理との成立性と一時使用量を検証し、大きな制約時は一時取得を比較 | Photosから読む方式を採る場合の権限はU2。再生不能を容量整理条件へ追加しない |
+ | Photos | PhotoKit追加、完了結果、取得可能な参照による照合 | 拒否/限定/権限変更/結果不明を分離。追加権限で読み取りが保証されるとはしない | 追加用途説明、読取を採る場合は読取用途説明と対応権限。初回要求時期・範囲はU2 |
+@@ -222,13 +222,17 @@
+ 
+ 解析用の待ち行列は有界とし、古い入力をためて追いつこうとしない。解析が追いつかない間は現在の有効なND/人物結果がないことを表す。どの処理頻度をどこまで下げるかはU7・実機測定で決め、シャッター/ISO/WB/補正や記録形式を勝手に変更しない。ND方向の有用性、同一主役の再捕捉、停止候補の画質は別の品質検証であり、無効化規則のテストだけで完成にしない。
+ 
+-S45では `CaptureSubjectSession` が露出対象集合・単一主役・追跡状態を分け、`ProductCaptureDevicePort` のcommand/snapshotとcoordinatorを介して人物枠・選択UIへ渡す。`subjectPolicy` はNativeとcoordinatorへ注入できるが、現行 `ProductCaptureFactory` は未注入であり、通常経路のS45解析・AFと撮影意図選択は未有効である。意図保存・復元の本体があっても、人物なしAF・初回意図・保持秒数のU5合意や製品接続を完了扱いにしない。
++S45では `CaptureSubjectSession` が露出対象集合・単一主役・追跡状態を分け、`ProductCaptureDevicePort` のcommand/snapshotとcoordinatorを介して人物枠・選択UIへ渡す。`ProductCaptureFactory` からNativeとcoordinatorへ同一の `subjectPolicy` を注入し、人物なし時のタップ位置AFと見失い猶予の変更可能な暫定3秒を通常撮影へ接続する。初回撮影意図は本人が選択して保存・復元し、未選択をREC条件に追加しない。これらのU5判断は2026-10-18に本人合意済みであり、接続・検証の進捗はS45のtasklistを正本とする。
+ 
+ `NativeCaptureSubjectAnalysis` は処理中1件と置換可能な待機1件の入力を保持し、専用queueでVisionを実行する。`NativeSubjectVisionEngine` は上半身検出とobject trackingに、明示選択時に固定した参照のFeaturePrint照合を組み合わせる。近傍の人物で参照を更新せず、複数候補の対応が曖昧なら主役として採用しない。SDKのUUIDは人物IDへ流用せず、画像類似度による照合を顔認識や同一人物の保証と扱わない。候補・特徴量はセッション内だけに保持し、恒久的な人物台帳を作らない。
+ 
+-解析結果にはセッション/設定・構図・対象選択の世代、連番、入力時点を付け、旧世代・重複/逆順・期限超過を拒否する。解析停止や構図失効で旧候補を現在の結果として残さず、再捕捉の保持期限後は再指定を待つ。解析専用出力の座標を正規化し、共有する記録入力は向き・鏡像が適合するものだけ受け取る。人物解析のために記録接続の向き・鏡像を変更せず、プレビューの枠・タップ位置はSDKの座標変換を使う。補正後の画角対応は実機確認を残す。
+-
+-`NativeCaptureSubjectFocus` は主役への継続AF、見失い時の保持、追跡OFFの人物優先AFを能力照合して適用する。主役指定中は自動の顔切替を無効にし、非対応のAFを無断で固定へ代替しない。変更対象はフォーカス設定だけとし、読戻しによる適用・非対応・失敗を合焦品質から分離する。公開の上半身画像fixtureによる実Vision解析は技術試験の入力であり、別人通過・前後移動・再捕捉・距離/照明・記録負荷の実機受入を代替しない。製品接続、検証結果、未確認範囲はS45/DV-06で追跡する。
++S45のSimulator技術試験では、Vision revision 2のCPU経路で異なる入力から完全に同一の特徴量が返り、初回のみ微差が出る場合も観測した。ROI・crop・scale・入力形式・Core Imageのsoftware処理・CPU指定を比較しても残り、SDK内部の原因詳細は未確定である。この特徴量を人物同一性の根拠にしないため、検出ROIの実画素のSHA-256をVisionと独立に解析queueで計算する。固定参照の同一フレーム・ROIから上限2回生成した特徴量を保持し、特徴量が一致しても実画素が異なる候補は、候補IDの継続と主役の再捕捉に採用しない。上限2回の生成は初回微差による選択直後の別人受理を防ぐためで、通常の距離閾値は緩和せず、別画像で固定参照を更新しない。画素hashの一致も人物同一性の証明にはしない。
++
++この確認のためにraw bufferを追加保持せず、hashと画像情報はセッション内だけで扱い、永続記録・送信しない。同じ人物でも画像が異なり特徴量が衝突する場合は、追従・再捕捉を続けず保持へ進む制約がある。この制約の影響と追加計算負荷はDV-06で未確認として評価する。Simulatorの特徴量出力自体が修復されたことや、実機の人物同一性品質を保証するものではなく、最終検証結果はS45のtasklistを正本とする。
++
++解析結果にはセッション/設定・構図・対象選択の世代、連番、入力時点を付け、旧世代・重複/逆順・期限超過を拒否する。解析停止や構図失効で旧候補を現在の結果として残さず、見失い猶予後もピントを保持して本人の再指定を待ち、別人へ自動移行しない。解析専用出力の座標を正規化し、共有する記録入力は向き・鏡像が適合するものだけ受け取る。人物解析のために記録接続の向き・鏡像を変更せず、プレビューの枠・タップ位置はSDKの座標変換を使う。補正後の画角対応は実機確認を残す。
++
++`NativeCaptureSubjectFocus` は主役への継続AF、見失い時の保持、追跡OFFの人物優先AF、人物なし時のタップ位置AFを能力照合して適用する。主役指定中は自動の顔切替を無効にし、非対応のAFを無断で固定へ代替しない。変更対象はフォーカス設定だけとし、読戻しによる適用・非対応・失敗を合焦品質から分離する。公開の上半身画像fixtureによる実Vision解析は技術試験の入力であり、別人通過・前後移動・再捕捉・距離/照明・補正crop座標・Log・記録負荷の実機受入を代替しない。製品接続、検証結果、未確認範囲はS45/DV-06で追跡する。
+ 
+ ### 全動画通信の共通契約
+ 
+@@ -357,12 +361,12 @@
+ | U2 | 確定: 全体一時取得を待たないstreamingが第一候補。同じMac生成Rec.709軽量版を使い、一時使用量/解放を管理。残件: 既存配信/認証/版管理との成立性、再生元、Photos追加/読取権限、アルバム/再保存、再インストール/複数端末、バッファ/一時ファイルの方式・保持上限/期限・復旧 | 原本/変換版/映像対応、Wi-Fi/REC制限、明示確認・失効、Photosとの操作分離を維持。大きな制約時は一時取得との比較・代案を提示。全体取得や常時写真読取を条件にせず、空き容量不要や大規模配信基盤採用としない |
+ | U3 | 確定: 本人が開始受理済み・未完了・未停止/未キャンセルの通信だけ条件再確認後に自動再開。指示済み順番待ちも同じ。残件: 保存/復旧・二重処理防止、操作寿命の具体方式、処理順/一部失敗後の方針、停止UI、背景/ロック、小さな状態照会の回線方針 | 動画本体のWi-Fi限定、REC/保存優先、本人停止を維持。未実行削除・結果不明Photos追加・終了済み再生へ自動再開を適用せず、前景限定や背景/ロック継続を確定しない |
+ | U4 | ズーム操作、予告表示、吸着/停止候補、速度/許容差 | 予告と実倍率、観測/推定、根拠と品質を分離 |
+-| U5 | 人物なしAF、対象指定、初回意図、保持秒数、手動フォーカス詳細 | 主役と露出対象を分離し、同一主役が不明なら他人へ自動移行しない |
++| U5 | S45合意: 人物なし時はタップ位置AF、初回意図は本人選択・保存復元・REC非阻害、見失い猶予は変更可能な暫定3秒で以後保持・再指定待ち。残件: 手動フォーカスの採否・操作、表示詳細、実機品質・猶予の実機採用 | 主役と露出対象を分離し、同一主役が不明なら他人へ自動移行しない。製品policy接続とDV-06の実機受入を区別 |
+ | U6 | ISO基準/上限、補正モード名/数/強さ、録画中の操作、Lens Match | 希望/実値と組合せ評価。限定ISO補正以外の無断変更を認めない。OFF＋複数モード要求を維持 |
+ | U7 | S43暫定合意: 無到着2秒、本人再試行ごと音声入力/出力のみ1回再構成、復旧上限5秒。復旧中も無到着2秒判定。残件: 音声policyの実機採用・品質、負荷削減・熱/容量基準 | 音声障害と静寂/解析遅延を分離。変更可能な暫定製品設定とDV-10の実機採用を区別し、有界復旧、自動REC/全体再起動禁止を維持 |
+ | U8 | 解像度/コーデック/品質/ビット深度/音声圧縮 | 1080p/HEVCは候補。原本不変、Rec.709実変換、元fps/構図/向き/音声/撮影日時の保持 |
+ 
+-U1〜U3の上記確定部分はR3の回答済み方針として維持する。U7の音声policyはS43で暫定合意済みとし、同じ行の残件とU4〜U8のその他未合意案を実装必須の確定事項へ昇格させない。streamingの第一候補は成立確認済み・無条件採用を意味しない。値を後で決めることは対応するP0機能を後回しの任意機能へ変更する意味ではない。
++U1〜U3の上記確定部分はR3の回答済み方針として維持する。U5の3判断はS45で合意済み、U7の音声policyはS43で暫定合意済みとし、各行の残件とU4〜U8のその他未合意案を実装必須の確定事項へ昇格させない。streamingの第一候補は成立確認済み・無条件採用を意味しない。値を後で決めることは対応するP0機能を後回しの任意機能へ変更する意味ではない。
+ 
+ ### 技術成立・接続契約の検証待ち
+ 
+--- baseline/docs/development-guidelines.md
++++ docs/development-guidelines.md
+@@ -6,7 +6,7 @@
+ - 技術前提は[PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md)、責務と不変条件は[アーキテクチャ設計](architecture.md)、配置と参照方向は[リポジトリ構造](repository-structure.md)に従う。本書はその実装・レビュー・検証規約であり、機能要件や技術候補を新たに確定しない。
+ - 人間が作成した既存Xcode projectを利用する。外部依存・ツール、別target/package、project generatorを標準導入しない。必要な追加は必要性と範囲を合意してから行う。
+ - 実装前に対象仕様と `.steering/[YYYYMMDD]-[task]/` の `requirements.md`・`design.md`・`tasklist.md` を読む。実装中はtaskの完了と検証証跡を都度同期し、安定した要求・設計・用語・規則の変更は関連する `docs/` へ反映する。Workflowの開始条件と専門agentの役割は[AGENTS.md](../AGENTS.md)に従う。
+-- 本書は2026-09-25作成、2026-09-26に補足R3を同期した規約案。機能設計U1〜U3の操作別の複数選択範囲、streaming第一候補、既開始通信の条件付き自動再開は確定し、再度の回答待ちへ戻さない。処理順・一部失敗後の方針・選択/停止UI・権限・一時媒体の方式/上限/期限・背景/ロック等の残件とU4〜U8は未合意。実装成立・受入評価は未確認であり、ズーム・主役・設定・復旧・変換品質の詳細や数値も、対応する合意・検証前に補完しない。
++- 本書は2026-09-25作成、2026-09-26に補足R3を同期した規約案。機能設計U1〜U3の操作別の複数選択範囲、streaming第一候補、既開始通信の条件付き自動再開は確定し、再度の回答待ちへ戻さない。処理順・一部失敗後の方針・選択/停止UI・権限・一時媒体の方式/上限/期限・背景/ロック等の残件と、U4〜U8の合意済み部分を除く案は未合意。実装成立・受入評価は未確認であり、ズーム・主役・設定・復旧・変換品質の詳細や数値も、対応する合意・検証前に補完しない。
+ 
+ ## 開発環境
+ 
+@@ -118,6 +118,8 @@
+ 
+ 撮影品質の評価条件・代表シーン・操作・比較方法・測定項目・許容範囲は事前にユーザーと合意する。AF距離、ND閾値、有効期間、ズーム速度/停止精度、音声障害猶予等を架空の値で固定しない。記録には受入条件ID、環境/設定、対象データ、事前合意、試験実施結果、許容範囲の充足判定、証跡場所を分けて残す。未合意・未測定・範囲外は達成としない。
+ 
++S45の人物なし時のタップ位置AF、初回意図の本人選択・保存復元・未選択REC非阻害、見失い猶予の変更可能な暫定3秒と期限後のピント保持・再指定待ちは本人合意済みとする。通常経路への同一policyの接続と、非私的fixtureによる解析・別人拒否・世代・REC非阻害の技術試験を記録する。fixtureの成功や技術閾値を実機品質の採用にしない。動く人物の同一性、通常合焦・前後追従・追跡OFF人物優先AF、補正crop座標、Log、記録負荷および暫定3秒の実機採用はDV-06で別に確認する。
++
+ 実データはNFR-04に従い、旧MediaVault原本をMac miniの変換/プレビュー、新規FrameRelay原本を転送検証に用いる。実媒体や秘密をrepo・App bundleへ複製しない。対象・操作範囲を記録し、既存実原本や本番相当記録の削除・上書きには別の明示合意を必要とする。旧「写真」原本削除・汎用移行を前提にせず、リリース前の試験データ整理も合意した対象だけに行う。
+ 
+ ## 品質ゲート
+@@ -156,7 +158,7 @@
+ - 作業前後に差分と所有範囲を確認し、他者の変更、個人設定、無関係な整形を混ぜない。生成物、秘密、実媒体を含めない。安定文書の変更と実装の進捗を対応させる。
+ - reviewでは、要求/受入条件、参照方向と状態所有、MainActor/端末実行領域、操作ID/世代と再入、取消しと実停止、commit前後の復旧を確認する。
+ - 撮影設定と記録/表示経路の分離、全動画I/Oのゲートと条件付き自動再開、固定対象集合と動画別の成否/未処理、容量整理/破棄の分離、各削除直前の証拠と失効/排他、外部データ非削除、写真結果不明の再追加禁止、streamingの版固定と一時使用量/解放を重点確認する。UI表示だけで下位の不変条件が守られると判断しない。
+-- 変更に対応するテストと実機証跡、品質の事前合意、U1〜U3のR3確定部分と残件・未合意のU4〜U8の区別、tasklistと実diffの一致を確認する。PR等の説明には利用者から見た変更、根拠、検証と未確認範囲を記す。
++- 変更に対応するテストと実機証跡、品質の事前合意、U1〜U3のR3確定部分と残件・U4〜U8の合意済み部分と残件の区別、tasklistと実diffの一致を確認する。PR等の説明には利用者から見た変更、根拠、検証と未確認範囲を記す。
+ - `docs/` のレビューは `doc_reviewer`、実装検証は `implementation_validator` を使い、いずれも対象を変更しない。修正は所有者へ戻し、main agentが最終差分・所有範囲・完了を判断する。
+ 
+ ## Definition of Done
+--- baseline/docs/functional-design.md
++++ docs/functional-design.md
+@@ -136,7 +136,7 @@
+ 
+ | 型・フィールド | Swiftの型例 | 必須性・欠損の意味 | 許容値・初期値・制約 |
+ | --- | --- | --- | --- |
+-| ShootingIntent | `enum?` | 未選択はnil | 人物のみ／人物＋背景／景色優先。初回選択・復元方針はU5。未選択をRECの阻害条件にしない |
++| ShootingIntent | `enum?` | 未選択はnil | 人物のみ／人物＋背景／景色優先。初回は本人が選択して保存し、以後復元する。未選択をRECの阻害条件にしない |
+ | SubjectSelection | `struct` | 人物なしを許可 | 露出評価対象の候補ID集合と、ピントの主役候補ID `Optional` を別管理。主役nilは未指定。顔の恒久的な人物台帳を要求しない |
+ | FocusTrackingState | `enum` | 解析経路の未接続は状態未取得として区別 | `detecting / following(subject) / lostHolding(subject, since) / heldAwaitingSelection / personPriorityAF / sceneAF / unavailable`。人物検出の不確かさを明示。AF設定の未確認・適用・非対応・失敗は別の値で保持 |
+ | AnalysisContext | `struct` | 解析結果に必須 | セッションID、設定/構図世代、対象選択世代、入力フレーム時点、WB状態。欠損結果は現在の有効判定に使わない |
+@@ -144,7 +144,7 @@
+ | ZoomPlan | `struct` | 未選択はnil | 現在実倍率、目標倍率、予告の根拠、対応カメラ経路、停止候補根拠、状態。倍率は有限・正・対応範囲内。予告と実倍率を別値にする |
+ | FramingEstimate / StopCandidate | `struct` | 未評価はunknown | 補正の画角を含む評価条件と信頼性。引く側の未観測領域は推定/表示不可を示す。整数倍率だけで画質ラベルを作らない |
+ 
+-S45には、露出評価対象の集合と一人の主役を別に選ぶ状態・UI、撮影意図の保存・復元、人物解析・AFのpolicyを注入できる本体がある。候補IDと主役はセッション内だけに保持し、撮影意図や露出対象の選択からISO・シャッターを自動変更しない。現時点の `ProductCaptureFactory` は `subjectPolicy` を注入しておらず、通常経路のS45解析・AFと意図選択は未有効である。人物なしの位置指定AF、初回意図選択後の復元、保持秒数はU5の合意待ちを維持し、実装の存在を製品既定の採用や完了と扱わない。
++S45は、露出評価対象の集合と一人の主役を別に選ぶ状態・UI、撮影意図の保存・復元、人物解析・AFを通常撮影へ接続する。`ProductCaptureFactory` からNativeとcoordinatorへ同一の `subjectPolicy` を注入し、人物なし時のタップ位置AFと、見失い猶予の変更可能な暫定3秒を共有する。候補IDと主役はセッション内だけに保持し、撮影意図や露出対象の選択からISO・シャッターを自動変更しない。接続・検証の進捗はS45のtasklistを正本とし、U5の今回合意を実機品質の受入にしない。
+ 
+ ### D3 撮影項目とローカル原本
+ 
+@@ -249,12 +249,12 @@
+ | 手動設定・対応 | 希望値入力→組合せの確認→端末へ適用→実適用値を更新。ISO/絞り変更は解析世代を更新 | 非対応/未確認のまま対応済み表示をしない。以前の解析から設定を巻き戻さない。シャッター180°は基本案で固定制約ではない |
+ | WB | 待機Auto→REC時点の値固定→録画中は固定→本人の合わせ直し→再固定→最終フレーム後Auto | ND完了を契機に固定しない。合わせ直し中もISO・絞り・シャッターを勝手に変えない。中断を含め固定の終端は記録経路で判定 |
+ | 補正 | 初回は標準相当候補を対応照合、次回は前回選択を照合→適用。OFF＋程度/特性の異なる複数モードを保持 | 非対応なら制約と選択を要求。録画中にアプリが補正強度を変えない。画角変化を予告/停止候補へ渡す。OFFのみでFR-03完成にしない |
+-| 人物選択・AF | 人物候補→露出対象集合と主役を別選択→通常追従。見失い→数秒の保持→同じ主役の再捕捉なら追従、期限後は保持と再指定待ち | 別人へ自動遷移しない。同一主役の判定が不確かなら復帰を装わない。追跡OFF→人物優先AFであり固定ではない。人物なしはU5の風景AF案 |
++| 人物選択・AF | 人物候補→露出対象集合と主役を別選択→通常追従。見失い→変更可能な暫定3秒の猶予中は保持→同じ主役の再捕捉なら追従、期限後は保持と再指定待ち | 別人へ自動遷移しない。同一主役の判定が不確かなら復帰を装わない。追跡OFF→人物優先AFであり固定ではない。人物なし時はタップ位置へAFする |
+ | ND案内 | 有効な現在フレーム/対象/設定から評価→方向＋理由。入力条件変更・遅延・停止・信頼不足→判定中/根拠不足 | 古い「許容」を残さない。録画中もWB固定状態で評価継続。固定EV/IRE/クリップ率、RGB均一、反射や黒だけを普遍的正解にしない。飽和情報から正確な余裕を装わない |
+ | 予告・ズーム | 目標選択→予告のみ→本人の移動開始→ゆっくり移動→目標/本人停止。予告中は実倍率不変 | 予告の原本焼込みなし。別カメラの画質/ボケ/視差の再現を保証しない。引く方向の観測できない範囲を現在映像から創作しない。操作案・候補吸着はU4 |
+ | レンズ切替 | 切替条件を確認→移行中に限定ISO補正→切替後は実ISOを維持。補正/記録条件を維持できる経路だけ実行 | 常時Auto ISOへ移らず、シャッター/FPS/WB方針を維持。切替不成立時は録画継続を優先して現在側を保ち理由を表示。途切れ等の許容は実機合意が必要 |
+ 
+-S45の注入可能経路では、古いセッション・構図・対象選択の世代、逆順・期限超過の解析を拒否し、検出停止も未確認へ移す。主役の見失い中は保持し、同一候補との対応が曖昧なら再捕捉として採用しない。保持期限後は本人の再指定を待つ。AF設定の適用結果と主役状態は分けて表示し、設定の読戻し成功から実際の合焦・前後追従品質を断定しない。人物未確認や撮影意図未選択だけでRECを止めない。
++S45の人物解析経路では、古いセッション・構図・対象選択の世代、逆順・期限超過の解析を拒否し、検出停止も未確認へ移す。主役の見失い中は保持し、同一候補との対応が曖昧なら再捕捉として採用しない。特徴量が同じでも実画素が異なる場合は、人物同一性の根拠にせず保持へ進む。同じ人物もこの制約で追従・再捕捉できない可能性と追加計算負荷はDV-06で評価する。猶予後もピントを保持し、本人の再指定を待つ。AF設定の適用結果と主役状態は分けて表示し、設定の読戻し成功から実際の合焦・前後追従品質を断定しない。人物未確認や撮影意図未選択だけでRECを止めない。
+ 
+ WBの合わせ直しは、録画中で現在の対応能力が確認済みの場合だけ本人操作を有効にする。WB状態と操作できない理由を表示し、能力が未取得・未確認の場合を対応済みと扱わない。合わせ直し中は重複操作を受け付けず、測定と再固定の完了を確認して状態を更新する。固定の待ち時間で完了を推定せず、ISO・絞り・シャッターは維持する。
+ 
+@@ -264,7 +264,7 @@
+ 
+ 補正・倍率・format・実カメラ・セッションの変化は、世代と通知順序を持つ画角状態へ反映する。旧世代・重複・逆順通知を採用せず、再準備・中断・観測終了では旧画角状態を失効させる。同じ世代で失効しても受理済み通知番号の最大値を保持し、遅れた通知で旧状態を復活させない。formatの画角は補正後cropの根拠にせず、補正後の撮影範囲とプレビュー・記録の一致はOFFでも未確認と表示する。S44はS47向けの状態供給までを扱い、構図予告・ズーム停止支援UIへの接続と実画角の検証は残す。進捗・検証証跡は現行tasklistを正本とし、3場面の補正品質や全FR-03受入の完了を意味しない。
+ 
+-解析の受付結果はセッション・設定・対象・構図世代と有効期間が一致するときだけ採用する。WB更新・倍率/実カメラ変更・補正変更・アプリ中断で該当する解析を失効させる。有効期間・AF保持秒数は実測前に固定数値を作らず、T05/T06で評価条件と併せて決める。音声の障害判定猶予はS1・U7の暫定合意とT09/DV-10の実機評価を区別する。録画品質が維持できないときの補助処理削減案はU7で決め、削減を理由に補正や撮影設定を無断変更しない。
++解析の受付結果はセッション・設定・対象・構図世代と有効期間が一致するときだけ採用する。WB更新・倍率/実カメラ変更・補正変更・アプリ中断で該当する解析を失効させる。解析の有効期間は未合意の固定数値を作らず、T05/T06で評価条件と併せて決める。主役見失い猶予の暫定3秒はU5の本人合意とT05/DV-06の実機採用を区別する。音声の障害判定猶予はS1・U7の暫定合意とT09/DV-10の実機評価を区別する。録画品質が維持できないときの補助処理削減案はU7で決め、削減を理由に補正や撮影設定を無断変更しない。
+ 
+ ### S3 原本保存と起動時の復旧
+ 
+@@ -389,7 +389,7 @@
+ | T02 | 表示経路の確認イベントでは明示確認を作らない | 待機/録画中の固定Rec.709表示、Log非焼込み、描画性能・録画継続性を合意範囲で確認 |
+ | T03 | 初回候補と保存希望優先、条件付き復元、format候補と実接続の分離、無断代替禁止、両出力の要求/実active照合、予約後の開始再確認、旧通知・画角失効と通知番号の保持 | 候補/未確認/非対応理由と希望/要求/実動作の表示。OFF＋複数モードの効果を歩き/静止手持ち/ゆっくりパンで評価。構図・音声同期・ズーム/切替との両立、標準不成立時の説明。予告/停止支援への接続と実画角はS47・実機評価で確認 |
+ | T04 | REC/STOP/合わせ直しの順序、WB値のクリップ間持越しなし | 安定前REC、最後の記録フレーム、合わせ直し時の色と連続性、二本連続撮影、他露出値の維持 |
+-| T05 | 主役と露出対象の分離、同じ主役のみ再捕捉、曖昧な対応の拒否、保持期限・旧世代・逆順/期限超過の候補、追跡OFF、REC非阻害。公開の上半身画像fixtureによる実Vision解析は限定的な技術試験として扱う | 通常の主役合焦/前後追従、人物優先AFを距離・光・移動条件別に評価。人物なし・検出待ちでもREC可能。静止fixtureやAF設定の読戻しは、動く人物の同一性・合焦品質・負荷の実機受入を代替しない。実行結果と未確認範囲はS45/DV-06へ記録 |
++| T05 | 主役と露出対象の分離、同じ主役のみ再捕捉、曖昧な対応の拒否、暫定3秒の猶予と期限後の保持/再指定、旧世代・逆順/期限超過の候補、追跡OFF、人物なし時のタップ位置AF、意図保存/復元・未選択REC。公開の上半身画像fixtureによる実Vision解析は限定的な技術試験として扱う | 通常の主役合焦/前後追従、人物優先AFを距離・光・移動条件別に評価。人物なし・検出待ちでもREC可能。静止fixtureやAF設定の読戻しは、動く人物の同一性・合焦品質・補正crop座標・Log・記録負荷の実機受入を代替しない。実行結果と未確認範囲はS45/DV-06へ記録 |
+ | T06 | 設定/対象/構図変更・解析停止で旧OKを失効、WB状態の世代照合 | 濃く/薄く/両立困難の合意代表例、反射・太陽・黒、WB Auto/固定、飽和/情報不足。保留だけで完成にしない |
+ | T07 | 予告中の倍率不変、目標到達/途中停止、候補不在、古い予告 | 録画中に寄る/引く/止まる操作、滑らかさ・停止精度・原本非焼込み、実画角との差、補正、停止前後の実画質 |
+ | T08 | 限定ISO補正の範囲、実値表示、非対応切替拒否、手動変更の優先 | 切替の途切れ・明るさ/色/ピント/位置/時間・音声同期・記録継続、戻すレンズ時の方針、無断変更なし |
+@@ -432,13 +432,15 @@
+ 
+ 2026-10-18のS43で、音声の無到着2秒、本人再試行ごとの音声入力/出力だけ1回の再構成、復旧上限5秒について本人の承認を得た。復旧中も2秒の無到着判定が働く変更可能な暫定製品設定としてS1・U7へ適用し、実機採用・品質合格や負荷対応の未決事項は確定へ変更しない。
+ 
++2026-10-18のS45で、人物なし時のタップ位置AF、初回撮影意図の本人選択と保存・復元および未選択時のREC非阻害、見失い猶予の変更可能な暫定3秒と期限後のピント保持・再指定待ちについて本人の承認を得た。別人へ自動移行しない。D2・S2・U5へ適用し、同一性・合焦等の実機品質や手動フォーカスの採否は確定へ変更しない。
++
+ | ID・論点（PRDの対応） | R3確定部分と残る推奨案 | 影響・残件・判断時点 |
+ | --- | --- | --- |
+ | U1 ライブラリと破棄操作（Q03/Q04/Q11/R2/R3） | **確定**: 原本転送/写真保存/条件を満たす容量整理は複数選択してまとめて開始・実行、順次処理可、動画別に成否/未処理を表示。再生/明示確認/破棄は1本ずつ。**残る案**: 一撮影一行、録画後は撮影画面に留まる、容量整理/破棄の別ボタンと対象確認画面、破棄後の行保持。録画/保存中は新たな削除を待たせ、転送中は本人の停止後に対象/リスクを再確認 | 選択UI・全選択、処理順、一部失敗後の続行/停止、停止UI、競合待機の具体方式、破棄後の表示/記録保持は未合意。破棄済み専用一覧等も候補。録画中の別原本削除を許す案は負荷/競合評価が必要。複数整理でも動画別の安全条件は緩和せず、実装前に残件を合意 |
+ | U2 軽量版再生・写真権限（Q03/Q04/Q11/R3） | **確定**: 全体一時取得を待たないストリーミングが第一候補。写真保存用と同じMac生成Rec.709軽量版の原本/変換版/映像対応、Wi-Fi/REC/明示確認/失効規則を維持し、一時使用量と解放を管理。写真保存は別操作・状態。**残る案**: 原本削除後も同じ行からMac軽量版を選ぶ、写真は鑑賞先として分離。追加権限を基本に結果不明時に読み取り権限を案内し、権限不足なら要確認を維持 | 既存配信/認証/版管理との成立性は未検証。大きな制約時は一時取得との比較・代案を示し、無条件採用や大規模配信基盤導入をしない。再生元、権限方針、アルバム、再保存、再インストール/複数端末、バッファ/一時ファイルの保持上限・期限・復旧方式は未合意。空き容量不要とは扱わない |
+ | U3 通信復帰・背景動作（Q12/R3） | **確定**: 本人が開始受理済み・未完了・未停止/未キャンセルの通信だけ、Wi-Fi・録画/保存等を再確認して自動再開。複数で開始した順番待ちも対象。**残る案**: 前景で再開、背景/ロックは保留、小さな状態照会もWi-Fi限定とする案。これらは今回採用済みにしない | 停止/再開条件の保存・復旧、二重送信/二重処理防止、操作の寿命、処理順/一部失敗後の方針、一括/個別停止UI、小さな状態照会、背景/ロック中の扱いは接続仕様前に合意・検証。背景継続や非Wi-Fiでの小さな照会も比較候補。動画本体のモバイル通信は禁止。自動再開は未実行削除・結果不明の写真追加・終了済み再生へ適用しない |
+ | U4 ズームUI（Q05） | 目標倍率の選択→寄る側は枠、引く側は対応が確認できた別表示または範囲の図示で予告→「移動」でゆっくり開始→「停止」で途中停止。検証済み停止候補を明示し、候補が近くになければ指定倍率へ進み画質を断定しない。初期案は無断吸着なし | 操作が一段増えるが予告だけで倍率が変わらない。代案は押している間だけ動く操作、候補への弱い吸着。速度・遅延・触覚・近傍判定・許容差は実機評価前に合意。引く範囲の取得方式/負荷は未検証 |
+-| U5 人物なし・主役UI（Q06） | 人物タップで主役指定、露出対象は別選択。追跡OFFは人物優先AF。人物なしでは画面位置指定を使う風景AFを候補にする。初回撮影意図は本人に選んでもらい以後復元。見失い時は控えめな保持表示と再指定 | AF位置指定の対応は要検証。代案は風景用の継続AF、手動フォーカス操作追加。保持秒数、同一主役再捕捉、距離/照明/移動の評価条件は合意・実測して確定。人物＋背景を全域同時合焦の保証にしない |
++| U5 人物なし・主役UI（Q06） | **S45合意**: 人物なし時はタップ位置AF。初回撮影意図は本人が選択して保存・復元し、未選択もREC非阻害。見失い猶予は変更可能な暫定3秒で、以後ピント保持・再指定待ちとし別人へ自動移行しない。**既存確定要件**: 人物タップで主役指定、露出対象は別選択、追跡OFFは人物優先AF | AF位置指定の実対応、同一主役再捕捉、合焦/前後追従/人物優先AFの距離・照明・移動条件と許容範囲、暫定3秒の実機採用はDV-06で確認する。手動フォーカスの採否・操作と表示詳細は残件。人物＋背景を全域同時合焦の保証にしない |
+ | U6 レンズISO・補正・設定（Q07/Q08） | **S41確定**: 初回fpsは未選択から本人が24/30fpsを選び、以後保存して現在の条件と照合し復元する。**残る案**: 録画中は形式/fps/補正の手動切替を無効にし、実倍率/実カメラを表示。レンズを戻す場合も現在ISOを基準に限定補正し、手動ISO変更は以後の新しい基準にする。Lens Matchは必須に追加せず調査候補のまま | 代案はレンズ別ISO記憶、録画中補正切替、検証できたLens Match操作。補正上限・モードの数/名前/強さは能力確認と操作合意が必要。OFF＋複数モードの要求は維持。標準不成立なら要求再確認 |
+ | U7 音声復旧・負荷対応（Q10） | **S43暫定合意**: 無到着2秒、本人の「再試行」ごとに音声入力/出力だけ1回再構成、復旧上限5秒。復旧中も2秒の無到着判定を適用する。入力名/入力状態/メーター/理由と再試行をまとめ、異常停止と保存結果確定後に復旧する。**既存確定要件**: 再試行で直らなければ保存結果を示して本人の開き直し等を案内する。**残る案**: 案内の具体UI、負荷時にND/人物解析の頻度を落として保留表示にする方法 | 音声の数値・再構成範囲は変更可能な暫定製品設定で、実機採用・音声/同期/復旧品質はDV-10で確認する。負荷時の代案は解析停止の明示操作。負荷削減・熱/容量の基準は測定と合意が必要。音声省略・無限再試行・自動REC・勝手な補正/形式変更は不可 |
+ | U8 変換出力（Q09） | 1080p・HEVCを比較試験の第一候補とし、元fps・構図・向き・音声・撮影日時を保持する。固定の標準Rec.709変換を用い、味付けは加えない | 解像度/コーデック/品質・ビットレート/ビット深度/音声圧縮は未合意。容量と画質・再生互換を比較して決める。将来の版変更はS5に従い、LUT選択UIや一括再変換を初期版へ加えない |
+--- baseline/docs/glossary.md
++++ docs/glossary.md
+@@ -4,7 +4,7 @@
+ 
+ 本書は、[PRD](product-requirements.md)、[機能設計](functional-design.md)、[アーキテクチャ設計](architecture.md)、[リポジトリ構造](repository-structure.md)、[開発ガイドライン](development-guidelines.md)で使う言葉の意味と表記を整理する用語集案である。要求の正本は補足R2を含め2026-09-25に全体承認され、2026-09-26の明示回答を補足R3として反映したPRDとし、全P0の21要求・79受入条件（FR-01〜FR-17、NFR-01〜NFR-04）を変更しない。
+ 
+-英語の型名・状態値・契約名は先行設計の論理名または例を示す。実装名、保存schema、APIの採用を本書で決定しない。機能設計U1〜U3のR3確定部分と残件、未合意のU4〜U8、未検証の技術候補を区別し、要求の合意・設計案・実装・検証結果を混同しない。技術設定の正本は[PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md)である。
++英語の型名・状態値・契約名は先行設計の論理名または例を示す。実装名、保存schema、APIの採用を本書で決定しない。機能設計U1〜U3のR3確定部分と残件、U4〜U8の合意済み部分と残件、未検証の技術候補を区別し、要求の合意・設計案・実装・検証結果を混同しない。技術設定の正本は[PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md)である。
+ 
+ ## ドメイン用語
+ 
+@@ -40,11 +40,11 @@
+ 
+ | 用語 | 定義と本プロジェクトでの使用 | 関係・区別 |
+ | --- | --- | --- |
+-| 撮影意図 | 人物・背景のどこを重視するかを示す選択。基本区分は「人物のみ／人物＋背景／景色優先」 | 初回選択等はU5。人物＋背景を全域同時合焦の保証にしない |
++| 撮影意図 | 人物・背景のどこを重視するかを示す選択。基本区分は「人物のみ／人物＋背景／景色優先」 | 初回は本人が選択して保存・復元する。未選択もRECを妨げない。人物＋背景を全域同時合焦の保証にしない |
+ | 露出評価対象 | ND・露出案内で重視する人物等。人物は複数選択を扱う | ピントの主役と別に管理する |
+ | 主役 | ピントを合わせ、前後移動に追従する対象として本人が指定する一人 | 恒久的な人物識別台帳を意味しない |
+-| 主役追跡 | 指定した人物への合焦と移動への追従 | 見失った後は保持し、同じ人物と確かめられた場合に復帰。別人へ自動移行しない |
+-| 追跡OFF | 特定主役への追従を使わず、人物優先AFを使う方針 | ピント固定とは異なる。人物なし時のAF詳細はU5 |
++| 主役追跡 | 指定した人物への合焦と移動への追従 | 見失い後は変更可能な暫定3秒の猶予中に同じ人物と確かめられた場合に復帰。以後はピント保持・再指定待ちとし、別人へ自動移行しない |
++| 追跡OFF | 特定主役への追従を使わず、人物優先AFを使う方針 | ピント固定とは異なる。人物なし時はタップした位置へAFする |
+ 
+ 参照先: [PRD FR-05](product-requirements.md)、[機能設計 D2・S2・U5](functional-design.md)。
+ 
+@@ -352,7 +352,7 @@
+ | 略語 | 名称・意味 | 本プロジェクトでの使用 |
+ | --- | --- | --- |
+ | WB | White Balance、ホワイトバランス | クリップ内の固定と本人の合わせ直し |
+-| AF | Auto Focus、オートフォーカス | 主役追跡、人物優先AF。人物なしの詳細は未決 |
++| AF | Auto Focus、オートフォーカス | 主役追跡、人物優先AF、人物なし時のタップ位置AF |
+ | ND | Neutral Density、減光フィルター | 本人が物理調整し、アプリは方向・理由を案内 |
+ | fps／FPS | frames per second、毎秒のフレーム数 | 通常文はfps。24/30fpsを基本とし、変換時も元fpsを維持 |
+ | ISO | 撮影感度の設定値 | 通常は本人の手動固定。レンズ移行中の限定補正を区別 |
+@@ -387,7 +387,8 @@
+ - 定義: U1〜U8は機能設計で確定部分とユーザー判断・詳細化を待つ部分を整理する論点。技術候補は成立性・契約・負荷等の確認後に選定する方式。
+ - 本プロジェクトでの使用: U1＝ライブラリと破棄操作、U2＝軽量版再生と写真権限、U3＝通信復帰・背景動作、U4＝ズームUI、U5＝人物なし・主役UI、U6＝レンズISO・補正・設定、U7＝音声復旧・負荷対応、U8＝変換出力。
+ - R3確定部分: U1の操作別の複数選択範囲、U2の全体一時取得を待たないストリーミング第一候補、U3の本人が開始した通信の条件付き自動再開。再度の回答待ちへ戻さない。
+-- 残件: U1〜U3の選択・停止UI、処理順・一部失敗後の方針、再生元・写真権限、一時媒体の方式・使用量上限・期限・復旧、再開条件の保存・二重処理防止、背景・ロック等と、U4〜U8の案・数値は未合意。ストリーミングの配信・認証・版固定や実機成立も未検証で、用語・論理型・目標ディレクトリだけで採用済みとしない。
++- S45合意部分: U5の人物なし時のタップ位置AF、初回意図の本人選択・保存復元・未選択REC非阻害、見失い猶予の変更可能な暫定3秒と期限後のピント保持・再指定待ち。実機品質の受入とは分ける。
++- 残件: U1〜U3の選択・停止UI、処理順・一部失敗後の方針、再生元・写真権限、一時媒体の方式・使用量上限・期限・復旧、再開条件の保存・二重処理防止、背景・ロック等と、U4〜U8の合意済み部分を除く案・数値は未合意。ストリーミングの配信・認証・版固定や実機成立も未検証で、用語・論理型・目標ディレクトリだけで採用済みとしない。
+ - 参照先: [機能設計「ユーザー判断待ちの具体案」](functional-design.md#ユーザー判断待ちの具体案)、[アーキテクチャ「技術的制約と未決事項」](architecture.md#技術的制約と未決事項)。
+ 
+ ### 品質ゲート・証跡・Definition of Done
+--- baseline/docs/product-requirements.md
++++ docs/product-requirements.md
+@@ -167,15 +167,15 @@
+ 
+ - 利用者: 撮影者。
+ - 目的: 人物と背景を残す意図を伝え、主役へのピントを保つ。
+-- 振る舞い: 撮影意図は「人物のみ／人物＋背景／景色優先」を基本とする。自動検出した人物候補をタップで選べ、複数人の露出評価と一人のピントの主役を分ける。通常時は指定した主役に合焦し、前後移動に合わせてピントを追従させる。主役を見失うと数秒間ピントを保ち、同じ主役を再捕捉した場合は追跡へ戻る。戻らなければ別人へ移らず、ピント保持・控えめな状態表示・タップでの再指定を可能にする。
+-- 例外・停止条件: 人物＋背景は全員や背景への同時合焦を保証しない。追跡OFFをピント固定と同義にせず、人物優先AFを使う方針とする。人物なしの風景に対応するが、対象指定・AF・手動フォーカスの詳細、保持秒数、表示方式は未決。
++- 振る舞い: 撮影意図は「人物のみ／人物＋背景／景色優先」を基本とし、初回は本人が選択して保存・復元する。自動検出した人物候補をタップで選べ、複数人の露出評価と一人のピントの主役を分ける。通常時は指定した主役に合焦し、前後移動に合わせてピントを追従させる。主役を見失うと、変更可能な暫定3秒の猶予中はピントを保ち、同じ主役を再捕捉した場合は追跡へ戻る。猶予後は別人へ移らず、ピント保持・控えめな状態表示・タップでの再指定待ちとする。人物なし時はタップした位置へAFする。
++- 例外・停止条件: 撮影意図が未選択でもRECを妨げない。人物＋背景は全員や背景への同時合焦を保証しない。追跡OFFをピント固定と同義にせず、人物優先AFを使う方針とする。手動フォーカスの採否・操作、表示詳細、暫定3秒の実機採用・合焦品質は未確定。
+ - 優先度: P0。根拠: 第6.1・6.2・17.2節。通常時の追従・追跡OFFの受入具体化は補足R1。
+ 
+ 受け入れ条件:
+ 
+-- [ ] **AC-FR-05-01**: 複数の人物を露出評価対象に選択し、一人の主役を別に指定できる。撮影意図と人物の有無を扱え、追跡OFFを自動的なピント固定として扱わない。
+-- [ ] **AC-FR-05-02**: 追跡中の主役が画面から消えた場合、設計・実機評価で定める数秒の保持期間に同じ主役が戻ると追跡へ復帰する。戻らないと別人へ自動移行せず、ピントを保持し状態表示とタップ再指定ができる。
+-- [ ] **AC-FR-05-03**: 人物検出が未完了でも必要な記録条件を満たせば録画でき、検出結果が不確かな状態を現在の確定結果として表示しない。
++- [ ] **AC-FR-05-01**: 複数の人物を露出評価対象に選択し、一人の主役を別に指定できる。本人が選んだ撮影意図を保存・復元し、人物なし時はタップ位置へAFできる。追跡OFFを自動的なピント固定として扱わない。
++- [ ] **AC-FR-05-02**: 追跡中の主役が画面から消えた場合、変更可能な暫定3秒の猶予中に同じ主役が戻ると追跡へ復帰する。猶予後は別人へ自動移行せず、ピントを保持し状態表示とタップ再指定ができる。猶予の実機採用は合意した条件で別に評価する。
++- [ ] **AC-FR-05-03**: 人物検出が未完了、撮影意図が未選択でも必要な記録条件を満たせば録画でき、検出結果が不確かな状態を現在の確定結果として表示しない。
+ - [ ] **AC-FR-05-04**: 指定した主役に通常時に合焦し、その人物の前後移動へピントが追従して、事前合意した許容範囲を満たす。距離・照明・移動条件の具体値と評価方法は後続で合意し、人物選択や見失い時の動作だけで主役追跡を完成扱いにしない。
+ - [ ] **AC-FR-05-05**: 追跡OFFではピントを固定せず、人物を優先するAFが動作して事前合意した許容範囲を満たす。特定主役の追跡とは分けて実機評価し、対象・距離・照明・移動条件は後続で合意する。
+ 
+@@ -469,7 +469,7 @@
+ | Q03 写真保存 | 確定: 複数開始・動画別結果、通常は保存操作時の追加権限、結果照合が必要な時だけ理由付き読取案内。拒否・限定・対応不明・読取可でも未発見は要確認とし、無条件再追加しない。残件: 選択UI、アルバム、本人削除後の手動再保存、再インストール後の対応不明、一時媒体の具体方式・上限・期限 | 写真保存の実装・接続工程で確定した権限・照合規則を適用。未合意の再保存機能を既定動作に追加せず、軽微な表示は根拠付き暫定判断、重複・消失に関わる判断は局所相談 |
+ | Q04 閲覧 | 確定: R3の操作粒度、整理成功後の通常一覧、実削除成功を照合した破棄だけの履歴、原本本体と管理記録の分離。原本なし・軽量版の取得／再生可否・確認・写真状態を分け、不明は要照合、未取得媒体はオフライン再生不可とする。残件: 配置・表示名・再生元選択の導線・録画後画面等の詳細 | ライブラリ・録画画面の設計で可逆な詳細を記録して進める。写真権限や再生可否を有効証拠に基づく容量整理の追加条件にしない |
+ | Q05 ズーム | 確定: 目標選択→構図予告→移動開始→目標自動停止、途中停止、ズーム停止とREC停止の分離、近傍停止支援、暫定設定と実機採用値の区別。残件: 予告の描画方法、吸着方式・候補不在時、速度・精度・許容差等の数値と実機品質 | 制御・試験は版付き暫定設定で先行する。実画角・滑らかさ・停止精度・画質の採用は事前条件合意と実機評価後。詳細設定画面の追加は未決 |
+-| Q06 AF | 主役見失い時の保持秒数・表示、人物なし時のAF・対象指定、手動フォーカス。通常時の主役合焦・前後移動への追従と追跡OFFの人物優先AFを評価する距離・照明・移動条件・許容範囲（補足R1） | 人物AFの機能仕様と実機評価 |
++| Q06 AF | S45合意（2026-10-18）: 人物なし時はタップ位置AF、初回撮影意図は本人選択・保存復元して未選択もREC非阻害、見失い猶予は変更可能な暫定3秒で以後ピント保持・再指定待ち、別人へ自動移行なし。残件: 手動フォーカスの採否・操作、表示詳細、通常合焦・前後追従・追跡OFF人物優先AFの距離・照明・移動条件と許容範囲 | 接続・検証進捗はS45、人物同一性・合焦等の実機品質と暫定3秒の実機採用はDV-06で確認する。今回合意を実機受入合格にしない |
+ | Q07 レンズ切替 | 元レンズへ戻す際のISO、補正上限、手動ISO変更後の基準、Lens Match操作の採否・条件 | 露出・レンズ切替の機能仕様と実機評価 |
+ | Q08 手ブレ補正等 | 採用済みのOFF＋複数モードの具体的な数・名前・強さ・UI・対応条件・制限・代替動作。外部機器の対応範囲は未決 | 撮影基盤の設計・実機評価 |
+ | Q09 変換 | 解像度・コーデック・品質／ビットレート・ビット深度・音声圧縮。1080p・HEVCは候補。将来のLUT変更・再生成・写真での版管理 | 変換・保存の機能仕様と比較試験。初期版対象外のUIを混入させない |

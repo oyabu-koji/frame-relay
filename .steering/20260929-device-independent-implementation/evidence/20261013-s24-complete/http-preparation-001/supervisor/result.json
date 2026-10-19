@@ -1,0 +1,123 @@
+{
+  "all_actual_exits_observed": true,
+  "all_sensitive_files_absent": true,
+  "checkpoint_sha256": "ebd4c3d01788140978f7ddc4e9454c5711ca4b2325e35d1bd6f5ab689f63b149",
+  "children": {
+    "client1": {
+      "actual_exit_observed": true,
+      "exit_code": 0,
+      "pid": 75769
+    },
+    "client2": {
+      "actual_exit_observed": true,
+      "exit_code": 0,
+      "pid": 75775
+    },
+    "listener1": {
+      "actual_exit_observed": true,
+      "exit_code": 0,
+      "pid": 75767
+    },
+    "listener2": {
+      "actual_exit_observed": true,
+      "exit_code": 0,
+      "pid": 75774
+    }
+  },
+  "elapsed_seconds": 2.598052292014472,
+  "interpretation": "synthetic real HTTP upload/final read and actual same-disk process restart; no conversion, physical network, or crash fault acceptance",
+  "parent_deleted_sensitive_files": [
+    "storage-client-state.json"
+  ],
+  "parent_pid": 75765,
+  "passed": true,
+  "phases": {
+    "1": {
+      "exact_case_count": 20,
+      "http_result": {
+        "kind": "file",
+        "sha256": "a92b16ed14e45cc1f7ff60bcaefb7d507fd07ca82aa86317cb0408edd7905b9f",
+        "size": 3446
+      },
+      "passed": true,
+      "ready": {
+        "deadline_monotonic": 1040716.570267666,
+        "deadline_seconds": 240,
+        "destination_id": "83badd7e-12ea-4e9a-bda4-983bef2069a0",
+        "pid": 75767,
+        "run_identity": "e5dc4af4-6f6e-47fc-959d-f2fb62107ed4",
+        "started_monotonic": 1040476.570267666,
+        "storage_phase": 1,
+        "url": "http://127.0.0.1:50641"
+      },
+      "terminal_evidence": {
+        "audit.jsonl": {
+          "kind": "file",
+          "sha256": "c3441ec17f5432fda784213a81730843ee5c8abea452e0d7a9d5d911a70ef25b",
+          "size": 36936
+        },
+        "listener-results.json": {
+          "kind": "file",
+          "sha256": "15995d77d4d50403ad0b7a74e5fe996d8b9f29a44cfb22a256f52fe5d879e80b",
+          "size": 3568
+        },
+        "provenance-after.json": {
+          "kind": "file",
+          "sha256": "d168e72bcef973655eb286f084b63b4e7fbf7dc67fc4bb20ff4787ae0822b4b9",
+          "size": 382512
+        },
+        "result.json": {
+          "kind": "file",
+          "sha256": "3829a60ed9ec01478508323987055d5325863904e218844e990c9ad36c0a49c2",
+          "size": 15809
+        }
+      }
+    },
+    "2": {
+      "exact_case_count": 5,
+      "http_result": {
+        "kind": "file",
+        "sha256": "ddc015c4f7f4dda158b7cd51d777646d168c9ebff589c5d7cfa831f7a6337cc7",
+        "size": 2106
+      },
+      "passed": true,
+      "ready": {
+        "deadline_monotonic": 1040717.855895458,
+        "deadline_seconds": 240,
+        "destination_id": "83badd7e-12ea-4e9a-bda4-983bef2069a0",
+        "pid": 75774,
+        "run_identity": "e5dc4af4-6f6e-47fc-959d-f2fb62107ed4",
+        "started_monotonic": 1040477.855895458,
+        "storage_phase": 2,
+        "url": "http://127.0.0.1:50672"
+      },
+      "terminal_evidence": {
+        "audit.jsonl": {
+          "kind": "file",
+          "sha256": "11dcf60f0a061117665697d7f49082a82b5861d3f98ad8bacc8ba41a70fd30e7",
+          "size": 12573
+        },
+        "listener-results.json": {
+          "kind": "file",
+          "sha256": "31d73d285f09fd058cf1b130ae1051345b2ed93ce62e1b432914203d2195820a",
+          "size": 3382
+        },
+        "provenance-after.json": {
+          "kind": "file",
+          "sha256": "d168e72bcef973655eb286f084b63b4e7fbf7dc67fc4bb20ff4787ae0822b4b9",
+          "size": 382512
+        },
+        "result.json": {
+          "kind": "file",
+          "sha256": "6b05457bae2f118a8b5428d852739915d58ed2395fbe93284d822881ca8ab566",
+          "size": 8055
+        }
+      }
+    }
+  },
+  "received_signal": null,
+  "restart_checkpoint_sha256": "b62698c6743383e6d510d904742e38ab428658dfdf0ee91da7c46bc1e8f99fe5",
+  "run_identity": "e5dc4af4-6f6e-47fc-959d-f2fb62107ed4",
+  "secret_environment_read": false,
+  "signals_sent": []
+}

@@ -1,0 +1,110 @@
+--- before/run_registration_simulator_probe.py
++++ current/run_registration_simulator_probe.py
+@@ -25,6 +25,64 @@
+ DESTINATION = "platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719"
+ EXPECTED_KEYS = {"FR_REGISTRATION_PROBE", "FR_REGISTRATION_BASE_URL",
+                  "FR_REGISTRATION_BOOTSTRAP_TOKEN", "FR_REGISTRATION_DESTINATION_ID"}
++EXPECTED_TESTS = (
++    "FrameRelayTests/RegistrationServerProbeTests/testLostResponseAndLocalCommitRecovery()",
++    "FrameRelayTests/RegistrationServerProbeTests/testRegistrationCommitAndReopenUsesSameIdentity()",
++    "FrameRelayTests/RegistrationServerProbeTests/testWrongDestinationAndSecretAreRejected()",
++    "FrameRelayTests/RegistrationTransportProbeTests/testCancellationAfterResponseTerminatesTaskAndSession()",
++    "FrameRelayTests/RegistrationTransportProbeTests/testOversizeMetadataIsBoundedAndSessionTerminates()",
++    "FrameRelayTests/RegistrationTransportProbeTests/testRedirectIsRefusedAndSessionTerminates()",
++)
++
++
++def evaluate_test_metadata(summary, test_results):
++    """Fail closed on zero, missing, duplicate, skipped or unexpected test cases."""
++    cases = []
++
++    def visit(node):
++        if not isinstance(node, dict):
++            raise RuntimeError("Unexpected xcresult test node shape")
++        if node.get("nodeType") == "Test Case":
++            cases.append({"identifier": node.get("nodeIdentifier"), "result": node.get("result")})
++        for child in node.get("children", []):
++            visit(child)
++
++    for node in test_results.get("testNodes", []):
++        visit(node)
++    fields = ("totalTestCount", "passedTests", "failedTests", "skippedTests", "expectedFailures")
++    counts = {key: summary.get(key) for key in fields}
++    devices = summary.get("devicesAndConfigurations", [])
++    expected = {test.removeprefix("FrameRelayTests/") for test in EXPECTED_TESTS}
++    identifiers = [case["identifier"] for case in cases]
++    passed = (summary.get("result") == "Passed" and
++        all(type(value) is int for value in counts.values()) and
++        counts == {"totalTestCount": 6, "passedTests": 6, "failedTests": 0,
++                   "skippedTests": 0, "expectedFailures": 0} and
++        len(devices) == 1 and
++        devices[0].get("device", {}).get("deviceId") == DESTINATION.split("id=", 1)[1] and
++        all(type(devices[0].get(key)) is int and devices[0][key] == count
++            for key, count in (("passedTests", 6), ("failedTests", 0),
++                               ("skippedTests", 0), ("expectedFailures", 0))) and
++        len(cases) == 6 and set(identifiers) == expected and
++        all(case["result"] == "Passed" for case in cases))
++    return {"passed": passed, "counts": counts, "expected_tests": list(EXPECTED_TESTS),
++            "test_cases": cases, "device_configuration_count": len(devices)}
++
++
++def read_test_metadata(bundle, environment):
++    # Never pass TEST_RUNNER_* credentials to xcresulttool or export attachments/logs.
++    metadata_environment = {key: value for key, value in environment.items()
++                            if not key.startswith("TEST_RUNNER_")}
++    documents = []
++    for kind in ("summary", "tests"):
++        command = ["/usr/bin/xcrun", "xcresulttool", "get", "test-results", kind,
++                   "--path", str(bundle)]
++        result = subprocess.run(command, env=metadata_environment, stdin=subprocess.DEVNULL,
++            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=10, check=True)
++        if len(result.stdout) > 2 * 1024 * 1024:
++            raise RuntimeError("Unexpected xcresult metadata size")
++        documents.append(json.loads(result.stdout))
++    return evaluate_test_metadata(*documents)
+ 
+ 
+ def read_regular_json(path, *, private=False):
+@@ -52,11 +110,8 @@
+             config.get("allow_reviewed_loopback_listener") is not True):
+         raise SystemExit("Unreviewed registration listener namespace/config")
+     tests = config.get("xcode_only_testing")
+-    if (not isinstance(tests, list) or not tests or len(tests) != len(set(tests)) or
+-            any(not isinstance(test, str) or re.fullmatch(
+-                r"FrameRelayTests/Registration(?:Server|Transport)ProbeTests/test[A-Za-z0-9_]+", test
+-            ) is None for test in tests)):
+-        raise SystemExit("Expected explicit reviewed registration probe methods")
++    if tests != list(EXPECTED_TESTS):
++        raise SystemExit("Expected the exact six enumerated registration probe method IDs including ()")
+     if any("/RegistrationTransportProbeTests/" in test for test in tests) and (
+             config.get("allow_registration_transport_probe_routes") is not True or
+             config.get("transport_probe_oversize_bytes") != 16385 or
+@@ -83,6 +138,7 @@
+     started = time.monotonic()
+     outcome = {"command": command, "run_identity": config["run_identity"],
+         "token_in_argv": False, "exit_code": None, "stop_requested": False,
++        "xcode_exit_code": None, "test_verification": {"passed": False},
+         "listener_stop_margin_seconds": 60,
+         "limitation": "Xcode internal diagnostics may retain disposable test environment; listener exit revokes bootstrap token"}
+ 
+@@ -183,7 +239,19 @@
+         except subprocess.TimeoutExpired:
+             outcome["timed_out"] = True
+             stop_own_process()
+-        outcome["exit_code"] = process.poll()
++        outcome["xcode_exit_code"] = process.poll()
++        outcome["exit_code"] = outcome["xcode_exit_code"]
++        # End listener exposure before reading result metadata; preserve the usual
++        # finally stop request even when metadata is missing or malformed.
++        helper.request_stop(runtime, "registration-simulator-xcode-finished")
++        outcome["stop_requested"] = True
++        if outcome["xcode_exit_code"] == 0 and not outcome.get("timed_out"):
++            try:
++                outcome["test_verification"] = read_test_metadata(bundle, environment)
++            except Exception as error:
++                outcome["test_verification"] = {"passed": False, "failure_type": type(error).__name__}
++        if outcome["xcode_exit_code"] == 0 and not outcome["test_verification"]["passed"]:
++            outcome["exit_code"] = 71
+     except BaseException as error:
+         outcome["interrupted_by"] = type(error).__name__
+         stop_own_process()

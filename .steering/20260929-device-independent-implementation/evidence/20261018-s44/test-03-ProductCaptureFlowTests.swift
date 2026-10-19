@@ -1,0 +1,69 @@
+import XCTest
+
+final class ProductCaptureFlowTests: XCTestCase {
+    override func setUpWithError() throws { continueAfterFailure = false }
+
+    @MainActor func testOrdinaryCaptureWithoutTicketShowsSimulatorLimitationAndReturnsToLibrary() throws {
+        #if !targetEnvironment(simulator)
+        throw XCTSkip("Simulatorのカメラ利用不可表示を検証するケースです")
+        #else
+        let app = XCUIApplication()
+        app.launch()
+        let entry = app.buttons["product.capture"]
+        XCTAssertTrue(entry.waitForExistence(timeout: 10))
+        entry.tap()
+        let issue = app.staticTexts["capture.issue"]
+        XCTAssertTrue(issue.waitForExistence(timeout: 10))
+        XCTAssertTrue(issue.label.contains("Simulator"))
+        XCTAssertFalse(app.buttons["capture.rec"].isEnabled)
+        let stabilization = app.staticTexts["capture.stabilization"]
+        if !stabilization.isHittable { app.swipeUp() }
+        XCTAssertTrue(stabilization.exists)
+        XCTAssertTrue(stabilization.label.contains("未確認"))
+        XCTAssertTrue(app.staticTexts["capture.framing"].label.contains("一致は確認できていません"))
+        let whiteBalance = app.staticTexts["capture.whiteBalance"]
+        if !whiteBalance.isHittable { app.swipeUp() }
+        XCTAssertTrue(whiteBalance.exists)
+        XCTAssertTrue(whiteBalance.label.contains("未確認"))
+        XCTAssertFalse(app.buttons["capture.refreshWhiteBalance"].isEnabled)
+        let audio = app.staticTexts["capture.audio.input"]
+        if !audio.isHittable { app.swipeUp() }
+        XCTAssertTrue(audio.exists)
+        XCTAssertFalse(app.buttons["capture.audio.retry"].isEnabled)
+        XCTAssertFalse(app.staticTexts["capture.audio.failure"].exists)
+        XCTAssertFalse(app.buttons["exploration.import"].exists)
+        app.buttons["capture.closeToolbar"].tap()
+        XCTAssertTrue(entry.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["library.refresh"].exists)
+        #endif
+    }
+
+    @MainActor func testStabilizationSettingsKeepCandidateUnconfirmedWithoutCameraAndDoNotInventFPS() throws {
+        #if !targetEnvironment(simulator)
+        throw XCTSkip("Simulatorで能力未確認の通常設定表示を検証します")
+        #else
+        let app = XCUIApplication()
+        app.launch()
+        let entry = app.buttons["product.capture"]
+        XCTAssertTrue(entry.waitForExistence(timeout: 10))
+        entry.tap()
+        let settings = app.buttons["capture.settings"]
+        XCTAssertTrue(settings.waitForExistence(timeout: 10))
+        settings.tap()
+        let fps = app.buttons["capture.settings.fps"]
+        XCTAssertTrue(fps.waitForExistence(timeout: 5))
+        XCTAssertTrue((fps.value as? String ?? fps.label).contains("選択してください"))
+        let picker = app.buttons["capture.settings.stabilization"]
+        for _ in 0..<5 where !picker.isHittable { app.swipeUp() }
+        XCTAssertTrue(picker.exists)
+        let status = app.staticTexts["capture.settings.stabilizationStatus"]
+        XCTAssertTrue(status.exists)
+        XCTAssertTrue(status.label.contains("カメラ") || status.label.contains("未確認"))
+        XCTAssertTrue((picker.value as? String ?? picker.label).contains("標準"))
+        app.buttons["capture.settings.close"].tap()
+        app.buttons["capture.closeToolbar"].tap()
+        XCTAssertTrue(entry.waitForExistence(timeout: 5))
+        #endif
+    }
+
+}

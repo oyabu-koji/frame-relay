@@ -8,6 +8,7 @@ nonisolated struct ExplorationPrepared: Sendable {
     let capabilities: CaptureCapabilities
     let applied: AppliedCaptureSettings
     let audio: CaptureAudioState
+    var stabilization: CaptureStabilizationSnapshot? = nil
 }
 
 nonisolated struct ExplorationCameraDescription: Equatable, Sendable {
@@ -56,7 +57,12 @@ nonisolated protocol ExplorationDevicePort: CaptureControlPort {
     func discover() async throws -> [ExplorationCameraDescription]
     func prepare(_ request: ExplorationPreparation) async throws -> ExplorationPrepared
     func explorationEvents() async -> AsyncStream<ExplorationDeviceEvent>
+    func audioSnapshots() async -> AsyncStream<ProductCaptureAudioSnapshot>
     func shutDown() async
+}
+
+extension ExplorationDevicePort {
+    func audioSnapshots() async -> AsyncStream<ProductCaptureAudioSnapshot> { AsyncStream { $0.finish() } }
 }
 
 nonisolated struct ExplorationServices: Sendable {

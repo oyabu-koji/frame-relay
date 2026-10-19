@@ -1,0 +1,13 @@
+--- baseline/FrameRelay/Features/Capture/ProductCapturePreview.swift
++++ FrameRelay/Features/Capture/ProductCapturePreview.swift
+@@ -1,7 +1,9 @@
+ import AVFoundation
+ import SwiftUI
+ 
+-/// Camera framing only. This layer does not claim a standard Rec.709 transform.
++/// Live camera surface only. Its separate preview connection does not certify the
++/// recording connection's stabilization crop, even when recording stabilization is OFF.
++/// No standard Rec.709 transform or S47 framing forecast is implemented here.
+ struct ProductCapturePreview: UIViewRepresentable {
+     let source: NativeCapturePreviewSource
+ 

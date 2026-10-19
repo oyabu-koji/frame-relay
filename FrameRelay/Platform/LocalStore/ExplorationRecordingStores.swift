@@ -2,30 +2,79 @@ import Foundation
 import CoreData
 import Darwin
 
-/// D04 candidate only. Metadata atomic replacement is not a transaction with
-/// media bytes and is not proof of durability after power loss.
-actor AtomicFileRecordingStore: RecordingStorePort {
-    private let disk: ExplorationRecordingDisk
+/// Deterministic crash-boundary simulation for disposable-store tests. A lost
+/// reply is deliberately unavailable even though the disk transaction succeeded.
+nonisolated enum RecordingStoreFault: Equatable, Sendable {
+    case beforeDiskCommit, afterDiskCommitBeforeReply
+    /// Allows real setup/reconciliation commits on the same writer epoch before
+    /// interrupting only the exact operation under test.
+    case beforeBackendCommit(BackendCommitIdentity)
+    case afterBackendCommitBeforeReply(BackendCommitIdentity)
 
-    init(run: ExplorationRunDirectory, mode: ExplorationStoreOpenMode) throws {
-        disk = try ExplorationRecordingDisk(run: run, mode: mode, kind: .atomicFile)
+    func interruptsBefore(_ identity: BackendCommitIdentity?) -> Bool {
+        if self == .beforeDiskCommit { return true }
+        if case .beforeBackendCommit(let expected) = self { return identity == expected }
+        return false
     }
-
-    func execute(_ command: RecordingStoreCommand) -> RecordingStoreResult { disk.execute(command) }
-    func loadUnfinished() -> UnfinishedRecordingLoadResult { disk.loadUnfinished() }
+    func losesReply(_ identity: BackendCommitIdentity?) -> Bool {
+        if self == .afterDiskCommitBeforeReply { return true }
+        if case .afterBackendCommitBeforeReply(let expected) = self { return identity == expected }
+        return false
+    }
 }
 
-/// D04 candidate using a parentless private Core Data context and SQLite store.
-/// A successful save reaches its coordinator, not merely an in-memory child.
-actor SQLiteRecordingStore: RecordingStorePort {
+/// D04 candidate only. Metadata atomic replacement is not a transaction with
+/// media bytes and is not proof of durability after power loss.
+actor AtomicFileRecordingStore: RecordingStorePort, OriginalStorePort, MediaOperationStorePort {
     private let disk: ExplorationRecordingDisk
 
-    init(run: ExplorationRunDirectory, mode: ExplorationStoreOpenMode) throws {
-        disk = try ExplorationRecordingDisk(run: run, mode: mode, kind: .sqlite)
+    init(run: ExplorationRunDirectory, mode: ExplorationStoreOpenMode,
+         fault: RecordingStoreFault? = nil, supportedVerificationSchemas: Set<String> = []) throws {
+        disk = try ExplorationRecordingDisk(run: run, mode: mode, kind: .atomicFile, fault: fault, supportedVerificationSchemas: supportedVerificationSchemas)
     }
 
     func execute(_ command: RecordingStoreCommand) -> RecordingStoreResult { disk.execute(command) }
     func loadUnfinished() -> UnfinishedRecordingLoadResult { disk.loadUnfinished() }
+    func loadRecordings() -> RecordingStoreLoadResult { disk.loadRecordings() }
+    func loadOriginalState() -> BackendOutcome<OriginalStoreSnapshot> { disk.loadOriginalState() }
+    func commitOriginal(_ mutation: OriginalStoreMutation) -> OriginalStoreCommitResult { disk.commitOriginal(mutation) }
+    func establishRegistrationIdentity(expectedRevision: UInt64,
+        expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity {
+        try disk.establishRegistrationIdentity(expectedRevision: expectedRevision, expectedIdentity: expectedIdentity)
+    }
+    func load() -> BackendStoreLoadResult { disk.loadBackend() }
+    func commit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.commitBackend(mutation) }
+    func lookupCommit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.lookupBackend(mutation) }
+    func lookupInvalidation(_ acknowledgement: InvalidationAcknowledgement) async -> BackendOutcome<InvalidationID> {
+        disk.lookupInvalidation(acknowledgement)
+    }
+}
+
+/// Common product writer using the existing parentless Core Data/SQLite candidate.
+/// A successful save reaches its coordinator, not merely an in-memory child.
+actor SQLiteRecordingStore: RecordingStorePort, OriginalStorePort, MediaOperationStorePort {
+    private let disk: ExplorationRecordingDisk
+
+    init(run: ExplorationRunDirectory, mode: ExplorationStoreOpenMode,
+         fault: RecordingStoreFault? = nil, supportedVerificationSchemas: Set<String> = []) throws {
+        disk = try ExplorationRecordingDisk(run: run, mode: mode, kind: .sqlite, fault: fault, supportedVerificationSchemas: supportedVerificationSchemas)
+    }
+
+    func execute(_ command: RecordingStoreCommand) -> RecordingStoreResult { disk.execute(command) }
+    func loadUnfinished() -> UnfinishedRecordingLoadResult { disk.loadUnfinished() }
+    func loadRecordings() -> RecordingStoreLoadResult { disk.loadRecordings() }
+    func loadOriginalState() -> BackendOutcome<OriginalStoreSnapshot> { disk.loadOriginalState() }
+    func commitOriginal(_ mutation: OriginalStoreMutation) -> OriginalStoreCommitResult { disk.commitOriginal(mutation) }
+    func establishRegistrationIdentity(expectedRevision: UInt64,
+        expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity {
+        try disk.establishRegistrationIdentity(expectedRevision: expectedRevision, expectedIdentity: expectedIdentity)
+    }
+    func load() -> BackendStoreLoadResult { disk.loadBackend() }
+    func commit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.commitBackend(mutation) }
+    func lookupCommit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.lookupBackend(mutation) }
+    func lookupInvalidation(_ acknowledgement: InvalidationAcknowledgement) async -> BackendOutcome<InvalidationID> {
+        disk.lookupInvalidation(acknowledgement)
+    }
 }
 
 /// Confined to its owning actor after initialization. The lock also serializes
@@ -36,13 +85,23 @@ nonisolated private final class ExplorationRecordingDisk {
     private let file: URL
     private let lockName: String
     private let context: NSManagedObjectContext?
+    /// Session-only guard against a live SQLite connection following an unlinked old file.
+    /// This is never persisted or used as the credential/store identity.
+    private var openedSQLiteFile: (device: dev_t, inode: ino_t)?
+    private let fault: RecordingStoreFault?
+    private let supportedVerificationSchemas: Set<String>
+    private let reconciliationEpoch = ReaderReconciliationEpoch(rawValue: UUID().uuidString)
 
-    init(run: ExplorationRunDirectory, mode: ExplorationStoreOpenMode, kind: Kind) throws {
+    init(run: ExplorationRunDirectory, mode: ExplorationStoreOpenMode, kind: Kind,
+         fault: RecordingStoreFault?, supportedVerificationSchemas: Set<String>) throws {
         self.run = run
+        self.fault = fault
+        self.supportedVerificationSchemas = supportedVerificationSchemas
         let file = run.url.appendingPathComponent(kind == .atomicFile ? "recordings.json" : "recordings.sqlite")
         let lockName = kind == .atomicFile ? "recordings-file.lock" : "recordings-sqlite.lock"
         self.file = file
         self.lockName = lockName
+        var openedFile: (device: dev_t, inode: ino_t)?
         context = try ExplorationFileLock.withLock(run: run, name: lockName) {
             var info = stat()
             let exists = lstat(file.path, &info) == 0
@@ -73,9 +132,13 @@ nonisolated private final class ExplorationRecordingDisk {
                         _ = try Self.readDocument(context).document
                     } catch { context.rollback(); context.reset(); throw error }
                 }
+                var info = stat()
+                guard lstat(file.path, &info) == 0 else { throw ExplorationStorageError.inaccessible }
+                openedFile = (info.st_dev, info.st_ino)
                 return context
             }
         }
+        openedSQLiteFile = openedFile
     }
 
     private static func validateSQLiteSidecars(_ file: URL, creating: Bool) throws {
@@ -127,11 +190,18 @@ nonisolated private final class ExplorationRecordingDisk {
         return (object, try RecordingStoreDocument.decode(data))
     }
 
-    private func transaction<T>(write: Bool, _ body: (inout RecordingStoreDocument) throws -> T) throws -> T {
+    private func transaction<T>(write: Bool, backendIdentity: BackendCommitIdentity? = nil,
+                                _ body: (inout RecordingStoreDocument) throws -> T) throws -> T {
         try ExplorationFileLock.withLock(run: run, name: lockName) {
             try ExplorationRunDirectory.requireRegularFile(file)
             if let context {
+                var info = stat()
+                guard let openedSQLiteFile, lstat(file.path, &info) == 0,
+                      info.st_dev == openedSQLiteFile.device, info.st_ino == openedSQLiteFile.inode else {
+                    throw ExplorationStorageError.inaccessible
+                }
                 try Self.validateSQLiteSidecars(file, creating: false)
+                let interruptsBefore = fault?.interruptsBefore(backendIdentity) == true
                 return try context.performAndWait {
                     context.reset()
                     do {
@@ -139,6 +209,7 @@ nonisolated private final class ExplorationRecordingDisk {
                         let value = try body(&row.document)
                         if write {
                             row.object.setValue(try JSONEncoder().encode(row.document), forKey: "payload")
+                            if interruptsBefore { throw ExplorationStorageError.inaccessible }
                             try context.save()
                         }
                         return value
@@ -147,7 +218,11 @@ nonisolated private final class ExplorationRecordingDisk {
             }
             var document = try RecordingStoreDocument.decode(Data(contentsOf: file))
             let value = try body(&document)
-            if write { try JSONEncoder().encode(document).write(to: file, options: .atomic) }
+            if write {
+                let data = try JSONEncoder().encode(document)
+                if fault?.interruptsBefore(backendIdentity) == true { throw ExplorationStorageError.inaccessible }
+                try data.write(to: file, options: .atomic)
+            }
             return value
         }
     }
@@ -157,7 +232,11 @@ nonisolated private final class ExplorationRecordingDisk {
         switch command {
         case .commitIntent(let value, _, _), .commitResult(let value, _, _): token = value
         }
-        do { return .committed(try transaction(write: true) { try $0.apply(command) }) }
+        do {
+            let receipt = try transaction(write: true) { try $0.apply(command) }
+            if fault == .afterDiskCommitBeforeReply { throw ExplorationStorageError.inaccessible }
+            return .committed(receipt)
+        }
         catch let error as CaptureContractError { return .rejected(token, error) }
         catch { return .unavailable(token, .adapterFailure(code: "store-commit-unavailable")) }
     }
@@ -168,4 +247,96 @@ nonisolated private final class ExplorationRecordingDisk {
         catch ExplorationStorageError.corruptStore { return .corruptStore }
         catch { return .unavailable(.resourceUnavailable) }
     }
+
+    func loadRecordings() -> RecordingStoreLoadResult {
+        do {
+            return .loaded(try transaction(write: false) { document in
+                RecordingStoreSnapshot(revision: document.transactionRevision,
+                    recordings: document.entries.map {
+                        RecordingStoreEntry(intentToken: $0.intentToken, intent: $0.intent,
+                            revision: $0.revision, resultToken: $0.resultToken, result: $0.result)
+                    })
+            })
+        } catch ExplorationStorageError.unknownSchema { return .unrecognizedSchema }
+        catch ExplorationStorageError.corruptStore { return .corruptStore }
+        catch { return .unavailable(.resourceUnavailable) }
+    }
+
+    func loadOriginalState() -> BackendOutcome<OriginalStoreSnapshot> {
+        do {
+            return .succeeded(try transaction(write: false) {
+                let originals = try $0.replayStore().originals
+                return .init(revision: $0.transactionRevision, originals: originals.compactMap(\.localProjection),
+                             logicalOriginals: originals, reconciliationEpoch: reconciliationEpoch)
+            })
+        } catch ExplorationStorageError.unknownSchema { return .failed(.unknownSchema) }
+        catch ExplorationStorageError.corruptStore { return .failed(.corruptStore) }
+        catch { return .failed(.inaccessible) }
+    }
+
+    func commitOriginal(_ mutation: OriginalStoreMutation) -> OriginalStoreCommitResult {
+        do {
+            let receipt = try transaction(write: true) { try $0.applyOriginal(mutation, supportedVerificationSchemas: supportedVerificationSchemas,
+                reconciliationEpoch: reconciliationEpoch) }
+            if fault == .afterDiskCommitBeforeReply { return .unavailable(.inaccessible) }
+            return .committed(receipt)
+        } catch let error as BackendContractError { return .rejected(error) }
+        catch { return .unavailable(.inaccessible) }
+    }
+
+    func establishRegistrationIdentity(expectedRevision: UInt64,
+        expectedIdentity: RegistrationStoreIdentity?) throws -> RegistrationStoreIdentity {
+        let identity = try transaction(write: true) { document in
+            if let expectedIdentity, document.storeIdentity != expectedIdentity { throw BackendContractError.identityMismatch }
+            guard document.transactionRevision == expectedRevision else { throw BackendContractError.revisionConflict }
+            if let identity = document.storeIdentity { return identity }
+            let identity = RegistrationStoreIdentity(rawValue: UUID())
+            document.storeIdentity = identity
+            try document.validate()
+            return identity
+        }
+        if fault == .afterDiskCommitBeforeReply { throw ExplorationStorageError.inaccessible }
+        return identity
+    }
+
+    func loadBackend() -> BackendStoreLoadResult {
+        do { return .loaded(try transaction(write: false) { try $0.replayStore().snapshot(revision: $0.transactionRevision, storeIdentity: $0.storeIdentity) }) }
+        catch ExplorationStorageError.unknownSchema { return .unavailable(.unknownSchema) }
+        catch ExplorationStorageError.corruptStore { return .unavailable(.corruptStore) }
+        catch { return .unavailable(.inaccessible) }
+    }
+
+    func commitBackend(_ mutation: BackendStoreMutation) -> BackendCommitResult {
+        do {
+            let identity = mutation.change.key.operationIdentity
+            let receipt = try transaction(write: true, backendIdentity: identity) {
+                try $0.applyBackend(mutation, reconciliationEpoch: reconciliationEpoch)
+            }
+            return fault?.losesReply(identity) == true ? .unknown : .committed(receipt)
+        } catch let error as BackendContractError { return .rejected(error) }
+        catch ExplorationStorageError.unknownSchema { return .unavailable(.unknownSchema) }
+        catch ExplorationStorageError.corruptStore { return .unavailable(.corruptStore) }
+        catch { return .unavailable(.inaccessible) }
+    }
+
+    func lookupBackend(_ mutation: BackendStoreMutation) -> BackendCommitResult {
+        do { return try transaction(write: false) { $0.lookupBackend(mutation) } }
+        catch ExplorationStorageError.unknownSchema { return .unavailable(.unknownSchema) }
+        catch ExplorationStorageError.corruptStore { return .unavailable(.corruptStore) }
+        catch { return .unavailable(.inaccessible) }
+    }
+
+    func lookupInvalidation(_ acknowledgement: InvalidationAcknowledgement) -> BackendOutcome<InvalidationID> {
+        do {
+            return try transaction(write: false) { document in
+                let projection = try document.replayStore()
+                guard acknowledgement.isCommitted, projection.invalidations.contains(acknowledgement),
+                      projection.allOutbox.contains(.invalidation(acknowledgement)) else { return .unknown }
+                return .succeeded(acknowledgement.record.id)
+            }
+        } catch ExplorationStorageError.unknownSchema { return .failed(.unknownSchema) }
+        catch ExplorationStorageError.corruptStore { return .failed(.corruptStore) }
+        catch { return .failed(.inaccessible) }
+    }
+
 }

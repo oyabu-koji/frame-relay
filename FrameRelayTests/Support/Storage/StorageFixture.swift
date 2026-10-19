@@ -19,10 +19,11 @@ nonisolated func withStorageRun(_ body: (ExplorationRunDirectory) async throws -
     let url = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
         .appendingPathComponent("FrameRelay-synthetic-storage-" + UUID().uuidString, isDirectory: true)
     let run = try ExplorationRunDirectory.createNew(at: url)
-    defer {
-        do { try FileManager.default.removeItem(at: url) }
-        catch { Issue.record("Could not remove this test's newly created fixture directory") }
-    }
+    // Keep this UUID-isolated fixture as diagnostic evidence. Returning from the
+    // body does not prove every Core Data coordinator/SQLite descriptor closed;
+    // unlinking here can invalidate a still-live SQLite store. Cleanup belongs
+    // after test-process/container teardown, never a timed delay or guessed ARC
+    // lifetime. Retain failed fixtures as well, without hiding the body's error.
     try await body(run)
 }
 

@@ -1,3 +1,5 @@
+import Foundation
+
 /// An app-managed identifier, never an arbitrary file URL or a deletion authority.
 nonisolated struct CaptureOriginalReference: Equatable, Hashable, Sendable, Codable {
     let rawValue: String
@@ -7,10 +9,28 @@ nonisolated struct RecordingIntent: Equatable, Sendable, Codable {
     let context: CaptureContext
     let operation: CaptureOperationID
     let original: CaptureOriginalReference
-    let trialReference: String
+    /// Exploration records retain their trial reference. Ordinary recordings do
+    /// not require a trial ticket or synthesize one for storage.
+    let trialReference: String?
     let desired: DesiredCaptureSettings
     let applied: AppliedCaptureSettings
     let acceptedAt: CaptureTimeObservation
+    /// Calendar time supplied by the capture producer, distinct from monotonic
+    /// acceptedAt. Legacy evidence without this observation remains nil.
+    let capturedAt: Date?
+
+    init(context: CaptureContext, operation: CaptureOperationID, original: CaptureOriginalReference,
+         trialReference: String? = nil, desired: DesiredCaptureSettings, applied: AppliedCaptureSettings,
+         acceptedAt: CaptureTimeObservation, capturedAt: Date? = nil) {
+        self.context = context
+        self.operation = operation
+        self.original = original
+        self.trialReference = trialReference
+        self.desired = desired
+        self.applied = applied
+        self.acceptedAt = acceptedAt
+        self.capturedAt = capturedAt
+    }
 }
 
 nonisolated enum CaptureWriterTermination: Equatable, Sendable, Codable {

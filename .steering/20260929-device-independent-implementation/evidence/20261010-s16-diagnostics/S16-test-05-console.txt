@@ -1,0 +1,19 @@
+/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/Playback/AVOriginalPlayback.swift:301:32: warning: 'errorLog()' was deprecated in iOS 27.0: Use fetchErrorLogWithCompletionHandler: [#DeprecatedDeclaration]
+299 |             let item = value?.item
+300 |             let seconds = player.currentTime().seconds
+301 |             let errors = item?.errorLog()?.events ?? []
+    |                                `- warning: 'errorLog()' was deprecated in iOS 27.0: Use fetchErrorLogWithCompletionHandler: [#DeprecatedDeclaration]
+302 |             sdk = .init(rate: player.rate, timeControl: player.timeControlStatus.rawValue,
+303 |                 waiting: waiting, currentItemPresent: player.currentItem != nil, itemStatus: item?.status.rawValue,
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+2026-10-10 06:42:55.130 xcodebuild[98351:32604118] [MT] IDETestOperationsObserverDebug: 4.750 elapsed -- Testing started completed.
+2026-10-10 06:42:55.130 xcodebuild[98351:32604118] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-10 06:42:55.130 xcodebuild[98351:32604118] [MT] IDETestOperationsObserverDebug: 4.750 sec, +4.750 sec -- end
+Failing tests:
+	OriginalPlaybackTests.thirtySecondProductConfigurationAdvancesWithoutVideoOutputAndReleases()
+
+** TEST FAILED **
+
+Testing started
+

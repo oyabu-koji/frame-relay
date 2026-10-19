@@ -78,6 +78,8 @@ nonisolated struct CaptureCapabilities: Equatable, Sendable, Codable {
     let controlsForConfiguration: CaptureConfiguration?
     let manualControls: CaptureCapability<CaptureManualLimits>
     let whiteBalanceLock: CaptureCapability<Bool>
+    /// Optional for old persisted observations; missing is unconfirmed, never support.
+    var whiteBalanceRefresh: CaptureCapability<Bool>? = nil
 }
 
 nonisolated struct AppliedCaptureValues: Equatable, Sendable, Codable {

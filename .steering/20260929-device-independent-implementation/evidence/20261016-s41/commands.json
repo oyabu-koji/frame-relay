@@ -1,0 +1,37 @@
+[
+  {
+    "log": "fr-s41-enumerate.log",
+    "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination \"platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719\" -enumerate-tests -test-enumeration-style flat -test-enumeration-format json -test-enumeration-output-path /tmp/fr-s41-tests.json",
+    "exitCode": 0
+  },
+  {
+    "log": "fr-s41-test-enumerate.log",
+    "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination \"platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719\" test -enumerate-tests -test-enumeration-style flat -test-enumeration-format json -test-enumeration-output-path /tmp/fr-s41-tests.json",
+    "exitCode": 65
+  },
+  {
+    "log": "build-simulator-01.log",
+    "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination \"platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719\" -derivedDataPath /tmp/FrameRelay-S41-Simulator build",
+    "exitCode": 0
+  },
+  {
+    "log": "build-ios-01.log",
+    "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/FrameRelay-S41-iOS CODE_SIGNING_ALLOWED=NO build",
+    "exitCode": 0
+  },
+  {
+    "log": "build-ios-02.log",
+    "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/FrameRelay-S41-iOS CODE_SIGNING_ALLOWED=NO build",
+    "exitCode": 0
+  },
+  {
+    "log": "test-01.log",
+    "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination \"platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719\" -derivedDataPath /tmp/FrameRelay-S41-Simulator -resultBundlePath /tmp/FrameRelay-S41-test-01.xcresult -parallel-testing-enabled NO \"-only-testing:FrameRelayTests/ProductCaptureCoordinatorTests\" \"-only-testing:FrameRelayTests/ProductCaptureSettingsTests\" \"-only-testing:FrameRelayTests/ProductRecordingPersistenceTests\" \"-only-testing:FrameRelayTests/ProductCaptureSavePlaybackTests\" \"-only-testing:FrameRelayTests/OriginalSaveRecoveryTests\" \"-only-testing:FrameRelayTests/MediaStoreLegacyMigrationTests\" \"-only-testing:FrameRelayTests/RegistrationStoreIdentityTests\" test",
+    "exitCode": 0
+  },
+  {
+    "log": "ui-01.log",
+    "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination \"platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719\" -derivedDataPath /tmp/FrameRelay-S41-Simulator -resultBundlePath /tmp/FrameRelay-S41-ui-01.xcresult -parallel-testing-enabled NO \"-only-testing:FrameRelayUITests/ProductCaptureFlowTests\" test",
+    "exitCode": 0
+  }
+]

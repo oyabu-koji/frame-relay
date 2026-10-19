@@ -1,0 +1,59 @@
+FrameRelay 実装検証報告 — 2026-10-18
+対象: .steering/20260929-device-independent-implementation/
+Skill: validate-implementation / 内部 steering
+専門agent: implementation_validator (validate_device_independent)
+
+全体判定: 検証不能（steering全体の完了判定は保留）。既知の未実装・未接続と必須検証の残件があり、全体を合格にはできない。
+限定判定: S41〜S46の実装・製品接続・自動検証範囲は合格。今回の新規findingは指摘なし。実機品質・全PRD受入を含まない。
+
+確認範囲:
+- FactoryからNative/coordinatorへの同一policy注入
+- S42のWB失敗理由を通知前に保持し、STOPと両記録出力終端へ引き継ぐ経路
+- 音声故障・有限復旧、補正の実適用再照合
+- 人物AFと露出対象の分離、NDの入力時刻起点の期限・世代拒否・REC非阻害
+- 保存/disk再open/一覧/実AVPlayer、原本reader解放、一時媒体と固定Range境界
+
+構成:
+Xcode 27.0 (27A266a)、Swift compiler 6.4、Swift言語モード5.0、最低iOS27.0。
+FrameRelay.xcodeproj / FrameRelay scheme・test plan / Debug。
+Test actionのApp・FrameRelayTests・FrameRelayUITestsを確認。
+iOS27.0 Simulator (iPhone18Pro)、destination DFE46693-E8DD-4814-8957-4F327699F719。
+実機destinationなし。既存project/設定の変更なし。
+
+今回実行:
+全Unit: 364宣言中347成功（パラメーター展開後470ケース）、17 skip、失敗0。
+skip: HTTP fixture未指定、製品rootのseed/verify、fixture生成の有効化条件。
+通常撮影UI: 3成功、skip0、失敗0。入口/ND保留表示/補正設定/意図選択・再起動復元/一覧への復帰を確認。
+Simulator build: 成功。xcresultのcompiler/analyzer/runtime warningsとerrorsは0。
+stdoutの既存AppIntents metadata抽出省略メッセージなどはログに保持。
+
+継承:
+E-S46-02 ios-build-01のgeneric iOS署名なしbuild成功。同一Xcode環境と210入力すべての現物hash一致を照合。
+実機起動の成功を意味しない。不要な再buildは実施しなかった。
+
+未完了:
+task見出し集計: done18、blocked5、pending36（実機A01〜A18を含む）。文書タスクMの表はこの集計外。
+blocked: S13/S14/S16/S1V/S27。
+未実装・未接続: S23全媒体gate/背景通信、S24I転送統合、S26標準Rec.709変換、S28操作UI、S31〜S34 Photos/整理/破棄、S47ズーム、S48表示変換、S49 RECと媒体gate接続など。
+未検証: D01/G2B、実Log/音声同期/WB最終フレーム/補正画角/人物同一性・実AF/ND実写方向・負荷。HTTP/backend再実行、S27公開統合、既知アクセシビリティ残件は今回の成功で解消扱いにしない。
+要件根拠: requirements.md:45、tasklist.md:374,529,749。
+
+保全:
+開始・終了の全7593file hash一致、追加/変更/削除0、git status/diff一致。
+Simulatorの撮影設定は実行前のbytes/hashへ復元済み。
+コード、設定、docs、.steering、旧証跡は変更していない。
+
+次工程: $implement-steering .steering/20260929-device-independent-implementation/
+本検証では修正や進捗更新を行わない。
+
+証跡:
+unit-summary.json / unit-tests.json / unit-build-results.json / unit.log / unit.xcresult
+ui-summary.json / ui-tests.json / ui-build-results.json / ui.log / ui.xcresult
+latest-evidence-comparison.json / preservation-check.json / ui-preferences-restored.json
+task-status.json / xcode-list.json / test-plans.txt / test-build-settings.json / destinations.txt
+
+実行コマンド:
+unit: /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination "platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719" -derivedDataPath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261018-s18i4hkx/DerivedData -resultBundlePath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261018-s18i4hkx/unit.xcresult -disableAutomaticPackageResolution -parallel-testing-enabled NO -collect-test-diagnostics never "-only-testing:FrameRelayTests" test
+exit: 0
+ui: /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination "platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719" -derivedDataPath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261018-s18i4hkx/DerivedData -resultBundlePath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261018-s18i4hkx/ui.xcresult -disableAutomaticPackageResolution -parallel-testing-enabled NO -collect-test-diagnostics never "-only-testing:FrameRelayUITests/ProductCaptureFlowTests" test
+exit: 0

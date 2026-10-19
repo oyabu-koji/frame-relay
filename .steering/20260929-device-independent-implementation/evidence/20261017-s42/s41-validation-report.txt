@@ -1,0 +1,29 @@
+2026-10-17 S41修正後の独立検証
+
+担当: implementation_validator / s41_validation、main統合
+判定: S41実装範囲は合格、指摘なし。S42への引渡し可。
+validation中、ソース・test・docs・steeringは変更なし。
+
+重点確認:
+- NativeRecordingStartAdmissionとNative submitは現行context/未試行開始だけにnotStartedを一度生成。
+- coordinatorは未開始の保存待機を解消し、file確定/正常保存/原本bindへ昇格しない。
+- visit/取消/準備ownerとdeviceのawait前切離しにより旧準備/旧shutdownが新処理を破壊しない。
+- 遅延設定save後は再読込みで旧準備を退役させる。
+- REC前の意図commit、早期STOP、保存/一覧refreshまでの所有を維持。
+
+証拠:
+E-S41-03 final-tests: Unit50宣言/71展開ケースとUI1、失敗/skip/runtimeWarnings 0。
+Simulator buildとgeneric iOS署名なしbuild成功。
+各実行source manifest 173fileは現行hashと一致。
+E-S41-02 test-01.log:268の実MOV→共通保存→再open→Library→実AVPlayer成功を継承。
+旧170入力との差分は撮影coordinator/Native/撮影View2件/coordinator testの5件のみで、
+共通保存・Composition・Library・Playback・同統合testは不変。
+不足する再実行を認めずbuild/testは追加実行していない。
+
+main構成再確認: Xcode27.0(27A266a)、FrameRelay.xcodeproj、scheme/test plan FrameRelay、
+Debug、App/Unit/UI target、DFE46693-E8DD-4814-8957-4F327699F719 iOS27 Simulator。
+validation前後の347file hash/git status一致。
+構成確認コマンド/照合記録: s41-validation-*.txt/json。
+
+未確認: 実カメラの故障再現、D01/G2B、Log/ProRes、実権限/画質/負荷。
+既知S16監査残件、S27詳細検証は保持。S42以降は本判定に含めない。

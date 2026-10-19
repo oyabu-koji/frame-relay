@@ -1,0 +1,421 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination "platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719" -derivedDataPath /private/tmp/fr-s45-20261018-ow_sx8bp/DerivedData-Simulator -resultBundlePath /private/tmp/fr-s45-20261018-ow_sx8bp/test-01.xcresult -testPlan FrameRelay -parallel-testing-enabled NO -collect-test-diagnostics never -disableAutomaticPackageResolution "-only-testing:FrameRelayTests/CaptureSubjectSessionTests" "-only-testing:FrameRelayTests/NativeCaptureSubjectFocusTests" "-only-testing:FrameRelayTests/NativeCaptureSubjectAnalysisTests" "-only-testing:FrameRelayTests/NativeCaptureSubjectGeometryTests" "-only-testing:FrameRelayTests/ProductCaptureSubjectCoordinatorTests" "-only-testing:FrameRelayTests/ProductCaptureCoordinatorTests" "-only-testing:FrameRelayTests/ProductCaptureSettingsTests" "-only-testing:FrameRelayTests/ProductCaptureStabilizationCoordinatorTests" "-only-testing:FrameRelayTests/ProductCaptureAudioCoordinatorTests" "-only-testing:FrameRelayTests/NativeRecordingStartAdmissionTests" "-only-testing:FrameRelayTests/NativeRecordingTerminationTests" "-only-testing:FrameRelayTests/ProductCaptureSavePlaybackTests" "-only-testing:FrameRelayTests/ExplorationWBCommandOrderTests" "-only-testing:FrameRelayUITests/ProductCaptureFlowTests" test-without-building
+
+2026-10-18 09:25:50.691 xcodebuild[36037:41018516] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+Writing result bundle at path:
+	/private/tmp/fr-s45-20261018-ow_sx8bp/test-01.xcresult
+
+2026-10-18 09:25:52.190130+0900 FrameRelay[36045:41018772] [XPCErrors] non-launching port is incompatible with service identifier "com.apple.PointerUI.pointeruid.default-service"
+2026-10-18 09:25:52.223023+0900 FrameRelay[36045:41018772] [API] cannot add handler to 0 from 0 - dropping
+2026-10-18 09:25:52.274486+0900 FrameRelay[36045:41018772] [API] cannot add handler to 0 from 0 - dropping
+Test Suite 'Selected tests' started at 2026-10-18 09:25:52.424.
+Test Suite 'FrameRelayTests.xctest' started at 2026-10-18 09:25:52.424.
+Test Suite 'FrameRelayTests.xctest' passed at 2026-10-18 09:25:52.424.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-10-18 09:25:52.424.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64-apple-ios17.0-simulator
+◇ Suite CaptureSubjectSessionTests started.
+◇ Test independentExposureSelectionDoesNotChangeProtagonistOrAF() started.
+✔ Test independentExposureSelectionDoesNotChangeProtagonistOrAF() passed after 0.001 seconds.
+◇ Test lostPersonReturnsWithinGraceButOtherPersonCannotTakeOverAndExpiryRequiresTap() started.
+✔ Test lostPersonReturnsWithinGraceButOtherPersonCannotTakeOverAndExpiryRequiresTap() passed after 0.001 seconds.
+◇ Test staleSequenceTimeSelectionFramingAndGenerationAreRejected() started.
+✔ Test staleSequenceTimeSelectionFramingAndGenerationAreRejected() passed after 0.001 seconds.
+◇ Test trackingOffUsesContinuousPersonPriorityAndSceneTapRequiresFreshConfirmedAbsence() started.
+✔ Test trackingOffUsesContinuousPersonPriorityAndSceneTapRequiresFreshConfirmedAbsence() passed after 0.001 seconds.
+◇ Test unconfiguredScenePolicyAndUnconfirmedIdentityCannotSilentlyBecomeTracking() started.
+✔ Test unconfiguredScenePolicyAndUnconfirmedIdentityCannotSilentlyBecomeTracking() passed after 0.001 seconds.
+◇ Test whiteBalanceChangeInvalidatesOldFramesWithoutReplacingSelectedIdentity() started.
+✔ Test whiteBalanceChangeInvalidatesOldFramesWithoutReplacingSelectedIdentity() passed after 0.001 seconds.
+◇ Test failedDetectionIsNotConfirmedAbsenceForSceneTap() started.
+✔ Test failedDetectionIsNotConfirmedAbsenceForSceneTap() passed after 0.001 seconds.
+◇ Test stoppedAnalysisExpiresWithoutAnyFurtherFrames() started.
+✔ Test stoppedAnalysisExpiresWithoutAnyFurtherFrames() passed after 0.001 seconds.
+✔ Suite CaptureSubjectSessionTests passed after 0.026 seconds.
+◇ Suite ExplorationWBCommandOrderTests started.
+◇ Test stopDuringMeasurementOrDelayedRelockWaitsForAppliedCurrentValues(measurementEnded:) started.
+◇ Test case passing 1 argument measurementEnded → true to stopDuringMeasurementOrDelayedRelockWaitsForAppliedCurrentValues(measurementEnded:) started.
+​◇ Test case passing 1 argument measurementEnded → false to stopDuringMeasurementOrDelayedRelockWaitsForAppliedCurrentValues(measurementEnded:) started.
+​✔ Test stopDuringMeasurementOrDelayedRelockWaitsForAppliedCurrentValues(measurementEnded:) with 2 test cases passed after 0.001 seconds.
+◇ Test oneShotMeasurementIsExplicitAndCompletedOnlyOnce() started.
+✔ Test oneShotMeasurementIsExplicitAndCompletedOnlyOnce() passed after 0.001 seconds.
+◇ Test twoClipsRestartOrdinalsWithoutAcceptingTheOldClip() started.
+✔ Test twoClipsRestartOrdinalsWithoutAcceptingTheOldClip() passed after 0.001 seconds.
+◇ Test pendingLockSupersededByAutoCannotApplyLater() started.
+✔ Test pendingLockSupersededByAutoCannotApplyLater() passed after 0.001 seconds.
+✔ Suite ExplorationWBCommandOrderTests passed after 0.002 seconds.
+◇ Suite NativeCaptureSubjectAnalysisTests started.
+◇ Test realVisionDetectsTracksRejectsAnotherPersonAndReacquiresFixedReference() started.
+2026-10-18 09:25:52.511512+0900 FrameRelay[36045:41018849] [] CVPixelBufferCreate returned err -6680. width 960, height 1234, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+✘ Test realVisionDetectsTracksRejectsAnotherPersonAndReacquiresFixedReference() recorded an issue at NativeCaptureSubjectAnalysisTests.swift:11:6: Caught error: Error Domain=com.apple.Vision Code=9 "Could not create inference context" UserInfo={NSLocalizedDescription=Could not create inference context}
+✘ Test realVisionDetectsTracksRejectsAnotherPersonAndReacquiresFixedReference() failed after 0.103 seconds with 1 issue.
+◇ Test realVisionAmbiguousDuplicatePortraitsDoNotStealSelectedIdentity() started.
+2026-10-18 09:25:52.571974+0900 FrameRelay[36045:41018849] [] CVPixelBufferCreate returned err -6680. width 960, height 1234, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+✘ Test realVisionAmbiguousDuplicatePortraitsDoNotStealSelectedIdentity() recorded an issue at NativeCaptureSubjectAnalysisTests.swift:38:6: Caught error: Error Domain=com.apple.Vision Code=9 "Could not create inference context" UserInfo={NSLocalizedDescription=Could not create inference context}
+✘ Test realVisionAmbiguousDuplicatePortraitsDoNotStealSelectedIdentity() failed after 0.016 seconds with 1 issue.
+◇ Test realVisionBlankImageProducesConfirmedEmptyDetection() started.
+✘ Test realVisionBlankImageProducesConfirmedEmptyDetection() recorded an issue at NativeCaptureSubjectAnalysisTests.swift:57:6: Caught error: Error Domain=com.apple.Vision Code=9 "Could not create inference context" UserInfo={NSLocalizedDescription=Could not create inference context}
+✘ Test realVisionBlankImageProducesConfirmedEmptyDetection() failed after 0.001 seconds with 1 issue.
+✘ Suite NativeCaptureSubjectAnalysisTests failed after 0.122 seconds with 3 issues.
+◇ Suite NativeCaptureSubjectFocusTests started.
+◇ Test protagonistAndHoldDisableAutomaticPersonSwitchingWhileOFFKeepsAF() started.
+✔ Test protagonistAndHoldDisableAutomaticPersonSwitchingWhileOFFKeepsAF() passed after 0.001 seconds.
+◇ Test unsupportedContinuousAFNeverFallsBackToLockOrWrongPoint() started.
+✔ Test unsupportedContinuousAFNeverFallsBackToLockOrWrongPoint() passed after 0.001 seconds.
+✔ Suite NativeCaptureSubjectFocusTests passed after 0.001 seconds.
+◇ Suite NativeCaptureSubjectGeometryTests started.
+◇ Test outputPixelsAreConvertedBeforeNormalizedPersonBoundsReachAFAndPreview() started.
+✔ Test outputPixelsAreConvertedBeforeNormalizedPersonBoundsReachAFAndPreview() passed after 0.001 seconds.
+◇ Test frameAgeUsesCaptureClockInsteadOfMarkingDelayedArrivalAsFresh() started.
+✔ Test frameAgeUsesCaptureClockInsteadOfMarkingDelayedArrivalAsFresh() passed after 0.001 seconds.
+◇ Test unsupportedOrientationMirrorAndMissingGeometryRemainUnavailable() started.
+✔ Test unsupportedOrientationMirrorAndMissingGeometryRemainUnavailable() passed after 0.001 seconds.
+✔ Suite NativeCaptureSubjectGeometryTests passed after 0.001 seconds.
+◇ Suite NativeRecordingStartAdmissionTests started.
+◇ Test currentStartPreflightFailureProducesExactlyOneNeverStartedTerminal(failure:) started.
+◇ Test case passing 1 argument failure → "whiteBalance" to currentStartPreflightFailureProducesExactlyOneNeverStartedTerminal(failure:) started.
+​◇ Test case passing 1 argument failure → "session" to currentStartPreflightFailureProducesExactlyOneNeverStartedTerminal(failure:) started.
+​◇ Test case passing 1 argument failure → "audio" to currentStartPreflightFailureProducesExactlyOneNeverStartedTerminal(failure:) started.
+​✔ Test currentStartPreflightFailureProducesExactlyOneNeverStartedTerminal(failure:) with 3 test cases passed after 0.001 seconds.
+◇ Test staleOrUnownedStartCannotTerminateAnotherCapture(mismatch:) started.
+◇ Test case passing 1 argument mismatch → "generation" to staleOrUnownedStartCannotTerminateAnotherCapture(mismatch:) started.
+​◇ Test case passing 1 argument mismatch → "intent" to staleOrUnownedStartCannotTerminateAnotherCapture(mismatch:) started.
+​◇ Test case passing 1 argument mismatch → "active" to staleOrUnownedStartCannotTerminateAnotherCapture(mismatch:) started.
+​◇ Test case passing 1 argument mismatch → "lock" to staleOrUnownedStartCannotTerminateAnotherCapture(mismatch:) started.
+​✔ Test staleOrUnownedStartCannotTerminateAnotherCapture(mismatch:) with 4 test cases passed after 0.001 seconds.
+◇ Test alreadyAdmittedStartNeverBecomesNeverStartedOnReplayOrLaterHardwareFailure() started.
+✔ Test alreadyAdmittedStartNeverBecomesNeverStartedOnReplayOrLaterHardwareFailure() passed after 0.001 seconds.
+✔ Suite NativeRecordingStartAdmissionTests passed after 0.001 seconds.
+◇ Suite NativeRecordingTerminationTests started.
+◇ Test failedRefreshStartRemainsPartialAfterStopRelockAndNextClipCanSave(movieFile:userStopFirst:) started.
+◇ Test case passing 2 arguments movieFile → false, userStopFirst → false to failedRefreshStartRemainsPartialAfterStopRelockAndNextClipCanSave(movieFile:userStopFirst:) started.
+​◇ Test case passing 2 arguments movieFile → false, userStopFirst → true to failedRefreshStartRemainsPartialAfterStopRelockAndNextClipCanSave(movieFile:userStopFirst:) started.
+​◇ Test case passing 2 arguments movieFile → true, userStopFirst → false to failedRefreshStartRemainsPartialAfterStopRelockAndNextClipCanSave(movieFile:userStopFirst:) started.
+​◇ Test case passing 2 arguments movieFile → true, userStopFirst → true to failedRefreshStartRemainsPartialAfterStopRelockAndNextClipCanSave(movieFile:userStopFirst:) started.
+​✔ Test failedRefreshStartRemainsPartialAfterStopRelockAndNextClipCanSave(movieFile:userStopFirst:) with 4 test cases passed after 0.001 seconds.
+◇ Test audioFailureAfterWhiteBalanceFailureKeepsTheOriginalReason(movie:) started.
+◇ Test case passing 1 argument movie → false to audioFailureAfterWhiteBalanceFailureKeepsTheOriginalReason(movie:) started.
+​◇ Test case passing 1 argument movie → true to audioFailureAfterWhiteBalanceFailureKeepsTheOriginalReason(movie:) started.
+​✔ Test audioFailureAfterWhiteBalanceFailureKeepsTheOriginalReason(movie:) with 2 test cases passed after 0.001 seconds.
+◇ Test unrelatedOrInactiveCommandFailuresDoNotContaminateTheCurrentClip() started.
+✔ Test unrelatedOrInactiveCommandFailuresDoNotContaminateTheCurrentClip() passed after 0.001 seconds.
+◇ Test userStopKeepsFailureAndSDKFinalizationFailureStillTakesPrecedence(movieFile:) started.
+◇ Test case passing 1 argument movieFile → false to userStopKeepsFailureAndSDKFinalizationFailureStillTakesPrecedence(movieFile:) started.
+​◇ Test case passing 1 argument movieFile → true to userStopKeepsFailureAndSDKFinalizationFailureStillTakesPrecedence(movieFile:) started.
+​✔ Test userStopKeepsFailureAndSDKFinalizationFailureStillTakesPrecedence(movieFile:) with 2 test cases passed after 0.004 seconds.
+✔ Suite NativeRecordingTerminationTests passed after 0.006 seconds.
+◇ Suite ProductCaptureAudioCoordinatorTests started.
+◇ Test idleAudioChecksSilenceFailuresAndRejectsStaleSequencesAndGenerations() started.
+✔ Test idleAudioChecksSilenceFailuresAndRejectsStaleSequencesAndGenerations() passed after 0.002 seconds.
+◇ Test recoveryRequiresUserRECAndOldClipEventsCannotChangeTheNextClip() started.
+✔ Test recoveryRequiresUserRECAndOldClipEventsCannotChangeTheNextClip() passed after 0.001 seconds.
+◇ Test oldControlEventCannotOverwriteNewerSnapshotAndSaveMustSettleBeforeRetry() started.
+✔ Test oldControlEventCannotOverwriteNewerSnapshotAndSaveMustSettleBeforeRetry() passed after 0.001 seconds.
+◇ Test retryPolicyBoundsAttemptsAndPermissionDenialRequiresSettings() started.
+✔ Test retryPolicyBoundsAttemptsAndPermissionDenialRequiresSettings() passed after 0.001 seconds.
+◇ Test timeoutRetainsSDKOwnerUntilRealReleaseAndRejectsLateSuccess() started.
+✔ Test timeoutRetainsSDKOwnerUntilRealReleaseAndRejectsLateSuccess() passed after 0.031 seconds.
+◇ Test leavingDuringRecoveryRejectsLateSuccessAndReleasesOnlyAfterSDKReturns() started.
+✔ Test leavingDuringRecoveryRejectsLateSuccessAndReleasesOnlyAfterSDKReturns() passed after 0.001 seconds.
+◇ Test microphonePermissionDeniedBeforePreparationAppearsAsAudioFailure() started.
+✔ Test microphonePermissionDeniedBeforePreparationAppearsAsAudioFailure() passed after 0.001 seconds.
+✔ Suite ProductCaptureAudioCoordinatorTests passed after 0.038 seconds.
+◇ Suite ProductCaptureCoordinatorTests started.
+◇ Test explicitRefreshKeepsRecordingAndManualSettingsThenNextClipMeasuresAgain() started.
+✔ Test explicitRefreshKeepsRecordingAndManualSettingsThenNextClipMeasuresAgain() passed after 0.002 seconds.
+◇ Test refreshCancellationRefixesBeforeTerminationAndOldCallbacksCannotReviveIt(cause:) started.
+◇ Test case passing 1 argument cause → "stop" to refreshCancellationRefixesBeforeTerminationAndOldCallbacksCannotReviveIt(cause:) started.
+​◇ Test case passing 1 argument cause → "leave" to refreshCancellationRefixesBeforeTerminationAndOldCallbacksCannotReviveIt(cause:) started.
+​◇ Test case passing 1 argument cause → "audio" to refreshCancellationRefixesBeforeTerminationAndOldCallbacksCannotReviveIt(cause:) started.
+​◇ Test case passing 1 argument cause → "lockFailure" to refreshCancellationRefixesBeforeTerminationAndOldCallbacksCannotReviveIt(cause:) started.
+​✔ Test refreshCancellationRefixesBeforeTerminationAndOldCallbacksCannotReviveIt(cause:) with 4 test cases passed after 0.003 seconds.
+◇ Test earlySTOPDoesNotWaitForInitialWBCallbackOrAcceptItAfterTerminal() started.
+✔ Test earlySTOPDoesNotWaitForInitialWBCallbackOrAcceptItAfterTerminal() passed after 0.001 seconds.
+◇ Test unsupportedRefreshDoesNotBlockRECOrSubmitAnUnsupportedCommand() started.
+✔ Test unsupportedRefreshDoesNotBlockRECOrSubmitAnUnsupportedCommand() passed after 0.001 seconds.
+◇ Test wishesPersistIndependentlyAndMissingChoicesNeverStartRecording() started.
+✔ Test wishesPersistIndependentlyAndMissingChoicesNeverStartRecording() passed after 0.001 seconds.
+◇ Test unsupportedOrDifferentReadbackCannotBecomeREC() started.
+✔ Test unsupportedOrDifferentReadbackCannotBecomeREC() passed after 0.001 seconds.
+◇ Test recorderStartsOnlyAfterIntentCommitThenSavesBindsAndRefreshesOnce() started.
+✔ Test recorderStartsOnlyAfterIntentCommitThenSavesBindsAndRefreshesOnce() passed after 0.001 seconds.
+◇ Test earlySTOPAndLeavingRetainOwnerUntilLateIntentCommitWithoutStartingRecorder() started.
+✔ Test earlySTOPAndLeavingRetainOwnerUntilLateIntentCommitWithoutStartingRecorder() passed after 0.001 seconds.
+◇ Test backgroundStopKeepsSaveOwnerUntilCompletion() started.
+✔ Test backgroundStopKeepsSaveOwnerUntilCompletion() passed after 0.001 seconds.
+◇ Test uncertainIntentCommitRefreshesListAndLeavingDoesNotStartRecorder() started.
+✔ Test uncertainIntentCommitRefreshesListAndLeavingDoesNotStartRecorder() passed after 0.001 seconds.
+◇ Test listRefreshMustFinishBeforeNextRECOrReconfiguration() started.
+✔ Test listRefreshMustFinishBeforeNextRECOrReconfiguration() passed after 0.001 seconds.
+◇ Test audioInputFailureAfterPreparationBlocksNextREC() started.
+✔ Test audioInputFailureAfterPreparationBlocksNextREC() passed after 0.001 seconds.
+◇ Test nativePreflightRejectionSettlesOnceAndAllowsReprepareAndLeaving() started.
+✔ Test nativePreflightRejectionSettlesOnceAndAllowsReprepareAndLeaving() passed after 0.001 seconds.
+◇ Test leavingAfterNativePreflightRejectionReleasesCameraWithoutFileSuccess() started.
+✔ Test leavingAfterNativePreflightRejectionReleasesCameraWithoutFileSuccess() passed after 0.001 seconds.
+◇ Test delayedSettingsLoadCannotResumeHiddenCapturePreparation() started.
+✔ Test delayedSettingsLoadCannotResumeHiddenCapturePreparation() passed after 0.001 seconds.
+◇ Test delayedDiscoveryCannotChainIntoPrepareAfterLeaving() started.
+✔ Test delayedDiscoveryCannotChainIntoPrepareAfterLeaving() passed after 0.001 seconds.
+◇ Test leavingAtPreparationAwaitDiscardsAndReleasesOnlyItsDevice(stage:) started.
+◇ Test case passing 1 argument stage → "make" to leavingAtPreparationAwaitDiscardsAndReleasesOnlyItsDevice(stage:) started.
+​◇ Test case passing 1 argument stage → "discover" to leavingAtPreparationAwaitDiscardsAndReleasesOnlyItsDevice(stage:) started.
+​◇ Test case passing 1 argument stage → "prepare" to leavingAtPreparationAwaitDiscardsAndReleasesOnlyItsDevice(stage:) started.
+​◇ Test case passing 1 argument stage → "preview" to leavingAtPreparationAwaitDiscardsAndReleasesOnlyItsDevice(stage:) started.
+​✔ Test leavingAtPreparationAwaitDiscardsAndReleasesOnlyItsDevice(stage:) with 4 test cases passed after 0.002 seconds.
+◇ Test cancelledPreparationCannotPublishOrRetainCamera(stage:) started.
+◇ Test case passing 1 argument stage → "make" to cancelledPreparationCannotPublishOrRetainCamera(stage:) started.
+​◇ Test case passing 1 argument stage → "discover" to cancelledPreparationCannotPublishOrRetainCamera(stage:) started.
+​◇ Test case passing 1 argument stage → "prepare" to cancelledPreparationCannotPublishOrRetainCamera(stage:) started.
+​◇ Test case passing 1 argument stage → "preview" to cancelledPreparationCannotPublishOrRetainCamera(stage:) started.
+​✔ Test cancelledPreparationCannotPublishOrRetainCamera(stage:) with 4 test cases passed after 0.001 seconds.
+◇ Test oldPreparationCannotPublishOrClearBusyStateOfNewVisit() started.
+✔ Test oldPreparationCannotPublishOrClearBusyStateOfNewVisit() passed after 0.001 seconds.
+◇ Test oldShutdownCompletionCannotClearNewPreparedDevice() started.
+✔ Test oldShutdownCompletionCannotClearNewPreparedDevice() passed after 0.001 seconds.
+◇ Test oldSettingsApplyCannotPrepareAfterReentry() started.
+✔ Test oldSettingsApplyCannotPrepareAfterReentry() passed after 0.001 seconds.
+✔ Suite ProductCaptureCoordinatorTests passed after 0.017 seconds.
+◇ Suite ProductCaptureSavePlaybackTests started.
+◇ Test ordinaryIntentFlowsThroughCommonSaveReopenLibraryAndRealOriginalPlayback() started.
+2026-10-18 09:25:52.847764+0900 FrameRelay[36045:41018849] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-18 09:25:52.894315+0900 FrameRelay[36045:41018849] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-18 09:25:52.909774+0900 FrameRelay[36045:41018854] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 2 and pages_to_free 0
+2026-10-18 09:25:52.977746+0900 FrameRelay[36045:41018910] [] <<<< Boss >>>> signalled err=-12371 at <>:9015
+2026-10-18 09:25:53.031481+0900 FrameRelay[36045:41018845] [plugin] AddInstanceForFactory: No factory registered for id <CFUUID 0x104ec5360> F8BB1C28-BAE8-11D6-9C31-00039315CD46
+2026-10-18 09:25:53.048485+0900 FrameRelay[36045:41018845] [EnhanceDialogueProcessor] EnhanceDialogueProcessor.cpp:658   EnhanceDialogueProcessor has no tuning for unrecognized device type
+2026-10-18 09:25:53.048555+0900 FrameRelay[36045:41018845] [EnhanceDialogueProcessor] EnhanceDialogueProcessor.cpp:268   EnhanceDialogueProcessor() - Product does not have valid tuning at ''
+2026-10-18 09:25:53.048610+0900 FrameRelay[36045:41018845] [EnhanceDialogueProcessor] EnhanceDialogueProcessor.cpp:658   EnhanceDialogueProcessor has no tuning for unrecognized device type
+2026-10-18 09:25:53.048649+0900 FrameRelay[36045:41018845] [EnhanceDialogueProcessor] EnhanceDialogueProcessor.cpp:268   EnhanceDialogueProcessor() - Product does not have valid tuning at ''
+2026-10-18 09:25:53.069308+0900 FrameRelay[36045:41018915] [AQ]        LoudnessManager.mm:1767  ReadPListFile: unable to open stream for LoudnessManager plist
+2026-10-18 09:25:53.069364+0900 FrameRelay[36045:41018915] [AQ]        LoudnessManager.mm:1268  GetHardwarePlatformKey: cannot get acoustic ID
+2026-10-18 09:25:53.069430+0900 FrameRelay[36045:41018915] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-18 09:25:53.069497+0900 FrameRelay[36045:41018915] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-18 09:25:53.079413+0900 FrameRelay[36045:41018915] [] <<<< IQ-Table >>>> signalled err=-12780 at <>:689
+✔ Test ordinaryIntentFlowsThroughCommonSaveReopenLibraryAndRealOriginalPlayback() passed after 0.549 seconds.
+✔ Suite ProductCaptureSavePlaybackTests passed after 0.549 seconds.
+◇ Suite ProductCaptureSettingsTests started.
+◇ Test olderCapabilitiesWithoutRefreshEvidenceRemainDecodableAndUnconfirmed() started.
+✔ Test olderCapabilitiesWithoutRefreshEvidenceRemainDecodableAndUnconfirmed() passed after 0.003 seconds.
+◇ Test settingStoreReopenPreservesWishesWithoutCapabilitiesOrWBLock(mode:) started.
+◇ Test case passing 1 argument mode → "off" to settingStoreReopenPreservesWishesWithoutCapabilitiesOrWBLock(mode:) started.
+​◇ Test case passing 1 argument mode → "standard" to settingStoreReopenPreservesWishesWithoutCapabilitiesOrWBLock(mode:) started.
+​◇ Test case passing 1 argument mode → "cinematicExtended" to settingStoreReopenPreservesWishesWithoutCapabilitiesOrWBLock(mode:) started.
+​✔ Test settingStoreReopenPreservesWishesWithoutCapabilitiesOrWBLock(mode:) with 3 test cases passed after 0.006 seconds.
+◇ Test unknownOrCorruptSettingsRemainUnchanged(data:) started.
+◇ Test case passing 1 argument data → "{"schema":999,"preferences":{}}" to unknownOrCorruptSettingsRemainUnchanged(data:) started.
+​◇ Test case passing 1 argument data → "not-json" to unknownOrCorruptSettingsRemainUnchanged(data:) started.
+​✔ Test unknownOrCorruptSettingsRemainUnchanged(data:) with 2 test cases passed after 0.003 seconds.
+◇ Test cameraAndFormatEnumerationOrderIsNotRestoredAsIdentity() started.
+✔ Test cameraAndFormatEnumerationOrderIsNotRestoredAsIdentity() passed after 0.001 seconds.
+◇ Test observedCreationDateSurvivesWriterFinalizationAndAssetReopen() started.
+2026-10-18 09:25:53.211237+0900 FrameRelay[36045:41018849] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-18 09:25:53.212717+0900 FrameRelay[36045:41018849] [] (Fig) signalled err=-12900 at <>:2705
+✔ Test observedCreationDateSurvivesWriterFinalizationAndAssetReopen() passed after 0.013 seconds.
+✔ Suite ProductCaptureSettingsTests passed after 0.027 seconds.
+◇ Suite ProductCaptureStabilizationCoordinatorTests started.
+◇ Test actualChangesAreVisibleWithoutMutatingWishesOrOtherControls() started.
+✔ Test actualChangesAreVisibleWithoutMutatingWishesOrOtherControls() passed after 0.001 seconds.
+◇ Test prepareMismatchRemainsVisibleAndDoesNotSubstituteOFF() started.
+✔ Test prepareMismatchRemainsVisibleAndDoesNotSubstituteOFF() passed after 0.001 seconds.
+◇ Test recordingRejectsSettingChangesWhileCameraZoomAndModeObservationsInvalidateFraming() started.
+✔ Test recordingRejectsSettingChangesWhileCameraZoomAndModeObservationsInvalidateFraming() passed after 0.001 seconds.
+◇ Test reprepareClearsFramingBeforeAwaitAndRejectsPreviousGenerationAfterwards() started.
+✔ Test reprepareClearsFramingBeforeAwaitAndRejectsPreviousGenerationAfterwards() passed after 0.001 seconds.
+◇ Test changedFormatCannotReusePreviousRecordingSupport() started.
+✔ Test changedFormatCannotReusePreviousRecordingSupport() passed after 0.001 seconds.
+◇ Test initiallyMissingSnapshotDoesNotRestoreStalePreparationAfterObservationStreamEnds() started.
+✔ Test initiallyMissingSnapshotDoesNotRestoreStalePreparationAfterObservationStreamEnds() passed after 0.001 seconds.
+◇ Test legacyDefaultEmptyStabilizationStreamPreservesPrepareTimeRecordingAdmission() started.
+✔ Test legacyDefaultEmptyStabilizationStreamPreservesPrepareTimeRecordingAdmission() passed after 0.001 seconds.
+✔ Suite ProductCaptureStabilizationCoordinatorTests passed after 0.005 seconds.
+◇ Suite ProductCaptureSubjectCoordinatorTests started.
+◇ Test absentIntentAndAnalysisNeverBlockRECOrStopRecording() started.
+✔ Test absentIntentAndAnalysisNeverBlockRECOrStopRecording() passed after 0.001 seconds.
+◇ Test oldGenerationAndReversedSnapshotsCannotRestoreSubjectsAfterLeaving() started.
+✔ Test oldGenerationAndReversedSnapshotsCannotRestoreSubjectsAfterLeaving() passed after 0.001 seconds.
+◇ Test pendingIntentSaveKeepsRECAndLateCommitRequiresReloadOnNewVisit() started.
+✔ Test pendingIntentSaveKeepsRECAndLateCommitRequiresReloadOnNewVisit() passed after 0.001 seconds.
+◇ Test unconfiguredProductPolicyDoesNotPersistUnapprovedIntentOrIssueSubjectCommands() started.
+✔ Test unconfiguredProductPolicyDoesNotPersistUnapprovedIntentOrIssueSubjectCommands() passed after 0.001 seconds.
+◇ Test existingSchemaWithoutIntentLoadsAndOrdinarySettingsRoundTripRetainsChosenIntent() started.
+✔ Test existingSchemaWithoutIntentLoadsAndOrdinarySettingsRoundTripRetainsChosenIntent() passed after 0.002 seconds.
+✔ Suite ProductCaptureSubjectCoordinatorTests passed after 0.005 seconds.
+✘ Test run with 73 tests in 13 suites failed after 0.802 seconds with 3 issues.
+2026-10-18 09:25:54.457142+0900 FrameRelayUITests-Runner[36055:41019067] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-18 09:25:56.459.
+Test Suite 'FrameRelayUITests.xctest' started at 2026-10-18 09:25:56.459.
+Test Suite 'ProductCaptureFlowTests' started at 2026-10-18 09:25:56.459.
+Test Case '-[FrameRelayUITests.ProductCaptureFlowTests testOrdinaryCaptureWithoutTicketShowsSimulatorLimitationAndReturnsToLibrary]' started.
+    t =     0.00s Start Test at 2026-10-18 09:25:56.461
+    t =     0.03s Set Up
+    t =     0.03s Open com.oyabu.FrameRelay
+    t =     0.03s     Launch com.oyabu.FrameRelay
+2026-10-18 09:25:56.534 xcodebuild[36037:41018516] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-18 09:25:56.534 xcodebuild[36037:41018516] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.28s         Setting up automation session
+objc[36055]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.NUrxb4/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10843c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.NUrxb4/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x1085d8310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     2.65s         Wait for com.oyabu.FrameRelay to idle
+    t =     4.53s Waiting 10.0s for "product.capture" Button to exist
+    t =     5.62s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =     5.62s         Checking existence of `"product.capture" Button`
+    t =     5.74s Tap "product.capture" Button
+    t =     5.74s     Wait for com.oyabu.FrameRelay to idle
+    t =     5.74s     Find the "product.capture" Button
+    t =     5.77s     Check for interrupting elements affecting "product.capture" Button
+    t =     5.80s     Synthesize event
+    t =     6.11s     Wait for com.oyabu.FrameRelay to idle
+    t =     6.14s Waiting 10.0s for "capture.issue" StaticText to exist
+    t =     7.23s     Checking `Expect predicate `existsNoRetry == 1` for object "capture.issue" StaticText`
+    t =     7.23s         Checking existence of `"capture.issue" StaticText`
+    t =     7.32s Find the "capture.issue" StaticText
+    t =     7.36s Find the "capture.rec" Button
+    t =     7.40s Find the "capture.stabilization" StaticText
+    t =     7.45s Checking existence of `"capture.stabilization" StaticText`
+    t =     7.50s Find the "capture.stabilization" StaticText
+    t =     7.54s Find the "capture.framing" StaticText
+    t =     7.59s Find the "capture.whiteBalance" StaticText
+    t =     7.64s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =     7.64s     Wait for com.oyabu.FrameRelay to idle
+    t =     7.64s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =     7.68s     Check for interrupting elements affecting "FrameRelay" Application
+    t =     7.71s     Synthesize event
+    t =     8.14s     Wait for com.oyabu.FrameRelay to idle
+    t =    10.28s Checking existence of `"capture.whiteBalance" StaticText`
+    t =    10.35s Find the "capture.whiteBalance" StaticText
+    t =    10.40s Find the "capture.refreshWhiteBalance" Button
+    t =    10.44s Find the "capture.subject.state" StaticText
+    t =    10.49s Find the "capture.subject.state" StaticText
+    t =    10.55s Find the "capture.subject.state" StaticText
+    t =    10.60s Find the "capture.subject.state" StaticText
+    t =    10.65s Checking existence of `"capture.subject.state" StaticText`
+    t =    10.69s Find the "capture.subject.state" StaticText
+    t =    10.74s Find the "capture.subject.state" StaticText
+    t =    10.78s Find the "capture.audio.input" StaticText
+    t =    10.83s Checking existence of `"capture.audio.input" StaticText`
+    t =    10.87s Find the "capture.audio.retry" Button
+    t =    10.92s Checking existence of `"capture.audio.failure" StaticText`
+    t =    10.96s Checking existence of `"exploration.import" Button`
+    t =    11.01s Tap "capture.closeToolbar" Button
+    t =    11.01s     Wait for com.oyabu.FrameRelay to idle
+    t =    11.01s     Find the "capture.closeToolbar" Button
+    t =    11.05s     Check for interrupting elements affecting "capture.closeToolbar" Button
+    t =    11.10s     Synthesize event
+    t =    11.39s     Wait for com.oyabu.FrameRelay to idle
+    t =    11.82s Waiting 5.0s for "product.capture" Button to exist
+    t =    12.91s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =    12.91s         Checking existence of `"product.capture" Button`
+    t =    12.96s Checking existence of `"library.refresh" Button`
+    t =    12.99s Tear Down
+Test Case '-[FrameRelayUITests.ProductCaptureFlowTests testOrdinaryCaptureWithoutTicketShowsSimulatorLimitationAndReturnsToLibrary]' passed (13.244 seconds).
+Test Case '-[FrameRelayUITests.ProductCaptureFlowTests testStabilizationSettingsKeepCandidateUnconfirmedWithoutCameraAndDoNotInventFPS]' started.
+    t =     0.00s Start Test at 2026-10-18 09:26:09.705
+    t =     0.03s Set Up
+    t =     0.03s Open com.oyabu.FrameRelay
+    t =     0.03s     Launch com.oyabu.FrameRelay
+    t =     0.03s         Terminate com.oyabu.FrameRelay:36063
+2026-10-18 09:26:10.827 xcodebuild[36037:41018516] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-18 09:26:10.827 xcodebuild[36037:41018516] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.34s         Setting up automation session
+    t =     3.63s         Wait for com.oyabu.FrameRelay to idle
+    t =     5.50s Waiting 10.0s for "product.capture" Button to exist
+    t =     6.59s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =     6.59s         Checking existence of `"product.capture" Button`
+    t =     6.72s Tap "product.capture" Button
+    t =     6.72s     Wait for com.oyabu.FrameRelay to idle
+    t =     6.72s     Find the "product.capture" Button
+    t =     6.75s     Check for interrupting elements affecting "product.capture" Button
+    t =     6.78s     Synthesize event
+    t =     7.09s     Wait for com.oyabu.FrameRelay to idle
+    t =     7.58s Waiting 10.0s for "capture.settings" Button to exist
+    t =     8.67s     Checking `Expect predicate `existsNoRetry == 1` for object "capture.settings" Button`
+    t =     8.67s         Checking existence of `"capture.settings" Button`
+    t =     8.75s Find the "capture.desired" StaticText
+    t =     8.80s Tap "capture.settings" Button
+    t =     8.80s     Wait for com.oyabu.FrameRelay to idle
+    t =     8.80s     Find the "capture.settings" Button
+    t =     8.84s     Check for interrupting elements affecting "capture.settings" Button
+    t =     8.88s     Synthesize event
+    t =     9.17s     Wait for com.oyabu.FrameRelay to idle
+    t =     9.67s Waiting 5.0s for "capture.settings.fps" Button to exist
+    t =    10.76s     Checking `Expect predicate `existsNoRetry == 1` for object "capture.settings.fps" Button`
+    t =    10.76s         Checking existence of `"capture.settings.fps" Button`
+    t =    10.87s Find the "capture.settings.fps" Button
+    t =    10.93s Get all elements bound by index for: Descendants matching type StaticText
+    t =    10.99s Find the StaticText (Element at index 0)
+    t =    11.05s Find the "capture.settings.fps" Button
+    t =    11.12s Requesting snapshot of accessibility hierarchy for app with pid 36112
+    t =    11.21s Find: Descendants matching type Button
+    t =    11.22s Find: Elements matching predicate '"capture.settings.fps" IN identifiers'
+    t =    11.26s Requesting snapshot of accessibility hierarchy for app with pid 36112
+    t =    11.35s Find: Descendants matching type Button
+    t =    11.35s Find: Elements matching predicate '"capture.settings.fps" IN identifiers'
+    t =    11.36s Requesting snapshot of accessibility hierarchy for app with pid 36112
+    t =    11.45s Find: Descendants matching type Button
+    t =    11.45s Requesting snapshot of accessibility hierarchy for app with pid 36112
+    t =    11.60s Added attachment named 'Initial frame-rate picker'
+    t =    11.60s Find the "capture.settings.stabilization" Button
+    t =    11.67s Find the "capture.settings.stabilization" Button
+    t =    11.75s Find the "capture.settings.stabilization" Button
+    t =    11.82s Find the "capture.settings.stabilization" Button
+    t =    11.89s Find the "capture.settings.stabilization" Button
+    t =    11.95s Checking existence of `"capture.settings.stabilization" Button`
+    t =    12.02s Checking existence of `"capture.settings.stabilizationStatus" StaticText`
+    t =    12.08s Find the "capture.settings.stabilizationStatus" StaticText
+    t =    12.14s Find the "capture.settings.stabilization" Button
+    t =    12.21s Get all elements bound by index for: Descendants matching type StaticText
+    t =    12.28s Find the StaticText (Element at index 0)
+    t =    12.34s Find the "capture.settings.stabilization" Button
+    t =    12.41s Requesting snapshot of accessibility hierarchy for app with pid 36112
+    t =    12.50s Find: Descendants matching type Button
+    t =    12.50s Find: Elements matching predicate '"capture.settings.stabilization" IN identifiers'
+    t =    12.54s Requesting snapshot of accessibility hierarchy for app with pid 36112
+    t =    12.64s Find: Descendants matching type Button
+    t =    12.64s Find: Elements matching predicate '"capture.settings.stabilization" IN identifiers'
+    t =    12.64s Requesting snapshot of accessibility hierarchy for app with pid 36112
+    t =    12.74s Find: Descendants matching type Button
+    t =    12.74s Requesting snapshot of accessibility hierarchy for app with pid 36112
+    t =    12.89s Added attachment named 'Initial stabilization picker'
+    t =    12.89s Tap "capture.settings.close" Button
+    t =    12.89s     Wait for com.oyabu.FrameRelay to idle
+    t =    12.90s     Find the "capture.settings.close" Button
+    t =    12.96s     Check for interrupting elements affecting "capture.settings.close" Button
+    t =    13.02s     Synthesize event
+    t =    13.31s     Wait for com.oyabu.FrameRelay to idle
+    t =    14.02s Tap "capture.closeToolbar" Button
+    t =    14.02s     Wait for com.oyabu.FrameRelay to idle
+    t =    14.03s     Find the "capture.closeToolbar" Button
+    t =    14.10s     Check for interrupting elements affecting "capture.closeToolbar" Button
+    t =    14.14s     Synthesize event
+    t =    14.43s     Wait for com.oyabu.FrameRelay to idle
+    t =    14.84s Waiting 5.0s for "product.capture" Button to exist
+    t =    15.91s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =    15.91s         Checking existence of `"product.capture" Button`
+    t =    15.97s Tear Down
+Test Case '-[FrameRelayUITests.ProductCaptureFlowTests testStabilizationSettingsKeepCandidateUnconfirmedWithoutCameraAndDoNotInventFPS]' passed (16.222 seconds).
+Test Suite 'ProductCaptureFlowTests' passed at 2026-10-18 09:26:25.927.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 29.466 (29.468) seconds
+Test Suite 'FrameRelayUITests.xctest' passed at 2026-10-18 09:26:25.927.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 29.466 (29.468) seconds
+Test Suite 'Selected tests' passed at 2026-10-18 09:26:25.928.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 29.466 (29.469) seconds
+2026-10-18 09:26:26.246 xcodebuild[36037:41018516] [MT] IDETestOperationsObserverDebug: 35.525 elapsed -- Testing started completed.
+2026-10-18 09:26:26.246 xcodebuild[36037:41018516] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-18 09:26:26.246 xcodebuild[36037:41018516] [MT] IDETestOperationsObserverDebug: 35.525 sec, +35.525 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/fr-s45-20261018-ow_sx8bp/test-01.xcresult
+
+Failing tests:
+	NativeCaptureSubjectAnalysisTests.realVisionDetectsTracksRejectsAnotherPersonAndReacquiresFixedReference()
+	NativeCaptureSubjectAnalysisTests.realVisionAmbiguousDuplicatePortraitsDoNotStealSelectedIdentity()
+	NativeCaptureSubjectAnalysisTests.realVisionBlankImageProducesConfirmedEmptyDetection()
+
+** TEST EXECUTE FAILED **
+
+Testing started

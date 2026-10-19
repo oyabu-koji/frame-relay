@@ -1,0 +1,225 @@
+--- before/FrameRelay/Domain/Capture/CaptureNDAdvice.swift
++++ after/FrameRelay/Domain/Capture/CaptureNDAdvice.swift
+@@ -114,6 +114,7 @@
+ /// No capture command exists at this boundary. It cannot change exposure or gate REC.
+ nonisolated struct CaptureNDSession: Sendable {
+     private(set) var context: CaptureNDContext
++    private(set) var validAfter: TimeInterval
+     private(set) var result: CaptureNDResult?
+     private(set) var advice = CaptureNDAdvice.pending(.evaluating)
+     private(set) var highestSequence: UInt64 = 0
+@@ -121,16 +122,28 @@
+     private var inputSubmittedSinceInvalidation = false
+     let policy: CaptureNDPolicy
+ 
+-    init(context: CaptureNDContext, policy: CaptureNDPolicy) { self.context = context; self.policy = policy }
++    /// A conservative observation boundary, not evidence of frame-specific WB gains.
++    init(context: CaptureNDContext, policy: CaptureNDPolicy, validAfter: TimeInterval) {
++        self.context = context; self.policy = policy
++        self.validAfter = validAfter.isFinite ? validAfter : .infinity
++    }
++    func acceptsInput(observedAt: TimeInterval, now: TimeInterval) -> Bool {
++        policy.isValid && observedAt.isFinite && now.isFinite && observedAt >= validAfter
++            && observedAt <= now && now - observedAt <= policy.maximumResultAge
++    }
++    private mutating func advanceValidityBoundary(to now: TimeInterval) {
++        validAfter = now.isFinite ? max(validAfter, now) : .infinity
++    }
+     mutating func willSubmitInput() { inputSubmittedSinceInvalidation = true }
+-    mutating func update(_ next: CaptureNDContext) {
++    mutating func update(_ next: CaptureNDContext, now: TimeInterval) {
+         guard next != context else { return }
+-        context = next; inputSubmittedSinceInvalidation = false; invalidate(.contextChanged)
++        context = next; advanceValidityBoundary(to: now); inputSubmittedSinceInvalidation = false; invalidate(.contextChanged)
+     }
+     mutating func invalidate(_ reason: CaptureNDReason) { result = nil; advice = .pending(reason) }
+-    mutating func invalidateInput(_ reason: CaptureNDReason) {
++    mutating func invalidateInput(_ reason: CaptureNDReason, now: TimeInterval) {
+         guard inputSubmittedSinceInvalidation || advice != .pending(reason) else { return }
+         inputSubmittedSinceInvalidation = false
++        advanceValidityBoundary(to: now)
+         context = .init(generation: context.generation, framingRevision: context.framingRevision,
+             selectionRevision: context.selectionRevision, whiteBalanceRevision: context.whiteBalanceRevision,
+             intent: context.intent, analysisRevision: context.analysisRevision + 1)
+@@ -142,8 +155,7 @@
+             invalidate(.outOfOrder); return false
+         }
+         highestSequence = value.sequence
+-        guard now.isFinite, value.observedAt.isFinite, value.observedAt <= now,
+-              now - value.observedAt <= policy.maximumResultAge else { invalidate(.stale); return false }
++        guard acceptsInput(observedAt: value.observedAt, now: now) else { invalidate(.stale); return false }
+         lastObservedAt = value.observedAt
+         result = value; advice = value.advice; return true
+     }
+--- before/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
++++ after/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
+@@ -1308,17 +1308,23 @@
+         guard let policy = ndPolicy else { return }
+         ndSession = CaptureNDSession(context: .init(generation: generation, framingRevision: subjectFramingRevision,
+             selectionRevision: subjects?.context.selectionRevision ?? 0, whiteBalanceRevision: ndWhiteBalanceRevision,
+-            intent: ndIntent), policy: policy)
++            intent: ndIntent), policy: policy, validAfter: ProcessInfo.processInfo.systemUptime)
+         ndAnalysis = NativeCaptureNDAnalysis(policy: policy) { [weak self] result in
+             Task { await self?.receiveND(result) }
+         }
+         if let device {
+             ndWhiteBalanceObservations = [
+-                device.observe(\.deviceWhiteBalanceGains, options: [.new]) { [weak self] _, _ in
+-                    Task { await self?.observeNDWhiteBalance() }
++                device.observe(\.deviceWhiteBalanceGains, options: [.old, .new]) { [weak self] _, change in
++                    // Compare notification values before hopping queues. A -> B -> A
++                    // must invalidate even when the actor later reads A for both events.
++                    // Only the change fact and generation cross the concurrency boundary.
++                    if let old = change.oldValue, let new = change.newValue,
++                       old.redGain == new.redGain, old.greenGain == new.greenGain, old.blueGain == new.blueGain { return }
++                    Task { await self?.ndWhiteBalanceNotification(generation: generation) }
+                 },
+-                device.observe(\.whiteBalanceMode, options: [.new]) { [weak self] _, _ in
+-                    Task { await self?.observeNDWhiteBalance() }
++                device.observe(\.whiteBalanceMode, options: [.old, .new]) { [weak self] _, change in
++                    if let old = change.oldValue, let new = change.newValue, old == new { return }
++                    Task { await self?.ndWhiteBalanceNotification(generation: generation) }
+                 }]
+         }
+         observeNDWhiteBalance(); publishND()
+@@ -1333,6 +1339,12 @@
+     func updateNDIntent(_ intent: CaptureShootingIntent?, generation: CaptureGeneration) {
+         guard ndSession?.context.generation == generation else { return }
+         ndIntent = intent; updateNDContext()
++    }
++
++    private func ndWhiteBalanceNotification(generation: CaptureGeneration) {
++        guard ndSession?.context.generation == generation else { return }
++        ndWhiteBalanceRevision += 1; updateNDContext()
++        observeNDWhiteBalance()
+     }
+ 
+     private func observeNDWhiteBalance() {
+@@ -1355,7 +1367,7 @@
+         let next = CaptureNDContext(generation: current.generation, framingRevision: max(subjectFramingRevision, ndFramingRevision),
+             selectionRevision: subjects?.context.selectionRevision ?? current.selectionRevision,
+             whiteBalanceRevision: ndWhiteBalanceRevision, intent: ndIntent, analysisRevision: current.analysisRevision)
+-        if next != current { ndSession?.update(next); publishND() }
++        if next != current { ndSession?.update(next, now: ProcessInfo.processInfo.systemUptime); publishND() }
+     }
+ 
+     private func observeND(_ buffer: CVPixelBuffer, geometry: NativeCaptureSubjectGeometry, observedAt: TimeInterval) {
+@@ -1364,6 +1376,13 @@
+         ndGeometry = geometry
+         observeNDWhiteBalance(); updateNDContext()
+         guard let context = ndSession?.context else { return }
++        // The gain read above is current SDK state, not metadata on this frame.
++        // Reject delayed frames captured before the latest observed context change.
++        // Continuously changing Auto WB may keep advice pending; no gain tolerance
++        // or frame-specific WB correspondence is inferred here.
++        guard ndSession?.acceptsInput(observedAt: observedAt, now: ProcessInfo.processInfo.systemUptime) == true else {
++            invalidateNDInput(.stale); return
++        }
+         guard ndWhiteBalance?.isValid == true, ndWhiteBalance?.mode != .measuring else {
+             invalidateNDInput(.contextChanged); return
+         }
+@@ -1417,7 +1436,7 @@
+     private func invalidateNDInput(_ reason: CaptureNDReason) {
+         guard let before = ndSession?.context else { return }
+         let advice = ndSession?.advice
+-        ndSession?.invalidateInput(reason)
++        ndSession?.invalidateInput(reason, now: ProcessInfo.processInfo.systemUptime)
+         if before != ndSession?.context || advice != ndSession?.advice { publishND() }
+     }
+ 
+--- before/FrameRelayTests/Platform/Capture/NativeCaptureNDTests.swift
++++ after/FrameRelayTests/Platform/Capture/NativeCaptureNDTests.swift
+@@ -101,7 +101,7 @@
+     @Test func pixelResultExpiresAndOldOrderCannotRestoreOK() throws {
+         let buffer = try pixels { x, _ in 0.3 + Double(x % 20) / 100 }
+         let result = evaluate(buffer)
+-        var session = CaptureNDSession(context: context(), policy: policy)
++        var session = CaptureNDSession(context: context(), policy: policy, validAfter: 9)
+         let accepted = session.receive(result, now: 10.1)
+         #expect(accepted)
+         #expect(session.advice.direction == .acceptable)
+@@ -112,7 +112,7 @@
+         #expect(!oldAccepted)
+         #expect(session.advice == .pending(.outOfOrder))
+         for changed in [context(wb: 1), context(framing: 2), context(selection: 1), context(intent: .people)] {
+-            session.update(changed)
++            session.update(changed, now: 10.1)
+             let obsoleteAccepted = session.receive(result, now: 10.2)
+             #expect(!obsoleteAccepted)
+             #expect(session.advice.direction == .pending)
+@@ -123,8 +123,8 @@
+         let buffer = try pixels { x, _ in 0.3 + Double(x % 20) / 100 }
+         let running = evaluate(buffer)
+         for reason in [CaptureNDReason.missingPeople, .stopped, .insufficientSignal] {
+-            var session = CaptureNDSession(context: context(), policy: policy)
+-            session.invalidateInput(reason)
++            var session = CaptureNDSession(context: context(), policy: policy, validAfter: 9)
++            session.invalidateInput(reason, now: 10.05)
+             let accepted = session.receive(running, now: 10.1)
+             #expect(!accepted)
+             #expect(session.advice == .pending(reason))
+@@ -132,15 +132,52 @@
+             session.willSubmitInput()
+             let recoveryInFlight = NativeCaptureNDPixels.evaluate(buffer, instruction: .init(context: session.context, targets: [], targetsAvailable: true),
+                 policy: policy, sequence: 2, observedAt: 10.2)
+-            session.invalidateInput(reason)
++            session.invalidateInput(reason, now: 10.25)
+             let recoveryAccepted = session.receive(recoveryInFlight, now: 10.3)
+             #expect(!recoveryAccepted)
+             #expect(session.context.analysisRevision == 2)
+             let fresh = NativeCaptureNDPixels.evaluate(buffer, instruction: .init(context: session.context, targets: [], targetsAvailable: true),
+-                policy: policy, sequence: 3, observedAt: 10.2)
+-            let freshAccepted = session.receive(fresh, now: 10.3)
++                policy: policy, sequence: 3, observedAt: 10.3)
++            let freshAccepted = session.receive(fresh, now: 10.4)
+             #expect(freshAccepted && session.advice.direction == .acceptable)
+         }
++    }
++
++    @Test func delayedPixelBufferCannotAcquireTheNewContextAfterObservedChanges() throws {
++        let buffer = try pixels { x, _ in 0.3 + Double(x % 20) / 100 }
++        var session = CaptureNDSession(context: context(), policy: policy, validAfter: 10)
++        // Even with a matching context, a frame from before analysis started is old.
++        let beforeStart = NativeCaptureNDPixels.evaluate(buffer, instruction: .init(context: session.context, targets: [], targetsAvailable: true),
++            policy: policy, sequence: 1, observedAt: 9.9)
++        #expect(!session.acceptsInput(observedAt: beforeStart.observedAt, now: 10.1))
++        let startAccepted = session.receive(beforeStart, now: 10.1)
++        #expect(!startAccepted && session.advice.direction == .pending)
++        // Apply current gain/context to an older actual buffer, reproducing a late
++        // delivery across WB, framing and explicit selection changes.
++        var sequence: UInt64 = 2
++        var boundary: TimeInterval = 11
++        for changed in [context(wb: 1), context(wb: 2, framing: 2), context(wb: 2, framing: 2, selection: 1)] {
++            session.update(changed, now: boundary)
++            let oldFrame = NativeCaptureNDPixels.evaluate(buffer, instruction: .init(context: changed, targets: [], targetsAvailable: true),
++                policy: policy, sequence: sequence, observedAt: boundary - 0.1)
++            #expect(!session.acceptsInput(observedAt: oldFrame.observedAt, now: boundary + 0.1))
++            let oldAccepted = session.receive(oldFrame, now: boundary + 0.1)
++            #expect(!oldAccepted && session.advice.direction == .pending)
++            let newFrame = NativeCaptureNDPixels.evaluate(buffer, instruction: .init(context: changed, targets: [], targetsAvailable: true),
++                policy: policy, sequence: sequence + 1, observedAt: boundary + 0.05)
++            #expect(session.acceptsInput(observedAt: newFrame.observedAt, now: boundary + 0.1))
++            let newAccepted = session.receive(newFrame, now: boundary + 0.1)
++            #expect(newAccepted && session.advice.direction == .acceptable)
++            boundary += 1; sequence += 2
++        }
++        session.willSubmitInput()
++        session.invalidateInput(.stopped, now: boundary)
++        let beforeResume = NativeCaptureNDPixels.evaluate(buffer, instruction: .init(context: session.context, targets: [], targetsAvailable: true),
++            policy: policy, sequence: sequence, observedAt: boundary - 0.1)
++        let resumedOldAccepted = session.receive(beforeResume, now: boundary + 0.1)
++        #expect(!resumedOldAccepted && session.advice.direction == .pending)
++        #expect(!session.acceptsInput(observedAt: .nan, now: boundary))
++        #expect(!session.acceptsInput(observedAt: boundary + 1, now: boundary))
+     }
+ 
+     @Test func invalidPolicyIsRejectedBeforePixelEvaluation() throws {
+@@ -163,7 +200,7 @@
+         var iterator = results.stream.makeAsyncIterator()
+         let result = try #require(await iterator.next())
+         #expect(result.advice.direction == .darker)
+-        var session = CaptureNDSession(context: context(), policy: policy)
++        var session = CaptureNDSession(context: context(), policy: policy, validAfter: 9)
+         let accepted = session.receive(result, now: 10.1)
+         #expect(accepted)
+         analysis.stop()

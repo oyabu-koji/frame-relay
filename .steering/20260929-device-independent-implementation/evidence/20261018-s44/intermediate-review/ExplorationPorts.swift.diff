@@ -1,0 +1,10 @@
+--- baseline/FrameRelay/Application/Ports/ExplorationPorts.swift
++++ FrameRelay/Application/Ports/ExplorationPorts.swift
+@@ -8,6 +8,7 @@
+     let capabilities: CaptureCapabilities
+     let applied: AppliedCaptureSettings
+     let audio: CaptureAudioState
++    var stabilization: CaptureStabilizationSnapshot? = nil
+ }
+ 
+ nonisolated struct ExplorationCameraDescription: Equatable, Sendable {

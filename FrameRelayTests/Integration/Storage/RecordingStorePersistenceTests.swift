@@ -89,10 +89,13 @@ struct RecordingStorePersistenceTests {
             #expect(throws: ExplorationStorageError.inaccessible) { try candidate.open(run, mode: .openExisting) }
             _ = try candidate.open(run, mode: .createNew)
             #expect(throws: ExplorationStorageError.alreadyExists) { try candidate.open(run, mode: .createNew) }
-            // Only this test's newly created synthetic store is fault-injected.
+        }
+        try await withStorageRun { run in
+            // A separate fixture has never had a writer or SQLite connection.
+            // Do not replace an opened database or assume its descriptors closed.
             let corrupt = Data("synthetic-corrupt-store".utf8)
             let file = run.url.appendingPathComponent(candidate.fileName)
-            try corrupt.write(to: file, options: .atomic)
+            try corrupt.write(to: file, options: .withoutOverwriting)
             #expect(throws: (any Error).self) { try candidate.open(run, mode: .openExisting) }
             #expect(try Data(contentsOf: file) == corrupt)
         }

@@ -1,0 +1,2073 @@
+--- baseline/.steering/20260929-device-independent-implementation/tasklist.md
++++ final/.steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,7 +12,14 @@
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-18、S44実装完了）
++## 現在の再開点（2026-10-18、S45部分実装・判断/検証待ち）
++
++- **S45 / blocked**: 人物解析・主役AF・状態/設定/UIの注入可能な本体を実装。本人判断3点が未回答で、通常Factoryのpolicy注入は保留。さらにSimulatorの実Vision別人拒否1件が失敗しており、通常経路の有効化/全体doneには進まない。REC非依存は維持。
++- **保全・所有**: 開始時7057file/147,107,413bytesのhashと証跡外361fileを `/private/tmp/fr-s45-20261018-ow_sx8bp/` に保全。既存変更へ加算し、旧証跡・README・memo・他taskを戻さない。main＝本steering/証跡/最終差分、explorer `s45_explore`＝read-only調査。実装workerの限定所有と最終差分はS45欄に記録。
++- **S45検証 / E-S45-01**: 最終Unit76宣言/99展開ケース中75宣言/98展開成功、1宣言2issues失敗、skip/runtimeWarnings 0。通常画面UI2件はtest-01で成功。Simulator test buildとgeneric iOS build成功。公開肖像のhost同ソース解析成功はSimulator/実機成功へ転用しない。証跡 `evidence/20261018-s45/`。
++- **S45再開条件**: 人物なしAF・初回意図・見失い猶予の本人回答、実Visionの同一特徴量問題の原因/対応確認後、同policyの製品注入と必要検証。実機DV-06、S46以降、既知の他task残件、独立validationは未実施のまま。
++
++### 直前のS44実装完了記録
+ 
+ - **S44 / done（本体接続・関連自動検証完了）**: 補正候補を現在のカメラ/4K/fps/Logへ限定し、初回標準候補・保存希望の復元・非対応理由を接続。Movie/sample writerのconnection支持/要求/active読戻し、現在補正/倍率/format/実カメラの観測と旧画角失効、REC受理前/予約後の再照合を実装。補正cropとpreview一致は未確認のまま、S47へ渡す状態契約までを完了した。
+ - **検証 / E-S44-01**: test-03のUnit53宣言/76展開ケースが成功、UIは旧1成功/新1失敗。画面録画で正しい初期表示を確認し、取得方法だけを修正したui-04はUI2成功。App/Unit/projectはtest-03・ios-build-01・最終版で同一、最終187入力はui-04と一致。Simulator test buildとgeneric iOS署名なしbuild成功、最終失敗/skip/runtimeWarnings0。test-01/02のcompile失敗・0件実行とtest-03のUI失敗を保持する。
+@@ -668,7 +675,21 @@
+ 
+ ### S45 人物解析・主役AFの本体と接続
+ 
+-- [ ] Status: pending
++- [ ] Status: blocked
++  - E-S45-01 / 部分実装: 複数露出対象と単一主役、追跡OFF人物優先AF、見失い保持/固定参照による再捕捉/再指定、撮影意図のoptional保存、通常画面/preview操作を注入可能な経路へ接続。SDKの検出/追跡UUIDを人物同一性へ流用せず、固定FeaturePrintと曖昧候補拒否を使用。入力は処理中1件+置換待機1件、解析専用dropを録画失敗にせず、記録用connectionの回転/mirrorを変更しない。世代/構図/WB/選択/時刻の照合、解析失敗・座標変換失敗と人物不在の分離、AF適用読戻しを実装した。
++  - 現在のsubstatus: Domain/SDK候補/操作UI/設定保存/関連自動検証の部分＝実装済。通常Factoryのpolicy注入＝本人判断待ち、実Visionの人物同一性確認＝Simulator1件失敗。通常アプリでは人物機能未有効、撮影意図pickerも未有効。人物未確定/意図未選択/解析失敗はREC条件に追加していない。
++  - 本人判断待ち: 人物なし時のAF（提案:画面タップ位置）、初回意図（提案:本人選択後に保存/復元しREC非依存）、見失い猶予（提案:暫定3秒後に保持/再指定）。質問済み・回答未受領。試験の3秒や技術閾値を製品の合意済み値へ昇格しない。requirements/designは変更せず、製品注入を保留する。
++  - E-S45-01 / 最終検証: 確認済みFrameRelay.xcodeproj/scheme・testPlan FrameRelay/Debug/App・Unit・UI、Xcode27.0(27A266a)/Swift6.4・言語5/最低iOS27.0。実在Simulator DFE46693-E8DD-4814-8957-4F327699F719で`test-final-05`はUnit76宣言/99展開中75宣言/98展開成功、1宣言2issues失敗（skip/runtimeWarnings 0）。新規24宣言のうち23成功。状態境界/世代失効/REC非阻害/設定保存/座標/AF計画/既存音声・WB・保存再生は成功。`test-01`の通常撮影/設定UI2件成功はUI不変・policy未注入の範囲で継承し、人物操作実機成功とはしない。Simulator test build・`ios-build-03` generic iOS署名なしbuild成功、compiler/analyzer診断0（stdoutに既存AppIntents依存なしmetadata警告）。
++  - 未解決失敗: `realVisionDetectsTracksRejectsAnotherPersonAndReacquiresFixedReference`で別人に主役IDを与え、復帰の再捕捉区分も失敗。CPU指定後の診断03/04では、異なる実画素/検出ROIのNASA公開肖像2件から完全同一の768要素FeaturePrint（距離0）が返ることを観測。画像をmainが確認し、opaque BGRA/alpha=255を検証しても不変で透明度仮説は不支持。hostの同4ソースでは距離0.7411（自動）/0.7247（CPU）、別人拒否/同一復帰を観測した。Simulator差の原因は未確定。閾値調整・assert緩和・skipで成功化せず、最終失敗を保持する。
++  - 失敗履歴/限定性: ios-build-01のVNObservation型診断、enumeration-01のmutating `#expect` 記法は修正。初回host probeの範囲外ROI拒否を交差処理で修正。test-01のVision Code9推論context失敗はSimulatorのみ標準compute APIのCPU指定で解析可能になったが、test-02/診断03/04/最終05の同一特徴量問題は未解決。一時診断は証跡へ保存してtest本体から撤去。公開画像はtest targetだけに含め、人物識別/合焦/Log/ライブ継続/負荷/両方式/補正crop・preview一致/向きの品質を証明しない（DV-06）。
++  - E-S45-01 / main差分・証跡: 最終203入力はtest-final-05/ios-build-03/現物hash一致。開始時7057fileから既存11変更/7046不変、新規13file（公開fixture2件/出典を含む）、欠落/旧証跡変更/所有外変更0。requirements/design/project/設定/README/memo/S27等の既存差分を保持。`evidence/20261018-s45/`へ各runのcommands/log/summary/source hash、失敗版/変更前後snapshot/patch/main-scope-review/文書レビュー/出典を保存。xcresult/DerivedData原本は `/private/tmp/fr-s45-20261018-ow_sx8bp/`。doc_reviewerは関連2文書の限定差分を指摘なしと報告。mainの実装内確認であり独立validationではない。
++  - 再開条件: 上記3回答と実Vision未解決問題を確認後に同policyをNative/coordinatorへ注入し、通常経路を限定検証する。S45全体done・実機採用・S46以降・独立validationへ暗黙移行しない。以下は実装経過。
++  - 再開記録（2026-10-18）: 明示implementを受領。開始時baselineは `/private/tmp/fr-s45-20261018-ow_sx8bp/`。未コミット/未追跡成果を保全し同じ現物へ加算する。mainが本steering・証跡・差分確認を所有し、`s45_explore` がSDK/接続点をread-only調査。
++  - substatus: 規則/解析SDK候補/注入可能UI・接続＝一次実装、通常Factoryへのpolicy注入＝本人判断待ち、検証＝進行中。人物なしAF・初回撮影意図・再捕捉待ちの保持秒数は確認中。仮の製品既定で補わず、独立部分を先行する。
++  - 実装所有: worker `s45_impl`＝S45のDomain/Capture新規型、ProductCaptureCoordinator/新規人物調停、ProductCapturePorts、NativeExplorationCapture/新規人物解析・AF、Capture画面、ProductCapturePreferences/CapturePreferenceStoreの意図保存、ProductCaptureFactoryのS45注入、対応UnitとProductCaptureFlowTests。その他共有コード・project・docsは所有外。mainがsteering/証跡/実行検証を所有し、同じファイルへ並行書込しない。
++  - 文書所有: document_author `s45_docs`＝functional-design/architectureの人物AF箇所のみ。doc_reviewer `s45_doc_review`が同差分をread-only確認。U5未合意・通常経路未注入・実機品質未確認を保持する。
++  - 途中検証: Xcode27.0/Swift6.4、既存FrameRelay scheme/Debug/有効test plan FrameRelayと実在Simulatorを確認。host Vision限定probeは公開NASA肖像2件で半身検出各1件・特徴量生成を確認。初回probeの画面外ROI拒否を保持し、画像範囲との交差後に成功。generic iOS署名なしios-build-01はVNObservationの型診断でexit65、テスト実行なし。workerへ修正依頼済。証跡 `evidence/20261018-s45/`、実行原本 `/private/tmp/fr-s45-20261018-ow_sx8bp/`。
++  - 追加検証経過: `ios-build-02`はgeneric iOS build成功。`test-enumeration-01`は新規testのmutating呼出しを直接`#expect`へ渡した記法でcompile失敗/0件、修正後`test-enumeration-02`は実在Test actionの列挙成功（実行成功へ数えない）。`test-01`は関連Unit73宣言中70成功/実Vision3失敗（Code9推論context生成）、UI2成功。Simulatorだけ標準compute APIでCPUを指定した`test-02`はUnit76宣言/99展開中75宣言/98展開成功、実Visionの別人拒否/復帰1宣言2issues失敗。入力203fileは各実行中不変。失敗を環境由来と決めつけず実画像/特徴量を調査中。
+   - Depends: Start＝N01・既存撮影契約（解析・AF候補・状態・UI）。Finish＝S41の実接続。着手時に独立部分と接続部分を別substatusで記録し、接続まで満たす前はtask全体をdoneにしない。
+   - Owner / Files: O-CAPTURE／`FrameRelay/{Application,Platform}/Capture/` の人物解析／AF、`FrameRelay/Domain/Capture/` の主役・意図、`FrameRelay/Features/Capture/` と対応test。
+   - Done when: 複数露出対象と単一主役、通常AF／追従・見失い保持・同一再捕捉・再指定、追跡OFF人物優先AFを実装可能経路へ接続。
+@@ -848,11 +869,11 @@
+ | FR-04 | AC-FR-04-01 | 安定前RECと固定 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | 安定待ちなしの既存固定・製品接続済 | Unit89/UI1・iOS build成功、早期STOP/旧callback回帰 | D0 | 制御の部分証拠・実色/記録開始未確認 | DV-03 |
+ | FR-04 | AC-FR-04-02 | 本人再固定・他設定維持・品質 | P05/P06/P10;CF-03 | EC,E-S42-01,E-S42-V01,E-S42-02 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | 対応能力確認/SDK再測定/固定/本人UI接続済、開始失敗理由の終端保持P2修正済 | E-S42-01 Unit89/UI1＋P2修正Unit65/UI1・iOS build成功、本人STOP競合/完全検査でも部分保存 | D0 | 本体/制御の部分証拠・修正後独立検証/実機色/継続性未確認 | DV-03 |
+ | FR-04 | AC-FR-04-03 | 最終フレーム・待機Auto・二本 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42,S46 | dep(S42,S46)＋対応A/Q01 | O-CAPTURE | 終端後Auto/二本新測定/旧通知拒否接続済、NDはS46 | Unit89/UI1・iOS build成功、測定/固定待ちSTOP/二本/逆順 | D0 | 終端制御の部分証拠・実最終フレーム/ND統合未確認 | DV-03、DV-07 |
+-| FR-05 | AC-FR-05-01 | 複数露出対象と単一主役・意図 | P05のREC非依存のみ;CF-09部分/後続必須 | E0（旧計画の後続要求のみ） | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | I0 | A0 | D0 | R0 | DV-06 |
+-| FR-05 | AC-FR-05-02 | 見失い保持・同一再捕捉・再指定 | P05のREC非依存のみ;CF-09部分/後続必須 | E0（旧計画の後続要求のみ） | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | I0 | A0 | D0 | R0 | DV-06 |
+-| FR-05 | AC-FR-05-03 | 人物未確定でもREC | P05のREC非依存のみ;CF-09部分/後続必須 | EC:REC非依存規則のみ | S45,S41 | dep(S45,S41)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-06 |
+-| FR-05 | AC-FR-05-04 | 通常合焦・前後追従品質 | P05のREC非依存のみ;CF-09部分/後続必須 | E0（旧計画の後続要求のみ） | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | I0 | A0 | D0 | R0 | DV-06 |
+-| FR-05 | AC-FR-05-05 | 追跡OFFの人物優先AF品質 | P05のREC非依存のみ;CF-09部分/後続必須 | E0（旧計画の後続要求のみ） | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | I0 | A0 | D0 | R0 | DV-06 |
++| FR-05 | AC-FR-05-01 | 複数露出対象と単一主役・意図 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | 主役/複数露出/意図保存/UI本体済、Factory未注入 | E-S45-01: 分離/意図保存・復元/世代/UI未有効 | D0 | 部分証拠、本人判断/製品有効化待ち | DV-06 |
++| FR-05 | AC-FR-05-02 | 見失い保持・同一再捕捉・再指定 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | 固定参照/保持/再指定の本体済、製品未注入 | E-S45-01: Domain成功、Simulator別人拒否1件失敗 | D0 | 未受入、実Vision同一特徴量問題未解決 | DV-06 |
++| FR-05 | AC-FR-05-03 | 人物未確定でもREC | P05のREC非依存のみ;CF-09部分/後続必須 | EC,E-S45-01 | S45,S41 | dep(S45,S41)＋対応A/Q01 | O-CAPTURE | 人物/意図/解析をREC条件へ追加せず接続 | E-S45-01: 未選択/解析なし/遅延保存中もREC・継続 | D0 | REC非阻害の部分証拠、実機未受入 | DV-06 |
++| FR-05 | AC-FR-05-04 | 通常合焦・前後追従品質 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | SDK AF計画/読戻し/不成立表示済、製品未注入 | E-S45-01: AF計画/座標/状態境界のみ | D0 | 実通常合焦/前後追従品質未受入 | DV-06 |
++| FR-05 | AC-FR-05-05 | 追跡OFFの人物優先AF品質 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | 追跡OFF人物優先AFとscene後復帰済、製品未注入 | E-S45-01: OFF非固定/人物再登場/AF計画 | D0 | 実人物優先AF品質未受入 | DV-06 |
+ | FR-06 | AC-FR-06-01 | 濃く/薄くの方向と理由 | P05/P10設定事実;CF-09部分/後続必須 | E0（旧計画の後続要求のみ） | S46 | dep(S46)＋対応A/Q01 | O-CAPTURE | I0 | A0 | D0 | R0 | DV-07 |
+ | FR-06 | AC-FR-06-02 | 人物背景両立困難・太陽反射黒 | P05/P10設定事実;CF-09部分/後続必須 | E0（旧計画の後続要求のみ） | S46 | dep(S46)＋対応A/Q01 | O-CAPTURE | I0 | A0 | D0 | R0 | DV-07 |
+ | FR-06 | AC-FR-06-03 | 停止遅延保留・旧OK失効・REC | P05/P10設定事実;CF-09部分/後続必須 | EC:REC非依存/設定WB事実のみ | S46,S41 | dep(S46,S41)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-07 |
+@@ -1193,6 +1214,8 @@
+ | E-S43-01 | 2026-10-18、explorer/worker/document_author/doc_reviewer/main | S43部分・AC-FR-09-01〜04/AC-CF-04・探索互換 | 最終181入力一致、test-03不変範囲継承、Xcode27/Debug/iOS27 Simulator＋generic iOS | 各run.json、実PCM/静寂/故障保存/順序/有限復旧/所有/手動REC/遅延観測、UI・実保存再生回帰 | test-03 Unit60/87展開＋UI1、test-04 Unit26/32展開成功、build成功。途中失敗保持 | `evidence/20261018-s43/`。製品policy未合意/未接続でblocked、実機/DV-10/S42報告反映は未完 |
+ | E-S43-02 | 2026-10-18、worker/explorer/document_author/doc_reviewer/main | S43暫定製品policy合意・接続・限定回帰 | 最終182入力一致、test-02/03同一版、Xcode27/Debug/iOS27 Simulator＋generic iOS（App入力一致） | 各run.json、Factory/2秒無到着/1本人操作1試行/実5秒timeout/SDK終了待ち/再試行/自動RECなし、音声/保存再生/UI | test-03 Unit19宣言/23展開＋UI1成功、失敗/skip/runtimeWarnings0、build成功。compile失敗2回/0件実行も保持 | `evidence/20261018-s43-approved/`。S43実装done、実機/DV-10/S42報告受領/別セッション独立検証は残る |
+ | E-S44-01 | 2026-10-18、explorer/worker/document_author/doc_reviewer/main | S44、AC-FR-03-01〜05/AC-CF-06・限定回帰 | test-03/ios-build-01の187入力、最終差分UI test1fileのみ | 各run.json、補正候補/希望復元/実active/画角失効/REC前再照合/旧通知/音声・保存再生/UI | Unit53宣言/76展開成功、最終UI2成功、build成功、最終失敗/skip/runtimeWarnings0。compile失敗2run/0件・途中UI1失敗保持 | `evidence/20261018-s44/`。実機品質/crop/preview一致/S47 consumer/独立validation未確認 |
++| E-S45-01 | 2026-10-18、explorer/worker/document_author/doc_reviewer/main | S45部分・AC-FR-05-01〜05と限定回帰 | 最終203入力、test-final-05/ios-build-03一致 | 各run.json、公開画像実Vision/世代/状態/設定保存/REC非阻害/AF計画/座標/UI、host同ソース診断 | Unit76宣言/99展開中75/98成功・1宣言2issues失敗、UI2成功、build成功、skip/runtimeWarnings0。途中失敗保持 | `evidence/20261018-s45/`。本人判断/Factory注入・Simulator同一特徴量問題でblocked。実機/独立validation未確認 |
++
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+ 
+@@ -1221,6 +1244,7 @@
+ | V-REVIEW-S43部分 | E-S43-01の最終181入力、既存17file/新6file | main、文書はdoc_reviewer | PCM/4軸分離、STOP前故障保持/先行WB理由、観測順序、復旧所有、探索互換、製品未接続、旧差分/証跡保持を確認。文書P2は未有効明記で解消 | `evidence/20261018-s43/main-scope-review.json`。関連試験成功、S43全体blocked。独立validationではない |
+ | V-REVIEW-S43接続 | E-S43-02の最終182入力、既存8file/新test1file | main、文書はdoc_reviewer | 本人合意と同policyのNative/coordinator注入、実機未採用、1本人操作1試行/実5秒上限/SDK終了待ち/非自動REC、S42未受領、旧差分・所有を照合。文書P2修正後解消 | `evidence/20261018-s43-approved/main-scope-review.json`。S43実装done、独立validationは別セッション |
+ | V-REVIEW-S44 | E-S44-01、最終187入力・既存16file/新5ソース | main、文書はdoc_reviewer | 条件候補/両出力/要求・実値/旧画角・高水位/REC再照合/観測終了/互換/旧差分保護を照合。失敗原因を修正し、App/Unit不変範囲の証拠を継承 | `evidence/20261018-s44/main-scope-review.json`。S44実装done、実機/独立validation未確認 |
++| V-REVIEW-S45部分 | E-S45-01、最終203入力・既存11/新13file | main、文書はdoc_reviewer | 記録経路非変更/有界解析/人物不在と解析失敗の分離/世代/REC非依存/意図保持/固定参照/適用と品質/未注入/保全を照合 | `evidence/20261018-s45/main-scope-review.json`。別人拒否1失敗を保持、本人判断/製品未注入でS45 blocked。独立validationではない |
+ 
+ ## 振り返り・引渡し
+ 
+--- baseline/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift
++++ final/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift
+@@ -16,6 +16,10 @@
+     private(set) var isSaving = false
+     private(set) var preferencesLoaded = false
+     private(set) var captureVisit: UUID?
++    private(set) var subjects: CaptureSubjectSnapshot?
++    private(set) var isUpdatingSubjects = false
++    private(set) var subjectIssue: String?
++    private(set) var isSavingShootingIntent = false
+     private(set) var framing = CaptureFramingState()
+     private(set) var observedAudio: CaptureAudioState?
+     private(set) var audioRecovery: ProductCaptureAudioRecoveryStatus = .idle
+@@ -32,6 +36,9 @@
+     @ObservationIgnored private var eventTask: Task<Void, Never>?
+     @ObservationIgnored private var hasStabilizationObservation = false
+     @ObservationIgnored private var stabilizationTask: Task<Void, Never>?
++    @ObservationIgnored private var subjectTask: Task<Void, Never>?
++    @ObservationIgnored private var subjectSequence: UInt64?
++    @ObservationIgnored private let subjectPolicy: CaptureSubjectPolicy?
+     @ObservationIgnored private var audioTask: Task<Void, Never>?
+     @ObservationIgnored private var audioSequence: UInt64?
+     @ObservationIgnored private let audioPolicy: ProductCaptureAudioPolicy?
+@@ -56,12 +63,14 @@
+          bindOriginal: @escaping @Sendable (CaptureOriginalReference) async -> Bool,
+          didSave: @escaping @MainActor @Sendable () async -> Void,
+          audioPolicy: ProductCaptureAudioPolicy? = nil,
++         subjectPolicy: CaptureSubjectPolicy? = nil,
+          calendarNow: (@Sendable () -> Date)? = nil,
+          captureNow: @escaping @Sendable () -> CaptureTimeObservation = { .unavailable(.notMeasured) }) {
+         preferenceStore = preferences; self.makeDevice = makeDevice; self.save = save
+         self.bindOriginal = bindOriginal; self.didSave = didSave
+         self.calendarNow = calendarNow; self.captureNow = captureNow
+         self.audioPolicy = audioPolicy
++        self.subjectPolicy = subjectPolicy
+     }
+ 
+     var isBusy: Bool {
+@@ -140,7 +149,7 @@
+ 
+     func updatePreferences(_ value: ProductCapturePreferences, visit requestedVisit: UUID? = nil) async {
+         let visit = requestedVisit ?? captureVisit
+-        guard accepts(visit), !isBusy else { return }
++        guard accepts(visit), !isBusy, !isSavingShootingIntent else { return }
+         guard value.isValid else { issue = "撮影設定の値を確認してください。"; return }
+         // A corrupt/unknown settings file is not silently replaced by an ordinary edit.
+         guard preferencesLoaded else { issue = "保存済み設定を読み込めていないため変更できません。"; return }
+@@ -184,6 +193,7 @@
+                 let stream = await created.productEvents()
+                 let audioStream = await created.audioSnapshots()
+                 let stabilizationStream = await created.stabilizationSnapshots()
++                let subjectStream = await created.subjectSnapshots()
+                 guard accepts(visit) else { await created.shutDown(); return }
+                 let discovered = try await created.discoverCameras()
+                 guard accepts(visit) else { await created.shutDown(); return }
+@@ -220,6 +230,14 @@
+                         guard !Task.isCancelled else { return }
+                         await self?.receiveAudio(snapshot, epoch: epoch)
+                     }
++                }
++                subjectTask = Task { [weak self] in
++                    for await snapshot in subjectStream {
++                        guard !Task.isCancelled else { return }
++                        self?.receiveSubjects(snapshot, epoch: epoch)
++                    }
++                    guard !Task.isCancelled else { return }
++                    self?.subjectObservationEnded(epoch: epoch)
+                 }
+                 stabilizationTask = Task { [weak self] in
+                     for await snapshot in stabilizationStream {
+@@ -300,6 +318,8 @@
+     /// Safe on navigation/background. Capture events and persistence continue until settled.
+     func leaveCapture() async {
+         leaveRequested = true
++        subjects = nil
++        subjectTask?.cancel(); subjectTask = nil
+         framing.invalidate(.interrupted)
+         stabilizationTask?.cancel(); stabilizationTask = nil
+         captureVisit = nil
+@@ -308,6 +328,57 @@
+         if let request = recoveryRequest, let device { await device.cancelAudioRecovery(request) }
+         await stop()
+         await finishLeavingIfPossible()
++    }
++
++    var subjectControlsConfigured: Bool { subjectPolicy != nil }
++    var allowsSceneTap: Bool {
++        subjectPolicy?.noPersonFocus == .tapPosition && subjects?.candidates.isEmpty == true
++            && (subjects?.state == .personPriorityAF || subjects?.state == .sceneAF)
++    }
++
++    /// Shooting intent is a wish, never a REC admission condition or an exposure command.
++    func chooseShootingIntent(_ intent: CaptureShootingIntent) async {
++        guard subjectControlsConfigured, preferencesLoaded, !isSavingShootingIntent, !isPreparing,
++              let visit = captureVisit, accepts(visit) else { return }
++        isSavingShootingIntent = true
++        defer { isSavingShootingIntent = false }
++        var value = preferences
++        value.shootingIntent = intent
++        do {
++            try await preferenceStore.save(value)
++            guard accepts(visit) else { preferencesLoaded = false; return }
++            preferences = value
++            subjectIssue = nil
++        } catch { if accepts(visit) { subjectIssue = "撮影意図を保存できませんでした。録画は続けられます。" } }
++    }
++
++    func changeSubjects(_ command: CaptureSubjectCommand) async {
++        guard subjectControlsConfigured, !isUpdatingSubjects, let subjects, let device,
++              !leaveRequested, captureVisit != nil else { return }
++        let epoch = eventEpoch
++        isUpdatingSubjects = true
++        defer { isUpdatingSubjects = false }
++        let result = await device.updateSubjects(.init(context: subjects.context, command: command))
++        guard epoch == eventEpoch, !leaveRequested else { return }
++        if let result { receiveSubjects(result, epoch: epoch) }
++        else { self.subjects = nil; subjectIssue = "人物情報が更新されました。現在の候補から指定し直してください。" }
++    }
++
++    private func receiveSubjects(_ snapshot: CaptureSubjectSnapshot, epoch: UUID) {
++        guard epoch == eventEpoch, !leaveRequested, captureVisit != nil,
++              snapshot.context.generation == generation,
++              subjectSequence.map({ snapshot.sequence > $0 }) ?? true,
++              subjects.map({ snapshot.context.framingRevision >= $0.context.framingRevision
++                  && snapshot.context.selectionRevision >= $0.context.selectionRevision
++                  && snapshot.context.whiteBalanceRevision >= $0.context.whiteBalanceRevision }) ?? true else { return }
++        subjectSequence = snapshot.sequence
++        subjects = snapshot
++        subjectIssue = nil
++    }
++
++    private func subjectObservationEnded(epoch: UUID) {
++        guard epoch == eventEpoch else { return }
++        subjects = nil
+     }
+ 
+     var currentAudio: CaptureAudioState? { observedAudio ?? prepared?.audio }
+@@ -553,6 +624,8 @@
+ 
+     private func releaseDevice() async {
+         eventEpoch = UUID()
++        subjects = nil; subjectSequence = nil; subjectIssue = nil
++        subjectTask?.cancel(); subjectTask = nil
+         framing.invalidate(.notMeasured)
+         hasStabilizationObservation = false
+         stabilizationTask?.cancel(); stabilizationTask = nil
+--- baseline/FrameRelay/Application/Ports/ProductCapturePorts.swift
++++ final/FrameRelay/Application/Ports/ProductCapturePorts.swift
+@@ -17,6 +17,8 @@
+ nonisolated protocol ProductCaptureDevicePort: CaptureControlPort {
+     func discoverCameras() async throws -> [ExplorationCameraDescription]
+     func prepare(_ request: ProductCapturePreparation) async throws -> ExplorationPrepared
++    func subjectSnapshots() async -> AsyncStream<CaptureSubjectSnapshot>
++    func updateSubjects(_ request: CaptureSubjectRequest) async -> CaptureSubjectSnapshot?
+     func stabilizationSnapshots() async -> AsyncStream<CaptureStabilizationSnapshot>
+     func audioSnapshots() async -> AsyncStream<ProductCaptureAudioSnapshot>
+     func recoverAudio(_ request: ProductCaptureAudioRecoveryRequest) async -> CaptureAudioRecoveryOutcome
+@@ -35,6 +37,8 @@
+ extension OriginalSaveCoordinator: ProductCaptureSavePort {}
+ 
+ extension ProductCaptureDevicePort {
++    func subjectSnapshots() async -> AsyncStream<CaptureSubjectSnapshot> { AsyncStream { $0.finish() } }
++    func updateSubjects(_ request: CaptureSubjectRequest) async -> CaptureSubjectSnapshot? { nil }
+     func stabilizationSnapshots() async -> AsyncStream<CaptureStabilizationSnapshot> { AsyncStream { $0.finish() } }
+     /// Adapters without audio observation remain explicitly unavailable; no fake valid input is made here.
+     func audioSnapshots() async -> AsyncStream<ProductCaptureAudioSnapshot> { AsyncStream { $0.finish() } }
+--- baseline/FrameRelay/Domain/Capture/ProductCapturePreferences.swift
++++ final/FrameRelay/Domain/Capture/ProductCapturePreferences.swift
+@@ -3,9 +3,11 @@
+ /// Persisted wishes only. Hardware readback, capability and WB locks are never restored as facts.
+ nonisolated struct ProductCapturePreferences: Equatable, Sendable, Codable {
+     var desired: DesiredCaptureSettings?
++    var shootingIntent: CaptureShootingIntent?
+     var outputCandidate: ExplorationOutputCandidate?
+ 
+-    init(desired: DesiredCaptureSettings? = nil, outputCandidate: ExplorationOutputCandidate? = nil) {
++    init(desired: DesiredCaptureSettings? = nil, outputCandidate: ExplorationOutputCandidate? = nil, shootingIntent: CaptureShootingIntent? = nil) {
++        self.shootingIntent = shootingIntent
+         self.desired = desired
+         self.outputCandidate = outputCandidate
+     }
+--- baseline/FrameRelay/Features/Capture/ProductCapturePreview.swift
++++ final/FrameRelay/Features/Capture/ProductCapturePreview.swift
+@@ -1,24 +1,34 @@
+ import AVFoundation
+ import SwiftUI
+ 
+-/// Live camera surface only. Its separate preview connection does not certify the
+-/// recording connection's stabilization crop, even when recording stabilization is OFF.
++/// Live camera surface only. SDK coordinate conversion handles orientation, mirroring
++/// and aspect-fit letterboxing; corrected recording/preview FOV still needs DV-04/06.
+ /// No standard Rec.709 transform or S47 framing forecast is implemented here.
+ struct ProductCapturePreview: UIViewRepresentable {
+     let source: NativeCapturePreviewSource
++    var subjects: CaptureSubjectSnapshot? = nil
++    var allowsSceneTap = false
++    var onCommand: (CaptureSubjectCommand) -> Void = { _ in }
+ 
+     func makeUIView(context: Context) -> ProductCapturePreviewSurface {
+         let view = ProductCapturePreviewSurface()
+         view.previewLayer.videoGravity = .resizeAspect
+         view.previewLayer.session = source.session
++        view.onCommand = onCommand
+         return view
+     }
+ 
+     func updateUIView(_ view: ProductCapturePreviewSurface, context: Context) {
+         if view.previewLayer.session !== source.session { view.previewLayer.session = source.session }
++        view.subjects = subjects
++        view.allowsSceneTap = allowsSceneTap
++        view.onCommand = onCommand
++        view.setNeedsLayout()
+     }
+ 
+     static func dismantleUIView(_ view: ProductCapturePreviewSurface, coordinator: ()) {
++        view.subjects = nil
++        view.onCommand = { _ in }
+         view.previewLayer.session = nil
+     }
+ }
+@@ -26,4 +36,60 @@
+ final class ProductCapturePreviewSurface: UIView {
+     override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
+     var previewLayer: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
++    var subjects: CaptureSubjectSnapshot?
++    var allowsSceneTap = false
++    var onCommand: (CaptureSubjectCommand) -> Void = { _ in }
++    private var boxes: [CAShapeLayer] = []
++    private var labels: [UILabel] = []
++
++    override init(frame: CGRect) {
++        super.init(frame: frame)
++        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapped(_:))))
++    }
++    required init?(coder: NSCoder) { super.init(coder: coder) }
++
++    override func layoutSubviews() {
++        super.layoutSubviews()
++        boxes.forEach { $0.removeFromSuperlayer() }; boxes = []
++        labels.forEach { $0.removeFromSuperview() }; labels = []
++        for (index, person) in (subjects?.candidates ?? []).enumerated() {
++            let rect = converted(person.bounds)
++            let box = CAShapeLayer()
++            box.path = UIBezierPath(rect: rect).cgPath
++            box.fillColor = UIColor.clear.cgColor
++            let selected = subjects?.protagonist == person.id
++            box.strokeColor = (selected ? UIColor.systemYellow : UIColor.white).cgColor
++            box.lineWidth = selected ? 3 : 1.5
++            if subjects?.exposureTargets.contains(person.id) == true { box.lineDashPattern = [6, 3] }
++            layer.addSublayer(box); boxes.append(box)
++            let label = UILabel()
++            label.text = "\(index + 1)" + (selected ? " 主役" : "")
++            label.font = .preferredFont(forTextStyle: .caption1)
++            label.textColor = selected ? .systemYellow : .white
++            label.backgroundColor = .black.withAlphaComponent(0.7)
++            label.sizeToFit()
++            label.frame.origin = CGPoint(x: rect.minX, y: max(0, rect.minY))
++            label.isAccessibilityElement = false // The equivalent SwiftUI buttons expose the actions.
++            addSubview(label); labels.append(label)
++        }
++    }
++
++    private func converted(_ bounds: CaptureSubjectRect) -> CGRect {
++        previewLayer.layerRectConverted(fromMetadataOutputRect:
++            CGRect(x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height))
++    }
++
++    @objc private func tapped(_ gesture: UITapGestureRecognizer) {
++        let location = gesture.location(in: self)
++        if let person = subjects?.candidates.filter({ converted($0.bounds).contains(location) })
++            .min(by: { $0.bounds.width * $0.bounds.height < $1.bounds.width * $1.bounds.height }) {
++            onCommand(.selectProtagonist(person.id))
++        } else if allowsSceneTap, subjects?.candidates.isEmpty == true {
++            let visible = previewLayer.layerRectConverted(fromMetadataOutputRect: CGRect(x: 0, y: 0, width: 1, height: 1))
++            guard visible.contains(location) else { return }
++            let point = previewLayer.captureDevicePointConverted(fromLayerPoint: location)
++            let normalized = CaptureSubjectPoint(x: point.x, y: point.y)
++            if normalized.isValid { onCommand(.scenePoint(normalized)) }
++        }
++    }
+ }
+--- baseline/FrameRelay/Features/Capture/ProductCaptureSettingsView.swift
++++ final/FrameRelay/Features/Capture/ProductCaptureSettingsView.swift
+@@ -209,7 +209,8 @@
+     }
+ }
+ 
+-private struct ProductCaptureSettingsDraft {
++struct ProductCaptureSettingsDraft {
++    private var shootingIntent: CaptureShootingIntent?
+     var camera = ""
+     var framesPerSecond = 0
+     var codec = ""
+@@ -223,6 +224,7 @@
+     var aperture = ""
+ 
+     init(_ preferences: ProductCapturePreferences) {
++        shootingIntent = preferences.shootingIntent
+         output = preferences.outputCandidate?.rawValue ?? ""
+         guard let desired = preferences.desired else { return }
+         camera = desired.configuration.camera
+@@ -249,7 +251,7 @@
+                                                  iso: iso, aperture: Double(aperture))
+         let preferences = ProductCapturePreferences(
+             desired: try DesiredCaptureSettings(configuration: configuration, exposure: exposure, zoom: zoom),
+-            outputCandidate: output)
++            outputCandidate: output, shootingIntent: shootingIntent)
+         guard preferences.isValid else { throw CaptureContractError.invalidValue }
+         return preferences
+     }
+--- baseline/FrameRelay/Features/Capture/ProductCaptureView.swift
++++ final/FrameRelay/Features/Capture/ProductCaptureView.swift
+@@ -12,7 +12,9 @@
+             ScrollView {
+                 VStack(alignment: .leading, spacing: 20) {
+                     if let source = model.previewSource as? NativeCapturePreviewSource {
+-                        ProductCapturePreview(source: source)
++                        ProductCapturePreview(source: source, subjects: model.subjects, allowsSceneTap: model.allowsSceneTap) { command in
++                            Task { await model.changeSubjects(command) }
++                        }
+                             .aspectRatio(16 / 9, contentMode: .fit)
+                             .background(.black)
+                             .accessibilityLabel("カメラの構図プレビュー")
+@@ -83,6 +85,7 @@
+                                 .font(.footnote)
+                         }
+                     }
++                    ProductCaptureSubjectsView(model: model)
+                     ProductCaptureAudioView(state: model.currentAudio, recovery: model.audioRecovery,
+                         canRetry: model.canRetryAudio && !isClosing) { Task { await model.retryAudio() } }
+                     VStack(alignment: .leading, spacing: 8) {
+--- baseline/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
++++ final/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
+@@ -18,6 +18,18 @@
+     private var devices: [String: AVCaptureDevice] = [:]
+     private var movie: AVCaptureMovieFileOutput?
+     private var videoOutput: AVCaptureVideoDataOutput?
++    private let subjectPolicy: CaptureSubjectPolicy?
++    private let subjectStream: AsyncStream<CaptureSubjectSnapshot>
++    private let subjectContinuation: AsyncStream<CaptureSubjectSnapshot>.Continuation
++    private var subjects: CaptureSubjectSession?
++    private var subjectAnalysis: NativeCaptureSubjectAnalysis?
++    private var subjectVideoOutput: AVCaptureVideoDataOutput?
++    private var subjectDelegate: NativeCaptureSubjectSampleDelegate?
++    private var subjectTimer: Task<Void, Never>?
++    private var subjectSequence: UInt64 = 0
++    private var subjectFramingRevision: UInt64 = 1
++    private var subjectAnalysisStartedAt: TimeInterval?
++    private var subjectFocus: CaptureSubjectFocusAvailability = .unconfirmed
+     private var audioOutput: AVCaptureAudioDataOutput?
+     private var microphoneInput: AVCaptureDeviceInput?
+     private var audioObservation = NativeCaptureAudioObservation(beganAt: ProcessInfo.processInfo.systemUptime)
+@@ -68,10 +80,14 @@
+     private var durationTask: Task<Void, Never>?
+ 
+     init(candidate: ExplorationOutputCandidate, originals: any ExplorationOriginalDestinationPort,
+-         audioPolicy: ProductCaptureAudioPolicy? = nil) {
++         audioPolicy: ProductCaptureAudioPolicy? = nil, subjectPolicy: CaptureSubjectPolicy? = nil) {
+         self.candidate = candidate
+         self.originals = originals
+         self.audioPolicy = audioPolicy
++        self.subjectPolicy = subjectPolicy
++        let subjectPair = AsyncStream<CaptureSubjectSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
++        subjectStream = subjectPair.stream
++        subjectContinuation = subjectPair.continuation
+         let stabilizationPair = AsyncStream<CaptureStabilizationSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
+         stabilizationStream = stabilizationPair.stream
+         stabilizationContinuation = stabilizationPair.continuation
+@@ -91,6 +107,7 @@
+     func events() -> AsyncStream<CaptureIOEvent> { captureStream }
+     func explorationEvents() -> AsyncStream<ExplorationDeviceEvent> { eventStream }
+ 
++    func subjectSnapshots() -> AsyncStream<CaptureSubjectSnapshot> { subjectStream }
+     func stabilizationSnapshots() -> AsyncStream<CaptureStabilizationSnapshot> { stabilizationStream }
+     func audioSnapshots() -> AsyncStream<ProductCaptureAudioSnapshot> { audioStream }
+     func productEvents() -> AsyncStream<ExplorationDeviceEvent> { eventStream }
+@@ -245,9 +262,13 @@
+                 }
+                 selected.unlockForConfiguration()
+             }
+-            return try readPrepared(device: selected, format: format, at: appliedTime, request: request)
++            let prepared = try readPrepared(device: selected, format: format, at: appliedTime, request: request)
++            // Analysis must not publish frames from the pre-application exposure setup.
++            if request.trial == nil { startSubjectAnalysis(generation: request.generation) }
++            return prepared
+         } catch {
+             if session == nil { captureSession.commitConfiguration() }
++            stopSubjectAnalysis()
+             clearStabilizationObservation()
+             captureSession.stopRunning()
+             session = nil
+@@ -282,6 +303,7 @@
+             }
+             try NativeCaptureStabilization.request(stabilization, on: video, output: candidate)
+             movie = output
++            if subjectPolicy != nil { configureSubjectOutput(session) }
+         } else {
+             let video = AVCaptureVideoDataOutput()
+             guard session.canAddOutput(video) else {
+@@ -428,6 +450,7 @@
+             formatID: device.formats.firstIndex(where: { $0 === format }).map { "current-format-\($0 + 1)" } ?? "",
+             width: Int(dimensions.width), height: Int(dimensions.height), zoom: Double(device.videoZoomFactor),
+             uncorrectedFieldOfView: format.videoFieldOfView > 0 ? Double(format.videoFieldOfView) : nil)
++        updateSubjectFraming(snapshot)
+         latestStabilization = snapshot
+         stabilizationContinuation.yield(snapshot)
+     }
+@@ -441,16 +464,19 @@
+             switch command {
+             case .lockCurrentWhiteBalance:
+                 guard activeToken == nil, wbOrder?.requestLock(token) == true else { return .rejected(token, .evidenceMismatch) }
++                invalidateSubjectWhiteBalance()
+                 try lockCurrentWB(token)
+             case .refreshAndLockWhiteBalance:
+                 guard activeToken?.context == token.context, !isFinishing, let device,
+                       device.isWhiteBalanceModeSupported(.autoWhiteBalance),
+                       wbOrder?.requestRefresh(token) == true else { return .rejected(token, .evidenceMismatch) }
++                invalidateSubjectWhiteBalance()
+                 try refreshWhiteBalance(token, device: device)
+             case .restoreAutomaticWhiteBalance:
+                 guard activeToken == nil, let device, wbOrder?.requestAutomatic(token) == true else {
+                     return .rejected(token, .evidenceMismatch)
+                 }
++                invalidateSubjectWhiteBalance()
+                 clearWhiteBalanceObservation()
+                 try device.lockForConfiguration()
+                 device.whiteBalanceMode = .continuousAutoWhiteBalance
+@@ -563,6 +589,7 @@
+             if activeToken != nil { termination.recordFailure(reason); finishStopRecording() }
+             return
+         }
++        invalidateSubjectWhiteBalance()
+         let applied = ExplorationCaptureValues.time(time, clock: .captureDevice(camera: preparation.desired.configuration.camera), source: "WB-completion")
+         emit(.whiteBalanceLocked(token, .init(gains: gains, measuredAt: ExplorationCaptureValues.now(), appliedAt: applied)))
+         if wbOrder?.shouldStopAfterLock(token) == true { finishStopRecording() }
+@@ -738,6 +765,7 @@
+     func shutDown() {
+         guard activeToken == nil else { stopRecording(); return }
+         clearWhiteBalanceObservation()
++        stopSubjectAnalysis()
+         clearStabilizationObservation()
+         audioMonitorTask?.cancel(); audioMonitorTask = nil
+         if let request = latestAudioRecoveryRequest { cancelAudioRecovery(request) }
+@@ -1058,12 +1086,13 @@
+     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+         guard let owner else { return }
+         let isVideo = output is AVCaptureVideoDataOutput
+-        guard isVideo || owner.assumeIsolated({ $0.isCurrentAudioOutput(output) }) else { return }
++        guard owner.assumeIsolated({ isVideo ? $0.isCurrentVideoOutput(output) : $0.isCurrentAudioOutput(output) }) else { return }
+         guard CMSampleBufferDataIsReady(sampleBuffer) else {
+             owner.assumeIsolated { $0.sampleFailure("sample_not_ready", isAudio: !isVideo) }
+             return
+         }
+         if !isVideo, !owner.assumeIsolated({ $0.observeAudio(sampleBuffer, output: output) }) { return }
++        if isVideo { owner.assumeIsolated { $0.observeSubjects(sampleBuffer, output: output) } }
+         let ready = CMReadySampleBuffer<CMSampleBuffer.DynamicContent>(unsafeBuffer: sampleBuffer)
+         // The delegate queue is the exact actor executor; the raw alias is never reused.
+         owner.assumeIsolated { $0.consume(ready, isVideo: isVideo) }
+@@ -1071,7 +1100,10 @@
+ 
+     func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+         guard let owner else { return }
+-        owner.assumeIsolated { $0.sampleFailure("capture_sample_dropped", isAudio: false) }
++        owner.assumeIsolated {
++            guard $0.isCurrentVideoOutput(output) else { return }
++            $0.sampleFailure("capture_sample_dropped", isAudio: false)
++        }
+     }
+ }
+ 
+@@ -1096,3 +1128,145 @@
+         Task { await owner.movieFinished(token: token, failure: failure) }
+     }
+ }
++
++extension NativeExplorationCapture {
++    private func configureSubjectCoordinates(_ connection: AVCaptureConnection?) {
++        guard subjectPolicy != nil, let connection else { return }
++        if connection.isVideoRotationAngleSupported(0) { connection.videoRotationAngle = 0 }
++        if connection.isVideoMirroringSupported {
++            connection.automaticallyAdjustsVideoMirroring = false
++            connection.isVideoMirrored = false
++        }
++    }
++
++    private func configureSubjectOutput(_ captureSession: AVCaptureSession) {
++        let output = AVCaptureVideoDataOutput()
++        guard captureSession.canAddOutput(output) else { return }
++        captureSession.addOutput(output)
++        output.automaticallyConfiguresOutputBufferDimensions = false
++        output.deliversPreviewSizedOutputBuffers = true
++        output.alwaysDiscardsLateVideoFrames = true
++        configureSubjectCoordinates(output.connection(with: .video))
++        let delegate = NativeCaptureSubjectSampleDelegate(owner: self)
++        output.setSampleBufferDelegate(delegate, queue: queue)
++        subjectVideoOutput = output; subjectDelegate = delegate
++    }
++
++    private func startSubjectAnalysis(generation: CaptureGeneration) {
++        guard let policy = subjectPolicy else { return }
++        subjects = CaptureSubjectSession(context: .init(generation: generation,
++            framingRevision: subjectFramingRevision, selectionRevision: 0), policy: policy)
++        subjectAnalysisStartedAt = ProcessInfo.processInfo.systemUptime
++        subjectAnalysis = NativeCaptureSubjectAnalysis(policy: policy) { [weak self] result in
++            Task { await self?.receiveSubjectAnalysis(result) }
++        }
++        configureSubjectAnalysis()
++        applySubjectFocus()
++        publishSubjects()
++        subjectTimer?.cancel()
++        subjectTimer = Task { [weak self] in
++            while !Task.isCancelled {
++                do { try await Task.sleep(for: .milliseconds(200)) } catch { return }
++                await self?.expireSubjects(generation: generation)
++            }
++        }
++    }
++
++    func updateSubjects(_ request: CaptureSubjectRequest) -> CaptureSubjectSnapshot? {
++        guard session?.isRunning == true, session?.isInterrupted != true,
++              subjects?.command(request, now: ProcessInfo.processInfo.systemUptime) != nil else { return nil }
++        configureSubjectAnalysis(); applySubjectFocus(); publishSubjects()
++        return subjects?.snapshot(sequence: subjectSequence, focus: subjectFocus)
++    }
++
++    fileprivate func isCurrentVideoOutput(_ output: AVCaptureOutput) -> Bool { output === videoOutput }
++
++    fileprivate func observeSubjects(_ sample: CMSampleBuffer, output: AVCaptureOutput) {
++        guard let subjectAnalysis, output === subjectVideoOutput || output === videoOutput,
++              session?.isRunning == true, session?.isInterrupted != true,
++              let connection = output.connection(with: .video), connection.isActive, connection.isEnabled,
++              connection.videoRotationAngle == 0, !connection.isVideoMirrored,
++              CMSampleBufferDataIsReady(sample), let buffer = CMSampleBufferGetImageBuffer(sample) else { return }
++        guard let geometry = NativeCaptureSubjectGeometry.capture(width: CVPixelBufferGetWidth(buffer),
++            height: CVPixelBufferGetHeight(buffer), rotation: connection.videoRotationAngle,
++            mirrored: connection.isVideoMirrored, convertPixels: { output.metadataOutputRectConverted(fromOutputRect: $0) }) else { return }
++        guard let clock = session?.synchronizationClock, let policy = subjectPolicy else { return }
++        let pts = CMSampleBufferGetPresentationTimeStamp(sample)
++        let clockTime = CMClockGetTime(clock)
++        guard pts.isNumeric, clockTime.isNumeric, pts.epoch == clockTime.epoch,
++              let observedAt = NativeCaptureSubjectGeometry.observedAt(presentationSeconds: CMTimeGetSeconds(pts),
++                clockSeconds: CMTimeGetSeconds(clockTime), uptime: ProcessInfo.processInfo.systemUptime,
++                maximumAge: policy.maximumResultAge) else { return }
++        subjectAnalysis.submit(buffer, geometry: geometry, observedAt: observedAt)
++    }
++
++    private func receiveSubjectAnalysis(_ result: CaptureSubjectAnalysis) {
++        guard session?.isRunning == true, session?.isInterrupted != true,
++              subjects?.receive(result, now: ProcessInfo.processInfo.systemUptime) == true else { return }
++        configureSubjectAnalysis(); applySubjectFocus(); publishSubjects()
++    }
++
++    private func expireSubjects(generation: CaptureGeneration) {
++        guard subjects?.context.generation == generation, let policy = subjectPolicy else { return }
++        let now = ProcessInfo.processInfo.systemUptime
++        if subjects?.lastObservedAt == nil, let started = subjectAnalysisStartedAt,
++           now - started > policy.maximumResultAge, subjects?.state == .detecting {
++            subjects?.invalidateAnalysis(now: now)
++        } else if subjects?.expire(now: now) != true { return }
++        configureSubjectAnalysis(); applySubjectFocus(); publishSubjects()
++    }
++
++    private func invalidateSubjectWhiteBalance() {
++        guard subjects != nil else { return }
++        subjects?.invalidateWhiteBalance(now: ProcessInfo.processInfo.systemUptime)
++        configureSubjectAnalysis(); applySubjectFocus(); publishSubjects()
++    }
++
++    private func configureSubjectAnalysis() {
++        guard let subjects else { return }
++        subjectAnalysis?.configure(.init(context: subjects.context, protagonist: subjects.protagonist,
++            allowsReacquisition: subjects.state != .heldAwaitingSelection))
++    }
++
++    private func applySubjectFocus() {
++        guard let subjects, let device else { subjectFocus = .unconfirmed; return }
++        subjectFocus = NativeCaptureSubjectFocus.apply(subjects.action, to: device)
++    }
++
++    private func publishSubjects() {
++        guard let subjects else { return }
++        subjectSequence += 1
++        subjectContinuation.yield(subjects.snapshot(sequence: subjectSequence, focus: subjectFocus))
++    }
++
++    private func updateSubjectFraming(_ value: CaptureStabilizationSnapshot) {
++        guard let previous = latestStabilization else { return }
++        guard value.generation != previous.generation || value.camera != previous.camera
++            || value.activePhysicalCamera != previous.activePhysicalCamera || value.formatID != previous.formatID
++            || value.width != previous.width || value.height != previous.height || value.zoom != previous.zoom
++            || value.activeMode.value != previous.activeMode.value || value.requestedMode != previous.requestedMode
++            || value.preferredMode != previous.preferredMode
++            || value.connection != previous.connection else { return }
++        subjectFramingRevision += 1
++        subjects?.invalidateFraming(subjectFramingRevision)
++        configureSubjectAnalysis(); applySubjectFocus(); publishSubjects()
++    }
++
++    private func stopSubjectAnalysis() {
++        subjectTimer?.cancel(); subjectTimer = nil
++        subjectAnalysis?.stop(); subjectAnalysis = nil
++        subjectVideoOutput?.setSampleBufferDelegate(nil, queue: nil)
++        subjectVideoOutput = nil; subjectDelegate = nil; subjects = nil
++        subjectFocus = .unconfirmed; subjectAnalysisStartedAt = nil
++    }
++}
++
++/// Analysis-only missing/late frames never become recording or audio failures.
++nonisolated private final class NativeCaptureSubjectSampleDelegate: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
++    weak var owner: NativeExplorationCapture?
++    init(owner: NativeExplorationCapture) { self.owner = owner }
++    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
++        owner?.assumeIsolated { $0.observeSubjects(sampleBuffer, output: output) }
++    }
++    func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {}
++}
+--- baseline/FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
++++ final/FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
+@@ -26,6 +26,11 @@
+         XCTAssertTrue(whiteBalance.exists)
+         XCTAssertTrue(whiteBalance.label.contains("未確認"))
+         XCTAssertFalse(app.buttons["capture.refreshWhiteBalance"].isEnabled)
++        let subjects = app.staticTexts["capture.subject.state"]
++        for _ in 0..<4 where !subjects.isHittable { app.swipeUp() }
++        XCTAssertTrue(subjects.exists)
++        XCTAssertTrue(subjects.label.contains("未確認"))
++        XCTAssertTrue(subjects.label.contains("REC"))
+         let audio = app.staticTexts["capture.audio.input"]
+         if !audio.isHittable { app.swipeUp() }
+         XCTAssertTrue(audio.exists)
+--- baseline/docs/architecture.md
++++ final/docs/architecture.md
+@@ -98,7 +98,8 @@
+ | Swift / SwiftUI / Xcode | PROJECT_CONTEXTの既存値を維持 | ネイティブUIと型付きの機能境界。既存App targetを利用 | RNへの置換、project generator導入は行わない。Xcode/コンパイラは未確定 |
+ | Swift Concurrency＋端末APIの直列queue | 言語モード5.0を維持しSDK適合を確認 | 状態所有、task寿命、UI隔離。リアルタイムI/OはAPIの実行制約に従う | 全部をMainActorに載せない。独自並行runtimeは不要。callback橋渡しと中断を検証 |
+ | AVFoundation / Core Media | OS同梱。使用symbolを組合せごとに確認 | カメラ・音声・時間・書込・再生。既存framework内で記録と表示を分離 | MovieFileOutputとDataOutput＋AssetWriterの選択は未確定。LT/Proxy＋Log、補正、手動値、音声監視の同時成立で比較 |
+-| Core Image / Metal、Vision | 表示/解析実装の候補。導入済みとしない | 固定Rec.709表示、人物候補/解析を端末内で行う候補 | ND規則自体をframeworkへ委ねない。CPU方式とも負荷・精度を比較。特定APIで同一人物再捕捉が保証されるとはしない |
++| Core Image / Metal | 表示実装の候補。導入済みとしない | 固定Rec.709表示の候補 | ND規則自体をframeworkへ委ねない。CPU方式とも負荷・精度を比較 |
++| Vision | S45の注入可能な人物解析本体で使用。通常経路はpolicy未注入 | 端末内の上半身検出、追跡候補、画像特徴量の照合 | SDKの追跡IDや画像類似度を人物同一性の証明にしない。再捕捉・AF・負荷の実機品質は未確認 |
+ | Core Data（ローカルSQLite store） | ストア実装の第一案。model versionを管理 | 確認/失効と操作記録をまとめて保存し、単一writer経路を作る。媒体は格納しない | SwiftDataは保存境界の検証が必要、Codableファイル分散は複数記録の整合管理が増える、SQLite直接操作は保守範囲が増える。具体schema/障害時保証は未検証 |
+ | FoundationファイルI/O＋CryptoKit SHA-256 | OS同梱。内容識別の設計案 | 大きな原本を逐次読取り、ファイル全体の同一性をサイズとdigestで照合 | ファイル名/日時/サイズだけでは不足。サーバー側方式と合意が必要で、既存方式を確認せず置換しない |
+ | URLSession＋Network | 動画通信adapterの第一案 | 動画ゲート、cellular禁止設定、経路変化、停止/照合を共通化 | 監視だけでWi-Fi強制としない。第一候補のstreamingにおけるAVPlayer独自通信等と既存配信/認証/版管理は追加検証。背景sessionはU3未決 |
+@@ -178,7 +179,7 @@
+ | --- | --- | --- | --- |
+ | カメラ/記録 | AVFoundationでカメラ・format・出力を照合。4K/24・30fps/LT・422・Proxy/Apple Log、補正、WB、手動値の組合せを実機確認 | 未確認/非対応を区別。無断形式変更なし。絞り操作は実制御可能と確認したカメラだけ | カメラ用途説明と権限が必要。現projectで設定済みとは扱わない |
+ | 音声 | 入力到着、入力経路、音量、writer結果を分離して観測 | 入力確認中は準備中、確認済み障害で開始禁止/録画停止、部分保存を試行。有界復旧後も本人REC | マイク用途説明と権限。外部マイク等の対応を先取りしない |
+-| プレビュー/解析 | 記録のLog経路から分岐し表示だけ固定Rec.709変換。人物/ND/予告は有界の入力を使用 | 古い解析を保留。表示の成立・負荷は未検証。予告のための複数カメラ常時起動を前提にしない | 追加の顔識別サービス・クラウド権限は要求しない。具体framework選択は未確定 |
++| プレビュー/解析 | 記録のLog経路から分岐し表示だけ固定Rec.709変換。人物/ND/予告は有界の入力を使用 | 古い解析を保留。表示の成立・負荷は未検証。予告のための複数カメラ常時起動を前提にしない | 追加の顔識別サービス・クラウド権限は要求しない。人物にはS45のVision部分実装があり、通常経路は未有効。表示変換はS48 |
+ | 動画通信 | 共通ゲートを通るURLSession等。cellular禁止設定と経路判定・停止を併用する案 | Wi-Fi消失/REC/保存で待機。停止要求と実停止を区別し、結果不明を照合 | 接続先に応じたローカルネットワーク用途説明、Bonjour等の要否を確認。通信経路未確定のまま権限/例外を一括追加しない |
+ | 再生 | ローカル原本、版固定したRec.709軽量版。軽量版確認は1本ずつstreamingを第一候補とし、AVFoundation/AVKitを検討 | ローカル再生はオフライン可。未取得の軽量版でオフライン再生は保証しない。既存配信/認証/版管理との成立性と一時使用量を検証し、大きな制約時は一時取得を比較 | Photosから読む方式を採る場合の権限はU2。再生不能を容量整理条件へ追加しない |
+ | Photos | PhotoKit追加、完了結果、取得可能な参照による照合 | 拒否/限定/権限変更/結果不明を分離。追加権限で読み取りが保証されるとはしない | 追加用途説明、読取を採る場合は読取用途説明と対応権限。初回要求時期・範囲はU2 |
+@@ -220,6 +221,14 @@
+ 表示変換は入力Log種別と色特性が判明した経路だけに適用し、二重変換を避ける。Apple LogとApple Log 2には異なる色空間定義があるため、機種名やファイル名から一律に同じ変換を適用しない。採用するLog種別と変換係数・LUTの由来、表示とMac miniの変換整合は別途検証する。[AVCaptureColorSpace.appleLog](https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog)
+ 
+ 解析用の待ち行列は有界とし、古い入力をためて追いつこうとしない。解析が追いつかない間は現在の有効なND/人物結果がないことを表す。どの処理頻度をどこまで下げるかはU7・実機測定で決め、シャッター/ISO/WB/補正や記録形式を勝手に変更しない。ND方向の有用性、同一主役の再捕捉、停止候補の画質は別の品質検証であり、無効化規則のテストだけで完成にしない。
++
++S45では `CaptureSubjectSession` が露出対象集合・単一主役・追跡状態を分け、`ProductCaptureDevicePort` のcommand/snapshotとcoordinatorを介して人物枠・選択UIへ渡す。`subjectPolicy` はNativeとcoordinatorへ注入できるが、現行 `ProductCaptureFactory` は未注入であり、通常経路のS45解析・AFと撮影意図選択は未有効である。意図保存・復元の本体があっても、人物なしAF・初回意図・保持秒数のU5合意や製品接続を完了扱いにしない。
++
++`NativeCaptureSubjectAnalysis` は処理中1件と置換可能な待機1件の入力を保持し、専用queueでVisionを実行する。`NativeSubjectVisionEngine` は上半身検出とobject trackingに、明示選択時に固定した参照のFeaturePrint照合を組み合わせる。近傍の人物で参照を更新せず、複数候補の対応が曖昧なら主役として採用しない。SDKのUUIDは人物IDへ流用せず、画像類似度による照合を顔認識や同一人物の保証と扱わない。候補・特徴量はセッション内だけに保持し、恒久的な人物台帳を作らない。
++
++解析結果にはセッション/設定・構図・対象選択の世代、連番、入力時点を付け、旧世代・重複/逆順・期限超過を拒否する。解析停止や構図失効で旧候補を現在の結果として残さず、再捕捉の保持期限後は再指定を待つ。解析専用出力の座標を正規化し、共有する記録入力は向き・鏡像が適合するものだけ受け取る。人物解析のために記録接続の向き・鏡像を変更せず、プレビューの枠・タップ位置はSDKの座標変換を使う。補正後の画角対応は実機確認を残す。
++
++`NativeCaptureSubjectFocus` は主役への継続AF、見失い時の保持、追跡OFFの人物優先AFを能力照合して適用する。主役指定中は自動の顔切替を無効にし、非対応のAFを無断で固定へ代替しない。変更対象はフォーカス設定だけとし、読戻しによる適用・非対応・失敗を合焦品質から分離する。公開の上半身画像fixtureによる実Vision解析は技術試験の入力であり、別人通過・前後移動・再捕捉・距離/照明・記録負荷の実機受入を代替しない。製品接続、検証結果、未確認範囲はS45/DV-06で追跡する。
+ 
+ ### 全動画通信の共通契約
+ 
+--- baseline/docs/functional-design.md
++++ final/docs/functional-design.md
+@@ -136,13 +136,15 @@
+ 
+ | 型・フィールド | Swiftの型例 | 必須性・欠損の意味 | 許容値・初期値・制約 |
+ | --- | --- | --- | --- |
+-| ShootingIntent | `enum` | 選択が必要 | 人物のみ／人物＋背景／景色優先。初回選択の既定値はU5 |
++| ShootingIntent | `enum?` | 未選択はnil | 人物のみ／人物＋背景／景色優先。初回選択・復元方針はU5。未選択をRECの阻害条件にしない |
+ | SubjectSelection | `struct` | 人物なしを許可 | 露出評価対象の候補ID集合と、ピントの主役候補ID `Optional` を別管理。主役nilは未指定。顔の恒久的な人物台帳を要求しない |
+-| FocusTrackingState | `enum` | 常に存在 | `detecting / following(subject) / lostHolding(subject, since) / heldAwaitingSelection / personPriorityAF / sceneAF`。人物検出の不確かさを明示 |
++| FocusTrackingState | `enum` | 解析経路の未接続は状態未取得として区別 | `detecting / following(subject) / lostHolding(subject, since) / heldAwaitingSelection / personPriorityAF / sceneAF / unavailable`。人物検出の不確かさを明示。AF設定の未確認・適用・非対応・失敗は別の値で保持 |
+ | AnalysisContext | `struct` | 解析結果に必須 | セッションID、設定/構図世代、対象選択世代、入力フレーム時点、WB状態。欠損結果は現在の有効判定に使わない |
+ | NDAdvice | `enum` + 根拠 | 初期はpending | 濃く／薄く／現在基準で許容／両立困難／判定中／根拠不足。調整量は根拠がある場合の `Optional`。nilは精密量を出せない意味 |
+ | ZoomPlan | `struct` | 未選択はnil | 現在実倍率、目標倍率、予告の根拠、対応カメラ経路、停止候補根拠、状態。倍率は有限・正・対応範囲内。予告と実倍率を別値にする |
+ | FramingEstimate / StopCandidate | `struct` | 未評価はunknown | 補正の画角を含む評価条件と信頼性。引く側の未観測領域は推定/表示不可を示す。整数倍率だけで画質ラベルを作らない |
++
++S45には、露出評価対象の集合と一人の主役を別に選ぶ状態・UI、撮影意図の保存・復元、人物解析・AFのpolicyを注入できる本体がある。候補IDと主役はセッション内だけに保持し、撮影意図や露出対象の選択からISO・シャッターを自動変更しない。現時点の `ProductCaptureFactory` は `subjectPolicy` を注入しておらず、通常経路のS45解析・AFと意図選択は未有効である。人物なしの位置指定AF、初回意図選択後の復元、保持秒数はU5の合意待ちを維持し、実装の存在を製品既定の採用や完了と扱わない。
+ 
+ ### D3 撮影項目とローカル原本
+ 
+@@ -252,6 +254,8 @@
+ | 予告・ズーム | 目標選択→予告のみ→本人の移動開始→ゆっくり移動→目標/本人停止。予告中は実倍率不変 | 予告の原本焼込みなし。別カメラの画質/ボケ/視差の再現を保証しない。引く方向の観測できない範囲を現在映像から創作しない。操作案・候補吸着はU4 |
+ | レンズ切替 | 切替条件を確認→移行中に限定ISO補正→切替後は実ISOを維持。補正/記録条件を維持できる経路だけ実行 | 常時Auto ISOへ移らず、シャッター/FPS/WB方針を維持。切替不成立時は録画継続を優先して現在側を保ち理由を表示。途切れ等の許容は実機合意が必要 |
+ 
++S45の注入可能経路では、古いセッション・構図・対象選択の世代、逆順・期限超過の解析を拒否し、検出停止も未確認へ移す。主役の見失い中は保持し、同一候補との対応が曖昧なら再捕捉として採用しない。保持期限後は本人の再指定を待つ。AF設定の適用結果と主役状態は分けて表示し、設定の読戻し成功から実際の合焦・前後追従品質を断定しない。人物未確認や撮影意図未選択だけでRECを止めない。
++
+ WBの合わせ直しは、録画中で現在の対応能力が確認済みの場合だけ本人操作を有効にする。WB状態と操作できない理由を表示し、能力が未取得・未確認の場合を対応済みと扱わない。合わせ直し中は重複操作を受け付けず、測定と再固定の完了を確認して状態を更新する。固定の待ち時間で完了を推定せず、ISO・絞り・シャッターは維持する。
+ 
+ 合わせ直し中にSTOPを受けた場合は測定を打ち切り、その時点のWB固定を適用してから記録停止へ進む。固定の適用待ちと記録終端後のAuto復帰を区別し、STOP受付だけで待機Autoへ戻さない。次クリップは待機Autoから新しく測定する。色変化・録画継続性・最終フレームの品質は実機評価の対象として残す。
+@@ -385,7 +389,7 @@
+ | T02 | 表示経路の確認イベントでは明示確認を作らない | 待機/録画中の固定Rec.709表示、Log非焼込み、描画性能・録画継続性を合意範囲で確認 |
+ | T03 | 初回候補と保存希望優先、条件付き復元、format候補と実接続の分離、無断代替禁止、両出力の要求/実active照合、予約後の開始再確認、旧通知・画角失効と通知番号の保持 | 候補/未確認/非対応理由と希望/要求/実動作の表示。OFF＋複数モードの効果を歩き/静止手持ち/ゆっくりパンで評価。構図・音声同期・ズーム/切替との両立、標準不成立時の説明。予告/停止支援への接続と実画角はS47・実機評価で確認 |
+ | T04 | REC/STOP/合わせ直しの順序、WB値のクリップ間持越しなし | 安定前REC、最後の記録フレーム、合わせ直し時の色と連続性、二本連続撮影、他露出値の維持 |
+-| T05 | 主役と露出対象の分離、同じ主役のみ再捕捉、保持期限・古い候補、追跡OFF | 通常の主役合焦/前後追従、人物優先AFを距離・光・移動条件別に評価。人物なし・検出待ちでもREC可能 |
++| T05 | 主役と露出対象の分離、同じ主役のみ再捕捉、曖昧な対応の拒否、保持期限・旧世代・逆順/期限超過の候補、追跡OFF、REC非阻害。公開の上半身画像fixtureによる実Vision解析は限定的な技術試験として扱う | 通常の主役合焦/前後追従、人物優先AFを距離・光・移動条件別に評価。人物なし・検出待ちでもREC可能。静止fixtureやAF設定の読戻しは、動く人物の同一性・合焦品質・負荷の実機受入を代替しない。実行結果と未確認範囲はS45/DV-06へ記録 |
+ | T06 | 設定/対象/構図変更・解析停止で旧OKを失効、WB状態の世代照合 | 濃く/薄く/両立困難の合意代表例、反射・太陽・黒、WB Auto/固定、飽和/情報不足。保留だけで完成にしない |
+ | T07 | 予告中の倍率不変、目標到達/途中停止、候補不在、古い予告 | 録画中に寄る/引く/止まる操作、滑らかさ・停止精度・原本非焼込み、実画角との差、補正、停止前後の実画質 |
+ | T08 | 限定ISO補正の範囲、実値表示、非対応切替拒否、手動変更の優先 | 切替の途切れ・明るさ/色/ピント/位置/時間・音声同期・記録継続、戻すレンズ時の方針、無断変更なし |
+--- baseline/FrameRelay/Domain/Capture/CaptureSubjects.swift
++++ final/FrameRelay/Domain/Capture/CaptureSubjects.swift
+@@ -0,0 +1,265 @@
++import Foundation
++
++nonisolated enum CaptureShootingIntent: String, CaseIterable, Codable, Sendable {
++    case people, peopleAndBackground, scenery
++}
++
++/// Ephemeral identity, scoped to one analysis session. Never persisted or logged.
++nonisolated struct CapturePersonID: Hashable, Sendable {
++    let rawValue: UUID
++    init(rawValue: UUID = UUID()) { self.rawValue = rawValue }
++}
++
++/// Normalized, unrotated, unmirrored capture-device coordinates; origin at top left.
++nonisolated struct CaptureSubjectPoint: Equatable, Sendable {
++    let x: Double
++    let y: Double
++    var isValid: Bool { x.isFinite && y.isFinite && (0...1).contains(x) && (0...1).contains(y) }
++}
++
++nonisolated struct CaptureSubjectRect: Equatable, Sendable {
++    let x: Double
++    let y: Double
++    let width: Double
++    let height: Double
++    var center: CaptureSubjectPoint { .init(x: x + width / 2, y: y + height / 2) }
++    var isValid: Bool {
++        [x, y, width, height].allSatisfy(\.isFinite) && x >= 0 && y >= 0 && width > 0 && height > 0
++            && x + width <= 1.000001 && y + height <= 1.000001
++    }
++}
++
++nonisolated enum CapturePersonContinuity: Equatable, Sendable {
++    case newDetection, continuous, reacquired
++}
++
++nonisolated struct CapturePersonCandidate: Equatable, Sendable, Identifiable {
++    let id: CapturePersonID
++    let bounds: CaptureSubjectRect
++    let continuity: CapturePersonContinuity
++}
++
++/// Technical thresholds are versioned provisional implementation settings, not identity proof
++/// or device acceptance. Feature-print distance is image similarity, never face recognition.
++nonisolated struct CaptureSubjectPolicy: Equatable, Sendable {
++    enum NoPersonFocus: Equatable, Sendable { case unconfigured, tapPosition }
++    let version: String
++    let lostGrace: TimeInterval
++    let noPersonFocus: NoPersonFocus
++    let minimumFrameInterval: TimeInterval
++    let maximumResultAge: TimeInterval
++    let maximumPeople: Int
++    let detectionConfidence: Float
++    let trackingConfidence: Float
++    let continuousDistance: Float
++    let reacquisitionDistance: Float
++    let ambiguityMargin: Float
++
++    init(version: String, lostGrace: TimeInterval, noPersonFocus: NoPersonFocus,
++         minimumFrameInterval: TimeInterval = 0.2, maximumResultAge: TimeInterval = 0.8,
++         maximumPeople: Int = 8, detectionConfidence: Float = 0.65, trackingConfidence: Float = 0.7,
++         continuousDistance: Float = 0.45, reacquisitionDistance: Float = 0.25, ambiguityMargin: Float = 0.12) {
++        precondition(lostGrace.isFinite && lostGrace > 0 && minimumFrameInterval > 0 && maximumResultAge > 0)
++        precondition((1...16).contains(maximumPeople) && reacquisitionDistance > 0 && continuousDistance > 0 && ambiguityMargin > 0)
++        self.version = version; self.lostGrace = lostGrace; self.noPersonFocus = noPersonFocus
++        self.minimumFrameInterval = minimumFrameInterval; self.maximumResultAge = maximumResultAge
++        self.maximumPeople = maximumPeople; self.detectionConfidence = detectionConfidence
++        self.trackingConfidence = trackingConfidence; self.continuousDistance = continuousDistance
++        self.reacquisitionDistance = reacquisitionDistance; self.ambiguityMargin = ambiguityMargin
++    }
++}
++
++nonisolated struct CaptureSubjectContext: Equatable, Sendable {
++    let generation: CaptureGeneration
++    let framingRevision: UInt64
++    let selectionRevision: UInt64
++    let whiteBalanceRevision: UInt64
++
++    init(generation: CaptureGeneration, framingRevision: UInt64, selectionRevision: UInt64, whiteBalanceRevision: UInt64 = 0) {
++        self.generation = generation; self.framingRevision = framingRevision
++        self.selectionRevision = selectionRevision; self.whiteBalanceRevision = whiteBalanceRevision
++    }
++}
++
++nonisolated struct CaptureSubjectAnalysis: Equatable, Sendable {
++    let context: CaptureSubjectContext
++    let sequence: UInt64
++    let observedAt: TimeInterval
++    let candidates: [CapturePersonCandidate]
++    let available: Bool
++}
++
++nonisolated enum CaptureSubjectFocusState: Equatable, Sendable {
++    case detecting, following(CapturePersonID), lostHolding(CapturePersonID), heldAwaitingSelection
++    case personPriorityAF, sceneAF, unavailable
++}
++
++nonisolated enum CaptureSubjectFocusAction: Equatable, Sendable {
++    case hold
++    case continuous(CaptureSubjectPoint, personDriven: Bool)
++    case personPriority
++}
++
++nonisolated enum CaptureSubjectFocusAvailability: Equatable, Sendable {
++    case unconfirmed, applied, unsupported, failed
++}
++
++nonisolated struct CaptureSubjectSnapshot: Equatable, Sendable {
++    let context: CaptureSubjectContext
++    let sequence: UInt64
++    let candidates: [CapturePersonCandidate]
++    let exposureTargets: Set<CapturePersonID>
++    let protagonist: CapturePersonID?
++    let trackingEnabled: Bool
++    let state: CaptureSubjectFocusState
++    let focus: CaptureSubjectFocusAvailability
++}
++
++nonisolated enum CaptureSubjectCommand: Equatable, Sendable {
++    case selectProtagonist(CapturePersonID)
++    case toggleExposure(CapturePersonID)
++    case tracking(Bool)
++    case scenePoint(CaptureSubjectPoint)
++}
++
++nonisolated struct CaptureSubjectRequest: Equatable, Sendable {
++    let context: CaptureSubjectContext
++    let command: CaptureSubjectCommand
++}
++
++/// Pure state machine shared by the SDK owner and boundary tests. It never gates REC.
++nonisolated struct CaptureSubjectSession: Sendable {
++    private(set) var context: CaptureSubjectContext
++    private(set) var candidates: [CapturePersonCandidate] = []
++    private(set) var exposureTargets: Set<CapturePersonID> = []
++    private(set) var protagonist: CapturePersonID?
++    private(set) var trackingEnabled = false
++    private(set) var state: CaptureSubjectFocusState = .detecting
++    private(set) var highestSequence: UInt64 = 0
++    private(set) var analysisAvailable = false
++    private(set) var lastObservedAt: TimeInterval?
++    private(set) var lostAt: TimeInterval?
++    private(set) var scenePoint: CaptureSubjectPoint?
++    let policy: CaptureSubjectPolicy
++
++    init(context: CaptureSubjectContext, policy: CaptureSubjectPolicy) { self.context = context; self.policy = policy }
++
++    mutating func command(_ request: CaptureSubjectRequest, now: TimeInterval) -> CaptureSubjectFocusAction? {
++        guard request.context == context else { return nil }
++        switch request.command {
++        case .selectProtagonist(let id):
++            guard currentCandidates(now: now).contains(where: { $0.id == id }) else { return nil }
++            protagonist = id; trackingEnabled = true; lostAt = nil; scenePoint = nil
++            state = .following(id)
++        case .toggleExposure(let id):
++            guard currentCandidates(now: now).contains(where: { $0.id == id }) else { return nil }
++            if exposureTargets.contains(id) { exposureTargets.remove(id) } else { exposureTargets.insert(id) }
++        case .tracking(let enabled):
++            trackingEnabled = enabled; lostAt = nil; scenePoint = nil
++            // Enabling is not a new identity decision. A previously lost subject needs a new tap.
++            state = enabled ? .heldAwaitingSelection : .personPriorityAF
++            if !enabled { protagonist = nil }
++        case .scenePoint(let point):
++            guard policy.noPersonFocus == .tapPosition, point.isValid, candidates.isEmpty, analysisAvailable,
++                  lastObservedAt.map({ now - $0 <= policy.maximumResultAge }) == true else { return nil }
++            scenePoint = point; protagonist = nil; trackingEnabled = false; state = .sceneAF
++        }
++        context = .init(generation: context.generation, framingRevision: context.framingRevision,
++                        selectionRevision: context.selectionRevision + 1, whiteBalanceRevision: context.whiteBalanceRevision)
++        return action
++    }
++
++    @discardableResult
++    mutating func receive(_ result: CaptureSubjectAnalysis, now: TimeInterval) -> Bool {
++        guard result.context == context, result.sequence > highestSequence,
++              result.observedAt.isFinite, now.isFinite, result.observedAt <= now,
++              lastObservedAt.map({ result.observedAt >= $0 }) ?? true,
++              now - result.observedAt <= policy.maximumResultAge else { return false }
++        highestSequence = result.sequence
++        lastObservedAt = result.observedAt
++        analysisAvailable = result.available && result.candidates.allSatisfy { $0.bounds.isValid }
++            && Set(result.candidates.map(\.id)).count == result.candidates.count
++        candidates = analysisAvailable ? Array(result.candidates.prefix(policy.maximumPeople)) : []
++        exposureTargets.formIntersection(Set(candidates.map(\.id)).union(protagonist.map { [$0] } ?? []))
++        if !analysisAvailable { markMissing(now: now); return true }
++        if trackingEnabled, let protagonist {
++            // New detection IDs alone never establish continuity with the selected person.
++            if state != .heldAwaitingSelection,
++               candidates.contains(where: { $0.id == protagonist && $0.continuity != .newDetection }),
++               lostAt.map({ now - $0 <= policy.lostGrace }) ?? true {
++                lostAt = nil; state = .following(protagonist)
++            } else { markMissing(now: now) }
++        } else if trackingEnabled { state = .heldAwaitingSelection }
++        else {
++            // A scene point is the no-person fallback. With people visible again,
++            // tracking OFF must resume person-priority AF rather than keep that point.
++            if !candidates.isEmpty { scenePoint = nil }
++            state = scenePoint == nil ? .personPriorityAF : .sceneAF
++        }
++        return true
++    }
++
++    @discardableResult
++    mutating func expire(now: TimeInterval) -> Bool {
++        var changed = false
++        if let lastObservedAt, now - lastObservedAt > policy.maximumResultAge, !candidates.isEmpty || state == .personPriorityAF || state == .sceneAF {
++            candidates = []; analysisAvailable = false; markMissing(now: now); changed = true
++        }
++        if let lostAt, now - lostAt > policy.lostGrace, state != .heldAwaitingSelection {
++            state = .heldAwaitingSelection; changed = true
++        }
++        return changed
++    }
++
++    mutating func invalidateAnalysis(now: TimeInterval) {
++        analysisAvailable = false
++        candidates = []
++        markMissing(now: now)
++    }
++
++    mutating func invalidateWhiteBalance(now: TimeInterval) {
++        context = .init(generation: context.generation, framingRevision: context.framingRevision,
++            selectionRevision: context.selectionRevision, whiteBalanceRevision: context.whiteBalanceRevision + 1)
++        lastObservedAt = nil
++        invalidateAnalysis(now: now)
++    }
++
++    mutating func invalidateFraming(_ revision: UInt64) {
++        context = .init(generation: context.generation, framingRevision: revision, selectionRevision: context.selectionRevision + 1, whiteBalanceRevision: context.whiteBalanceRevision)
++        candidates = []; analysisAvailable = false; exposureTargets = []; lastObservedAt = nil; lostAt = nil; scenePoint = nil
++        state = trackingEnabled ? .heldAwaitingSelection : .detecting
++    }
++
++    var action: CaptureSubjectFocusAction {
++        switch state {
++        case .following(let id):
++            return candidates.first(where: { $0.id == id }).map { .continuous($0.bounds.center, personDriven: false) } ?? .hold
++        case .personPriorityAF:
++            // Selection of exposure targets never changes this independent priority rule.
++            return candidates.max(by: { $0.bounds.width * $0.bounds.height < $1.bounds.width * $1.bounds.height })
++                .map { .continuous($0.bounds.center, personDriven: true) } ?? .personPriority
++        case .sceneAF: return scenePoint.map { .continuous($0, personDriven: false) } ?? .hold
++        case .detecting: return trackingEnabled ? .hold : .personPriority
++        case .unavailable: return trackingEnabled ? .hold : .personPriority
++        case .lostHolding, .heldAwaitingSelection: return .hold
++        }
++    }
++
++    func snapshot(sequence: UInt64, focus: CaptureSubjectFocusAvailability) -> CaptureSubjectSnapshot {
++        .init(context: context, sequence: sequence, candidates: candidates, exposureTargets: exposureTargets,
++              protagonist: protagonist, trackingEnabled: trackingEnabled, state: state, focus: focus)
++    }
++
++    private func currentCandidates(now: TimeInterval) -> [CapturePersonCandidate] {
++        guard lastObservedAt.map({ now - $0 <= policy.maximumResultAge }) == true else { return [] }
++        return candidates
++    }
++
++    private mutating func markMissing(now: TimeInterval) {
++        if trackingEnabled, let protagonist {
++            if state == .heldAwaitingSelection { return }
++            if lostAt == nil { lostAt = now }
++            state = now - (lostAt ?? now) <= policy.lostGrace ? .lostHolding(protagonist) : .heldAwaitingSelection
++        } else { state = .unavailable }
++    }
++}
+--- baseline/FrameRelay/Features/Capture/ProductCaptureSubjectsView.swift
++++ final/FrameRelay/Features/Capture/ProductCaptureSubjectsView.swift
+@@ -0,0 +1,84 @@
++import SwiftUI
++
++struct ProductCaptureSubjectsView: View {
++    @Bindable var model: ProductCaptureCoordinator
++
++    var body: some View {
++        VStack(alignment: .leading, spacing: 10) {
++            Text("人物とピント").font(.headline)
++            Picker("撮影意図", selection: Binding<CaptureShootingIntent?>(
++                get: { model.preferences.shootingIntent },
++                set: { value in if let value { Task { await model.chooseShootingIntent(value) } } })) {
++                Text("選択してください").tag(Optional<CaptureShootingIntent>.none)
++                Text("人物のみ").tag(Optional(CaptureShootingIntent.people))
++                Text("人物＋背景").tag(Optional(CaptureShootingIntent.peopleAndBackground))
++                Text("景色優先").tag(Optional(CaptureShootingIntent.scenery))
++            }
++            .disabled(!model.subjectControlsConfigured || !model.preferencesLoaded || model.isSavingShootingIntent || model.isPreparing)
++            .accessibilityIdentifier("capture.subject.intent")
++            Text(status).accessibilityIdentifier("capture.subject.state")
++            if let snapshot = model.subjects {
++                Toggle("主役の追跡", isOn: Binding(get: { snapshot.trackingEnabled }, set: { enabled in
++                    Task { await model.changeSubjects(.tracking(enabled)) }
++                }))
++                .disabled(model.isUpdatingSubjects)
++                .accessibilityIdentifier("capture.subject.tracking")
++                Text("追跡OFFは人物を優先するAFです。ピント固定には切り替わりません。")
++                    .font(.footnote)
++                if snapshot.candidates.isEmpty, model.allowsSceneTap {
++                    Text("人物がいないときは、プレビューの合わせたい位置をタップしてください。")
++                        .font(.footnote)
++                }
++                ForEach(Array(snapshot.candidates.enumerated()), id: \.element.id) { index, person in
++                    HStack {
++                        Button(snapshot.protagonist == person.id ? "人物\(index + 1)・主役" : "人物\(index + 1)を主役に") {
++                            Task { await model.changeSubjects(.selectProtagonist(person.id)) }
++                        }
++                        .accessibilityIdentifier("capture.subject.protagonist.\(index)")
++                        Toggle("人物\(index + 1)を露出評価", isOn: Binding(
++                            get: { snapshot.exposureTargets.contains(person.id) },
++                            set: { _ in Task { await model.changeSubjects(.toggleExposure(person.id)) } }))
++                        .accessibilityIdentifier("capture.subject.exposure.\(index)")
++                    }
++                    .disabled(model.isUpdatingSubjects)
++                }
++                Text(focusStatus(snapshot.focus)).font(.footnote)
++                    .accessibilityIdentifier("capture.subject.focus")
++            }
++            if let issue = model.subjectIssue { Text(issue).font(.footnote) }
++            Text("露出評価の対象は複数選べます。主役の指定とは別で、ISOやシャッターは自動変更しません。")
++                .font(.footnote)
++        }
++    }
++
++    private var status: String {
++        guard let snapshot = model.subjects else { return "人物は未確認です。人物検出や撮影意図の選択を待たず、撮影条件が整えばRECできます。" }
++        if snapshot.focus != .applied {
++            switch snapshot.state {
++            case .following: return "主役を選択済みです。AFの適用は未確認です。"
++            case .lostHolding, .heldAwaitingSelection: return "主役を見失いました。ピント保持の適用は未確認です。タップで指定し直してください。"
++            case .sceneAF: return "ピントを合わせる位置を指定済みです。AFの適用は未確認です。"
++            case .personPriorityAF: return "人物優先AFの適用は未確認です。"
++            default: break
++            }
++        }
++        switch snapshot.state {
++        case .detecting: return "人物を検出しています。"
++        case .following: return "指定した主役へピントを追従しています。"
++        case .lostHolding: return "主役を見失いました。ピントを保持して、同じ主役の復帰を待っています。"
++        case .heldAwaitingSelection: return "ピントを保持しています。主役をタップして指定し直してください。"
++        case .personPriorityAF: return snapshot.candidates.isEmpty ? "人物は未検出です。" : "人物を優先するAFを使用しています。"
++        case .sceneAF: return "指定した画面位置へピントを合わせています。"
++        case .unavailable: return "現在の人物情報を確認できません。"
++        }
++    }
++
++    private func focusStatus(_ value: CaptureSubjectFocusAvailability) -> String {
++        switch value {
++        case .applied: return "AF設定を適用しました。実際の合焦をプレビューで確認してください。"
++        case .unconfirmed: return "AF設定は未確認です。"
++        case .unsupported: return "この撮影条件では必要なAF操作に対応していません。"
++        case .failed: return "AF設定の適用を確認できません。"
++        }
++    }
++}
+--- baseline/FrameRelay/Platform/Capture/NativeCaptureSubjectAnalysis.swift
++++ final/FrameRelay/Platform/Capture/NativeCaptureSubjectAnalysis.swift
+@@ -0,0 +1,261 @@
++import AVFoundation
++import Vision
++import CoreML
++import ImageIO
++
++nonisolated struct NativeSubjectAnalysisInstruction: Equatable, Sendable {
++    let context: CaptureSubjectContext
++    let protagonist: CapturePersonID?
++    let allowsReacquisition: Bool
++}
++
++/// A single in-flight buffer and a single replaceable pending buffer. SDK sample queues
++/// only retain/replace references; all Vision requests execute on the utility queue.
++nonisolated final class NativeCaptureSubjectAnalysis: @unchecked Sendable {
++    private struct Input {
++        let buffer: CVPixelBuffer
++        let geometry: NativeCaptureSubjectGeometry
++        let instruction: NativeSubjectAnalysisInstruction
++        let sequence: UInt64
++        let observedAt: TimeInterval
++    }
++    private let lock = NSLock()
++    private let queue = DispatchQueue(label: "FrameRelay.SubjectAnalysis", qos: .utility)
++    private let engine: NativeSubjectVisionEngine
++    private let policy: CaptureSubjectPolicy
++    private let output: @Sendable (CaptureSubjectAnalysis) -> Void
++    private var instruction: NativeSubjectAnalysisInstruction?
++    private var pending: Input?
++    private var running = false
++    private var stopped = false
++    private var sequence: UInt64 = 0
++    private var lastSubmitted: TimeInterval = -.infinity
++
++    init(policy: CaptureSubjectPolicy, output: @escaping @Sendable (CaptureSubjectAnalysis) -> Void) {
++        self.policy = policy; self.output = output; engine = NativeSubjectVisionEngine(policy: policy)
++    }
++
++    func configure(_ value: NativeSubjectAnalysisInstruction) {
++        lock.lock(); defer { lock.unlock() }
++        guard !stopped else { return }
++        instruction = value
++        // The running result carries its old context and is rejected by the SDK owner.
++        pending = nil
++    }
++
++    func submit(_ buffer: CVPixelBuffer, geometry: NativeCaptureSubjectGeometry, observedAt: TimeInterval) {
++        lock.lock()
++        guard !stopped, let instruction, observedAt - lastSubmitted >= policy.minimumFrameInterval else { lock.unlock(); return }
++        lastSubmitted = observedAt; sequence += 1
++        pending = Input(buffer: buffer, geometry: geometry, instruction: instruction, sequence: sequence, observedAt: observedAt)
++        let shouldStart = !running
++        running = true
++        lock.unlock()
++        if shouldStart { queue.async { [self] in drain() } }
++    }
++
++    func stop() {
++        lock.lock(); stopped = true; pending = nil; instruction = nil; lock.unlock()
++        // FIFO disposal releases all feature observations after the in-flight request.
++        queue.async { [self] in engine.reset() }
++    }
++
++    private func drain() {
++        while true {
++            lock.lock()
++            guard !stopped, let input = pending else { running = false; lock.unlock(); return }
++            pending = nil
++            lock.unlock()
++            let result: CaptureSubjectAnalysis = autoreleasepool {
++                do {
++                    let raw = try engine.process(input.buffer, instruction: input.instruction,
++                        sequence: input.sequence, observedAt: input.observedAt)
++                    return input.geometry.map(raw)
++                } catch {
++                    return .init(context: input.instruction.context, sequence: input.sequence,
++                                 observedAt: input.observedAt, candidates: [], available: false)
++                }
++            }
++            lock.lock()
++            let current = !stopped && instruction?.context == result.context
++            lock.unlock()
++            if current { output(result) }
++        }
++    }
++}
++
++/// Queue-confined Vision implementation. UUIDs emitted by Vision are never used as identity.
++/// The selected reference is fixed at the explicit selection; it is never replaced with a
++/// nearby person's crop. Conservative image matching still needs DV-06 identity/AF evaluation.
++nonisolated final class NativeSubjectVisionEngine {
++    private struct Person {
++        let id: CapturePersonID
++        let bounds: CGRect // Vision normalized lower-left coordinates
++        let feature: VNFeaturePrintObservation
++        let continuity: CapturePersonContinuity
++    }
++    private struct Anchor {
++        let id: CapturePersonID
++        let feature: VNFeaturePrintObservation
++        var observation: VNDetectedObjectObservation
++        var missingSince: TimeInterval?
++    }
++    private let policy: CaptureSubjectPolicy
++    private var instruction: NativeSubjectAnalysisInstruction?
++    private var people: [Person] = []
++    private var anchor: Anchor?
++    private var sequenceHandler = VNSequenceRequestHandler()
++
++    init(policy: CaptureSubjectPolicy) { self.policy = policy }
++
++    func reset() {
++        instruction = nil; people = []; anchor = nil; sequenceHandler = VNSequenceRequestHandler()
++    }
++
++    func process(_ buffer: CVPixelBuffer, instruction next: NativeSubjectAnalysisInstruction,
++                 sequence: UInt64, observedAt: TimeInterval) throws -> CaptureSubjectAnalysis {
++        if instruction?.context.generation != next.context.generation || instruction?.context.framingRevision != next.context.framingRevision {
++            reset()
++        }
++        if next.protagonist != instruction?.protagonist || (next.allowsReacquisition && instruction?.allowsReacquisition == false) {
++            anchor = next.protagonist.flatMap { id in
++                people.first(where: { $0.id == id }).map {
++                    Anchor(id: id, feature: $0.feature, observation: VNDetectedObjectObservation(boundingBox: $0.bounds))
++                }
++            }
++            sequenceHandler = VNSequenceRequestHandler()
++        }
++        if !next.allowsReacquisition { anchor = nil }
++        instruction = next
++        let detection = VNDetectHumanRectanglesRequest()
++        detection.upperBodyOnly = true
++        try configureCompute(detection)
++        let handler = VNImageRequestHandler(cvPixelBuffer: buffer, orientation: .up)
++        try handler.perform([detection])
++        guard let detectionResults = detection.results else { throw NativeSubjectVisionError.missingDetectionEvidence }
++        let observations = Array(detectionResults.filter { $0.confidence >= policy.detectionConfidence }
++            .sorted { $0.confidence > $1.confidence }.prefix(policy.maximumPeople))
++        var detected: [(CGRect, VNFeaturePrintObservation)] = []
++        for observation in observations {
++            let feature = VNGenerateImageFeaturePrintRequest()
++            feature.revision = VNGenerateImageFeaturePrintRequestRevision2
++            let bounds = observation.boundingBox.intersection(CGRect(x: 0, y: 0, width: 1, height: 1))
++            guard !bounds.isNull, !bounds.isEmpty, [bounds.minX, bounds.minY, bounds.width, bounds.height].allSatisfy(\.isFinite) else {
++                throw NativeSubjectVisionError.invalidDetection
++            }
++            feature.regionOfInterest = bounds
++            feature.imageCropAndScaleOption = .scaleFit
++            try configureCompute(feature)
++            try handler.perform([feature])
++            guard let value = feature.results?.first else { throw NativeSubjectVisionError.missingFeature }
++            detected.append((bounds, value))
++        }
++
++        var selectedIndex: Int?
++        var selectedContinuity = CapturePersonContinuity.continuous
++        if var selected = anchor {
++            let tracking = VNTrackObjectRequest(detectedObjectObservation: selected.observation)
++            tracking.trackingLevel = .accurate
++            try configureCompute(tracking)
++            let tracked: VNDetectedObjectObservation?
++            do {
++                try sequenceHandler.perform([tracking], on: buffer, orientation: .up)
++                tracked = tracking.results?.first as? VNDetectedObjectObservation
++            } catch {
++                // Tracking loss does not turn a valid fresh person detection into failure.
++                // Reacquisition still requires the fixed reference and unique candidate margin.
++                tracked = nil
++                sequenceHandler = VNSequenceRequestHandler()
++            }
++            let distances = try detected.map { try Self.distance(selected.feature, $0.1) }
++            let ranked = distances.indices.sorted { distances[$0] < distances[$1] }
++            if let best = ranked.first {
++                let continuous = selected.missingSince == nil && tracked.map {
++                    $0.confidence >= policy.trackingConfidence && Self.overlap($0.boundingBox, detected[best].0) >= 0.25
++                } == true
++                let limit = continuous ? policy.continuousDistance : policy.reacquisitionDistance
++                let unique = ranked.dropFirst().first.map { distances[$0] - distances[best] >= policy.ambiguityMargin } ?? true
++                let withinGrace = selected.missingSince.map { observedAt - $0 <= policy.lostGrace } ?? true
++                if unique && withinGrace && distances[best] <= limit {
++                    selectedIndex = best
++                    selectedContinuity = continuous ? .continuous : .reacquired
++                    selected.observation = VNDetectedObjectObservation(boundingBox: detected[best].0)
++                    selected.missingSince = nil
++                }
++            }
++            if selectedIndex == nil && selected.missingSince == nil { selected.missingSince = observedAt }
++            anchor = selected
++        }
++
++        var used: Set<CapturePersonID> = []
++        var current: [Person] = []
++        for (index, detection) in detected.enumerated() {
++            if index == selectedIndex, let anchor {
++                used.insert(anchor.id)
++                current.append(Person(id: anchor.id, bounds: detection.0, feature: detection.1, continuity: selectedContinuity))
++                continue
++            }
++            // Other candidate IDs require both spatial continuity and unique appearance match.
++            // They can never acquire the selected ID through this generic association path.
++            var matches: [(Person, Float)] = []
++            for previous in people where previous.id != next.protagonist && !used.contains(previous.id)
++                && Self.overlap(previous.bounds, detection.0) >= 0.25 {
++                let distance = try Self.distance(previous.feature, detection.1)
++                if distance <= policy.continuousDistance {
++                    var ambiguous = false
++                    for (otherIndex, other) in detected.enumerated() where otherIndex != index
++                        && Self.overlap(previous.bounds, other.0) >= 0.25 {
++                        if try Self.distance(previous.feature, other.1) - distance < policy.ambiguityMargin { ambiguous = true; break }
++                    }
++                    if !ambiguous { matches.append((previous, distance)) }
++                }
++            }
++            matches.sort { $0.1 < $1.1 }
++            let match = matches.first.flatMap { first in
++                matches.count == 1 || matches[1].1 - first.1 >= policy.ambiguityMargin ? first.0 : nil
++            }
++            let id = match?.id ?? CapturePersonID()
++            used.insert(id)
++            current.append(Person(id: id, bounds: detection.0, feature: detection.1,
++                                  continuity: match == nil ? .newDetection : .continuous))
++        }
++        people = current
++        return .init(context: next.context, sequence: sequence, observedAt: observedAt, candidates: current.map {
++            .init(id: $0.id, bounds: .init(x: $0.bounds.minX, y: 1 - $0.bounds.maxY,
++                width: $0.bounds.width, height: $0.bounds.height), continuity: $0.continuity)
++        }, available: detectionResults.isEmpty || !observations.isEmpty)
++    }
++
++    /// Simulator lacks the device inference hardware used by Vision's automatic
++    /// selection. Use real CPU inference for every supported stage; never substitute
++    /// observations, relax assertions, or infer device quality from this environment.
++    private func configureCompute(_ request: VNRequest) throws {
++        #if targetEnvironment(simulator)
++        let stages = try request.supportedComputeStageDevices
++        guard !stages.isEmpty else { throw NativeSubjectVisionError.cpuUnavailable }
++        for (stage, devices) in stages {
++            guard let cpu = devices.first(where: { if case .cpu = $0 { return true }; return false }) else {
++                throw NativeSubjectVisionError.cpuUnavailable
++            }
++            request.setComputeDevice(cpu, for: stage)
++        }
++        #endif
++    }
++
++    static func distance(_ first: VNFeaturePrintObservation, _ second: VNFeaturePrintObservation) throws -> Float {
++        var result: Float = 0
++        try first.computeDistance(&result, to: second)
++        return result
++    }
++
++    private static func overlap(_ first: CGRect, _ second: CGRect) -> Double {
++        let area = first.intersection(second)
++        guard !area.isNull else { return 0 }
++        let intersection = area.width * area.height
++        return intersection / (first.width * first.height + second.width * second.height - intersection)
++    }
++}
++
++nonisolated private enum NativeSubjectVisionError: Error {
++    case cpuUnavailable, missingDetectionEvidence, invalidDetection, missingFeature
++}
+--- baseline/FrameRelay/Platform/Capture/NativeCaptureSubjectFocus.swift
++++ final/FrameRelay/Platform/Capture/NativeCaptureSubjectFocus.swift
+@@ -0,0 +1,46 @@
++import AVFoundation
++
++/// Only focus properties are changed. Exposure, WB, zoom, format and stabilization
++/// remain owned by their existing controllers. Readback is command evidence, not sharpness.
++nonisolated enum NativeCaptureSubjectFocus {
++    static func apply(_ action: CaptureSubjectFocusAction, to device: AVCaptureDevice) -> CaptureSubjectFocusAvailability {
++        let plan = plan(action, continuousSupported: device.isFocusModeSupported(.continuousAutoFocus),
++                        lockSupported: device.isFocusModeSupported(.locked), pointSupported: device.isFocusPointOfInterestSupported)
++        guard let plan else { return .unsupported }
++        do {
++            try device.lockForConfiguration()
++            defer { device.unlockForConfiguration() }
++            if device.isFocusModeSupported(.autoFocus) || device.isFocusModeSupported(.continuousAutoFocus) {
++                device.automaticallyAdjustsFaceDrivenAutoFocusEnabled = false
++                device.isFaceDrivenAutoFocusEnabled = plan.faceDriven
++            }
++            if let point = plan.point { device.focusPointOfInterest = CGPoint(x: point.x, y: point.y) }
++            device.focusMode = plan.hold ? .locked : .continuousAutoFocus
++            guard (!(device.isFocusModeSupported(.autoFocus) || device.isFocusModeSupported(.continuousAutoFocus))
++                   || (!device.automaticallyAdjustsFaceDrivenAutoFocusEnabled && device.isFaceDrivenAutoFocusEnabled == plan.faceDriven)),
++                  device.focusMode == (plan.hold ? .locked : .continuousAutoFocus),
++                  plan.point.map({ device.focusPointOfInterest == CGPoint(x: $0.x, y: $0.y) }) ?? true else { return .failed }
++            return .applied
++        } catch { return .failed }
++    }
++
++    struct Plan: Equatable, Sendable {
++        let hold: Bool
++        let point: CaptureSubjectPoint?
++        let faceDriven: Bool
++    }
++
++    /// Unsupported AF never silently becomes a lock, and selected-person AF never
++    /// leaves automatic face switching enabled behind the selected point.
++    static func plan(_ action: CaptureSubjectFocusAction, continuousSupported: Bool,
++                     lockSupported: Bool, pointSupported: Bool) -> Plan? {
++        switch action {
++        case .hold: return lockSupported ? .init(hold: true, point: nil, faceDriven: false) : nil
++        case .personPriority:
++            return continuousSupported ? .init(hold: false, point: nil, faceDriven: true) : nil
++        case .continuous(let point, let personDriven):
++            guard continuousSupported, pointSupported, point.isValid else { return nil }
++            return .init(hold: false, point: point, faceDriven: personDriven)
++        }
++    }
++}
+--- baseline/FrameRelay/Platform/Capture/NativeCaptureSubjectGeometry.swift
++++ final/FrameRelay/Platform/Capture/NativeCaptureSubjectGeometry.swift
+@@ -0,0 +1,43 @@
++import CoreGraphics
++
++/// The data output uses pixel coordinates, while Vision and metadata use different
++/// normalized spaces. Capture the SDK's full-output conversion at frame arrival.
++/// This mapper applies only to the explicitly accepted unrotated, unmirrored input.
++nonisolated struct NativeCaptureSubjectGeometry: Equatable, Sendable {
++    let outputAreaInMetadata: CaptureSubjectRect
++
++    static func capture(width: Int, height: Int, rotation: Double, mirrored: Bool,
++                        convertPixels: (CGRect) -> CGRect) -> NativeCaptureSubjectGeometry? {
++        guard width > 0, height > 0, rotation == 0, !mirrored else { return nil }
++        let mapped = convertPixels(CGRect(x: 0, y: 0, width: width, height: height))
++        let bounds = CaptureSubjectRect(x: mapped.minX, y: mapped.minY, width: mapped.width, height: mapped.height)
++        guard bounds.isValid else { return nil }
++        return .init(outputAreaInMetadata: bounds)
++    }
++
++    static func observedAt(presentationSeconds: Double, clockSeconds: Double, uptime: Double,
++                           maximumAge: Double) -> Double? {
++        let age = clockSeconds - presentationSeconds
++        guard [presentationSeconds, clockSeconds, uptime, maximumAge].allSatisfy(\.isFinite),
++              age >= 0, age <= maximumAge else { return nil }
++        return uptime - age
++    }
++
++    func map(_ raw: CaptureSubjectAnalysis) -> CaptureSubjectAnalysis {
++        let candidates = raw.candidates.compactMap { candidate -> CapturePersonCandidate? in
++            guard let bounds = metadataBounds(fromNormalizedOutput: candidate.bounds) else { return nil }
++            return .init(id: candidate.id, bounds: bounds, continuity: candidate.continuity)
++        }
++        // Missing geometry is uncertainty, never successful evidence of no people.
++        return .init(context: raw.context, sequence: raw.sequence, observedAt: raw.observedAt,
++                     candidates: candidates, available: raw.available && candidates.count == raw.candidates.count)
++    }
++
++    func metadataBounds(fromNormalizedOutput bounds: CaptureSubjectRect) -> CaptureSubjectRect? {
++        guard bounds.isValid else { return nil }
++        let area = outputAreaInMetadata
++        let result = CaptureSubjectRect(x: area.x + bounds.x * area.width, y: area.y + bounds.y * area.height,
++            width: bounds.width * area.width, height: bounds.height * area.height)
++        return result.isValid ? result : nil
++    }
++}
+--- baseline/FrameRelayTests/Application/ProductCaptureSubjectCoordinatorTests.swift
++++ final/FrameRelayTests/Application/ProductCaptureSubjectCoordinatorTests.swift
+@@ -0,0 +1,160 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@MainActor
++struct ProductCaptureSubjectCoordinatorTests {
++    @Test func absentIntentAndAnalysisNeverBlockRECOrStopRecording() async throws {
++        let fixture = try CaptureFixture()
++        let device = SubjectCoordinatorDevice(fixture: fixture)
++        let preferences = ProductCaptureTestPreferences(fixture: fixture)
++        let model = makeModel(preferences: preferences, device: device)
++        await model.load(); await model.prepare()
++        #expect(model.preferences.shootingIntent == nil)
++        #expect(model.canRecord)
++        #expect(model.subjects == nil)
++        await device.emit(sequence: 1, state: .unavailable)
++        await eventually { model.subjects != nil }
++        #expect(model.canRecord)
++        let applied = model.prepared?.applied
++        await model.record()
++        await eventually { model.capture?.phase == .recording }
++        await device.emit(sequence: 2, state: .heldAwaitingSelection)
++        await eventually { model.subjects?.sequence == 2 }
++        #expect(model.capture?.phase == .recording)
++        #expect(model.prepared?.applied == applied)
++        #expect(model.preferences.desired == fixture.desired)
++        #expect(await device.underlying.startCount == 1)
++        await model.chooseShootingIntent(.peopleAndBackground)
++        #expect(model.capture?.phase == .recording)
++        #expect(model.preferences.shootingIntent == .peopleAndBackground)
++        await model.stop()
++        await eventually { !model.isBusy }
++        await model.leaveCapture()
++    }
++
++    @Test func oldGenerationAndReversedSnapshotsCannotRestoreSubjectsAfterLeaving() async throws {
++        let fixture = try CaptureFixture()
++        let device = SubjectCoordinatorDevice(fixture: fixture)
++        let model = makeModel(preferences: ProductCaptureTestPreferences(fixture: fixture), device: device)
++        await model.load(); await model.prepare()
++        await device.emit(sequence: 4, state: .personPriorityAF)
++        await eventually { model.subjects?.sequence == 4 }
++        await device.emit(sequence: 3, state: .unavailable)
++        await device.emit(sequence: 100, state: .unavailable, foreign: true)
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.subjects?.sequence == 4)
++        #expect(model.canRecord)
++        await model.leaveCapture()
++        await device.emit(sequence: 101, state: .personPriorityAF)
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.subjects == nil)
++    }
++
++    @Test func pendingIntentSaveKeepsRECAndLateCommitRequiresReloadOnNewVisit() async throws {
++        let fixture = try CaptureFixture()
++        let gate = ProductCaptureTestGate()
++        let preferences = ProductCaptureTestPreferences(fixture: fixture, saveGate: gate)
++        let device = SubjectCoordinatorDevice(fixture: fixture)
++        let model = makeModel(preferences: preferences, device: device)
++        await model.load(); await model.prepare()
++        let saving = Task { await model.chooseShootingIntent(.scenery) }
++        await gate.waitUntilHeld()
++        #expect(model.isSavingShootingIntent)
++        #expect(model.canRecord)
++        await model.record()
++        await eventually { model.capture?.phase == .recording }
++        await model.stop()
++        await eventually { !model.isBusy }
++        await model.leaveCapture()
++        let visit = model.enterCapture()
++        await model.load(visit: visit)
++        await gate.release()
++        await saving.value
++        #expect(!model.preferencesLoaded)
++        await model.load(visit: visit)
++        #expect(model.preferences.shootingIntent == .scenery)
++        #expect(await preferences.load().shootingIntent == .scenery)
++        await model.leaveCapture()
++    }
++
++    @Test func unconfiguredProductPolicyDoesNotPersistUnapprovedIntentOrIssueSubjectCommands() async throws {
++        let fixture = try CaptureFixture()
++        let preferences = ProductCaptureTestPreferences(fixture: fixture)
++        let device = SubjectCoordinatorDevice(fixture: fixture)
++        let model = ProductCaptureCoordinator(preferences: preferences, makeDevice: { _ in device }, save: ProductCaptureTestSave(),
++            bindOriginal: { _ in true }, didSave: {}, calendarNow: { Date() })
++        model.enterCapture()
++        await model.load(); await model.prepare()
++        await model.chooseShootingIntent(.scenery)
++        #expect(model.preferences.shootingIntent == nil)
++        #expect(await preferences.load().shootingIntent == nil)
++        #expect(model.canRecord)
++        await model.changeSubjects(.tracking(false))
++        #expect(await device.commands.isEmpty)
++        await model.leaveCapture()
++    }
++
++    @Test func existingSchemaWithoutIntentLoadsAndOrdinarySettingsRoundTripRetainsChosenIntent() async throws {
++        let fixture = try CaptureFixture()
++        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
++        defer { try? FileManager.default.removeItem(at: directory) }
++        let url = directory.appendingPathComponent("preferences.json")
++        let store = CapturePreferenceStore(url: url)
++        let original = ProductCapturePreferences(desired: fixture.desired, outputCandidate: .sampleWriter)
++        try await store.save(original)
++        var data = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
++        var preferences = try #require(data["preferences"] as? [String: Any])
++        preferences.removeValue(forKey: "shootingIntent"); data["preferences"] = preferences
++        try JSONSerialization.data(withJSONObject: data).write(to: url)
++        #expect(try await store.load() == original)
++        var chosen = original
++        chosen.shootingIntent = .peopleAndBackground
++        try await store.save(chosen)
++        let restored = try await store.load()
++        var draft = ProductCaptureSettingsDraft(restored)
++        draft.iso = "400"
++        let changed = try draft.preferences()
++        #expect(changed.shootingIntent == .peopleAndBackground)
++        try await store.save(changed)
++        #expect(try await CapturePreferenceStore(url: url).load() == changed)
++    }
++
++    private func makeModel(preferences: any ProductCapturePreferencePort, device: SubjectCoordinatorDevice) -> ProductCaptureCoordinator {
++        let model = ProductCaptureCoordinator(preferences: preferences, makeDevice: { _ in device }, save: ProductCaptureTestSave(),
++            bindOriginal: { _ in true }, didSave: {}, subjectPolicy: .init(version: "test-only", lostGrace: 3, noPersonFocus: .tapPosition),
++            calendarNow: { Date() })
++        model.enterCapture()
++        return model
++    }
++    private func eventually(_ condition: @MainActor () -> Bool) async {
++        for _ in 0..<2_000 { if condition() { return }; await Task.yield() }
++        #expect(condition())
++    }
++}
++
++private actor SubjectCoordinatorDevice: ProductCaptureDevicePort {
++    let underlying: ProductCaptureTestDevice
++    private var generation: CaptureGeneration?
++    private let pair = AsyncStream<CaptureSubjectSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
++    private(set) var commands: [CaptureSubjectRequest] = []
++    init(fixture: CaptureFixture) { underlying = ProductCaptureTestDevice(fixture: fixture) }
++    func events() async -> AsyncStream<CaptureIOEvent> { await underlying.events() }
++    func productEvents() async -> AsyncStream<ExplorationDeviceEvent> { await underlying.productEvents() }
++    func discoverCameras() async throws -> [ExplorationCameraDescription] { await underlying.discoverCameras() }
++    func prepare(_ request: ProductCapturePreparation) async throws -> ExplorationPrepared {
++        generation = request.generation
++        return try await underlying.prepare(request)
++    }
++    func previewSource() async -> (any ProductCapturePreviewSource)? { await underlying.previewSource() }
++    func submit(_ command: CaptureIOCommand) async -> CaptureCommandAcceptance { await underlying.submit(command) }
++    func shutDown() async { await underlying.shutDown() }
++    func subjectSnapshots() -> AsyncStream<CaptureSubjectSnapshot> { pair.stream }
++    func updateSubjects(_ request: CaptureSubjectRequest) -> CaptureSubjectSnapshot? { commands.append(request); return nil }
++    func emit(sequence: UInt64, state: CaptureSubjectFocusState, foreign: Bool = false) {
++        guard let generation else { return }
++        pair.continuation.yield(.init(context: .init(generation: foreign ? .init(session: .init(rawValue: "obsolete"), settings: 1) : generation,
++            framingRevision: 1, selectionRevision: 0), sequence: sequence, candidates: [], exposureTargets: [], protagonist: nil,
++            trackingEnabled: false, state: state, focus: .unconfirmed))
++    }
++}
+--- baseline/FrameRelayTests/Domain/CaptureSubjectSessionTests.swift
++++ final/FrameRelayTests/Domain/CaptureSubjectSessionTests.swift
+@@ -0,0 +1,204 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++struct CaptureSubjectSessionTests {
++    @Test func independentExposureSelectionDoesNotChangeProtagonistOrAF() {
++        var session = makeSession()
++        let first = person(), second = person(x: 0.6)
++        let outcome1 = session.receive(result(session, 1, 1, [first, second]), now: 1)
++        #expect(outcome1)
++        _ = session.command(.init(context: session.context, command: .selectProtagonist(first.id)), now: 1)
++        let focus = session.action
++        _ = session.command(.init(context: session.context, command: .toggleExposure(second.id)), now: 1)
++        _ = session.command(.init(context: session.context, command: .toggleExposure(first.id)), now: 1)
++        #expect(session.exposureTargets == [first.id, second.id])
++        #expect(session.protagonist == first.id)
++        #expect(session.action == focus)
++        #expect(session.state == .following(first.id))
++    }
++
++    @Test func lostPersonReturnsWithinGraceButOtherPersonCannotTakeOverAndExpiryRequiresTap() {
++        var session = makeSession()
++        let selected = person(), other = person(x: 0.6)
++        let outcome2 = session.receive(result(session, 1, 1, [selected, other]), now: 1)
++        #expect(outcome2)
++        _ = session.command(.init(context: session.context, command: .selectProtagonist(selected.id)), now: 1)
++        let outcome3 = session.receive(result(session, 2, 1.2, [other]), now: 1.2)
++        #expect(outcome3)
++        #expect(session.state == .lostHolding(selected.id))
++        #expect(session.action == .hold)
++        let returning = CapturePersonCandidate(id: selected.id, bounds: selected.bounds, continuity: .reacquired)
++        let outcome4 = session.receive(result(session, 3, 2, [returning, other]), now: 2)
++        #expect(outcome4)
++        #expect(session.state == .following(selected.id))
++        let outcome5 = session.receive(result(session, 4, 2.1, [other]), now: 2.1)
++        #expect(outcome5)
++        let outcome6 = session.expire(now: 5.2)
++        #expect(outcome6)
++        #expect(session.state == .heldAwaitingSelection)
++        let outcome7 = session.receive(result(session, 5, 5.3, [returning]), now: 5.3)
++        #expect(outcome7)
++        #expect(session.state == .heldAwaitingSelection)
++        _ = session.command(.init(context: session.context, command: .selectProtagonist(selected.id)), now: 5.3)
++        #expect(session.state == .following(selected.id))
++    }
++
++    @Test func staleSequenceTimeSelectionFramingAndGenerationAreRejected() {
++        var session = makeSession()
++        let first = person()
++        let old = result(session, 1, 1, [first])
++        let outcome8 = session.receive(old, now: 1)
++        #expect(outcome8)
++        let outcome9 = session.receive(old, now: 1.1)
++        #expect(!outcome9)
++        let outcome10 = session.receive(result(session, 2, 0.9, [first]), now: 1.1)
++        #expect(!outcome10)
++        let outcome11 = session.receive(result(session, 2, 2, [first]), now: 1.1)
++        #expect(!outcome11)
++        let outcome12 = session.receive(result(session, 2, 1, [first]), now: 2)
++        #expect(!outcome12)
++        _ = session.command(.init(context: session.context, command: .toggleExposure(first.id)), now: 1)
++        let outcome13 = session.receive(old, now: 1.1)
++        #expect(!outcome13)
++        let priorContext = session.context
++        session.invalidateFraming(2)
++        let outcome14 = session.receive(.init(context: priorContext, sequence: 100, observedAt: 1.2, candidates: [first], available: true), now: 1.2)
++        #expect(!outcome14)
++        #expect(session.candidates.isEmpty)
++        #expect(session.exposureTargets.isEmpty)
++        let foreign = CaptureSubjectContext(generation: .init(session: .init(rawValue: "other"), settings: 1), framingRevision: 2, selectionRevision: 2)
++        let outcome15 = session.receive(.init(context: foreign, sequence: 101, observedAt: 1.2, candidates: [first], available: true), now: 1.2)
++        #expect(!outcome15)
++    }
++
++    @Test func trackingOffUsesContinuousPersonPriorityAndSceneTapRequiresFreshConfirmedAbsence() {
++        var session = makeSession()
++        let first = person()
++        let outcome16 = session.receive(result(session, 1, 1, [first]), now: 1)
++        #expect(outcome16)
++        _ = session.command(.init(context: session.context, command: .selectProtagonist(first.id)), now: 1)
++        _ = session.command(.init(context: session.context, command: .tracking(false)), now: 1)
++        #expect(session.protagonist == nil)
++        #expect(session.action == .continuous(first.bounds.center, personDriven: true))
++        let tap = CaptureSubjectCommand.scenePoint(.init(x: 0.5, y: 0.4))
++        let outcome17 = session.command(.init(context: session.context, command: tap), now: 1)
++        #expect(outcome17 == nil)
++        let outcome18 = session.receive(result(session, 2, 1.2, []), now: 1.2)
++        #expect(outcome18)
++        let outcome19 = session.command(.init(context: session.context, command: tap), now: 1.3)
++        #expect(outcome19 == .continuous(.init(x: 0.5, y: 0.4), personDriven: false))
++        #expect(session.state == .sceneAF)
++        let outcome20 = session.expire(now: 2.2)
++        #expect(outcome20)
++        #expect(session.state == .unavailable)
++        let outcome21 = session.command(.init(context: session.context, command: tap), now: 2.2)
++        #expect(outcome21 == nil)
++    }
++
++    @Test func unconfiguredScenePolicyAndUnconfirmedIdentityCannotSilentlyBecomeTracking() {
++        var session = makeSession(noPerson: .unconfigured)
++        let outcome22 = session.receive(result(session, 1, 1, []), now: 1)
++        #expect(outcome22)
++        let outcome23 = session.command(.init(context: session.context, command: .scenePoint(.init(x: 0.5, y: 0.5))), now: 1)
++        #expect(outcome23 == nil)
++        let first = person()
++        let outcome24 = session.receive(result(session, 2, 1.1, [first]), now: 1.1)
++        #expect(outcome24)
++        _ = session.command(.init(context: session.context, command: .selectProtagonist(first.id)), now: 1.1)
++        let outcome25 = session.receive(result(session, 3, 1.2, [first]), now: 1.2)
++        #expect(outcome25)
++        #expect(session.state == .lostHolding(first.id))
++        #expect(session.action == .hold)
++    }
++
++    @Test func whiteBalanceChangeInvalidatesOldFramesWithoutReplacingSelectedIdentity() {
++        var session = makeSession()
++        let first = person()
++        _ = session.receive(result(session, 1, 1, [first]), now: 1)
++        _ = session.command(.init(context: session.context, command: .selectProtagonist(first.id)), now: 1)
++        let obsolete = result(session, 2, 1.2, [.init(id: first.id, bounds: first.bounds, continuity: .continuous)])
++        session.invalidateWhiteBalance(now: 1.2)
++        #expect(session.protagonist == first.id)
++        #expect(session.candidates.isEmpty)
++        #expect(session.action == .hold)
++        let outcome26 = session.receive(obsolete, now: 1.3)
++        #expect(!outcome26)
++        let current = result(session, 3, 1.4, [.init(id: first.id, bounds: first.bounds, continuity: .continuous)])
++        let outcome27 = session.receive(current, now: 1.4)
++        #expect(outcome27)
++        #expect(session.state == .following(first.id))
++    }
++
++    @Test func failedDetectionIsNotConfirmedAbsenceForSceneTap() {
++        var session = makeSession()
++        let initial = session.receive(result(session, 1, 1, []), now: 1)
++        #expect(initial)
++        let failure = CaptureSubjectAnalysis(context: session.context, sequence: 2, observedAt: 1.2, candidates: [], available: false)
++        let received = session.receive(failure, now: 1.2)
++        #expect(received)
++        #expect(!session.analysisAvailable)
++        let rejected = session.command(.init(context: session.context, command: .scenePoint(.init(x: 0.4, y: 0.5))), now: 1.2)
++        #expect(rejected == nil)
++        let recovered = session.receive(result(session, 3, 1.4, []), now: 1.4)
++        #expect(recovered)
++        let accepted = session.command(.init(context: session.context, command: .scenePoint(.init(x: 0.4, y: 0.5))), now: 1.4)
++        #expect(accepted == .continuous(.init(x: 0.4, y: 0.5), personDriven: false))
++    }
++
++    @Test func invalidOrAmbiguousCandidatePayloadCannotBecomeConfirmedAbsence() {
++        var session = makeSession()
++        let first = person()
++        let duplicate = session.receive(result(session, 1, 1, [first, first]), now: 1)
++        #expect(duplicate)
++        #expect(!session.analysisAvailable)
++        let invalid = CapturePersonCandidate(id: .init(), bounds: .init(x: .nan, y: 0, width: 0.2, height: 0.5), continuity: .newDetection)
++        let received = session.receive(result(session, 2, 1.2, [invalid]), now: 1.2)
++        #expect(received)
++        #expect(!session.analysisAvailable)
++        let tap = session.command(.init(context: session.context, command: .scenePoint(.init(x: 0.4, y: 0.5))), now: 1.2)
++        #expect(tap == nil)
++    }
++
++    @Test func personArrivalAfterSceneTapRestoresPersonPriorityWithoutSelectingProtagonist() {
++        var session = makeSession()
++        _ = session.receive(result(session, 1, 1, []), now: 1)
++        _ = session.command(.init(context: session.context, command: .scenePoint(.init(x: 0.4, y: 0.5))), now: 1)
++        #expect(session.state == .sceneAF)
++        let appeared = person()
++        let received = session.receive(result(session, 2, 1.2, [appeared]), now: 1.2)
++        #expect(received)
++        #expect(session.state == .personPriorityAF)
++        #expect(session.scenePoint == nil)
++        #expect(session.protagonist == nil)
++        #expect(!session.trackingEnabled)
++        #expect(session.action == .continuous(appeared.bounds.center, personDriven: true))
++    }
++
++    @Test func stoppedAnalysisExpiresWithoutAnyFurtherFrames() {
++        var session = makeSession()
++        let first = person()
++        _ = session.receive(result(session, 1, 1, [first]), now: 1)
++        _ = session.command(.init(context: session.context, command: .selectProtagonist(first.id)), now: 1)
++        let outcome28 = session.expire(now: 1.9)
++        #expect(outcome28)
++        #expect(session.candidates.isEmpty)
++        #expect(session.state == .lostHolding(first.id))
++        #expect(session.action == .hold)
++        let outcome29 = session.expire(now: 5)
++        #expect(outcome29)
++        #expect(session.state == .heldAwaitingSelection)
++    }
++
++    private func makeSession(noPerson: CaptureSubjectPolicy.NoPersonFocus = .tapPosition) -> CaptureSubjectSession {
++        .init(context: .init(generation: .init(session: .init(rawValue: "subjects"), settings: 1), framingRevision: 1, selectionRevision: 0),
++              policy: .init(version: "test-only", lostGrace: 3, noPersonFocus: noPerson))
++    }
++    private func person(x: Double = 0.1) -> CapturePersonCandidate {
++        .init(id: .init(), bounds: .init(x: x, y: 0.1, width: 0.2, height: 0.5), continuity: .newDetection)
++    }
++    private func result(_ session: CaptureSubjectSession, _ sequence: UInt64, _ time: Double,
++                        _ people: [CapturePersonCandidate]) -> CaptureSubjectAnalysis {
++        .init(context: session.context, sequence: sequence, observedAt: time, candidates: people, available: true)
++    }
++}
+Binary snapshot: FrameRelayTests/Fixtures/Subjects/mae-jemison-1987.jpg sha256=620342c6bc8c0988fb68f5d16dbbad7a6f5939de26d17c16f9585733db3ee904
+--- baseline/FrameRelayTests/Fixtures/Subjects/provenance.json
++++ final/FrameRelayTests/Fixtures/Subjects/provenance.json
+@@ -0,0 +1,20 @@
++[
++  {
++    "path": "sally-ride-1979.jpg",
++    "source": "https://commons.wikimedia.org/wiki/File:Sally_Ride_1979.jpg",
++    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Sally_Ride_1979.jpg/960px-Sally_Ride_1979.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail",
++    "credit": "NASA/Glenn Research Center, C-1979-1510",
++    "license": "Public domain (NASA US government work), per source page",
++    "size": 198624,
++    "sha256": "6fda465c0f6b11333888d03322229709ec49c9b51163b7d125b0553d914c7cc2"
++  },
++  {
++    "path": "mae-jemison-1987.jpg",
++    "source": "https://commons.wikimedia.org/wiki/File:Mae_Jemison_-_Official_portrait_of_1987_astronaut_candidate.jpg",
++    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/04/Mae_Jemison_-_Official_portrait_of_1987_astronaut_candidate.jpg/960px-Mae_Jemison_-_Official_portrait_of_1987_astronaut_candidate.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail",
++    "credit": "NASA, S87-45893",
++    "license": "Public domain (NASA US government work), per source page",
++    "size": 186717,
++    "sha256": "620342c6bc8c0988fb68f5d16dbbad7a6f5939de26d17c16f9585733db3ee904"
++  }
++]
+Binary snapshot: FrameRelayTests/Fixtures/Subjects/sally-ride-1979.jpg sha256=6fda465c0f6b11333888d03322229709ec49c9b51163b7d125b0553d914c7cc2
+--- baseline/FrameRelayTests/Platform/Capture/NativeCaptureSubjectAnalysisTests.swift
++++ final/FrameRelayTests/Platform/Capture/NativeCaptureSubjectAnalysisTests.swift
+@@ -0,0 +1,103 @@
++import Foundation
++import CoreGraphics
++import CoreVideo
++import ImageIO
++import Testing
++@testable import FrameRelay
++
++/// Real Vision requests over public NASA portraits. These assertions certify only
++/// these input transformations, not person identity, live Log imagery or lens focus.
++struct NativeCaptureSubjectAnalysisTests {
++    @Test func realVisionDetectsTracksRejectsAnotherPersonAndReacquiresFixedReference() throws {
++        let engine = NativeSubjectVisionEngine(policy: policy)
++        let sally = try image("sally-ride-1979")
++        let mae = try image("mae-jemison-1987")
++        var instruction = instruction()
++        let initial = try engine.process(buffer([sally]), instruction: instruction, sequence: 1, observedAt: 1)
++        #expect(initial.available)
++        let selected = try #require(initial.candidates.first)
++        #expect(selected.bounds.isValid)
++        instruction = .init(context: .init(generation: instruction.context.generation, framingRevision: 1, selectionRevision: 1),
++                            protagonist: selected.id, allowsReacquisition: true)
++        let tracked = try engine.process(buffer([sally]), instruction: instruction, sequence: 2, observedAt: 1.2)
++        #expect(tracked.candidates.contains { $0.id == selected.id && $0.continuity != .newDetection })
++        let blank = try engine.process(buffer([]), instruction: instruction, sequence: 3, observedAt: 1.4)
++        #expect(blank.candidates.isEmpty)
++        let different = try engine.process(buffer([mae]), instruction: instruction, sequence: 4, observedAt: 1.6)
++        #expect(!different.candidates.isEmpty)
++        #expect(!different.candidates.contains { $0.id == selected.id })
++        let returned = try engine.process(buffer([sally]), instruction: instruction, sequence: 5, observedAt: 1.8)
++        #expect(returned.candidates.contains { $0.id == selected.id && $0.continuity == .reacquired })
++        let nextFraming = NativeSubjectAnalysisInstruction(context: .init(generation: instruction.context.generation,
++            framingRevision: 2, selectionRevision: 2), protagonist: selected.id, allowsReacquisition: true)
++        let invalidated = try engine.process(buffer([sally]), instruction: nextFraming, sequence: 6, observedAt: 2)
++        #expect(!invalidated.candidates.contains { $0.id == selected.id })
++        engine.reset()
++    }
++
++    @Test func realVisionAmbiguousDuplicatePortraitsDoNotStealSelectedIdentity() throws {
++        let engine = NativeSubjectVisionEngine(policy: policy)
++        let sally = try image("sally-ride-1979")
++        var instruction = instruction()
++        let initial = try engine.process(buffer([sally]), instruction: instruction, sequence: 1, observedAt: 1)
++        let selected = try #require(initial.candidates.first)
++        instruction = .init(context: .init(generation: instruction.context.generation, framingRevision: 1, selectionRevision: 1),
++                            protagonist: selected.id, allowsReacquisition: true)
++        _ = try engine.process(buffer([sally]), instruction: instruction, sequence: 2, observedAt: 1.2)
++        _ = try engine.process(buffer([]), instruction: instruction, sequence: 3, observedAt: 1.4)
++        let duplicates = try engine.process(buffer([sally, sally]), instruction: instruction, sequence: 4, observedAt: 1.6)
++        #expect(duplicates.candidates.count == 2)
++        #expect(!duplicates.candidates.contains { $0.id == selected.id })
++        let expired = NativeSubjectAnalysisInstruction(context: instruction.context, protagonist: selected.id, allowsReacquisition: false)
++        let late = try engine.process(buffer([sally]), instruction: expired, sequence: 5, observedAt: 5)
++        #expect(!late.candidates.contains { $0.id == selected.id })
++        engine.reset()
++    }
++
++    @Test func realVisionBlankImageProducesConfirmedEmptyDetection() throws {
++        let engine = NativeSubjectVisionEngine(policy: policy)
++        let result = try engine.process(buffer([]), instruction: instruction(), sequence: 1, observedAt: 1)
++        #expect(result.available)
++        #expect(result.candidates.isEmpty)
++    }
++
++    private var policy: CaptureSubjectPolicy { .init(version: "test-only", lostGrace: 3, noPersonFocus: .tapPosition) }
++    private func instruction() -> NativeSubjectAnalysisInstruction {
++        .init(context: .init(generation: .init(session: .init(rawValue: "vision-fixture"), settings: 1), framingRevision: 1, selectionRevision: 0),
++              protagonist: nil, allowsReacquisition: true)
++    }
++    private func image(_ name: String) throws -> CGImage {
++        let bundle = Bundle(for: SubjectFixtureBundle.self)
++        let url = try #require(bundle.url(forResource: name, withExtension: "jpg"))
++        let source = try #require(CGImageSourceCreateWithURL(url as CFURL, nil))
++        return try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
++    }
++    private func buffer(_ images: [CGImage]) throws -> CVPixelBuffer {
++        let width = 512 * max(1, images.count), height = 640
++        var result: CVPixelBuffer?
++        let status = CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA,
++            [kCVPixelBufferCGImageCompatibilityKey: true, kCVPixelBufferCGBitmapContextCompatibilityKey: true] as CFDictionary, &result)
++        #expect(status == kCVReturnSuccess)
++        let buffer = try #require(result)
++        CVPixelBufferLockBaseAddress(buffer, [])
++        defer { CVPixelBufferUnlockBaseAddress(buffer, []) }
++        let context = try #require(CGContext(data: CVPixelBufferGetBaseAddress(buffer), width: width, height: height,
++            bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(buffer), space: CGColorSpaceCreateDeviceRGB(),
++            bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue))
++        context.setAlpha(1)
++        context.setFillColor(CGColor(gray: 0.4, alpha: 1))
++        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
++        for (index, image) in images.enumerated() {
++            context.draw(image, in: CGRect(x: index * 512, y: 0, width: 512, height: 640))
++        }
++        let bytes = UnsafeRawBufferPointer(start: CVPixelBufferGetBaseAddress(buffer), count: CVPixelBufferGetDataSize(buffer))
++        let rowBytes = CVPixelBufferGetBytesPerRow(buffer)
++        let opaque = (0..<height).allSatisfy { row in
++            (0..<width).allSatisfy { column in bytes[row * rowBytes + column * 4 + 3] == 255 }
++        }
++        #expect(opaque, "Public fixture BGRA pixels must have explicit opaque alpha before real Vision inference")
++        return buffer
++    }
++}
++
++private final class SubjectFixtureBundle: NSObject {}
+--- baseline/FrameRelayTests/Platform/Capture/NativeCaptureSubjectFocusTests.swift
++++ final/FrameRelayTests/Platform/Capture/NativeCaptureSubjectFocusTests.swift
+@@ -0,0 +1,24 @@
++import Testing
++@testable import FrameRelay
++
++struct NativeCaptureSubjectFocusTests {
++    @Test func protagonistAndHoldDisableAutomaticPersonSwitchingWhileOFFKeepsAF() throws {
++        let point = CaptureSubjectPoint(x: 0.4, y: 0.6)
++        let following = try #require(NativeCaptureSubjectFocus.plan(.continuous(point, personDriven: false),
++            continuousSupported: true, lockSupported: true, pointSupported: true))
++        #expect(!following.hold && !following.faceDriven && following.point == point)
++        let held = try #require(NativeCaptureSubjectFocus.plan(.hold, continuousSupported: true, lockSupported: true, pointSupported: true))
++        #expect(held.hold && !held.faceDriven)
++        let off = try #require(NativeCaptureSubjectFocus.plan(.personPriority, continuousSupported: true, lockSupported: true, pointSupported: true))
++        #expect(!off.hold && off.faceDriven)
++    }
++
++    @Test func unsupportedContinuousAFNeverFallsBackToLockOrWrongPoint() {
++        #expect(NativeCaptureSubjectFocus.plan(.personPriority, continuousSupported: false, lockSupported: true, pointSupported: true) == nil)
++        #expect(NativeCaptureSubjectFocus.plan(.continuous(.init(x: 0.4, y: 0.6), personDriven: false),
++            continuousSupported: true, lockSupported: true, pointSupported: false) == nil)
++        #expect(NativeCaptureSubjectFocus.plan(.continuous(.init(x: .nan, y: 0.6), personDriven: false),
++            continuousSupported: true, lockSupported: true, pointSupported: true) == nil)
++        #expect(NativeCaptureSubjectFocus.plan(.hold, continuousSupported: true, lockSupported: false, pointSupported: true) == nil)
++    }
++}
+--- baseline/FrameRelayTests/Platform/Capture/NativeCaptureSubjectGeometryTests.swift
++++ final/FrameRelayTests/Platform/Capture/NativeCaptureSubjectGeometryTests.swift
+@@ -0,0 +1,49 @@
++import CoreGraphics
++import Testing
++@testable import FrameRelay
++
++struct NativeCaptureSubjectGeometryTests {
++    @Test func outputPixelsAreConvertedBeforeNormalizedPersonBoundsReachAFAndPreview() throws {
++        var received: CGRect?
++        let geometry = try #require(NativeCaptureSubjectGeometry.capture(width: 1920, height: 1080,
++            rotation: 0, mirrored: false) { input in
++                received = input
++                // SDK conversion supplied for this frame, including its output scaling.
++                return CGRect(x: 0.1, y: 0.15, width: 0.8, height: 0.7)
++            })
++        #expect(received == CGRect(x: 0, y: 0, width: 1920, height: 1080))
++        let mapped = try #require(geometry.metadataBounds(fromNormalizedOutput: .init(x: 0.25, y: 0.2, width: 0.5, height: 0.6)))
++        #expect(abs(mapped.x - 0.3) < 0.000001)
++        #expect(abs(mapped.y - 0.29) < 0.000001)
++        #expect(abs(mapped.width - 0.4) < 0.000001)
++        #expect(abs(mapped.height - 0.42) < 0.000001)
++    }
++
++    @Test func frameAgeUsesCaptureClockInsteadOfMarkingDelayedArrivalAsFresh() {
++        #expect(NativeCaptureSubjectGeometry.observedAt(presentationSeconds: 10, clockSeconds: 10.2, uptime: 100, maximumAge: 0.8) == 99.8)
++        #expect(NativeCaptureSubjectGeometry.observedAt(presentationSeconds: 10, clockSeconds: 11, uptime: 100, maximumAge: 0.8) == nil)
++        #expect(NativeCaptureSubjectGeometry.observedAt(presentationSeconds: 11, clockSeconds: 10, uptime: 100, maximumAge: 0.8) == nil)
++        #expect(NativeCaptureSubjectGeometry.observedAt(presentationSeconds: .nan, clockSeconds: 10, uptime: 100, maximumAge: 0.8) == nil)
++    }
++
++    @Test func failedCandidateConversionCannotBecomeSuccessfulEmptyDetection() {
++        let geometry = NativeCaptureSubjectGeometry(outputAreaInMetadata: .init(x: 0, y: 0, width: 1, height: 1))
++        let raw = CaptureSubjectAnalysis(context: .init(generation: .init(session: .init(rawValue: "geometry"), settings: 1),
++            framingRevision: 1, selectionRevision: 0), sequence: 1, observedAt: 1,
++            candidates: [.init(id: .init(), bounds: .init(x: .nan, y: 0, width: 0.2, height: 0.5), continuity: .newDetection)], available: true)
++        let result = geometry.map(raw)
++        #expect(!result.available)
++        #expect(result.candidates.isEmpty)
++    }
++
++    @Test func unsupportedOrientationMirrorAndMissingGeometryRemainUnavailable() {
++        for (rotation, mirrored) in [(90.0, false), (0.0, true), (Double.nan, false)] {
++            var called = false
++            #expect(NativeCaptureSubjectGeometry.capture(width: 1920, height: 1080, rotation: rotation, mirrored: mirrored) { _ in
++                called = true; return CGRect(x: 0, y: 0, width: 1, height: 1)
++            } == nil)
++            #expect(!called)
++        }
++        #expect(NativeCaptureSubjectGeometry.capture(width: 1920, height: 1080, rotation: 0, mirrored: false) { _ in .zero } == nil)
++    }
++}

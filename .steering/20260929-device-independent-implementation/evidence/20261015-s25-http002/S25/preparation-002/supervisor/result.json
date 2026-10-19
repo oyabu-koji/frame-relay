@@ -1,0 +1,727 @@
+{
+  "all_actual_exits_observed": true,
+  "artifact_status": {
+    "audit.jsonl": {
+      "available": true
+    },
+    "build-results.json": {
+      "available": true
+    },
+    "import-origins.json": {
+      "available": true
+    },
+    "listener-results.json": {
+      "available": true
+    },
+    "result.json": {
+      "available": true
+    },
+    "test-summary.json": {
+      "available": true
+    },
+    "test-tests.json": {
+      "available": true
+    },
+    "wrapper-result.json": {
+      "available": true
+    }
+  },
+  "child_result_summary": {
+    "build_diagnostics": {
+      "analyzerWarningCount": 0,
+      "available": true,
+      "errorCount": 0,
+      "status": "succeeded",
+      "warningCount": 0
+    },
+    "listener_passed": true,
+    "metadata_collection": {
+      "build": {
+        "attempted": true,
+        "collected": true,
+        "file": "build-results.json",
+        "stderr": "",
+        "stderr_byte_limit": 8192,
+        "stderr_captured_bytes": 0,
+        "stderr_truncated": false,
+        "tool_exit_code": 0
+      },
+      "summary": {
+        "attempted": true,
+        "collected": true,
+        "file": "test-summary.json",
+        "stderr": "",
+        "stderr_byte_limit": 8192,
+        "stderr_captured_bytes": 0,
+        "stderr_truncated": false,
+        "tool_exit_code": 0
+      },
+      "tests": {
+        "attempted": true,
+        "collected": true,
+        "file": "test-tests.json",
+        "stderr": "",
+        "stderr_byte_limit": 8192,
+        "stderr_captured_bytes": 0,
+        "stderr_truncated": false,
+        "tool_exit_code": 0
+      }
+    },
+    "metadata_extraction_failed": false,
+    "observed_build_failure": false,
+    "observed_test_failures": 1,
+    "runner_passed": true,
+    "test_verification": {
+      "declarations": [
+        "RenditionHTTPFixtureTests/authenticatedStreamingAdvancesBeforeFullFileAndActuallyTerminates()",
+        "RenditionHTTPFixtureTests/rejectsMalformedFixedRangeAndWaitsForTerminal(mode:)",
+        "RenditionHTTPFixtureTests/exactRangeGateChangeAndStopDuringResponse()",
+        "RenditionHTTPFixtureTests/authenticationFailureAndGateLossDuringResponseDoNotDeliverBytes()",
+        "RenditionHTTPFixtureTests/httpRetrievalVerifiesWholeFileBeforePhotoUse()"
+      ],
+      "device_execution_counts": [
+        {
+          "expectedFailures": 0,
+          "failedTests": 1,
+          "passedTests": 9,
+          "skippedTests": 0
+        }
+      ],
+      "evaluation": "completed",
+      "execution_count": 10,
+      "nonpassing_declarations": [
+        {
+          "identifier": "RenditionHTTPFixtureTests/authenticatedStreamingAdvancesBeforeFullFileAndActuallyTerminates()",
+          "result": "Failed"
+        }
+      ],
+      "parameter_names": [
+        "oversize",
+        "redirect",
+        "short",
+        "wrong-digest",
+        "wrong-size",
+        "wrong-version"
+      ],
+      "passed": false,
+      "summary_counts": {
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "passedTests": 4,
+        "skippedTests": 0,
+        "totalTestCount": 5
+      }
+    },
+    "wrapper_failure_type": null,
+    "wrapper_passed": false,
+    "xcode_actual_exit_observed": true,
+    "xcode_exit_code": 65
+  },
+  "children": {
+    "listener": {
+      "actual_exit_observed": true,
+      "exit_code": 0,
+      "pid": 61800
+    },
+    "simulator": {
+      "actual_exit_observed": true,
+      "exit_code": 70,
+      "pid": 61801
+    }
+  },
+  "elapsed_seconds": 48.66075829206966,
+  "fixture_only": true,
+  "http_observation": {
+    "all_modes_seen": true,
+    "all_request_fds_and_handlers_terminal": true,
+    "gate_loss_response_body_completed_after_delay": true,
+    "malformed_range_with_honest_http_length": true,
+    "redirect_sent_once": true,
+    "redirect_target_not_requested": true,
+    "stop_after_first_body_byte_observed": true,
+    "streaming_stopped_before_entire_fixture_emitted": true,
+    "unauthorized_observed": true
+  },
+  "nonzero_child_exits": {
+    "simulator": 70
+  },
+  "parent_deleted_secret_after_exit": false,
+  "parent_pid": 61799,
+  "passed": false,
+  "ready": {
+    "deadline_monotonic": 1066172.699979791,
+    "deadline_seconds": 1200,
+    "pid": 61800,
+    "run_identity": "a7d0fd03-9bd4-4ca2-98a0-f8380514aacc",
+    "started_monotonic": 1064972.699979791,
+    "url": "http://127.0.0.1:58172/media"
+  },
+  "received_signal": null,
+  "result_hashes": {
+    "audit.jsonl": {
+      "kind": "file",
+      "sha256": "d4e77f7b9597d8db38105a716ee6192101de3e3da4017cd698aca593a345e15c",
+      "size": 2612
+    },
+    "build-results.json": {
+      "kind": "file",
+      "sha256": "23bfbac97a66c91c11bad8dfe7a2ee6cb76068393c2e9e4b63ac92453120c9df",
+      "size": 571
+    },
+    "import-origins.json": {
+      "kind": "file",
+      "sha256": "144b2964fde4afb1a47969509154a472fbe4cda6f0f9941029f5d1c07f9a9dda",
+      "size": 30577
+    },
+    "listener-results.json": {
+      "kind": "file",
+      "sha256": "6f560349143927b27657aa147624dc83ad05f26b88c2d5bded2551d4b1205043",
+      "size": 91488
+    },
+    "result.json": {
+      "kind": "file",
+      "sha256": "3bfb9afe59a3379a09aed550a3b48b887f3e8796b416c387e30cd3746d93a1b7",
+      "size": 4049
+    },
+    "test-summary.json": {
+      "kind": "file",
+      "sha256": "fe234aaf6f73deae61ccf18cbbab71760e50311597764df7e4e77edb81a8abd3",
+      "size": 1602
+    },
+    "test-tests.json": {
+      "kind": "file",
+      "sha256": "4b55411bdd262c4b1a5fa5ce1397244205933f717b024d8d81168cd126069a99",
+      "size": 8852
+    },
+    "wrapper-result.json": {
+      "kind": "file",
+      "sha256": "4e36330b59477f3a3ee993ca840396f129b3c260c98dd49a2bd306d1c63df3bb",
+      "size": 4117
+    }
+  },
+  "run_identity": "a7d0fd03-9bd4-4ca2-98a0-f8380514aacc",
+  "secret_absent_after_exit": true,
+  "secret_environment_read": false,
+  "signals_sent": [],
+  "streaming_server_observation": {
+    "body_bytes_emitted": 3418,
+    "fixture_bytes": 969998,
+    "intervals": [
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        8
+      ],
+      [
+        0,
+        8
+      ],
+      [
+        8,
+        20
+      ],
+      [
+        20,
+        28
+      ],
+      [
+        20,
+        28
+      ],
+      [
+        28,
+        36
+      ],
+      [
+        28,
+        36
+      ],
+      [
+        966088,
+        966096
+      ],
+      [
+        966088,
+        966096
+      ],
+      [
+        966096,
+        966104
+      ],
+      [
+        966096,
+        966104
+      ],
+      [
+        966104,
+        966108
+      ],
+      [
+        966104,
+        966204
+      ],
+      [
+        966204,
+        966212
+      ],
+      [
+        966204,
+        966212
+      ],
+      [
+        966212,
+        966220
+      ],
+      [
+        966212,
+        966220
+      ],
+      [
+        966220,
+        966224
+      ],
+      [
+        966220,
+        966304
+      ],
+      [
+        966304,
+        966312
+      ],
+      [
+        966304,
+        966312
+      ],
+      [
+        966312,
+        966320
+      ],
+      [
+        966324,
+        966328
+      ],
+      [
+        966328,
+        966332
+      ],
+      [
+        966332,
+        966340
+      ],
+      [
+        966344,
+        966348
+      ],
+      [
+        966348,
+        966352
+      ],
+      [
+        966352,
+        966360
+      ],
+      [
+        966364,
+        966368
+      ],
+      [
+        966368,
+        966372
+      ],
+      [
+        966372,
+        966380
+      ],
+      [
+        966372,
+        966380
+      ],
+      [
+        966380,
+        966388
+      ],
+      [
+        966388,
+        966392
+      ],
+      [
+        966388,
+        966408
+      ],
+      [
+        966408,
+        966416
+      ],
+      [
+        966408,
+        966416
+      ],
+      [
+        966416,
+        966424
+      ],
+      [
+        966424,
+        966428
+      ],
+      [
+        966424,
+        966448
+      ],
+      [
+        966448,
+        966456
+      ],
+      [
+        966456,
+        966460
+      ],
+      [
+        966456,
+        966480
+      ],
+      [
+        966497,
+        966505
+      ],
+      [
+        966505,
+        966513
+      ],
+      [
+        966513,
+        966517
+      ],
+      [
+        966525,
+        966533
+      ],
+      [
+        966581,
+        966589
+      ],
+      [
+        966589,
+        966597
+      ],
+      [
+        966601,
+        966605
+      ],
+      [
+        966605,
+        966613
+      ],
+      [
+        966613,
+        966617
+      ],
+      [
+        966617,
+        966625
+      ],
+      [
+        966625,
+        966633
+      ],
+      [
+        966633,
+        966637
+      ],
+      [
+        966633,
+        966637
+      ],
+      [
+        966637,
+        966641
+      ],
+      [
+        966641,
+        966649
+      ],
+      [
+        966641,
+        966789
+      ],
+      [
+        966789,
+        966797
+      ],
+      [
+        966797,
+        966801
+      ],
+      [
+        966801,
+        966805
+      ],
+      [
+        966805,
+        966813
+      ],
+      [
+        966813,
+        966821
+      ],
+      [
+        966821,
+        966825
+      ],
+      [
+        966825,
+        966829
+      ],
+      [
+        966829,
+        967765
+      ],
+      [
+        967765,
+        967773
+      ],
+      [
+        967773,
+        967777
+      ],
+      [
+        967773,
+        967797
+      ],
+      [
+        967797,
+        967805
+      ],
+      [
+        967809,
+        967813
+      ],
+      [
+        967813,
+        967829
+      ],
+      [
+        967829,
+        967837
+      ],
+      [
+        967837,
+        967841
+      ],
+      [
+        967841,
+        967961
+      ],
+      [
+        967961,
+        967969
+      ],
+      [
+        967969,
+        967973
+      ],
+      [
+        967973,
+        967977
+      ],
+      [
+        967977,
+        968001
+      ],
+      [
+        968001,
+        968009
+      ],
+      [
+        968009,
+        968013
+      ],
+      [
+        968009,
+        968021
+      ],
+      [
+        968021,
+        968501
+      ],
+      [
+        968501,
+        968509
+      ],
+      [
+        968509,
+        968513
+      ],
+      [
+        968509,
+        968517
+      ],
+      [
+        968517,
+        968989
+      ],
+      [
+        968989,
+        968997
+      ],
+      [
+        968989,
+        968997
+      ],
+      [
+        968997,
+        969005
+      ],
+      [
+        968997,
+        969005
+      ],
+      [
+        969005,
+        969009
+      ],
+      [
+        969005,
+        969089
+      ],
+      [
+        969089,
+        969097
+      ],
+      [
+        969089,
+        969097
+      ],
+      [
+        969097,
+        969105
+      ],
+      [
+        969105,
+        969109
+      ],
+      [
+        969105,
+        969125
+      ],
+      [
+        969125,
+        969133
+      ],
+      [
+        969125,
+        969133
+      ],
+      [
+        969133,
+        969141
+      ],
+      [
+        969141,
+        969145
+      ],
+      [
+        969141,
+        969165
+      ],
+      [
+        969165,
+        969173
+      ],
+      [
+        969173,
+        969177
+      ],
+      [
+        969173,
+        969197
+      ],
+      [
+        969214,
+        969222
+      ],
+      [
+        969222,
+        969230
+      ],
+      [
+        969230,
+        969234
+      ],
+      [
+        969238,
+        969246
+      ],
+      [
+        969294,
+        969302
+      ],
+      [
+        969302,
+        969310
+      ],
+      [
+        969314,
+        969318
+      ],
+      [
+        969318,
+        969326
+      ],
+      [
+        969326,
+        969330
+      ],
+      [
+        969330,
+        969338
+      ],
+      [
+        969338,
+        969346
+      ],
+      [
+        969346,
+        969350
+      ],
+      [
+        969346,
+        969350
+      ],
+      [
+        969350,
+        969354
+      ],
+      [
+        969354,
+        969362
+      ],
+      [
+        969354,
+        969426
+      ],
+      [
+        969426,
+        969434
+      ],
+      [
+        969434,
+        969438
+      ],
+      [
+        969438,
+        969442
+      ],
+      [
+        969442,
+        969450
+      ]
+    ],
+    "meaning": "ASGI send accepted bytes until streaming stop, not proof of client receipt; client progress/received bytes are separate SDK evidence",
+    "requests": 128,
+    "unique_emitted_coverage_bytes": 3232
+  }
+}

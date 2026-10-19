@@ -1,0 +1,54 @@
+S47 実装・必要検証報告（独立validationではない）
+対象: .steering/20260929-device-independent-implementation/
+日付: 2026-10-18 (JST)
+
+結論
+- ズーム目標選択→非駆動の構図予告→移動→目標/途中停止、REC停止別、根拠付き停止候補と変更可能な暫定v1設定を通常経路へ接続。
+- 対応レンズ制御、限定ISO、手動優先、切替後保持、実適用値表示は本体・注入試験まで完了。
+- S47全体はblocked。ISO基準/上限は本人回答待ちで、通常FactoryはlensISOPolicy=nil、レンズ切替は理由付き無効。未回答案を製品へ採用していない。
+- 実機待ちをS47独立部分の停止理由にしていない。S48以降・他task・全steering受入・独立validationは未実施。
+
+完了した実装と検証の対応
+1. Domainの予告計算は実倍率を変更しない。寄る枠はpreview layer、引く範囲/画面外未確認は別図で表示し、writer/sample原本へ渡さない。古い画角/generation/revisionの予告を拒否。
+2. NativeはSDK rampと目標境界停止・途中停止を接続。命令sequenceは予告revisionと別に単調増加し、停止後の遅延開始を拒否。REC停止はズーム停止と別操作。
+3. 候補は実カメラ/active format/補正状態/SDK範囲から導出。整数倍率を画質保証とせず、近傍候補は本人の別ボタン選択。暫定v1はrate=0.5 (2のべき/秒)、停止差0.005、近傍表示差0.05、isDeviceAdopted=false。数値採用/滑らかさの許容閾値ではない。
+4. 対応virtualのactive constituentを固定し、明示選択したレンズだけを制御。双方のcustom exposure・形式/fps/Log/補正の事前条件が不明/非対応なら拒否。実露出はphysical、記録形式はvirtual input/recording connectionから読戻す。
+5. 注入試験は基準ISO100/F2→tele補正200中に新manual240→古い成功/失敗完了拒否→wide120を保持→基準tele240へ復帰を確認。Domain数式/上限とNativeの適用順序helper試験を併用。実SDK切替成功や実画質を模擬試験で代用しない。
+6. 適用待ち/観測終了は実値未確認で次RECを抑止。現在のmatching操作実値を次RECへ渡し、保存希望と開始済みRecordingIntentは変更しない。S41/S44、AF/NDの失効接続を再利用。
+
+最終検証
+- final-test-09: Unit365宣言/496展開ケース成功、17skip、失敗0。通常撮影UI3件成功。新規S47の部分集合は18宣言/26展開。重複caseを合算しない。
+- UI確認範囲: Simulator上の通常撮影入口・未確認/無効理由・ズーム停止と録画停止の識別・既存撮影意図/AF/ND表示。実カメラの滑らかな倍率移動や撮影原本の実画角は確認できない。
+- ios-build-10: generic iOS、CODE_SIGNING_ALLOWED=NO、build成功。実機起動ではなくtest件数にも含めない。
+- 最終xcresultのruntimeWarnings、compiler/analyzer診断は0。SDKがstdoutへ出す既存診断とAppIntents metadata警告は元logに保持。
+- Xcode27.0(27A266a)/Swift compiler6.4、Swift mode5.0、最低iOS27.0、実在FrameRelay.xcodeproj/scheme/testPlan、Debug。構成変更なし。
+- Simulator: DFE46693-E8DD-4814-8957-4F327699F719 (iOS27.0/iPhone18Pro model)。実カメラdestinationなし。
+- 最終220入力はfinal-test-09、ios-build-10、現物でhash一致。各run中のsourceChangesは空。UI後の保存設定は開始時hashへ復元/一致確認。
+- 17skipは従来のHTTP外部fixture、原本seed/verify、fixture生成等の環境条件付き試験。S47追加試験のskipなし。名称と理由はfinal-test-09-tests.json。
+
+中間結果と失敗の保全
+- unit-01: 本体のcontains(where:)引数不足compile失敗、test0件。修正済。
+- unit-02: 新testのmutating式をTesting macro内に置いたcompile失敗、test0件。式を先に評価して修正。
+- unit-03: 新fixtureでconcrete actorの呼出しがprotocol defaultの終了済streamを選択し、新規3件が失敗。gate待ち1件をmainが対象xcodebuildへSIGINTで中断。summaryは276宣言成功/2skip/4fail(中断1を含む)。fixture専用stream保持と2秒の有界gateに修正。
+- zoom-04: 新規18宣言/25展開成功。unit-05:全Unit365宣言/495展開・17skip・失敗0。ui-06:UI3成功。lens-07:具体化したレンズ競合を含むsuite5件成功。ios-build-08:build成功。
+- 最終レビューで旧nil完了が新manual成功後のエラー表示を上書きする点を修正。旧operation全体をawait後に拒否し、成功/失敗の2ケース化後、final-test-09とios-build-10を再実行。最終結果に中間runを加算しない。
+
+保留する本人判断（提示済み案、未回答）
+- 最後の本人指定ISOと指定時F値を基準に targetISO = baselineISO * (targetF / baselineF)^2。
+- 基準±1段と機器ISO範囲の共通部分に限定し、制限適用を表示。共通部分がなければ拒否。
+- 切替後に値を固定し、基準F値へ戻れば基準ISOへ戻る。新manual指定時だけ基準更新。shutter/FPS/WBは保持。
+- 回答後、同じS47で通常Factoryへの注入・関連Composition/UI検証を行う。上記は未採用案である。
+
+実機未確認
+- DV-08: 停止精度/超過量/滑らかさ、実補正cropと構図枠の一致、引く方向の実構図、停止候補の画質・熱・負荷、暫定数値の事前条件と採用判断。
+- DV-09/11: 実レンズ切替/実ISO読戻しと保持、shutter/FPS/WB不変、映像音声の継続品質、Log/ProRes条件別の成立。
+- この未確認を自動試験成功やSDK compileだけで受入済みにしない。
+
+最終差分と文書
+- 開始時7599file/169,931,513bytesを基準に、既存10file変更・7589不変、新10file、削除/所有外変更/旧証跡変更0（今回追加の証跡archiveは別計数）。
+- コード/対応test17fileはworker2名で所有分離。functional-design/architectureはdocument_authorが同期しdoc_reviewer指摘なし。tasklist/main evidenceはmain所有。
+- 既存dirty/untrackedを保持、project/README/memo/共有store・他task状態を変更せず、全79ACを保持。git diff --check成功。
+- 詳細: main-scope-review.json、doc-review.json、changes-from-start.patch、final-sources.json、各run/source/summary/tests/build-results、archive-manifest.json。
+- raw xcresult/DerivedData/開始時の証跡外copy: /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s47-20261018-m815eusl
+- archiveには最終220入力とrun別差分source・開始時変更対象copyを保全。raw xcresultを削除していない。
+- 次の独立検証は明示 $validate-implementation .steering/20260929-device-independent-implementation/。今回開始していない。

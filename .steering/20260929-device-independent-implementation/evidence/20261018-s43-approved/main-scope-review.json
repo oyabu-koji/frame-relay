@@ -1,0 +1,64 @@
+{
+  "baseline": "/private/tmp/fr-s43-approved-20261018-1rjgalcn/baseline-manifest.json",
+  "baselineFileCount": 6205,
+  "baselineBytes": 116464636,
+  "changed": [
+    ".steering/20260929-device-independent-implementation/design.md",
+    ".steering/20260929-device-independent-implementation/tasklist.md",
+    "FrameRelay/Application/Recovery/CaptureAudioRecovery.swift",
+    "FrameRelay/Composition/ProductCaptureFactory.swift",
+    "FrameRelayTests/Platform/Capture/NativeCaptureAudioObservationTests.swift",
+    "docs/architecture.md",
+    "docs/functional-design.md",
+    "docs/product-requirements.md"
+  ],
+  "unchangedCount": 6197,
+  "newSourceFiles": [
+    "FrameRelayTests/Integration/Composition/ProductCaptureAudioCompositionTests.swift"
+  ],
+  "missing": [],
+  "outsideOwnership": [],
+  "changedOldEvidence": [],
+  "testedSourceCount": 182,
+  "test03SourceMismatches": [],
+  "test02And03SameSource": true,
+  "iosBuildLaterDifferences": [
+    "FrameRelayTests/Integration/Composition/ProductCaptureAudioCompositionTests.swift"
+  ],
+  "iosBuildAppAndProjectInputsUnchanged": true,
+  "testResults": {
+    "unitDeclarations": 19,
+    "unitExpandedCases": 23,
+    "uiTests": 1,
+    "failures": 0,
+    "skips": 0,
+    "runtimeWarnings": 0
+  },
+  "buildResults": {
+    "simulator": "test-03 succeeded",
+    "genericIOS": "ios-build-01 succeeded, CODE_SIGNING_ALLOWED=NO"
+  },
+  "earlierFailures": [
+    "test-01: test macro compile errors, 0 tests",
+    "test-02: unchanged actor isolation diagnostics, 0 tests; test-03 same source succeeded with new DerivedData; cause not confirmed"
+  ],
+  "documentReview": "P2 1件をU7行で修正、doc_reviewer再確認で解消・追加指摘なし",
+  "mainReview": [
+    "本人合意の2秒/1回/5秒を単一v1へ集約、Native/coordinator双方へ同policy注入",
+    "復旧中も2秒無到着判定、5秒上限とSDK終了待ちを分離",
+    "permission/admission/保存/故障/Native/coordinator本体は不変、非自動RECの製品接続回帰成功",
+    "PRDはQ10音声行のみ、受入チェック/他P0/他U7判断は保持",
+    "既存未コミット/旧証跡を保持しS27詳細・S44以降の変更なし"
+  ],
+  "gitDiffCheck": {
+    "exitCode": 0,
+    "output": ""
+  },
+  "status": "S43 implementation done; independent validation not started",
+  "remaining": [
+    "実機DV-10/音声同期/OS故障/復旧品質・値の実機採用",
+    "S42修正後の独立再検証報告本文/保存先未受領・反映保留",
+    "S43独立検証は別セッションの明示workflow",
+    "D01/G2B等既知残件・S27詳細保留・S44以降未着手"
+  ]
+}

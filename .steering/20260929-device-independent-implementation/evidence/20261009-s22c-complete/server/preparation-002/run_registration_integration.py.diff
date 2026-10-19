@@ -1,0 +1,132 @@
+--- before/run_registration_integration.py
++++ current/run_registration_integration.py
+@@ -9,6 +9,7 @@
+ import math
+ import os
+ from pathlib import Path
++import re
+ import signal
+ import stat
+ import subprocess
+@@ -16,8 +17,7 @@
+ from urllib.parse import urlsplit
+ 
+ 
+-PREPARATION = Path("/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001")
+-CHECKPOINT_SHA256 = "81046378b07ffee00ebfafe6d302cd538858b832aa9bdad8f98cfd957374bda5"
++SERVER_ROOT = Path("/private/tmp/fr-di-20261001-5ljls2fr/S22C/server")
+ PROJECT = Path("/Users/oyabu/dev/rep/FrameRelay")
+ READY_SECONDS = 30
+ OVERALL_SECONDS = 1260
+@@ -40,28 +40,44 @@
+     return os.fdopen(os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "wb")
+ 
+ 
+-def verify_inputs():
+-    checkpoint_path = PREPARATION / "checkpoint-files.json"
+-    if file_record(checkpoint_path)["sha256"] != CHECKPOINT_SHA256:
++def verify_inputs(preparation, checkpoint_sha256, supervisor_manifest_sha256):
++    if (preparation.parent != SERVER_ROOT or
++            re.fullmatch(r"preparation-[0-9]{3}", preparation.name) is None or
++            any(re.fullmatch(r"[0-9a-f]{64}", value) is None
++                for value in (checkpoint_sha256, supervisor_manifest_sha256))):
++        raise RuntimeError("Expected explicit reviewed preparation namespace and hashes")
++    auxiliary_path = preparation / "supervisor-manifest.json"
++    if file_record(auxiliary_path)["sha256"] != supervisor_manifest_sha256:
++        raise RuntimeError("Frozen S22C supervisor manifest changed")
++    auxiliary = read_json(auxiliary_path)
++    for name in ("run_registration_integration.py", "prepare_registration_listener.py"):
++        if file_record(preparation / name) != auxiliary["files"][name]:
++            raise RuntimeError("Frozen S22C preparation/supervisor changed")
++    if (file_record(Path(__file__)) != auxiliary["files"]["run_registration_integration.py"] or
++            auxiliary["checkpoint_sha256"] != checkpoint_sha256):
++        raise RuntimeError("Supervisor or checkpoint differs from reviewed manifest")
++    checkpoint_path = preparation / "checkpoint-files.json"
++    if file_record(checkpoint_path)["sha256"] != checkpoint_sha256:
+         raise RuntimeError("Frozen S22C checkpoint changed")
+     checkpoint = read_json(checkpoint_path)
+     for name, key in (("commands.json", "commands"), ("run-config.json", "run_config"),
+                       ("provenance-before.json", "provenance")):
+-        if file_record(PREPARATION / name) != checkpoint[key]:
++        if file_record(preparation / name) != checkpoint[key]:
+             raise RuntimeError("Frozen S22C command/config/provenance changed")
+-    source = PREPARATION / "source-snapshot"
++    source = preparation / "source-snapshot"
+     actual = {str(path.relative_to(source)): file_record(path) for path in source.rglob("*")
+               if path.is_file() or path.is_symlink()}
+     if actual != checkpoint["frozen_sources"] or len(actual) != 11:
+         raise RuntimeError("Frozen S22C source set changed")
+-    config = read_json(PREPARATION / "run-config.json")
+-    commands = read_json(PREPARATION / "commands.json")
++    config = read_json(preparation / "run-config.json")
++    commands = read_json(preparation / "commands.json")
+     runtime = Path(config["runtime"])
+-    if runtime != PREPARATION.parent / "runtime-listener-001":
++    revision = preparation.name.removeprefix("preparation-")
++    if runtime != preparation.parent / ("runtime-listener-" + revision):
+         raise RuntimeError("Unexpected runtime namespace")
+     if runtime.exists() or runtime.is_symlink():
+         raise RuntimeError("Refusing to reuse the listener runtime")
+-    config_arguments = ["--config", str(PREPARATION / "run-config.json")]
++    config_arguments = ["--config", str(preparation / "run-config.json")]
+     exact = {
+         "listener": [config["interpreter"], "-I", "-B", "-S", str(source / "run_pytest.py"), *config_arguments],
+         "simulator": ["python3", "-I", "-B", "-S", str(source / "run_registration_simulator_probe.py"),
+@@ -100,10 +116,15 @@
+ 
+ def main():
+     parser = argparse.ArgumentParser()
++    parser.add_argument("--preparation", type=Path, required=True)
++    parser.add_argument("--checkpoint-sha256", required=True)
++    parser.add_argument("--supervisor-manifest-sha256", required=True)
+     parser.add_argument("--execute-reviewed-integration", action="store_true")
+     args = parser.parse_args()
+-    config, commands, runtime = verify_inputs()
+-    evidence = PREPARATION / "integration-execution-001"
++    preparation = args.preparation.resolve(strict=True)
++    config, commands, runtime = verify_inputs(preparation, args.checkpoint_sha256,
++                                              args.supervisor_manifest_sha256)
++    evidence = preparation / "integration-execution-001"
+     if evidence.exists() or evidence.is_symlink():
+         raise SystemExit("Refusing to overwrite prior integration execution evidence")
+     if not args.execute_reviewed_integration:
+@@ -128,7 +149,7 @@
+         "environment_keys_inherited": sorted(environment), "children": {}, "signals_sent": [],
+         "ready_observed": False, "stop_helper_attempted": False, "passed": False,
+         "output_policy": "0600 logs contain frozen listener metadata and wrapper summaries; supervisor does not read credentials or echo child output",
+-        "interpretation": "process lifecycle result only; main must separately inspect the six XCTest results and transport/DB evidence"}
++        "interpretation": "process lifecycle plus exact six-method result check; main must separately inspect transport/DB evidence"}
+ 
+     def capture_signal(signum, _frame):
+         nonlocal observed_signal
+@@ -203,7 +224,7 @@
+                 # The wrapper requests listener stop in its finally block, just
+                 # before persisting its own result and exiting. Reap that short
+                 # tail before interpreting an early listener exit as a failure.
+-                if collect("simulator", 5):
++                if collect("simulator", 25):
+                     break
+                 raise RuntimeError("Listener exited while Simulator wrapper was running")
+             if time.monotonic() >= wrapper_deadline:
+@@ -238,12 +259,21 @@
+             path = runtime / filename
+             if path.is_file() and not path.is_symlink():
+                 outcome[name + "_result_file"] = file_record(path)
++        outcome["exact_test_results_passed"] = False
++        if "wrapper_result_file" in outcome:
++            wrapper_result = read_json(runtime / "registration-wrapper-result.json")
++            outcome["exact_test_results_passed"] = (
++                wrapper_result.get("run_identity") == config["run_identity"] and
++                wrapper_result.get("exit_code") == 0 and
++                wrapper_result.get("xcode_exit_code") == 0 and
++                wrapper_result.get("test_verification", {}).get("passed") is True)
+         exits = outcome["children"]
+         outcome["passed"] = (outcome["ready_observed"] and "failure_type" not in outcome and
+             "stop_helper_failure_type" not in outcome and observed_signal is None and
+             set(exits) == set(commands) and all(value["actual_exit_observed"] and value["exit_code"] == 0
+                                                for value in exits.values()) and
+             outcome["secret_file_absent_after_child_exit"] and
++            outcome["exact_test_results_passed"] and
+             all(name + "_result_file" in outcome for name in ("runner", "listener", "wrapper")))
+         with private_output(evidence / "result.json") as stream:
+             stream.write((json.dumps(outcome, indent=2, sort_keys=True) + "\n").encode())

@@ -1,0 +1,175 @@
+--- baseline/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
++++ FrameRelay/Platform/Capture/NativeExplorationCapture.swift
+@@ -24,6 +24,12 @@
+     private let audioPolicy: ProductCaptureAudioPolicy?
+     private let audioStream: AsyncStream<ProductCaptureAudioSnapshot>
+     private let audioContinuation: AsyncStream<ProductCaptureAudioSnapshot>.Continuation
++    private let stabilizationStream: AsyncStream<CaptureStabilizationSnapshot>
++    private let stabilizationContinuation: AsyncStream<CaptureStabilizationSnapshot>.Continuation
++    private var stabilizationObservations: [NSKeyValueObservation] = []
++    private var stabilizationSequence: UInt64 = 0
++    private var latestStabilization: CaptureStabilizationSnapshot?
++    private var preparedStabilizationFormatID: String?
+     private var audioMonitorTask: Task<Void, Never>?
+     private var audioRecoveryRequest: ProductCaptureAudioRecoveryRequest?
+     private var latestAudioRecoveryRequest: ProductCaptureAudioRecoveryRequest?
+@@ -66,6 +72,9 @@
+         self.candidate = candidate
+         self.originals = originals
+         self.audioPolicy = audioPolicy
++        let stabilizationPair = AsyncStream<CaptureStabilizationSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
++        stabilizationStream = stabilizationPair.stream
++        stabilizationContinuation = stabilizationPair.continuation
+         let audioPair = AsyncStream<ProductCaptureAudioSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
+         audioStream = audioPair.stream
+         audioContinuation = audioPair.continuation
+@@ -82,6 +91,7 @@
+     func events() -> AsyncStream<CaptureIOEvent> { captureStream }
+     func explorationEvents() -> AsyncStream<ExplorationDeviceEvent> { eventStream }
+ 
++    func stabilizationSnapshots() -> AsyncStream<CaptureStabilizationSnapshot> { stabilizationStream }
+     func audioSnapshots() -> AsyncStream<ProductCaptureAudioSnapshot> { audioStream }
+     func productEvents() -> AsyncStream<ExplorationDeviceEvent> { eventStream }
+     func previewSource() -> (any ProductCapturePreviewSource)? { session.map(NativeCapturePreviewSource.init) }
+@@ -227,6 +237,7 @@
+             audioObservation.reset(at: ProcessInfo.processInfo.systemUptime)
+             captureSession.startRunning()
+             startAudioMonitoring(generation: request.generation)
++            startStabilizationObservation(generation: request.generation)
+             try selected.lockForConfiguration()
+             let appliedTime: CMTime = await withCheckedContinuation { continuation in
+                 selected.setExposureModeCustom(lensAperture: aperture, duration: shutter, iso: Float(desired.exposure.iso)) {
+@@ -237,6 +248,7 @@
+             return try readPrepared(device: selected, format: format, at: appliedTime, request: request)
+         } catch {
+             if session == nil { captureSession.commitConfiguration() }
++            clearStabilizationObservation()
+             captureSession.stopRunning()
+             session = nil
+             device = nil
+@@ -268,7 +280,7 @@
+             guard let video = output.connection(with: .video), output.connection(with: .audio) != nil else {
+                 throw ExplorationIssue.capabilityUnconfirmed("movie_connections")
+             }
+-            video.preferredVideoStabilizationMode = stabilization
++            try NativeCaptureStabilization.request(stabilization, on: video, output: candidate)
+             movie = output
+         } else {
+             let video = AVCaptureVideoDataOutput()
+@@ -283,7 +295,7 @@
+             video.alwaysDiscardsLateVideoFrames = true
+             let delegate = ExplorationSampleDelegate(owner: self)
+             video.setSampleBufferDelegate(delegate, queue: queue)
+-            video.connection(with: .video)?.preferredVideoStabilizationMode = stabilization
++            try NativeCaptureStabilization.request(stabilization, on: video.connection(with: .video), output: candidate)
+             sampleDelegate = delegate
+             videoOutput = video
+         }
+@@ -349,7 +361,75 @@
+             whiteBalanceLock: .supported(device.isWhiteBalanceModeSupported(.locked)),
+             whiteBalanceRefresh: .supported(device.isWhiteBalanceModeSupported(.autoWhiteBalance)))
+         observe("aperture_readback", context: nil, time: observationTime, detail: "lens_aperture=\(device.lensAperture)")
+-        return ExplorationPrepared(capabilities: capabilities, applied: applied, audio: audioObservation.state)
++        publishStabilization(generation: request.generation)
++        preparedStabilizationFormatID = latestStabilization?.formatID
++        return ExplorationPrepared(capabilities: capabilities, applied: applied, audio: audioObservation.state,
++                                   stabilization: latestStabilization)
++    }
++
++    private func startStabilizationObservation(generation: CaptureGeneration) {
++        clearStabilizationObservation()
++        guard let device, let connection = movie?.connection(with: .video) ?? videoOutput?.connection(with: .video),
++              let session else { return }
++        let changed: @Sendable () -> Void = { [weak self] in
++            // Read current SDK facts on the serial owner, never retain a stale KVO value.
++            Task { await self?.publishStabilization(generation: generation) }
++        }
++        stabilizationObservations = [
++            connection.observe(\.activeVideoStabilizationMode, options: [.new]) { _, _ in changed() },
++            connection.observe(\.preferredVideoStabilizationMode, options: [.new]) { _, _ in changed() },
++            connection.observe(\.isActive, options: [.new]) { _, _ in changed() },
++            connection.observe(\.isEnabled, options: [.new]) { _, _ in changed() },
++            device.observe(\.videoZoomFactor, options: [.new]) { _, _ in changed() },
++            device.observe(\.activeFormat, options: [.new]) { _, _ in changed() },
++            device.observe(\.activePrimaryConstituent, options: [.new]) { _, _ in changed() },
++            session.observe(\.isRunning, options: [.new]) { _, _ in changed() },
++            session.observe(\.isInterrupted, options: [.new]) { _, _ in changed() }
++        ]
++        publishStabilization(generation: generation)
++    }
++
++    private func clearStabilizationObservation() {
++        stabilizationObservations.forEach { $0.invalidate() }
++        stabilizationObservations.removeAll()
++        latestStabilization = nil
++        preparedStabilizationFormatID = nil
++    }
++
++    private var stabilizationAllowsRecording: Bool {
++        guard let preparation, let latestStabilization else { return false }
++        return latestStabilization.matchesRecordingRequest(preparation.desired, generation: preparation.generation,
++            output: candidate, preparedFormatID: preparedStabilizationFormatID)
++    }
++
++    private func publishStabilization(generation: CaptureGeneration) {
++        guard let preparation, preparation.generation == generation, let device else { return }
++        let connection = movie?.connection(with: .video) ?? videoOutput?.connection(with: .video)
++        let requested = preparation.desired.configuration.stabilizationMode
++        let state: CaptureStabilizationConnection
++        if connection == nil { state = .missing }
++        else if session?.isRunning != true || session?.isInterrupted == true || connection?.isActive != true || connection?.isEnabled != true { state = .inactive }
++        else if requested != "off" && connection?.isVideoStabilizationSupported != true { state = .unsupported }
++        else { state = .ready }
++        let active: CaptureObservation<String>
++        if state == .ready, let connection,
++           let mode = ExplorationCaptureValues.stabilizationName(connection.activeVideoStabilizationMode) {
++            active = .observed(mode, at: ExplorationCaptureValues.now(), method: .direct(source: "recording-connection-active-stabilization"))
++        } else { active = .unavailable(state == .unsupported ? .unsupported : .notMeasured) }
++        let format = device.activeFormat
++        let dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
++        stabilizationSequence += 1
++        let snapshot = CaptureStabilizationSnapshot(generation: generation, sequence: stabilizationSequence,
++            output: candidate, requestedMode: requested,
++            preferredMode: connection.flatMap { ExplorationCaptureValues.stabilizationName($0.preferredVideoStabilizationMode) },
++            activeMode: active, connection: state,
++            camera: preparation.trial == nil ? device.uniqueID : (devices.first(where: { $0.value === device })?.key ?? ""),
++            activePhysicalCamera: device.isVirtualDevice ? device.activePrimaryConstituent?.uniqueID : device.uniqueID,
++            formatID: device.formats.firstIndex(where: { $0 === format }).map { "current-format-\($0 + 1)" } ?? "",
++            width: Int(dimensions.width), height: Int(dimensions.height), zoom: Double(device.videoZoomFactor),
++            uncorrectedFieldOfView: format.videoFieldOfView > 0 ? Double(format.videoFieldOfView) : nil)
++        latestStabilization = snapshot
++        stabilizationContinuation.yield(snapshot)
+     }
+ 
+     func submit(_ command: CaptureIOCommand) async -> CaptureCommandAcceptance {
+@@ -378,11 +458,12 @@
+                 guard wbOrder?.appliedAutomatic(token) == true else { return .rejected(token, .evidenceMismatch) }
+                 emit(.automaticWhiteBalanceRestored(token, ExplorationCaptureValues.now()))
+             case .startRecording(_, let intent):
++                publishStabilization(generation: preparation.generation)
+                 let admission = startAdmission.admit(token: token, intentContext: intent.context,
+                     generation: preparation.generation, activeToken: activeToken,
+                     ownsWhiteBalanceLock: wbOrder?.canStart(token.context) == true,
+                     whiteBalanceLocked: device?.whiteBalanceMode == .locked,
+-                    sessionRunning: session?.isRunning == true,
++                    sessionRunning: session?.isRunning == true && stabilizationAllowsRecording,
+                     audioActive: currentAudioRoute() != nil && audioObservation.state.confirmedFailure == nil
+                         && { if case .valid = audioObservation.state.input { return true }; return false }(),
+                     observedAt: ExplorationCaptureValues.now())
+@@ -657,6 +738,7 @@
+     func shutDown() {
+         guard activeToken == nil else { stopRecording(); return }
+         clearWhiteBalanceObservation()
++        clearStabilizationObservation()
+         audioMonitorTask?.cancel(); audioMonitorTask = nil
+         if let request = latestAudioRecoveryRequest { cancelAudioRecovery(request) }
+         wbOrder = nil
+@@ -678,6 +760,8 @@
+ 
+ extension NativeExplorationCapture {
+     private func startRecording(url: URL, token: CaptureCommandToken, intent: RecordingIntent) throws {
++        publishStabilization(generation: token.context.generation)
++        guard stabilizationAllowsRecording else { throw ExplorationIssue.appliedValuesDiffer }
+         guard let preparation else { throw ExplorationIssue.operationInProgress }
+         sourceStart = nil
+         firstAccepted = false

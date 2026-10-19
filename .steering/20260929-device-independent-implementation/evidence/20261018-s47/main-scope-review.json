@@ -1,0 +1,132 @@
+{
+  "kind": "main implementation-scope review, not independent validation",
+  "completedAt": "2026-10-18T13:50:27.300806+00:00",
+  "baselineFiles": 7599,
+  "baselineBytes": 169931513,
+  "changed": [
+    ".steering/20260929-device-independent-implementation/tasklist.md",
+    "FrameRelay/Application/Capture/ProductCaptureCoordinator.swift",
+    "FrameRelay/Application/Ports/ProductCapturePorts.swift",
+    "FrameRelay/Composition/ProductCaptureFactory.swift",
+    "FrameRelay/Features/Capture/ProductCapturePreview.swift",
+    "FrameRelay/Features/Capture/ProductCaptureView.swift",
+    "FrameRelay/Platform/Capture/NativeExplorationCapture.swift",
+    "FrameRelayUITests/Flows/ProductCaptureFlowTests.swift",
+    "docs/architecture.md",
+    "docs/functional-design.md"
+  ],
+  "added": [
+    "FrameRelay/Domain/Capture/CaptureLens.swift",
+    "FrameRelay/Domain/Capture/CaptureZoom.swift",
+    "FrameRelay/Features/Capture/ProductCaptureZoomView.swift",
+    "FrameRelay/Platform/Capture/NativeCaptureLens.swift",
+    "FrameRelay/Platform/Capture/NativeCaptureZoom.swift",
+    "FrameRelayTests/Application/ProductCaptureZoomCoordinatorTests.swift",
+    "FrameRelayTests/Domain/CaptureZoomTests.swift",
+    "FrameRelayTests/Integration/Composition/ProductCaptureZoomCompositionTests.swift",
+    "FrameRelayTests/Platform/Capture/NativeCaptureLensTests.swift",
+    "FrameRelayTests/Platform/Capture/NativeCaptureZoomTests.swift"
+  ],
+  "deleted": [],
+  "unchangedBaselineFiles": 7589,
+  "unownedChanges": [],
+  "previousEvidenceChanges": [],
+  "owners": {
+    "s47_app": [
+      "FrameRelay/Application/Capture/ProductCaptureCoordinator.swift",
+      "FrameRelay/Application/Ports/ProductCapturePorts.swift",
+      "FrameRelay/Composition/ProductCaptureFactory.swift",
+      "FrameRelay/Domain/Capture/CaptureLens.swift",
+      "FrameRelay/Domain/Capture/CaptureZoom.swift",
+      "FrameRelay/Features/Capture/ProductCapturePreview.swift",
+      "FrameRelay/Features/Capture/ProductCaptureView.swift",
+      "FrameRelay/Features/Capture/ProductCaptureZoomView.swift",
+      "FrameRelayTests/Application/ProductCaptureZoomCoordinatorTests.swift",
+      "FrameRelayTests/Domain/CaptureZoomTests.swift",
+      "FrameRelayTests/Integration/Composition/ProductCaptureZoomCompositionTests.swift",
+      "FrameRelayUITests/Flows/ProductCaptureFlowTests.swift"
+    ],
+    "s47_native": [
+      "FrameRelay/Platform/Capture/NativeCaptureLens.swift",
+      "FrameRelay/Platform/Capture/NativeCaptureZoom.swift",
+      "FrameRelay/Platform/Capture/NativeExplorationCapture.swift",
+      "FrameRelayTests/Platform/Capture/NativeCaptureLensTests.swift",
+      "FrameRelayTests/Platform/Capture/NativeCaptureZoomTests.swift"
+    ],
+    "s47_docs": [
+      "docs/architecture.md",
+      "docs/functional-design.md"
+    ],
+    "main": [
+      ".steering/20260929-device-independent-implementation/tasklist.md",
+      ".steering/20260929-device-independent-implementation/evidence/20261018-s47/"
+    ]
+  },
+  "finalInputs": 220,
+  "finalTestsAndBuildAndWorkspaceMatch": true,
+  "all79ACRetained": true,
+  "otherTaskStatesUnchanged": true,
+  "diffCheck": "passed",
+  "checks": [
+    "予告のみではdevice命令なし、preview専用描画で原本writerに非接続",
+    "画角revisionと命令sequenceを分離、世代/operationを含め旧予告と旧成功/失敗を拒否",
+    "target境界停止・途中停止・REC停止別、pending startも停止可能",
+    "実カメラ/形式/補正に基づく範囲と候補、明示選択以外で無断snapなし",
+    "ISO調整の基準固定/上限交差・手動優先・切替後保持、通常policy=nil",
+    "対応露出/形式/Log/fps/補正を事前照合、記録形式と実露出の読戻し元を分離",
+    "適用待ち/観測終了でprepare時値へfallbackせず次REC抑止",
+    "現在操作の実値を次RECへ同期し保存希望/開始済RecordingIntentを保持",
+    "既存AF/NDの画角/時刻失効を再利用",
+    "docsの最終hashとdoc_reviewer結果を照合"
+  ],
+  "pending": [
+    "本人のISO基準/上限回答後、通常Factory注入・必要Composition/UI検証",
+    "DV-08/09/11実機受入",
+    "明示された独立validation"
+  ],
+  "testCounts": {
+    "unit": {
+      "declarations": 382,
+      "passed": 365,
+      "failed": 0,
+      "skipped": 17,
+      "expandedPassed": 496
+    },
+    "ui": {
+      "declarations": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "expandedPassed": 3
+    },
+    "s47Subset": {
+      "declarations": 18,
+      "passed": 18,
+      "failed": 0,
+      "skipped": 0,
+      "expandedPassed": 26
+    }
+  },
+  "sourceHashes": {
+    ".steering/20260929-device-independent-implementation/tasklist.md": "cf87eae0fdf186ebc2ab04812f7f7860c1d76fbfe0c102b7ac05ba5c555c4b1f",
+    "FrameRelay/Application/Capture/ProductCaptureCoordinator.swift": "a1a7dcb6cf8683ae2cf034f547bced6f1a07f0a27ef21c0939b8d69dc867007d",
+    "FrameRelay/Application/Ports/ProductCapturePorts.swift": "61a9c87a0a6d133422b98f874ca224731eccf2739ee85bd24862b0d07a1757f5",
+    "FrameRelay/Composition/ProductCaptureFactory.swift": "6e544af46632575521883e0d5bb6208386c6385493acd3cd3977d8f4cd451462",
+    "FrameRelay/Features/Capture/ProductCapturePreview.swift": "abb8b78ea8a2d18ce48b0c1b3bff453d22854f21a15efb106729f860ce1cf7ac",
+    "FrameRelay/Features/Capture/ProductCaptureView.swift": "d22c65fab6b9e7120ff5e1f8ecc1b81f73da64dc1e88a4aeba7bc33dc7d170df",
+    "FrameRelay/Platform/Capture/NativeExplorationCapture.swift": "8cfc67b14e07775286c0975b870fbf24417ed9190c201b07c85ab0905b1ee077",
+    "FrameRelayUITests/Flows/ProductCaptureFlowTests.swift": "48ee17496b562956e16873a29572cacfb22e9e5b5c66b3844b12bbeeb2b6d980",
+    "docs/architecture.md": "ba017e9ae2a5454d1be5e5e2df7f5f0f229a826ecee4ad6dcb4e9d68451e4d42",
+    "docs/functional-design.md": "8d9977dee0bdc3ecdab4b3f41564050c15659fcc037ad6663a53b59ee78ca6f2",
+    "FrameRelay/Domain/Capture/CaptureLens.swift": "0046683077f1e83aa2ae012df633dd99295560b98e9723f092362b8c4d45a779",
+    "FrameRelay/Domain/Capture/CaptureZoom.swift": "bebff7b7ea3d9a7c522d2dbf2af02ee74f18ac4913264f4f720bdc5ad0d2a32e",
+    "FrameRelay/Features/Capture/ProductCaptureZoomView.swift": "61882b25e823345b36897a8b4118ed002496c020772985cd50e77dd8c17d8d33",
+    "FrameRelay/Platform/Capture/NativeCaptureLens.swift": "98c2a1acd7dd0abf707d8944ea4063c1db9576c1e6434dc66d51460047f9f63c",
+    "FrameRelay/Platform/Capture/NativeCaptureZoom.swift": "ebfe5f1db9430821afbb1f5ae8049b9b4ed93be7dcd65707bdce9a2427aa72df",
+    "FrameRelayTests/Application/ProductCaptureZoomCoordinatorTests.swift": "405304a5abb854cd9cc68213662c70e607dc88d08736a7685f0cbc1b5179b717",
+    "FrameRelayTests/Domain/CaptureZoomTests.swift": "c5cdb10e46bf6e4fb66e1024cd4a77ea4c7ffe19c925320e747a33902b92546a",
+    "FrameRelayTests/Integration/Composition/ProductCaptureZoomCompositionTests.swift": "c9def7497c36ee70b86a7a0f728adb01e6e437efc1c08dd942c175236be22412",
+    "FrameRelayTests/Platform/Capture/NativeCaptureLensTests.swift": "4b3fd796c096bf7faf5471ae42cfab054b0159616b99e3a088259203a15371fc",
+    "FrameRelayTests/Platform/Capture/NativeCaptureZoomTests.swift": "f1292d5cf1d5fe7ec2cbd81f93a650960247cd12851fe34c9faa06921777d8d0"
+  }
+}

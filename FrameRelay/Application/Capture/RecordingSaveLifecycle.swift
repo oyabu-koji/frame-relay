@@ -100,3 +100,107 @@ nonisolated struct RecordingSaveLifecycle: Sendable {
         }
     }
 }
+
+nonisolated enum OriginalSaveOperationResult: Equatable, Sendable {
+    case ready(RecordingCommitReceipt)
+    case accepted
+    case committed(RecordingResultRecord, RecordingCommitReceipt)
+    case requiresReconciliation(CaptureUnavailableReason)
+    case rejected(CaptureContractError)
+}
+
+/// Product save owner. The caller starts its writer only after `ready`, reports
+/// its actual recording end, then its actual finalized-file evidence. Recovery
+/// never fabricates either callback or restarts an interrupted recording.
+actor OriginalSaveCoordinator {
+    private let store: any RecordingStorePort
+    private let originals: any RecordingOriginalFilePort
+    private let inspection: any CaptureOriginalInspectionPort
+    private var saves: [CaptureID: RecordingSaveLifecycle] = [:]
+    private var busy: Set<CaptureID> = []
+
+    init(store: any RecordingStorePort, originals: any RecordingOriginalFilePort,
+         inspection: any CaptureOriginalInspectionPort) {
+        self.store = store; self.originals = originals; self.inspection = inspection
+    }
+
+    func begin(_ intent: RecordingIntent, token: CaptureCommandToken) async -> OriginalSaveOperationResult {
+        let capture = intent.context.capture
+        guard saves[capture] == nil, busy.insert(capture).inserted else {
+            return .rejected(.duplicateOrOutOfOrder)
+        }
+        defer { busy.remove(capture) }
+        do {
+            var save = try RecordingSaveLifecycle(intent: intent, intentToken: token, revision: 0)
+            guard case .loaded(let snapshot) = await store.loadRecordings() else {
+                return .requiresReconciliation(.resourceUnavailable)
+            }
+            guard !snapshot.recordings.contains(where: { $0.intent.context.capture == capture
+                || $0.intent.original == intent.original || $0.intent.operation == intent.operation }) else {
+                return .rejected(.duplicateOrOutOfOrder)
+            }
+            try await originals.reserveForRecording(intent.original)
+            switch await store.execute(.commitIntent(token, expectedRevision: 0, intent)) {
+            case .committed(let receipt):
+                try save.acceptIntentCommit(receipt)
+                saves[capture] = save
+                return .ready(receipt)
+            case .rejected(_, let error): return .rejected(error)
+            case .unavailable(_, let reason): return .requiresReconciliation(reason)
+            }
+        } catch let error as CaptureContractError { return .rejected(error) }
+        catch { return .requiresReconciliation(.resourceUnavailable) }
+    }
+
+    func recordingEnded(context: CaptureContext, evidence: RecordingEndEvidence) -> OriginalSaveOperationResult {
+        guard !busy.contains(context.capture), var save = saves[context.capture] else {
+            return .rejected(.wrongStage)
+        }
+        do {
+            try save.acceptRecordingEnd(context: context, evidence: evidence)
+            saves[context.capture] = save
+            return .accepted
+        } catch let error as CaptureContractError { return .rejected(error) }
+        catch { return .requiresReconciliation(.evidenceMismatch) }
+    }
+
+    func fileFinalized(_ file: CaptureFileEvidence, resultToken: CaptureCommandToken) async -> OriginalSaveOperationResult {
+        let capture = file.context.capture
+        guard var save = saves[capture], busy.insert(capture).inserted else { return .rejected(.wrongStage) }
+        defer { busy.remove(capture) }
+        do {
+            guard await originals.observeFile(file.original) == .present(byteCount: file.byteCount) else {
+                return .requiresReconciliation(.evidenceMismatch)
+            }
+            try save.acceptFile(file)
+            saves[capture] = save
+            let request = CaptureInspectionRequest(token: resultToken, original: file.original)
+            let inspected: CaptureMediaInspection
+            switch await inspection.inspect(request) {
+            case .inspected(let token, let value):
+                guard token == resultToken else { return .requiresReconciliation(.evidenceMismatch) }
+                inspected = value
+            case .unavailable(let token, let reason):
+                guard token == resultToken else { return .requiresReconciliation(.evidenceMismatch) }
+                inspected = CaptureMediaInspection(context: file.context, original: file.original,
+                    video: .unavailable(reason), audio: .unavailable(reason), format: .unavailable(reason),
+                    playback: .unavailable(reason), completeness: .unknown(reason))
+            }
+            guard await originals.observeFile(file.original) == .present(byteCount: file.byteCount) else {
+                return .requiresReconciliation(.evidenceMismatch)
+            }
+            let command = try save.acceptInspection(inspected, resultToken: resultToken)
+            saves[capture] = save
+            switch await store.execute(command) {
+            case .committed(let receipt):
+                try save.acceptResultCommit(receipt)
+                saves[capture] = save
+                guard let record = save.resultRecord else { return .requiresReconciliation(.evidenceMissing) }
+                return .committed(record, receipt)
+            case .rejected(_, let error): return .rejected(error)
+            case .unavailable(_, let reason): return .requiresReconciliation(reason)
+            }
+        } catch let error as CaptureContractError { return .rejected(error) }
+        catch { return .requiresReconciliation(.resourceUnavailable) }
+    }
+}

@@ -1,0 +1,109 @@
+nonisolated enum BackendStoreChange: Equatable, Sendable, Codable {
+    case registrationIntent(RegistrationIntent)
+    case registration(RegistrationServerReceipt)
+    case batch(TransferBatch)
+    case request(command: MediaOperationID, value: MediaRequest)
+    case verification(command: MediaOperationID, expected: RemoteOperationContext, evidence: VerificationEvidence)
+    /// Confirmation and its sync outbox are one commit.
+    case confirmation(ConfirmationIntent)
+    /// Invalidation tombstone and its ACK outbox are one commit.
+    case invalidation(InvalidationRecord, InvalidationPermit)
+    case requestTransition(command: MediaOperationID, operation: MediaOperationID,
+                           target: MediaTarget, registration: RegistrationIdentity, value: MediaRequestTransition)
+    case publication(PublishedRenditionObservation)
+    case delivered(BackendSyncDelivery)
+    case distribution(MediaDistributionObservation)
+    case temporary(command: MediaOperationID, value: TemporaryMediaChange)
+
+    var key: BackendCommitKey {
+        switch self {
+        case .registrationIntent(let intent): .registrationIntent(intent.operation, intent.destination)
+        case .registration(let receipt): .registration(receipt.intent.operation, receipt.registration)
+        case .batch(let batch): batch.commitKey
+        case .request(let command, let value): .request(command, value.target, value.registration)
+        case .verification(let command, let expected, let evidence): .verification(command, evidence.id, expected)
+        case .confirmation(let intent): intent.key
+        case .invalidation(let record, _): record.key
+        case .requestTransition(let command, let operation, let target, let registration, _):
+            .requestTransition(command, operation, target, registration)
+        case .publication(let value):
+            .observedPublication(value.command, value.registration, value.rendition, value.observation)
+        case .delivered(let value):
+            .outboxDelivery(value.command, value.entry.commit.committedRevision, value.registration)
+        case .distribution(let value):
+            .distributionObservation(value.command, value.lease.id, value.observation)
+        case .temporary(let command, let value): .temporary(command, value.id)
+        }
+    }
+}
+
+nonisolated struct BackendStoreMutation: Equatable, Sendable, Codable {
+    let expectedRevision: UInt64
+    let change: BackendStoreChange
+    /// Optional only for journal compatibility and existing non-registration consumers.
+    let expectedStoreIdentity: RegistrationStoreIdentity?
+
+    init(expectedRevision: UInt64, change: BackendStoreChange,
+         expectedStoreIdentity: RegistrationStoreIdentity? = nil) {
+        self.expectedRevision = expectedRevision
+        self.change = change
+        self.expectedStoreIdentity = expectedStoreIdentity
+    }
+}
+
+nonisolated enum BackendSyncEntry: Equatable, Sendable, Codable {
+    case confirmation(ConfirmationRecord)
+    case invalidation(InvalidationAcknowledgement)
+
+    var commit: BackendCommitReceipt {
+        switch self { case .confirmation(let value): value.commit; case .invalidation(let value): value.commit }
+    }
+    var registration: RegistrationIdentity {
+        switch self {
+        case .confirmation(let value): value.intent.playback.distribution.registration
+        case .invalidation(let value): value.record.registration
+        }
+    }
+}
+
+nonisolated struct BackendStoreSnapshot: Equatable, Sendable {
+    let revision: UInt64
+    let registrationIntents: [CommittedRegistrationIntent]
+    let registrations: [DeviceRegistration]
+    let batches: [TransferBatch]
+    let requests: [MediaRequest]
+    let verifications: [StoredVerificationEvidence]
+    let confirmations: [ConfirmationRecord]
+    let invalidations: [InvalidationAcknowledgement]
+    let outbox: [BackendSyncEntry]
+    var storeIdentity: RegistrationStoreIdentity? = nil
+    var publications: [StoredPublication] = []
+    var confirmationStates: [ConfirmationState] = []
+    var deliveries: [BackendSyncDelivery] = []
+    var distributionObservations: [StoredMediaDistributionObservation] = []
+    var temporaryMedia: [TemporaryMediaState] = []
+}
+
+nonisolated enum BackendStoreLoadResult: Equatable, Sendable {
+    case loaded(BackendStoreSnapshot)
+    case unavailable(BackendFailure)
+}
+
+/// Single writer. Never report `committed` before the durable transaction completes.
+/// Lookup reconciles a lost response for the exact mutation, including target and payload.
+nonisolated protocol MediaOperationStorePort: Sendable {
+    /// Explicit metadata commit before any registration credential is persisted.
+    /// Does not increment the journal revision; compares identity and revision under the writer lock.
+    func establishRegistrationIdentity(expectedRevision: UInt64,
+        expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity
+    func load() async -> BackendStoreLoadResult
+    func commit(_ mutation: BackendStoreMutation) async -> BackendCommitResult
+    func lookupCommit(_ mutation: BackendStoreMutation) async -> BackendCommitResult
+}
+
+nonisolated extension MediaOperationStorePort {
+    func establishRegistrationIdentity(expectedRevision: UInt64,
+        expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity {
+        throw BackendContractError.unavailable
+    }
+}

@@ -7,6 +7,10 @@ nonisolated enum ExplorationCaptureValues {
         ("cinematicExtendedEnhanced", .cinematicExtendedEnhanced)
     ]
 
+    static func stabilizationName(_ value: AVCaptureVideoStabilizationMode) -> String? {
+        stabilizationModes.first { $0.1 == value }?.0
+    }
+
     static func codec(_ value: CaptureCodec) -> AVVideoCodecType {
         switch value {
         case .proRes422LT: return .proRes422LT

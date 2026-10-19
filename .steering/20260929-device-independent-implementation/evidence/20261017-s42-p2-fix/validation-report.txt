@@ -1,0 +1,8 @@
+2026-10-17 S42独立検証（修正前）
+担当: implementation_validator s42_validator / main統合
+判定: 要修正、P2指摘1件。
+再測定開始のSDK lockForConfiguration失敗後、adapterFailure STOP理由がNative stopFailureへ引き継がれず、STOP時固定とwriter終端が成功すると.completedが保存される。完全検査証拠では.savedになり得るが、現行実検査adapterは結果不明であり現在直ちに保存完了表示とは断定しない。
+既存failure fakeは自らinterruptedを生成するため、この開始失敗分岐を検証しない。
+その他: REC安定待ちなし、本人操作/能力未知保持/露出非変更、測定取消と固定後停止、旧通知拒否、終端後Auto/次clip新測定、S41限定回帰に追加指摘なし。
+証跡: 旧test-02 Unit64宣言/89展開＋UI1成功、失敗/skip/runtimeWarnings0。Simulator/generic iOS build成功。173入力/最終13file/保存228件hash一致。元xcresult照合済。新規build/testなし。検証前後5307file不変。
+既知未確認: 実機one-shot/KVO/故障、色/最終フレーム/継続性/録画中UI。S16監査/D01/G2B/S27詳細/S43以降は対象外。

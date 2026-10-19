@@ -1,0 +1,98 @@
+{
+  "children": {
+    "listener": {
+      "actual_exit_observed": true,
+      "exit_code": 0,
+      "pid": 65384
+    },
+    "simulator": {
+      "actual_exit_observed": true,
+      "exit_code": 0,
+      "pid": 65387
+    },
+    "stop_request": {
+      "actual_exit_observed": true,
+      "exit_code": 0,
+      "pid": 65422
+    }
+  },
+  "commands": {
+    "listener": [
+      "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+      "-I",
+      "-B",
+      "-S",
+      "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/source-snapshot/run_pytest.py",
+      "--config",
+      "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/run-config.json"
+    ],
+    "simulator": [
+      "python3",
+      "-I",
+      "-B",
+      "-S",
+      "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/source-snapshot/run_registration_simulator_probe.py",
+      "--config",
+      "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/run-config.json",
+      "--execute-reviewed-xcode"
+    ],
+    "stop_request": [
+      "python3",
+      "-I",
+      "-B",
+      "-S",
+      "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/source-snapshot/request_listener_stop.py",
+      "--config",
+      "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/run-config.json"
+    ]
+  },
+  "elapsed_seconds": 5.593623416032642,
+  "environment_keys_inherited": [
+    "HOME",
+    "LANG",
+    "LC_ALL",
+    "LC_CTYPE",
+    "LOGNAME",
+    "PATH",
+    "TMPDIR",
+    "USER"
+  ],
+  "interpretation": "process lifecycle result only; main must separately inspect the six XCTest results and transport/DB evidence",
+  "listener_result_file": {
+    "kind": "file",
+    "sha256": "5bc375025a4e62ebdd636f814b33db6f376d45ce839841e7db1ab88593d26cf2",
+    "size": 1052
+  },
+  "output_policy": "0600 logs contain frozen listener metadata and wrapper summaries; supervisor does not read credentials or echo child output",
+  "overall_deadline_seconds": 1260,
+  "passed": true,
+  "ready": {
+    "deadline_monotonic": 1011625.272227916,
+    "deadline_seconds": 1200,
+    "destination_id": "0a2af374-cecf-4f1a-8207-597ddbba0741",
+    "pid": 65384,
+    "run_identity": "03a48304-37df-4310-91e6-973cbcfdaedd",
+    "secret_environment_file": "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/runtime-listener-001/simulator-probe-env.json",
+    "started_monotonic": 1010425.272227916,
+    "url": "http://127.0.0.1:50213"
+  },
+  "ready_deadline_seconds": 30,
+  "ready_observed": true,
+  "received_signal": null,
+  "run_identity": "03a48304-37df-4310-91e6-973cbcfdaedd",
+  "runner_result_file": {
+    "kind": "file",
+    "sha256": "01a462533874ea9e848c6af6cd4453ca68578ab99f0ff336b54b1928f77e8ade",
+    "size": 4484
+  },
+  "secret_environment_read": false,
+  "secret_file_absent_after_child_exit": true,
+  "signals_sent": [],
+  "started_monotonic": 1010424.43212625,
+  "stop_helper_attempted": true,
+  "wrapper_result_file": {
+    "kind": "file",
+    "sha256": "6353f3041bc52dd5e43fb42d216129f6e39a2f99ce2b41cc313086ceb6956741",
+    "size": 2676
+  }
+}

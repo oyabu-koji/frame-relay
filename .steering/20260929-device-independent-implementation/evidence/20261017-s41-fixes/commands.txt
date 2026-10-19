@@ -1,0 +1,29 @@
+# Read-only configuration inspection (before implementation)
+xcode-select -p
+xcodebuild -version
+xcrun swift --version
+xcodebuild -list -project FrameRelay.xcodeproj
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -showdestinations
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -showTestPlans
+xcrun simctl list devices booted
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination 'platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719' -showBuildSettings -json
+# Initial enumeration omitted test action and failed with exit 64; corrected command:
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination 'platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719' test -testPlan FrameRelay -enumerate-tests -test-enumeration-format json -test-enumeration-output-path /tmp/fr-s41-test-enumeration.json
+
+# simulator-build
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination 'platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719' -derivedDataPath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s41-fixes-20261017-l5fssrub/DerivedData-Simulator -resultBundlePath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s41-fixes-20261017-l5fssrub/simulator-build.xcresult build
+
+# ios-build
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination generic/platform=iOS -derivedDataPath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s41-fixes-20261017-l5fssrub/DerivedData-iOS -resultBundlePath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s41-fixes-20261017-l5fssrub/ios-build.xcresult CODE_SIGNING_ALLOWED=NO build
+
+# s41-tests
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination 'platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719' -derivedDataPath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s41-fixes-20261017-l5fssrub/DerivedData-Simulator -resultBundlePath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s41-fixes-20261017-l5fssrub/s41-tests.xcresult -testPlan FrameRelay -parallel-testing-enabled NO -only-testing:FrameRelayTests/ProductCaptureCoordinatorTests -only-testing:FrameRelayTests/NativeRecordingStartAdmissionTests -only-testing:FrameRelayTests/CaptureLifecycleTests -only-testing:FrameRelayTests/ExplorationCoordinatorTests -only-testing:FrameRelayTests/ExplorationWBCommandOrderTests -only-testing:FrameRelayTests/ProductCaptureSettingsTests -only-testing:FrameRelayTests/RecordingSaveLifecycleTests -only-testing:FrameRelayTests/ProductRecordingPersistenceTests -only-testing:FrameRelayUITests/ProductCaptureFlowTests test
+
+# final-ios-build
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination generic/platform=iOS -derivedDataPath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s41-fixes-20261017-l5fssrub/DerivedData-iOS -resultBundlePath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s41-fixes-20261017-l5fssrub/final-ios-build.xcresult CODE_SIGNING_ALLOWED=NO build
+
+# final-tests
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination 'platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719' -derivedDataPath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s41-fixes-20261017-l5fssrub/DerivedData-Simulator -resultBundlePath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s41-fixes-20261017-l5fssrub/final-tests.xcresult -testPlan FrameRelay -parallel-testing-enabled NO -only-testing:FrameRelayTests/ProductCaptureCoordinatorTests -only-testing:FrameRelayTests/NativeRecordingStartAdmissionTests -only-testing:FrameRelayTests/CaptureLifecycleTests -only-testing:FrameRelayTests/ExplorationCoordinatorTests -only-testing:FrameRelayTests/ExplorationWBCommandOrderTests -only-testing:FrameRelayTests/ProductCaptureSettingsTests -only-testing:FrameRelayTests/RecordingSaveLifecycleTests -only-testing:FrameRelayTests/ProductRecordingPersistenceTests -only-testing:FrameRelayUITests/ProductCaptureFlowTests test
+
+# final-simulator-build
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination 'platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719' -derivedDataPath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s41-fixes-20261017-l5fssrub/DerivedData-Simulator -resultBundlePath /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-s41-fixes-20261017-l5fssrub/final-simulator-build.xcresult build

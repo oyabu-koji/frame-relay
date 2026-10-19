@@ -1,0 +1,52 @@
+--- S22-frozen/run_pytest.py
++++ S22C/run_pytest.py
+@@ -94,9 +94,10 @@
+     support = Path(__file__).resolve().parent
+     config = json.loads(args.config.read_text())
+     action = config.get("action", "pytest")
+-    if action not in {"pytest", "range-probe", "listener"}:
++    listener_action = action in {"listener", "registration-listener"}
++    if action not in {"pytest", "range-probe", "listener", "registration-listener"}:
+         raise SystemExit("Unreviewed execution action")
+-    if action == "listener" and config.get("allow_reviewed_loopback_listener") is not True:
++    if listener_action and config.get("allow_reviewed_loopback_listener") is not True:
+         raise SystemExit("Listener requires explicit reviewed config; preparation is not authorization")
+     snapshot = Path(config["snapshot"]).resolve(strict=True)
+     backend = snapshot / "backend"
+@@ -138,7 +139,7 @@
+     spec.loader.exec_module(guard_module)
+     guard = guard_module.Guard(runtime,
+         allow_missing_ffprobe_version=config.get("allow_missing_ffprobe_version_probe") is True,
+-        allow_loopback_listener=action == "listener")
++        allow_loopback_listener=listener_action)
+     guard.install()
+     initial_fds = fd_inventory(guard)
+     inherited_home = os.environ.get("HOME")
+@@ -172,7 +173,7 @@
+         "expected_nodes": expected_nodes if action == "pytest" else None,
+         "expected_cases_static": expected_cases if action == "pytest" else None,
+         "fd_before_backend_import": initial_fds,
+-        "listener": "one 127.0.0.1:0 bind" if action == "listener" else "not allowed",
++        "listener": "one 127.0.0.1:0 bind" if listener_action else "not allowed",
+         "subprocess": "only exact nonexistent runtime/disabled-ffprobe -version" if guard.allow_missing_ffprobe_version else "not allowed",
+         "guard_sha256": sha256(support / "isolation_guard.py"), "runner_sha256": sha256(Path(__file__))})
+     result = 70
+@@ -205,7 +206,8 @@
+             observation = probe_module.run(runtime)
+             result = 0 if observation["passed"] and observation["request_thread_terminated"] else 1
+         else:
+-            probe_spec = importlib.util.spec_from_file_location("s20_listener_probe", support / "listener_probe.py")
++            listener_module = "registration_listener.py" if action == "registration-listener" else "listener_probe.py"
++            probe_spec = importlib.util.spec_from_file_location("reviewed_listener_probe", support / listener_module)
+             probe_module = importlib.util.module_from_spec(probe_spec)
+             sys.modules[probe_spec.name] = probe_module
+             probe_spec.loader.exec_module(probe_module)
+@@ -248,6 +250,8 @@
+             "fd_before_explicit_sqlite_close": fd_before_close, "fd_after_explicit_sqlite_close": fd_inventory(guard),
+             "process_exit": "parent must observe actual exit; this is a pre-exit FD inventory",
+             "interpretation": (
++                "actual registration app/SQLite and loopback lifecycle; iOS results are separate; real Wi-Fi/TLS/background remain unverified"
++                if action == "registration-listener" else
+                 "actual loopback listener lifecycle/FD observations; HTTP/AVPlayer results are separate Simulator evidence; "
+                 "product receipts, Log conversion and real Wi-Fi remain unverified"
+                 if action == "listener" else

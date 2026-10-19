@@ -1,0 +1,75 @@
+{
+  "baselineFileCount": 7981,
+  "changedExisting": [
+    ".steering/20260929-device-independent-implementation/design.md",
+    ".steering/20260929-device-independent-implementation/tasklist.md",
+    "FrameRelay/Application/Capture/ProductCaptureCoordinator.swift",
+    "FrameRelay/Application/Library/LibrarySnapshot.swift",
+    "FrameRelay/Features/Library/LibraryModel.swift",
+    "FrameRelay/Platform/OriginalStore/ManagedOriginalStore.swift",
+    "FrameRelayTests/Application/Library/LibraryModelTests.swift",
+    "FrameRelayTests/Application/Library/LibraryProjectionTests.swift",
+    "FrameRelayTests/Application/ProductCaptureAudioCoordinatorTests.swift",
+    "FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift",
+    "docs/architecture.md",
+    "docs/functional-design.md"
+  ],
+  "newSourceFiles": [
+    "FrameRelay/Application/Capture/ProductCapturePostSave.swift",
+    "FrameRelayTests/Application/ProductCapturePostSaveTests.swift",
+    "FrameRelayTests/Integration/Storage/ProductCapturePostSaveStorageTests.swift"
+  ],
+  "unchangedExisting": 7969,
+  "deleted": [],
+  "outsideOwnershipChanges": [],
+  "testedInputCount": 223,
+  "testIosBuildCurrentMismatch": [],
+  "diffCheckExit": 0,
+  "testCounts": {
+    "counts": {
+      "FrameRelayUITests": {
+        "declared_Passed": 3,
+        "expanded_Passed": 3
+      },
+      "FrameRelayTests": {
+        "declared_Passed": 374,
+        "expanded_Passed": 510,
+        "declared_Skipped": 17,
+        "expanded_Skipped": 17
+      }
+    },
+    "skipped": [
+      "LegacyServerPlaybackProbeTests/actualHTTPRejectsMissingTokenAndReturnsTheFixedShortRange()",
+      "LegacyServerPlaybackProbeTests/actualPlayerAdvancesThenSDKLoaderAndNetworkReachTerminal()",
+      "ProductLibrarySeedTests/seedNormalAppContainer()",
+      "ProductLibrarySeedTests/verifySeedIdentityAndReleasedReadersAfterUI()",
+      "PublicationHTTPFixtureTests/canonicalPlaybackConfirmationInvalidationAndReplacement()",
+      "RegistrationServerProbeTests/testRegistrationCommitAndReopenUsesSameIdentity()",
+      "RegistrationServerProbeTests/testLostResponseAndLocalCommitRecovery()",
+      "RegistrationServerProbeTests/testWrongDestinationAndSecretAreRejected()",
+      "RegistrationTransportProbeTests/testRedirectIsRefusedAndSessionTerminates()",
+      "RegistrationTransportProbeTests/testOversizeMetadataIsBoundedAndSessionTerminates()",
+      "RegistrationTransportProbeTests/testCancellationAfterResponseTerminatesTaskAndSession()",
+      "RenditionHTTPFixtureTests/authenticatedStreamingAdvancesBeforeFullFileAndActuallyTerminates()",
+      "RenditionHTTPFixtureTests/rejectsMalformedFixedRangeAndWaitsForTerminal(mode:)",
+      "RenditionHTTPFixtureTests/exactRangeGateChangeAndStopDuringResponse()",
+      "RenditionHTTPFixtureTests/authenticationFailureAndGateLossDuringResponseDoNotDeliverBytes()",
+      "RenditionHTTPFixtureTests/httpRetrievalVerifiesWholeFileBeforePhotoUse()",
+      "RenditionFixtureGenerationTests/generateDisposableMovieAndManifest()"
+    ]
+  },
+  "documentationReview": {
+    "agent": "postsave_docs_review",
+    "findingCount": 0,
+    "paths": [
+      "docs/architecture.md",
+      "docs/functional-design.md"
+    ]
+  },
+  "independentImplementationValidationRun": false,
+  "limitations": [
+    "Physical-device performance and quality not measured",
+    "Unbound originals persist as requiring reconciliation; no new automatic rebind or retry UI",
+    "Existing unrelated steering pending/blocked tasks and S47 ISO decision remain"
+  ]
+}

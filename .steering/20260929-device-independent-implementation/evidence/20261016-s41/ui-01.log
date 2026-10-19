@@ -1,0 +1,162 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination "platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719" -derivedDataPath /tmp/FrameRelay-S41-Simulator -resultBundlePath /tmp/FrameRelay-S41-ui-01.xcresult -parallel-testing-enabled NO "-only-testing:FrameRelayUITests/ProductCaptureFlowTests" test
+
+2026-10-16 21:42:27.020 xcodebuild[17976:37482132] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+Writing result bundle at path:
+	/tmp/FrameRelay-S41-ui-01.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (3 targets)
+    Target 'FrameRelayTests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelayUITests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelay' in project 'FrameRelay' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: 3ef38f9323d4e111d6e259685f384436
+Build description path: /tmp/FrameRelay-S41-Simulator/Build/Intermediates.noindex/XCBuildData/3ef38f9323d4e111d6e259685f384436.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /tmp/FrameRelay-S41-Simulator/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/oyabu/dev/rep/FrameRelay/FrameRelay.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /tmp/FrameRelay-S41-Simulator/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+ProcessInfoPlistFile /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist /tmp/FrameRelay-S41-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /tmp/FrameRelay-S41-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist -producttype com.apple.product-type.application -genpkginfo /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /tmp/FrameRelay-S41-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/assetcatalog_generated_info.plist -o /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist
+
+CopySwiftLibs /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib --scan-folder /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --scan-folder /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns --scan-folder /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/SystemExtensions --scan-folder /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /tmp/FrameRelay-S41-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist /tmp/FrameRelay-S41-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /tmp/FrameRelay-S41-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist
+
+CopySwiftLibs /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests --scan-folder /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Frameworks --scan-folder /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/PlugIns --scan-folder /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/SystemExtensions --scan-folder /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /tmp/FrameRelay-S41-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+CodeSign /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib
+/tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib: replacing existing signature
+
+CodeSign /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib
+/tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib: replacing existing signature
+
+CodeSign /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app
+/tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app: replacing existing signature
+
+Validate /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-validationUtility /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelay.app -shallow-bundle -infoplist-subpath Info.plist
+
+ProcessInfoPlistFile /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist /tmp/FrameRelay-S41-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /tmp/FrameRelay-S41-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /tmp/FrameRelay-S41-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/ProductTypeInfoPlistAdditions.plist -o /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist
+
+CopySwiftLibs /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/FrameRelayUITests --scan-folder /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Frameworks --scan-folder /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/PlugIns --scan-folder /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/SystemExtensions --scan-folder /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /tmp/FrameRelay-S41-Simulator/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /tmp/FrameRelay-S41-Simulator/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+PruneExplicitPrecompiledModules /tmp/FrameRelay-S41-Simulator/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/FrameRelay-S41-Simulator/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/FrameRelay-S41-Simulator/SDKExplicitPrecompiledModules
+
+2026-10-16 21:42:28.932013+0900 FrameRelayUITests-Runner[18007:37482518] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-16 21:42:31.114.
+Test Suite 'FrameRelayUITests.xctest' started at 2026-10-16 21:42:31.115.
+Test Suite 'ProductCaptureFlowTests' started at 2026-10-16 21:42:31.115.
+Test Case '-[FrameRelayUITests.ProductCaptureFlowTests testOrdinaryCaptureWithoutTicketShowsSimulatorLimitationAndReturnsToLibrary]' started.
+    t =     0.00s Start Test at 2026-10-16 21:42:31.116
+    t =     0.08s Set Up
+    t =     0.09s Open com.oyabu.FrameRelay
+    t =     0.09s     Launch com.oyabu.FrameRelay
+2026-10-16 21:42:31.460 xcodebuild[17976:37482132] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-16 21:42:31.460 xcodebuild[17976:37482132] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.59s         Setting up automation session
+objc[18007]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.NUrxb4/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x109f74398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.NUrxb4/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10a624310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     3.11s         Wait for com.oyabu.FrameRelay to idle
+    t =     5.00s Waiting 10.0s for "product.capture" Button to exist
+    t =     6.06s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =     6.06s         Checking existence of `"product.capture" Button`
+    t =     6.23s Tap "product.capture" Button
+    t =     6.23s     Wait for com.oyabu.FrameRelay to idle
+    t =     6.23s     Find the "product.capture" Button
+    t =     6.26s     Check for interrupting elements affecting "product.capture" Button
+    t =     6.30s     Synthesize event
+    t =     6.76s     Wait for com.oyabu.FrameRelay to idle
+    t =     6.85s Waiting 10.0s for "capture.issue" StaticText to exist
+    t =     7.91s     Checking `Expect predicate `existsNoRetry == 1` for object "capture.issue" StaticText`
+    t =     7.91s         Checking existence of `"capture.issue" StaticText`
+    t =     7.99s Find the "capture.issue" StaticText
+    t =     8.03s Find the "capture.rec" Button
+    t =     8.07s Checking existence of `"exploration.import" Button`
+    t =     8.10s Tap "capture.closeToolbar" Button
+    t =     8.10s     Wait for com.oyabu.FrameRelay to idle
+    t =     8.11s     Find the "capture.closeToolbar" Button
+    t =     8.15s     Check for interrupting elements affecting "capture.closeToolbar" Button
+    t =     8.18s     Synthesize event
+    t =     8.48s     Wait for com.oyabu.FrameRelay to idle
+    t =     8.92s Waiting 5.0s for "product.capture" Button to exist
+    t =     9.97s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =     9.97s         Checking existence of `"product.capture" Button`
+    t =    10.00s Checking existence of `"library.refresh" Button`
+    t =    10.03s Tear Down
+Test Case '-[FrameRelayUITests.ProductCaptureFlowTests testOrdinaryCaptureWithoutTicketShowsSimulatorLimitationAndReturnsToLibrary]' passed (10.280 seconds).
+Test Suite 'ProductCaptureFlowTests' passed at 2026-10-16 21:42:41.396.
+	 Executed 1 test, with 0 failures (0 unexpected) in 10.280 (10.282) seconds
+Test Suite 'FrameRelayUITests.xctest' passed at 2026-10-16 21:42:41.397.
+	 Executed 1 test, with 0 failures (0 unexpected) in 10.280 (10.282) seconds
+Test Suite 'Selected tests' passed at 2026-10-16 21:42:41.398.
+	 Executed 1 test, with 0 failures (0 unexpected) in 10.280 (10.283) seconds
+2026-10-16 21:42:41.722 xcodebuild[17976:37482132] [MT] IDETestOperationsObserverDebug: 14.004 elapsed -- Testing started completed.
+2026-10-16 21:42:41.722 xcodebuild[17976:37482132] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-16 21:42:41.722 xcodebuild[17976:37482132] [MT] IDETestOperationsObserverDebug: 14.004 sec, +14.004 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/FrameRelay-S41-ui-01.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

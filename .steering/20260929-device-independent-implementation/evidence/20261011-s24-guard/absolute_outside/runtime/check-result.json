@@ -1,0 +1,38 @@
+{
+  "actual_denials": 1,
+  "backend_imported": false,
+  "case": "absolute_outside",
+  "correct_resolved_write_path": true,
+  "expected": [
+    "denied"
+  ],
+  "expected_denials": 1,
+  "guard": {
+    "counts": {
+      "denied:open": 1,
+      "open": 1,
+      "os.chdir": 1
+    },
+    "denials": [
+      {
+        "detail": {
+          "outside_runtime": "/private/tmp/fr-s24-guard-20261011-001/absolute_outside/outside/created"
+        },
+        "event": "open"
+      }
+    ],
+    "foreign_thread_connections_not_explicitly_closed": [],
+    "limitation": "Python audit/connection guard is not an OS/native-code sandbox",
+    "sqlite_close_failures": [],
+    "sqlite_connection_events": [],
+    "sqlite_connections_alive_after_explicit_close": 0,
+    "sqlite_connections_alive_before_explicit_close": 0
+  },
+  "guard_sha256": "74015efc998eb3dc8fe45387bc65b9e9bb2bbacd24ece43991ee644eff2e8265",
+  "outcomes": [
+    "denied"
+  ],
+  "outside_unchanged": true,
+  "passed": true,
+  "subprocess_launched": false
+}

@@ -1,0 +1,18 @@
+--- baseline/FrameRelay/Application/Ports/ProductCapturePorts.swift
++++ FrameRelay/Application/Ports/ProductCapturePorts.swift
+@@ -17,6 +17,7 @@
+ nonisolated protocol ProductCaptureDevicePort: CaptureControlPort {
+     func discoverCameras() async throws -> [ExplorationCameraDescription]
+     func prepare(_ request: ProductCapturePreparation) async throws -> ExplorationPrepared
++    func stabilizationSnapshots() async -> AsyncStream<CaptureStabilizationSnapshot>
+     func audioSnapshots() async -> AsyncStream<ProductCaptureAudioSnapshot>
+     func recoverAudio(_ request: ProductCaptureAudioRecoveryRequest) async -> CaptureAudioRecoveryOutcome
+     func cancelAudioRecovery(_ request: ProductCaptureAudioRecoveryRequest) async
+@@ -34,6 +35,7 @@
+ extension OriginalSaveCoordinator: ProductCaptureSavePort {}
+ 
+ extension ProductCaptureDevicePort {
++    func stabilizationSnapshots() async -> AsyncStream<CaptureStabilizationSnapshot> { AsyncStream { $0.finish() } }
+     /// Adapters without audio observation remain explicitly unavailable; no fake valid input is made here.
+     func audioSnapshots() async -> AsyncStream<ProductCaptureAudioSnapshot> { AsyncStream { $0.finish() } }
+     func recoverAudio(_ request: ProductCaptureAudioRecoveryRequest) async -> CaptureAudioRecoveryOutcome {

@@ -1,0 +1,1163 @@
+--- /private/tmp/fr-validation-fixes-20261018-bu8tvcdc/baseline/.steering/20260929-device-independent-implementation/design.md	2026-10-18 21:57:05
++++ /Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/design.md	2026-10-18 23:09:57
+@@ -49,6 +49,8 @@
+ 
+ 原本は予約→保存意図commit→記録→記録終端→ファイル確定→検査→結果commit→再open照合の順。映像／音声／Log／完全性の取得不能はunknownを保持する。内容世代は実ファイル内容に結び、撮影設定世代・store revision・再起動で置き換えたり再採番したりしない。全内容digestは読取り安定区間のファイルに対して計算し、登録済み内容identityとの不一致を拒否する。
+ 
++S41の保存結果commit応答までは撮影側の安全終端として次RECを抑止し、以後はCompositionが保持する撮影coordinator内の`ProductCapturePostSave`が原本参照固定の単一queueでbind→一覧更新を所有する。後処理は離脱・次RECでも存続し、現クリップやRECゲートへ成功/失敗を書き戻さない。全内容digestを予約actorから専用actorへ分け、同一FD・64KiB逐次全量読取り・前後stat・取消検査を維持する。一覧の追加refresh要求は保持し、未bindingは原本対応の要照合として保存分類/削除状態と区別する。未binding原本の転送・容量整理・原本再生を拒否し、保存結果と実ファイルを保持して再起動時はread-onlyで表示する。自動再bind・新規再試行UI・schemaは追加しない。実機速度・品質は未確認であり、DV-11で別に評価する。
++
+ 原本ごとのorderingはread lease、削除予約、失効の順序を共有する。新規読取りを止めたうえでupload・player・検査等の全readerを取消し、SDK完了通知とhandle解放を照合してから削除へ渡す。cancel呼出し／通信停止要求だけを解放済みにしない。削除結果不明の予約は、実ファイルと記録の照合完了まで失わない。撮影中のwriterも終端・保存分類が確定するまで削除しない。
+ 
+ SwiftUIはMainActor上の投影・操作受付を扱い、長いhash／DB／媒体処理をViewに置かない。既存のSwift5、MainActor既定・Approachable Concurrency設定の下で、I/Oの専用actor／queueとSendable値境界を明示する。非同期callbackはclip／操作／内容／登録／版／世代を照合し、古い結果を現行状態へ適用しない。task cancellationと外部操作の実完了・結果不明を区別する。
+--- /private/tmp/fr-validation-fixes-20261018-bu8tvcdc/baseline/.steering/20260929-device-independent-implementation/tasklist.md	2026-10-18 22:50:26
++++ /Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/tasklist.md	2026-10-18 23:17:36
+@@ -12,8 +12,23 @@
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-18、S47独立部分実装・必要検証完了、ISO本人判断待ち）
++## 現在の再開点（2026-10-18、独立validation指摘2件の修正完了）
++
++- **S41 / done（validation差戻し2件の修正・必要検証完了）**: 同steeringへの明示implementにより、直前のP1テストcompile再現失敗とP2保存後ハッシュ/一覧更新による次REC抑止を修正した。全体の未完了taskやS47の未回答ISO方針は保持する。今回のmain確認は独立validationの代行ではない。
++- **直前の独立validation**: App Simulator buildは成功。別々の空DerivedDataで通常Unit/撮影UI testを2回実行し、`ProductCaptureCoordinatorTests.swift` の3actor隔離診断で両方exit65/0件実行。保存結果commit後も全量digestと一覧更新を`isSaving`へ含める経路がarchitectureの次REC条件に違反。元ログ・xcresultは `/private/tmp/fr-validation-20261018-zzhjxcwh/` に保持する。
++- **保全・所有**: 開始時7981file/180454194bytesを全hash付きで `/private/tmp/fr-validation-fixes-20261018-bu8tvcdc/baseline/` へcopy済み。既存dirty/untrackedへ限定変更し、reset/revert/stashは使わない。mainはtasklist/新規証跡/実行検証/最終差分、`compile_investigation` と `postsave_design` はread-only調査。コードworkerの所有は調査後に確定し、P1→P2の順に同一ファイルの所有を直列で引き渡す。
++- **完了条件**: 標準Xcode設定・新規DerivedDataから必要testが実行でき、保存の安全終端後は内容対応/一覧更新だけで次RECを抑止せず、後処理中の次録画・離脱・失敗が新クリップを壊さないこと。未binding原本の転送/整理禁止、原本保全・復旧を維持する。実機性能や全steering受入へ昇格しない。
++- **P1所有確定**: worker `validation_fixes` が `FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift` の3actor準拠宣言だけを単独所有する。actor状態/await/試験意味を保持し、既存の本番実装と同じextension準拠へ移す最小案を検証する。project/言語/Portsは変更しない。P2コードはP1引渡し・検証後に所有を追加する。
++- **P1検証 / 完了**: 3actorの準拠だけを空extensionへ移した。mainはbaselineとの差分6箇所・本体不変を確認し、新規DerivedDataの`p1-test-01`でCoordinator 21宣言/21実行成功、skip/失敗/compiler・analyzer診断0。標準Debug/Swift5/iOS27.0を維持、220入力の実行中変更0。Xcode27.0/Swift6.4、実在scheme/test plan/3targetと当日のiPhone18 Pro Simulatorを確認して実行。過去2回のcompile失敗は保持し、最終P2回帰でも新規DerivedDataから共有helperを再確認する。
++- **P2所有・判断 / 着手**: 同workerへProductCaptureCoordinatorと新規後処理owner、ManagedOriginalStoreと必要なdigest helper、LibrarySnapshot/LibraryModel、各対応Unit/Storage試験だけを単独引渡し。保存commit応答までは安全境界を保持し、以後は原本固定queueの単一Taskでbind→一覧更新を所有する。hashは専用actorへ渡して予約actorの全量読取占有を除き、同FD/64KiB/前後stat/取消検査を維持する。後処理は現在クリップを変更せず、未bindingは原本軸の要照合・操作不可として表示する。追加refreshを取りこぼさない。既存schemaとread-only復旧を維持し、再起動後の自動bind/新規再試行UIは追加しない。
++- **関連所有追加**: `ProductCaptureAudioCoordinatorTests.swift` の保存待ち/音声retryを検証する1testだけ同workerへ追加。実保存待ち中のretry拒否は保持し、commit後の一覧更新待ちを音声復旧条件から外す新境界に合わせる。永続文書2件は`postsave_docs`が所有し、`postsave_docs_review`は今回diffに指摘なし。steering designはmainが同じ境界を反映した。
++- **P2部分検証**: mainの新規DerivedData `p2-targeted-01` は関連10suite/72宣言・102展開成功、失敗/skip/compiler・analyzer診断0、223入力不変。実FD/hash処理中の別原本予約、取消/改変時の同FD終端解放、未binding実Movieの再openと操作拒否、保存境界/後処理遅延/次clip/離脱/失敗/重複通知、一覧refresh取りこぼしを検証した。
++- **E-S41-VFIX-01 / 最終検証**: 別の新規DerivedData `final-test-01` は全Unit374宣言/510展開成功、既存17skip、通常撮影UI3件成功、失敗/runtimeWarnings/compiler・analyzer診断0。skipは外部HTTP/probe・fixture生成・製品Libraryの明示seed実行用であり、成功に含めない。`final-ios-build-01` は確認済みgeneric iOS destination・署名なしでbuild成功。test/実機向けbuild/現物の223入力は一致。stdoutの既存AppIntents metadata警告は保持し、実機起動/品質/速度の成功としない。
++- **E-S41-VFIX-01 / main差分確認**: baselineに対し既存12file変更、新3source/testを追加。内訳はApp/test11file、永続docs2file、steering design/tasklist。project/README/memo/要求/旧steering/旧証跡を含む所有外変更・欠落0、diff-check成功。証跡は `evidence/20261018-validation-fixes/`、raw xcresultと全開始時copyはrepo外rootに保持する。過去validationの失敗ログも同証跡へ保全した。
++- **残件・次工程**: 原本保存前の安全検査を省略せず、内容対応未完了の転送/整理/再生を拒否する。アプリ終了で未bindingが残った場合の自動再bind/新規再試行UIは未実装であり、保存結果と実原本を保持して一覧の要照合へ復元する。実機次REC性能/DV、S47のISO方針、他task/全steering受入の既知残件を保持する。独立再検証は同pathの明示 `$validate-implementation` へ引き渡す。
+ 
++## 直前のS47実装記録（2026-10-18、独立部分実装・必要検証完了、ISO本人判断待ち）
++
+ - **S47 / blocked（ISOの本人判断・通常経路への注入待ち）**: 目標選択→構図予告→開始→目標/途中停止、ズーム停止と録画停止の分離、実SDK由来の停止候補・版付き暫定設定をS41/S44へ接続した。対応レンズ制御・限定ISO・手動優先・切替後保持・実値表示の本体と注入試験も完了。ISO基準/上限案は未回答のため通常Factoryはpolicy=nil、レンズ切替は理由付き無効のままとする。
+ - **E-S47-01**: 最終final-test-09で全Unit365宣言/496展開ケース成功、17skip、失敗0、通常撮影UI3件成功。Simulator test buildとgeneric iOS署名なしbuild成功。最終220入力はtest/iOSbuild/現物で一致。初期compile失敗・新fixture失敗/中断も `evidence/20261018-s47/` に保持した。
+ - **保全・所有**: 開始時7599fileを基準に既存10file変更・新10file、削除/所有外変更/旧証跡変更0を確認。worker2名はコード/testの所有を分離、document_authorは関連永続2文書、mainはtasklist/証跡/構成確認/実行検証/最終diffを担当。doc_reviewer指摘なし。Simulator保存設定は開始時hash一致。
+@@ -584,6 +599,7 @@
+ ### S41 撮影設定・実適用・記録保存を製品接続
+ 
+ - [x] Status: done
++  - 再開・完了（2026-10-18、独立validation差戻し）: 上記現在の再開点のP1/P2を修正し、標準構成・新規DerivedDataで全Unit374宣言/510展開＋通常撮影UI3件成功、既存17skipを別記。generic iOS build成功、223入力一致。保存後処理と次RECを分離し、実FD・再open・遅延/失敗/離脱の回帰も成功した。E-S41-VFIX-01、`evidence/20261018-validation-fixes/`。過去の実装/成功/失敗証拠は保持し、実機/全体受入へ昇格しない。
+   - E-S41-V01 / 2026-10-17 独立検証: `implementation_validator` がP1/P2修正後を限定合格・指摘なしと判定。173入力と旧保存再生統合の依存不変を照合し追加build/test不要、検証中347file不変。報告/構成確認/照合は `evidence/20261017-s42/s41-validation-report.txt` と同名関連証跡を参照。その後のS42変更はS42の限定回帰で確認し、S42独立検証は別に残す。以下E-S41-03の未検証表記は当時の履歴。
+   - E-S41-03 / 2026-10-17 修正完了: P1はNative本番submitが使用する開始判定で、現行WB所有・未試行の開始要求のSDK前提不成立だけに `notStarted` 終端を一度生成。旧世代/別context/重複/開始済み要求へ終端を偽装せず、一般commandFailed規則は保持。coordinatorの保存待機が終わり、再準備→再RECと離脱解放に進める。未開始をファイル確定・正常保存へ昇格しない。
+   - E-S41-03 / 離脱境界: 明示入場ごとにvisitを発行し、load/discover/設定適用/prepareとViewの連続呼出しを同visitへ束縛。各await後にvisit/離脱/取消を照合し、準備完了前は各呼出しが自身のdeviceを所有。旧処理・旧shutdownが新しいdeviceやbusy状態を消さない。録画/保存ownerは終端まで継続。背景後は新しい本人操作で再準備する。離脱中に遅延設定saveが完了した場合は再読込を要求し、変更された記録方式の旧準備を再利用しない。
+--- /private/tmp/fr-validation-fixes-20261018-bu8tvcdc/baseline/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift	2026-10-18 22:45:18
++++ /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift	2026-10-18 23:12:23
+@@ -34,8 +34,7 @@
+     @ObservationIgnored private let preferenceStore: any ProductCapturePreferencePort
+     @ObservationIgnored private let makeDevice: @Sendable (ExplorationOutputCandidate) async throws -> any ProductCaptureDevicePort
+     @ObservationIgnored private let save: any ProductCaptureSavePort
+-    @ObservationIgnored private let bindOriginal: @Sendable (CaptureOriginalReference) async -> Bool
+-    @ObservationIgnored private let didSave: @MainActor @Sendable () async -> Void
++    @ObservationIgnored private let postSave: ProductCapturePostSave
+     @ObservationIgnored private let calendarNow: (@Sendable () -> Date)?
+     @ObservationIgnored private let captureNow: @Sendable () -> CaptureTimeObservation
+     @ObservationIgnored private var device: (any ProductCaptureDevicePort)?
+@@ -60,6 +59,7 @@
+     @ObservationIgnored private var activeIntent: RecordingIntent?
+     @ObservationIgnored private var pendingEnd: RecordingEndEvidence?
+     @ObservationIgnored private var pendingFile: CaptureFileEvidence?
++    @ObservationIgnored private var fileFinalizationUnconfirmed = false
+     @ObservationIgnored private var intentReady = false
+     @ObservationIgnored private var endDelivered = false
+     @ObservationIgnored private var saveFinished = false
+@@ -86,7 +86,7 @@
+          calendarNow: (@Sendable () -> Date)? = nil,
+          captureNow: @escaping @Sendable () -> CaptureTimeObservation = { .unavailable(.notMeasured) }) {
+         preferenceStore = preferences; self.makeDevice = makeDevice; self.save = save
+-        self.bindOriginal = bindOriginal; self.didSave = didSave
++        postSave = ProductCapturePostSave(bindOriginal: bindOriginal, didSave: didSave)
+         self.calendarNow = calendarNow; self.captureNow = captureNow
+         self.audioPolicy = audioPolicy
+         self.subjectPolicy = subjectPolicy
+@@ -338,6 +338,7 @@
+         capture = lifecycle
+         activeIntent = intent
+         pendingEnd = nil; pendingFile = nil; intentReady = false
++        fileFinalizationUnconfirmed = false
+         endDelivered = false; saveFinished = false; saveResult = nil
+         await perform(transition)
+         isStarting = false
+@@ -735,8 +736,8 @@
+                     await perform(next)
+                     await drainSave()
+                     if !intentReady {
+-                        await didSave()
+-                        isSaving = false
++                        isSaving = false
++                        postSave.enqueue(intent.original, needsBinding: false)
+                     }
+                 }
+             case .store(.commitResult): break // Result writes belong exclusively to OriginalSaveCoordinator.
+@@ -769,11 +770,12 @@
+             pendingFile = file
+             await drainSave()
+         case .observation(let observation):
+-            if observation.code == "file_finalization_unconfirmed", observation.context == activeIntent?.context {
+-                issue = "録画は停止しましたがファイルの確定を確認できません。一覧で照合してください。"
+-                saveFinished = true
+-                await didSave()
+-                isSaving = false
++            if observation.code == "file_finalization_unconfirmed", let intent = activeIntent,
++               observation.context == intent.context, !saveFinished {
++                fileFinalizationUnconfirmed = true
++                // A concurrent save must retain ownership until its awaited store
++                // operation returns. Drain will consume this terminal if no file arrives.
++                if !drainingSave, intentReady, endDelivered { finishUnconfirmedFile(intent) }
+             }
+         }
+         await finishLeavingIfPossible()
+@@ -786,29 +788,44 @@
+         if !endDelivered {
+             guard case .accepted = await save.recordingEnded(context: intent.context, evidence: end) else {
+                 issue = "記録終端の保存照合が必要です。"; saveFinished = true
+-                await didSave(); isSaving = false; return
++                isSaving = false
++                postSave.enqueue(intent.original, needsBinding: false)
++                return
+             }
+             endDelivered = true
+         }
+         if end.writer == .notStarted {
+             issue = "録画は開始されませんでした。保存意図は一覧で要確認として残ります。"
+             saveFinished = true
+-            await didSave(); isSaving = false; return
++            isSaving = false
++            postSave.enqueue(intent.original, needsBinding: false)
++            return
+         }
+-        guard let file = pendingFile else { return }
++        guard let file = pendingFile else {
++            if fileFinalizationUnconfirmed { finishUnconfirmedFile(intent) }
++            return
++        }
+         let token = CaptureCommandToken(context: intent.context, operation: intent.operation, ordinal: 100)
+         let result = await save.fileFinalized(file, resultToken: token)
++        // The durable save terminal is the capture boundary. Content binding and
++        // library projection have their own original-scoped lifetime after it.
+         saveFinished = true
++        isSaving = false
+         switch result {
+         case .committed(let record, _):
+             saveResult = record.result
+-            if !(await bindOriginal(intent.original)) {
+-                issue = "保存結果を記録しました。原本と一覧の対応は確認が必要です。"
+-            }
+-        default: issue = "保存結果を確定できません。一覧で原本と保存記録を確認してください。"
++            postSave.enqueue(intent.original, needsBinding: true)
++        default:
++            issue = "保存結果を確定できません。一覧で原本と保存記録を確認してください。"
++            postSave.enqueue(intent.original, needsBinding: false)
+         }
+-        await didSave()
++    }
++
++    private func finishUnconfirmedFile(_ intent: RecordingIntent) {
++        issue = "録画は停止しましたがファイルの確定を確認できません。一覧で照合してください。"
++        saveFinished = true
+         isSaving = false
++        postSave.enqueue(intent.original, needsBinding: false)
+     }
+ 
+     private func finishLeavingIfPossible() async {
+--- /private/tmp/fr-validation-fixes-20261018-bu8tvcdc/baseline/FrameRelay/Application/Library/LibrarySnapshot.swift	2026-10-16 21:32:31
++++ /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Library/LibrarySnapshot.swift	2026-10-18 23:06:42
+@@ -118,6 +118,7 @@
+                 && $0.binding.saveCommit == recording.resultCommit
+         } ?? true
+         let bound = bindingMatches ? state : nil
++        let identityUnresolved = recording.result != nil && bound == nil
+         let removal: LibraryRemoval
+         if let intent = bound?.removal ?? bound?.resolvedRemoval {
+             if intent.original != bound?.binding.original {
+@@ -163,7 +164,8 @@
+                 }
+             case .original:
+                 switch file {
+-                case .present: value = "原本あり"
++                case .present:
++                    value = identityUnresolved ? "原本あり・内容の対応未確定・要照合" : "原本あり"
+                 case .absent: value = "原本なし"
+                 case .unavailable: value = "アクセスできません・要照合"
+                 }
+@@ -192,7 +194,7 @@
+         }
+         return LibraryItem(recording: recording, file: file, original: bound?.binding.original,
+             removal: removal,
+-            requiresReconciliation: !bindingMatches || saveUnresolved || fileUnresolved || removalUnresolved,
++            requiresReconciliation: !bindingMatches || identityUnresolved || saveUnresolved || fileUnresolved || removalUnresolved,
+             statuses: statuses)
+     }
+ }
+--- /private/tmp/fr-validation-fixes-20261018-bu8tvcdc/baseline/FrameRelay/Features/Library/LibraryModel.swift	2026-10-04 15:56:04
++++ /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Features/Library/LibraryModel.swift	2026-10-18 23:06:42
+@@ -12,6 +12,8 @@
+     private(set) var submissions: [LibrarySubmission] = []
+     var submission: LibrarySubmission? { submissions.last }
+     private(set) var inputIssue: String?
++    @ObservationIgnored private var refreshRequested = false
++    @ObservationIgnored private var refreshWaiters: [CheckedContinuation<Void, Never>] = []
+ 
+     init(reader: any LibraryReadPort, commands: any LibraryCommandPort = UnconnectedLibraryCommands()) {
+         self.reader = reader
+@@ -19,18 +21,28 @@
+     }
+ 
+     func refresh() async {
+-        guard !isLoading else { return }
+-        isLoading = true
+-        defer { isLoading = false }
+-        switch await reader.loadLibrary() {
+-        case .loaded(let value):
+-            snapshot = value
+-            failure = nil
+-            selected.formIntersection(Set(value.recordings.map(\.id)))
+-        case .unavailable(let reason):
+-            // Keep prior rows explicitly stale. Never replace a read failure with an empty library.
+-            failure = reason
++        if isLoading {
++            refreshRequested = true
++            await withCheckedContinuation { refreshWaiters.append($0) }
++            return
+         }
++        isLoading = true
++        repeat {
++            refreshRequested = false
++            switch await reader.loadLibrary() {
++            case .loaded(let value):
++                snapshot = value
++                failure = nil
++                selected.formIntersection(Set(value.recordings.map(\.id)))
++            case .unavailable(let reason):
++                // Keep prior rows explicitly stale. Never replace a read failure with an empty library.
++                failure = reason
++            }
++        } while refreshRequested
++        isLoading = false
++        let waiters = refreshWaiters
++        refreshWaiters.removeAll()
++        for waiter in waiters { waiter.resume() }
+     }
+ 
+     func select(_ capture: CaptureID, selected shouldSelect: Bool) {
+--- /private/tmp/fr-validation-fixes-20261018-bu8tvcdc/baseline/FrameRelay/Platform/OriginalStore/ManagedOriginalStore.swift	2026-10-02 00:23:08
++++ /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/OriginalStore/ManagedOriginalStore.swift	2026-10-18 23:10:48
+@@ -12,8 +12,12 @@
+ /// Reservations persist separately, so reopening cannot reuse an existing ID.
+ actor ManagedOriginalStore: ExplorationOriginalDestinationPort, RecordingOriginalFilePort, ManagedOriginalReadOpeningPort {
+     private let run: ExplorationRunDirectory
++    private let digestWorker: ManagedOriginalDigestWorker
+ 
+-    init(run: ExplorationRunDirectory) { self.run = run }
++    init(run: ExplorationRunDirectory, digestCheckpoint: (@Sendable (Int32) async -> Void)? = nil) {
++        self.run = run
++        digestWorker = ManagedOriginalDigestWorker(checkpoint: digestCheckpoint)
++    }
+ 
+     func reserveForRecording(_ original: CaptureOriginalReference) throws {
+         _ = try reserve(original: original)
+@@ -80,19 +84,19 @@
+ 
+     /// Sequential, bounded-memory reading. A digest proves these bytes only, not
+     /// playability, Log encoding, camera identity, stabilization, or quality.
+-    func digest(for original: CaptureOriginalReference) throws -> OriginalContentDigest {
++    func digest(for original: CaptureOriginalReference) async throws -> OriginalContentDigest {
+         let descriptor = try openOriginal(original)
+         defer { close(descriptor) }
+-        return try digest(original: original, descriptor: descriptor)
++        return try await digestWorker.digest(original: original, descriptor: descriptor)
+     }
+ 
+     /// The returned descriptor is the same one whose complete bytes were hashed.
+     /// It is owned by the lease adapter until actual close succeeds.
+-    func openBoundRead(_ binding: OriginalBinding) throws -> ManagedOriginalReadHandle {
++    func openBoundRead(_ binding: OriginalBinding) async throws -> ManagedOriginalReadHandle {
+         let descriptor = try openOriginal(binding.reference)
+         do {
+             let fingerprint = try OriginalFileFingerprint(descriptor: descriptor)
+-            let observed = try digest(original: binding.reference, descriptor: descriptor)
++            let observed = try await digestWorker.digest(original: binding.reference, descriptor: descriptor)
+             guard observed.byteCount == binding.original.content.byteCount,
+                   binding.original.content.algorithm == "sha256", observed.sha256 == binding.original.content.digest,
+                   lseek(descriptor, 0, SEEK_SET) == 0 else { throw CaptureContractError.evidenceMismatch }
+@@ -110,7 +114,27 @@
+         } catch { close(descriptor); throw error }
+     }
+ 
+-    private func digest(original: CaptureOriginalReference, descriptor: Int32) throws -> OriginalContentDigest {
++    private func openOriginal(_ original: CaptureOriginalReference) throws -> Int32 {
++        let url = try existingURL(for: original)
++        let descriptor = open(url.path, O_RDONLY | O_NOFOLLOW)
++        guard descriptor >= 0 else { throw ExplorationStorageError.inaccessible }
++        var info = stat()
++        guard fstat(descriptor, &info) == 0, info.st_mode & S_IFMT == S_IFREG, info.st_nlink == 1 else {
++            close(descriptor)
++            throw ExplorationStorageError.unsafePath
++        }
++        return descriptor
++    }
++}
++
++/// Full-file reads never occupy the reservation actor. The caller keeps the
++/// descriptor open across this hop and closes it only after the worker returns.
++private actor ManagedOriginalDigestWorker {
++    private let checkpoint: (@Sendable (Int32) async -> Void)?
++
++    init(checkpoint: (@Sendable (Int32) async -> Void)?) { self.checkpoint = checkpoint }
++
++    func digest(original: CaptureOriginalReference, descriptor: Int32) async throws -> OriginalContentDigest {
+         var before = stat()
+         guard fstat(descriptor, &before) == 0 else { throw ExplorationStorageError.inaccessible }
+         var hasher = SHA256()
+@@ -126,6 +150,7 @@
+             }
+             if count == 0 { break }
+             hasher.update(data: Data(buffer.prefix(count)))
++            if total == 0, let checkpoint { await checkpoint(descriptor) }
+             let next = total.addingReportingOverflow(UInt64(count))
+             guard !next.overflow else { throw ExplorationStorageError.inaccessible }
+             total = next.partialValue
+@@ -141,15 +166,4 @@
+                                      sha256: hasher.finalize().map { String(format: "%02x", $0) }.joined())
+     }
+ 
+-    private func openOriginal(_ original: CaptureOriginalReference) throws -> Int32 {
+-        let url = try existingURL(for: original)
+-        let descriptor = open(url.path, O_RDONLY | O_NOFOLLOW)
+-        guard descriptor >= 0 else { throw ExplorationStorageError.inaccessible }
+-        var info = stat()
+-        guard fstat(descriptor, &info) == 0, info.st_mode & S_IFMT == S_IFREG, info.st_nlink == 1 else {
+-            close(descriptor)
+-            throw ExplorationStorageError.unsafePath
+-        }
+-        return descriptor
+-    }
+ }
+--- /private/tmp/fr-validation-fixes-20261018-bu8tvcdc/baseline/FrameRelayTests/Application/Library/LibraryModelTests.swift	2026-10-04 15:57:02
++++ /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/Library/LibraryModelTests.swift	2026-10-18 23:09:36
+@@ -2,6 +2,38 @@
+ @testable import FrameRelay
+ 
+ @MainActor struct LibraryModelTests {
++    @Test func overlappingRefreshWaitsForANewReadInsteadOfLosingCommittedRows() async throws {
++        let first = try librarySnapshot(["one"])
++        let latest = LibrarySnapshot(revision: 4, items: try librarySnapshot(["one", "two"]).items)
++        let firstGate = ProductCaptureTestGate()
++        let nextGate = ProductCaptureTestGate()
++        let reader = LibraryDelayedReader(initial: first, latest: latest, firstGate: firstGate, nextGate: nextGate)
++        let model = LibraryModel(reader: reader)
++        let firstRefresh = Task { await model.refresh() }
++        await firstGate.waitUntilHeld()
++        var refreshReturned = false
++        var requestStarted = false
++        let overlapping = Task {
++            requestStarted = true
++            await model.refresh()
++            refreshReturned = true
++        }
++        while !requestStarted { await Task.yield() }
++        #expect(!refreshReturned)
++        await firstGate.release()
++        await nextGate.waitUntilHeld()
++        #expect(model.snapshot == first)
++        #expect(model.isLoading)
++        #expect(!refreshReturned)
++        await nextGate.release()
++        await firstRefresh.value
++        await overlapping.value
++        #expect(refreshReturned)
++        #expect(model.snapshot == latest)
++        #expect(!model.isLoading)
++        #expect(await reader.reads == 2)
++    }
++
+     @Test func failedLoadKeepsPriorRowsAndNeverAppearsAsEmptySuccess() async throws {
+         let initial = try librarySnapshot(["one"])
+         let reader = LibraryMemoryReader(.loaded(initial))
+@@ -172,6 +204,32 @@
+     }
+ }
+ 
++private actor LibraryDelayedReader {
++    let initial: LibrarySnapshot
++    let latest: LibrarySnapshot
++    let firstGate: ProductCaptureTestGate
++    let nextGate: ProductCaptureTestGate
++    private(set) var reads = 0
++
++    init(initial: LibrarySnapshot, latest: LibrarySnapshot,
++         firstGate: ProductCaptureTestGate, nextGate: ProductCaptureTestGate) {
++        self.initial = initial; self.latest = latest
++        self.firstGate = firstGate; self.nextGate = nextGate
++    }
++
++    func loadLibrary() async -> LibraryLoadResult {
++        reads += 1
++        if reads == 1 {
++            await firstGate.holdOnce()
++            return .loaded(initial)
++        }
++        await nextGate.holdOnce()
++        return .loaded(latest)
++    }
++}
++
++extension LibraryDelayedReader: LibraryReadPort {}
++
+ private actor LibraryMemoryReader: LibraryReadPort {
+     private var result: LibraryLoadResult
+     init(_ result: LibraryLoadResult) { self.result = result }
+--- /private/tmp/fr-validation-fixes-20261018-bu8tvcdc/baseline/FrameRelayTests/Application/Library/LibraryProjectionTests.swift	2026-10-04 15:57:02
++++ /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/Library/LibraryProjectionTests.swift	2026-10-18 23:09:36
+@@ -2,6 +2,21 @@
+ @testable import FrameRelay
+ 
+ struct LibraryProjectionTests {
++    @Test(arguments: [RecordingSaveResult.saved, .partial(.evidenceMissing), .failed(.evidenceMissing)])
++    func committedFileWithoutBindingExplicitlyRequiresIdentityReconciliation(result: RecordingSaveResult) throws {
++        let entry = try libraryRecording("unbound", result: result)
++        let item = LibraryProjection.item(entry, file: .present(byteCount: 4096), state: nil)
++        #expect(item.original == nil)
++        #expect(item.requiresReconciliation)
++        #expect(item.status(.original) == "原本あり・内容の対応未確定・要照合")
++        #expect(item.recording.result?.result == result)
++        #expect(item.removal == .none)
++        #expect(!item.isDiscardHistory)
++        let bound = LibraryProjection.item(entry, file: .present(byteCount: 4096), state: try libraryOriginalState(entry))
++        #expect(!bound.requiresReconciliation)
++        #expect(bound.status(.original) == "原本あり")
++    }
++
+     @Test(arguments: [RecordingSaveResult.saved, .partial(.evidenceMissing), .unknown(.evidenceMissing), .failed(.evidenceMissing)])
+     func presenceNeverChangesHistoricalSaveResult(result: RecordingSaveResult) throws {
+         let entry = try libraryRecording("synthetic-save", result: result)
+--- /private/tmp/fr-validation-fixes-20261018-bu8tvcdc/baseline/FrameRelayTests/Application/ProductCaptureAudioCoordinatorTests.swift	2026-10-18 00:27:00
++++ /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/ProductCaptureAudioCoordinatorTests.swift	2026-10-18 23:12:23
+@@ -70,14 +70,15 @@
+         let f = try CaptureFixture()
+         let device = ProductCaptureTestDevice(fixture: f)
+         let probe = ProductCaptureTestProbe(holdRefresh: true)
+-        let save = ProductCaptureTestSave()
++        let fileGate = ProductCaptureTestGate()
++        let save = ProductCaptureTestSave(fileGate: fileGate)
+         let model = try make(f, device: device, save: save, didSave: { await probe.refresh() })
+         await open(model); await model.record()
+         await eventually { model.capture?.phase == .recording }
+         let context = try #require(model.capture?.context)
+         let failed = audioFailure(f)
+         await device.emitAudio(failed, sequence: 20, capture: context.capture)
+-        await probe.waitForRefresh()
++        await fileGate.waitUntilHeld()
+         await device.emit(.capture(.audioObserved(context, sequence: 19, f.audio)))
+         for _ in 0..<30 { await Task.yield() }
+         #expect(model.currentAudio?.confirmedFailure != nil)
+@@ -85,8 +86,14 @@
+         await model.retryAudio()
+         #expect(await device.audioRecoveryCalls == 0)
+         #expect(await save.ends.first?.writer != .completed)
+-        await probe.releaseRefresh()
++        await fileGate.release()
++        await probe.waitForRefresh()
+         await eventually { model.canRetryAudio }
++        #expect(model.currentAudio?.confirmedFailure != nil)
++        await model.retryAudio()
++        #expect(await device.audioRecoveryCalls == 1)
++        #expect(model.currentAudio?.confirmedFailure == nil)
++        await probe.releaseRefresh()
+         await model.leaveCapture()
+     }
+ 
+--- /private/tmp/fr-validation-fixes-20261018-bu8tvcdc/baseline/FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift	2026-10-18 08:15:43
++++ /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift	2026-10-18 23:10:48
+@@ -194,7 +194,9 @@
+         await model.stop()
+         await eventually { model.saveResult != nil && !model.isSaving }
+         #expect(model.saveResult == .unknown(.notMeasured))
++        await probe.waitForRefreshCount(1)
+         #expect(await probe.bound == [intent.original])
++        await probe.waitForRefreshCount(1)
+         #expect(await probe.refreshes == 1)
+         #expect(await save.ends.count == 1)
+         #expect(await save.files.count == 1)
+@@ -202,6 +204,7 @@
+         for _ in 0..<20 { await Task.yield() }
+         #expect(await save.ends.count == 1)
+         #expect(await save.files.count == 1)
++        await probe.waitForRefreshCount(1)
+         #expect(await probe.refreshes == 1)
+     }
+ 
+@@ -225,6 +228,7 @@
+         #expect(await save.ends.first?.writer == .notStarted)
+         #expect(await save.files.isEmpty)
+         #expect(await probe.bound.isEmpty)
++        await probe.waitForRefreshCount(1)
+         #expect(await probe.refreshes == 1)
+     }
+ 
+@@ -253,6 +257,7 @@
+         await model.leaveCapture()
+         await save.releaseIntent()
+         await start.value
++        await probe.waitForRefreshCount(1)
+         #expect(await probe.refreshes == 1)
+         #expect(await device.startCount == 0)
+         #expect(await device.shutdowns == 1)
+@@ -260,7 +265,7 @@
+         #expect(model.issue != nil)
+     }
+ 
+-    @Test func listRefreshMustFinishBeforeNextRECOrReconfiguration() async throws {
++    @Test func listRefreshDoesNotHoldNextRECOrChangeItsState() async throws {
+         let fixture = try CaptureFixture()
+         let device = ProductCaptureTestDevice(fixture: fixture)
+         let save = ProductCaptureTestSave()
+@@ -271,17 +276,27 @@
+         await model.stop()
+         await probe.waitForRefresh()
+         let context = try #require(model.capture?.context)
+-        #expect(model.isSaving)
+-        #expect(!model.canRecord)
+-        await model.record()
+-        await model.updatePreferences(.init())
+-        await model.prepare()
+-        #expect(model.capture?.context == context)
++        #expect(!model.isSaving)
++        #expect(model.canRecord)
++        await model.record()
++        await eventually { model.capture?.phase == .recording }
++        let nextContext = try #require(model.capture?.context)
++        #expect(nextContext != context)
+         #expect(model.preferences.desired == fixture.desired)
+-        #expect(await save.intents.count == 1)
++        #expect(await save.intents.count == 2)
+         await probe.releaseRefresh()
+-        await eventually { !model.isBusy }
++        #expect(model.capture?.context == nextContext)
++        #expect(model.capture?.phase == .recording)
++        #expect(model.saveResult == nil)
++        #expect(model.issue == nil)
++        await probe.waitForRefreshCount(1)
+         #expect(await probe.refreshes == 1)
++        await model.stop()
++        await eventually { model.canRecord }
++        await probe.waitForRefreshCount(2)
++        let originals = await save.intents.map(\.original)
++        #expect(await probe.bound == originals)
++        await model.leaveCapture()
+     }
+ 
+     @Test func audioInputFailureAfterPreparationBlocksNextREC() async throws {
+@@ -318,6 +333,7 @@
+         #expect(await save.ends.first?.writer == .notStarted)
+         #expect(await save.files.isEmpty)
+         #expect(await probe.bound.isEmpty)
++        await probe.waitForRefreshCount(1)
+         #expect(await probe.refreshes == 1)
+         #expect(model.saveResult == nil)
+         let rejected = try #require(await device.commands.first { if case .startRecording = $0 { return true }; return false })
+@@ -326,6 +342,7 @@
+         await device.repeatLastEndAndFile()
+         for _ in 0..<20 { await Task.yield() }
+         #expect(await save.ends.count == 1)
++        await probe.waitForRefreshCount(1)
+         #expect(await probe.refreshes == 1)
+         await model.prepare()
+         #expect(model.canRecord)
+@@ -564,7 +581,7 @@
+     }
+ }
+ 
+-actor ProductCaptureTestPreferences: ProductCapturePreferencePort {
++actor ProductCaptureTestPreferences {
+     private var value: ProductCapturePreferences
+     private let loadGate: ProductCaptureTestGate?
+     private let saveGate: ProductCaptureTestGate?
+@@ -578,17 +595,23 @@
+     }
+ }
+ 
++extension ProductCaptureTestPreferences: ProductCapturePreferencePort {}
++
+ actor ProductCaptureTestProbe {
+     private let holdRefresh: Bool
+     private var release: CheckedContinuation<Void, Never>?
+     private var waiting: CheckedContinuation<Void, Never>?
++    private var refreshWaiters: [(Int, CheckedContinuation<Void, Never>)] = []
+     init(holdRefresh: Bool = false) { self.holdRefresh = holdRefresh }
+     private(set) var bound: [CaptureOriginalReference] = []
+     private(set) var refreshes = 0
+     func bind(_ original: CaptureOriginalReference) -> Bool { bound.append(original); return true }
+     func refresh() async {
+         refreshes += 1
+-        if holdRefresh {
++        let ready = refreshWaiters.filter { $0.0 <= refreshes }
++        refreshWaiters.removeAll { $0.0 <= refreshes }
++        for (_, waiter) in ready { waiter.resume() }
++        if holdRefresh && refreshes == 1 {
+             await withCheckedContinuation { continuation in
+                 release = continuation
+                 waiting?.resume(); waiting = nil
+@@ -600,12 +623,17 @@
+         await withCheckedContinuation { waiting = $0 }
+     }
+     func releaseRefresh() { release?.resume(); release = nil }
++    func waitForRefreshCount(_ count: Int) async {
++        if refreshes >= count { return }
++        await withCheckedContinuation { refreshWaiters.append((count, $0)) }
++    }
+ }
+ 
+-actor ProductCaptureTestDevice: ProductCaptureDevicePort {
++actor ProductCaptureTestDevice {
+     private let fixture: CaptureFixture
+     private let differ: Bool
+     private let rejectStart: Bool
++    private let unconfirmedFile: Bool
+     private let holdInitialLock: Bool
+     private let holdRefresh: Bool
+     private let refreshSupported: Bool
+@@ -643,8 +671,10 @@
+     init(fixture: CaptureFixture, differ: Bool = false, rejectStart: Bool = false,
+          discoverGate: ProductCaptureTestGate? = nil, prepareGate: ProductCaptureTestGate? = nil,
+          previewGate: ProductCaptureTestGate? = nil, shutdownGate: ProductCaptureTestGate? = nil,
+-         holdInitialLock: Bool = false, holdRefresh: Bool = false, refreshSupported: Bool = true) {
++         holdInitialLock: Bool = false, holdRefresh: Bool = false, refreshSupported: Bool = true,
++         unconfirmedFile: Bool = false) {
+         self.fixture = fixture; self.differ = differ; self.rejectStart = rejectStart
++        self.unconfirmedFile = unconfirmedFile
+         self.holdInitialLock = holdInitialLock; self.holdRefresh = holdRefresh; self.refreshSupported = refreshSupported
+         nextLock = fixture.lock
+         self.discoverGate = discoverGate; self.prepareGate = prepareGate
+@@ -793,24 +823,38 @@
+         pendingStop = nil
+         let end = failed ? RecordingEndEvidence(writer: .interrupted(.adapterFailure(code: "synthetic-wb-lock")),
+             ceasedAt: fixture.time, lastVideo: fixture.time, lastAudio: fixture.time) : fixture.end
+-        lastEvents = [.capture(.recordingEnded(token, end)),
+-            .fileFinalized(.init(context: intent.context, original: intent.original, byteCount: 4096, finalizedAt: fixture.time))]
++        lastEvents = [.capture(.recordingEnded(token, end))]
++        if unconfirmedFile {
++            lastEvents.append(.observation(.init(code: "file_finalization_unconfirmed", context: token.context,
++                time: fixture.time, detail: "synthetic")))
++        } else {
++            lastEvents.append(.fileFinalized(.init(context: intent.context, original: intent.original,
++                byteCount: 4096, finalizedAt: fixture.time)))
++        }
+         for event in lastEvents { emit(event) }
+     }
+     func emit(_ event: ExplorationDeviceEvent) { continuation.yield(event) }
+     func repeatLastEndAndFile() { for event in lastEvents { emit(event) } }
+ }
+ 
+-actor ProductCaptureTestSave: ProductCaptureSavePort {
++extension ProductCaptureTestDevice: ProductCaptureDevicePort {}
++
++actor ProductCaptureTestSave {
+     private let delayIntent: Bool
+     private let unknownIntent: Bool
++    private let fileGate: ProductCaptureTestGate?
++    private let endGate: ProductCaptureTestGate?
++    private let failResult: Bool
+     private var release: CheckedContinuation<Void, Never>?
+     private var started: CheckedContinuation<Void, Never>?
+     private(set) var intents: [RecordingIntent] = []
+     private(set) var ends: [RecordingEndEvidence] = []
+     private(set) var files: [CaptureFileEvidence] = []
+-    init(delayIntent: Bool = false, unknownIntent: Bool = false) {
++    init(delayIntent: Bool = false, unknownIntent: Bool = false,
++         fileGate: ProductCaptureTestGate? = nil, failResult: Bool = false, endGate: ProductCaptureTestGate? = nil) {
+         self.delayIntent = delayIntent; self.unknownIntent = unknownIntent
++        self.fileGate = fileGate; self.failResult = failResult
++        self.endGate = endGate
+     }
+     func waitForIntent() async {
+         if !intents.isEmpty { return }
+@@ -828,11 +872,15 @@
+         if unknownIntent { return .requiresReconciliation(.interrupted) }
+         return .ready(.init(token: token, previousRevision: 0, committedRevision: 1))
+     }
+-    func recordingEnded(context: CaptureContext, evidence: RecordingEndEvidence) -> OriginalSaveOperationResult {
+-        ends.append(evidence); return .accepted
++    func recordingEnded(context: CaptureContext, evidence: RecordingEndEvidence) async -> OriginalSaveOperationResult {
++        ends.append(evidence)
++        await endGate?.holdOnce()
++        return .accepted
+     }
+-    func fileFinalized(_ file: CaptureFileEvidence, resultToken: CaptureCommandToken) -> OriginalSaveOperationResult {
++    func fileFinalized(_ file: CaptureFileEvidence, resultToken: CaptureCommandToken) async -> OriginalSaveOperationResult {
+         files.append(file)
++        await fileGate?.holdOnce()
++        if failResult { return .requiresReconciliation(.interrupted) }
+         guard let intent = intents.last, let end = ends.last else { return .rejected(.wrongStage) }
+         let inspection = CaptureMediaInspection(context: intent.context, original: intent.original,
+             video: .unavailable(.notMeasured), audio: .unavailable(.notMeasured), format: .unavailable(.notMeasured),
+@@ -842,6 +890,8 @@
+     }
+ }
+ 
++extension ProductCaptureTestSave: ProductCaptureSavePort {}
++
+ /// A one-use suspension that deliberately ignores cancellation, like a late SDK/store callback.
+ actor ProductCaptureTestGate {
+     private var used = false
+--- /private/tmp/fr-validation-fixes-20261018-bu8tvcdc/baseline/docs/architecture.md	2026-10-18 22:34:32
++++ /Users/oyabu/dev/rep/FrameRelay/docs/architecture.md	2026-10-18 23:09:00
+@@ -192,8 +192,12 @@
+ 
+ 暦時計はCompositionから注入し、REC受付時に一度だけ観測する。ミリ秒精度へ揃えた同一値を `RecordingIntent.capturedAt` と両記録候補の媒体metadataへ渡し、単調時計の `acceptedAt`、実記録開始、最初のフレームの時刻とは区別する。後続の転送/Photosにもこの撮影日時を保持する。
+ 
+-記録意図のcommit後に実記録開始へ進み、記録終端とファイル確定を `OriginalSaveCoordinator` へ渡す。保存結果のcommit後に原本の内容対応をbindし、一覧を再読込みして既存の原本再生へ渡す。保存結果とbindの成否は分離し、対応未確定を再生可能と偽装しない。初回fps・記録二候補の扱い・暦日時の観測点は2026-10-16のS41で合意済みだが、実機での記録方式の正式採用D01・G2B・画質は未確認として保持する。
++記録意図のcommit後に実記録開始へ進み、記録終端とファイル確定を `OriginalSaveCoordinator` へ渡す。保存結果のcommit応答までは撮影側の保存処理として次RECを抑止する。応答後は保存結果を保持し、原本参照を固定した `ProductCapturePostSave` の単一queueへ渡す。内容対応のbindと続く一覧再読込みはこの後処理ownerが直列に行い、その完了を次RECの条件にしない。撮影coordinatorはCompositionが保持し、後処理は画面離脱や次の撮影でも存続する。後処理の成功・失敗を現在クリップの状態やRECゲートへ書き戻さない。
++
++全内容digestは原本予約を扱うactorから専用actorへ渡し、全量読取りによって次の予約を占有しない。同一の開いたファイル記述子を使い、64KiB単位の全量読取り、前後のstat照合、取消検査を維持する。一覧の読込み中に追加更新を求められた場合は、その要求を保持して再読込みする。保存結果と内容対応は別軸で、未bindingだけを削除結果不明にせず、原本の対応未確定・要照合として表示する。未binding原本は転送・容量整理・原本再生へ渡さない。
+ 
++アプリ終了後も保存済みの結果と原本ファイルを保持し、再起動時は既存記録とファイルの読取りから未bindingを表示する。後処理queueの永続化、自動再bind、新規の再試行UIやschemaは今回追加しない。初回fps・記録二候補の扱い・暦日時の観測点は2026-10-16のS41で合意済みだが、実機での記録方式の正式採用D01・G2B・画質・次RECの性能は未確認として保持する。
++
+ 記録経路は音声/映像のタイムスタンプ、実適用設定、writer終端をCapturePort内で追跡する。REC時のWB固定をND完了やUI描画に依存させず、最後の記録フレーム後に待機Autoへ戻す。音量値がゼロであること、入力が届かないこと、書込が失敗したことを別の観測としてApplicationへ渡す。部分ファイル救済の成功を保証しない。
+ 
+ WB再固定はApplicationが録画状態と現在の対応能力から本人操作の可否を判定し、Native側が機器のmode・custom gains対応を照合する。後方互換のoptional能力値がnilの場合は未確認とし、対応済みへ補完しない。対応する機器では本人操作でone-shot `autoWhiteBalance`を開始し、`locked`への遷移観測後に現在のgainを固定する。その適用完了を再固定の確定とし、固定の測定秒数や色の品質閾値を追加しない。ISO・絞り・シャッターは変更しない。
+--- /private/tmp/fr-validation-fixes-20261018-bu8tvcdc/baseline/docs/functional-design.md	2026-10-18 22:34:17
++++ /Users/oyabu/dev/rep/FrameRelay/docs/functional-design.md	2026-10-18 23:09:20
+@@ -59,7 +59,7 @@
+ 4. REC時点で得られているWBを記録用に固定し、音声付き記録の開始を確認して録画中表示へ移る。WBの安定待ちは入れない。REC受付・記録開始・最初のフレームは別の時点として測定する。
+ 5. 録画中は音声メーター・入力有効性と実適用値を継続表示する。ズーム・対応するレンズ切替・WBの明示合わせ直しを扱う。STOPまたは確認済み音声障害・記録不能で記録停止へ進む。
+ 6. 最後の記録フレームまでWB固定を保ち、記録終了後に待機用Autoへ戻す。ファイルの確定・照合を行い、正常保存・部分保存・結果不明・失敗を通知する。録画停止を保存成功とは扱わない。
+-7. 推奨操作案U1では撮影画面に留まり、保存結果を控えめに通知する。次のRECは記録先・音声等が準備でき次第許可する。前クリップのサムネイル・管理情報の後処理は分離し、未完了保存は保持する。記録と確定書込の並行可能性は実機検証対象で、必要な準備中は理由を表示する。
++7. 推奨操作案U1では撮影画面に留まり、保存結果を控えめに通知する。通常撮影では保存結果のcommit応答まで次RECを抑止し、その後は記録先・音声等の準備条件で判断する。前クリップの内容対応の照合・一覧更新・サムネイル等の後処理は分離し、完了待ちを次RECの条件にしない。内容対応と一覧更新は画面離脱や次の撮影でも原本ごとに処理し、後処理の失敗を次クリップの撮影障害として表示しない。未完了保存は保持し、必要な準備中は理由を表示する。連続撮影時の負荷・次RECの速度は実機検証対象とする。
+ 
+ ### F2 手動転送からRec.709軽量版生成へ
+ 
+@@ -280,13 +280,16 @@
+ 
+ | 照合結果 | 更新と表示 | 次の操作 |
+ | --- | --- | --- |
+-| 保存完了の証拠と音声・映像を含む対象ファイルが一致 | 正常保存 | 再生・転送・条件に応じた整理/破棄 |
++| 保存完了の証拠と音声・映像を含む対象ファイルが一致し、内容対応も確定 | 正常保存 | 再生・転送・条件に応じた整理/破棄 |
++| 保存結果はcommit済みだが内容対応が未確定 | 保存分類を保持し、原本が存在するときは「原本あり・内容の対応未確定・要照合」。未対応だけを削除結果不明と表示しない | 内容対応が確定するまで原本再生・転送・容量整理は不可。次RECはF1の準備条件で判断 |
+ | 一部だけ読める/正常区間だけ確定 | 部分保存。失われた可能性を表示 | 部分内容を確認して転送/破棄。部分ファイルの救済成功を保証しない |
+ | 記録とファイルが食い違う、アクセスや検査が未完了 | 結果不明、照合が必要 | 照合を再試行。確定前の転送・容量整理は不可。破棄は対象を確定できた場合だけ別確認で扱う |
+ | 書込失敗が確定し利用可能な原本なし | 保存失敗 | 理由と再撮影/設定変更等を表示。存在しないファイルの削除成功にしない |
+ 
+ 書込終了通知後でも永続記録更新前に中断し得る。復旧は最後の表示値ではなくファイルと操作記録から行う。ライブラリを開いたことが照合開始の唯一の契機にならないよう、未完了操作の復旧はアプリの管理状態に属する。
+ 
++内容対応の後処理中や失敗後にアプリが終了しても、保存済みの結果と原本ファイルを保持する。再起動後は記録とファイルを読み取り、未対応を要照合のまま表示する。今回のS41修正では自動再bindや新しい再試行UIを追加しない。一覧読込み中の追加更新要求は保持し、後処理の完了が表示へ反映されないままにならないよう再読込みする。
++
+ ### S4 動画通信・保存検証・変換
+ 
+ - 動画本体の共通ゲートを原本アップロード、軽量版の写真保存用取得、軽量プレビューのストリーミング/一時取得の全てに適用する。Wi-Fi不在、REC開始/録画、保存・異常終了処理中は送受信を止める。ローカル再生はこのWi-Fiゲートを通さない。
+--- /dev/null	2026-10-18 23:18:14
++++ /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Capture/ProductCapturePostSave.swift	2026-10-18 23:08:53
+@@ -0,0 +1,43 @@
++import Foundation
++
++/// Owns completed originals independently of the current capture or screen visit.
++@MainActor
++final class ProductCapturePostSave {
++    private struct Job {
++        let original: CaptureOriginalReference
++        let needsBinding: Bool
++    }
++
++    private let bindOriginal: @Sendable (CaptureOriginalReference) async -> Bool
++    private let didSave: @MainActor @Sendable () async -> Void
++    private var accepted: Set<CaptureOriginalReference> = []
++    private var queue: [Job] = []
++    private var drainTask: Task<Void, Never>?
++
++    init(bindOriginal: @escaping @Sendable (CaptureOriginalReference) async -> Bool,
++         didSave: @escaping @MainActor @Sendable () async -> Void) {
++        self.bindOriginal = bindOriginal
++        self.didSave = didSave
++    }
++
++    func enqueue(_ original: CaptureOriginalReference, needsBinding: Bool) {
++        guard accepted.insert(original).inserted else { return }
++        queue.append(.init(original: original, needsBinding: needsBinding))
++        guard drainTask == nil else { return }
++        // Retain this owner until every queued original is handled. Navigation and
++        // capture cancellation do not cancel this task or its persistent work.
++        drainTask = Task { await drain() }
++    }
++
++    private func drain() async {
++        while !queue.isEmpty {
++            let job = queue.removeFirst()
++            if job.needsBinding { _ = await bindOriginal(job.original) }
++            // Failed binding remains unbound in the store and visible as requiring
++            // reconciliation. It never becomes the next capture's issue.
++            await didSave()
++            accepted.remove(job.original)
++        }
++        drainTask = nil
++    }
++}
+--- /dev/null	2026-10-18 23:18:14
++++ /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/ProductCapturePostSaveTests.swift	2026-10-18 23:10:48
+@@ -0,0 +1,217 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@MainActor
++struct ProductCapturePostSaveTests {
++    @Test func unconfirmedFileWaitsForEndPersistenceAndDuplicatesCannotRefreshAgain() async throws {
++        let fixture = try CaptureFixture()
++        let endGate = ProductCaptureTestGate()
++        let device = ProductCaptureTestDevice(fixture: fixture, unconfirmedFile: true)
++        let save = ProductCaptureTestSave(endGate: endGate)
++        let probe = ProductCaptureTestProbe()
++        let model = ProductCaptureCoordinator(preferences: ProductCaptureTestPreferences(fixture: fixture),
++            makeDevice: { _ in device }, save: save,
++            bindOriginal: { await probe.bind($0) }, didSave: { await probe.refresh() }, calendarNow: { Date() })
++        model.enterCapture()
++        await model.load(); await model.prepare(); await model.record()
++        await eventually { model.capture?.phase == .recording }
++        await model.stop()
++        await endGate.waitUntilHeld()
++        #expect(model.isSaving)
++        #expect(model.issue == nil)
++        #expect(await probe.refreshes == 0)
++        await device.repeatLastEndAndFile()
++        await endGate.release()
++        await eventually { !model.isBusy }
++        await probe.waitForRefreshCount(1)
++        #expect(model.saveResult == nil)
++        #expect(model.issue?.contains("ファイルの確定") == true)
++        #expect(await save.files.isEmpty)
++        #expect(await probe.bound.isEmpty)
++        await device.repeatLastEndAndFile()
++        for _ in 0..<20 { await Task.yield() }
++        #expect(await probe.refreshes == 1)
++        #expect(await save.ends.count == 1)
++        await model.leaveCapture()
++    }
++
++    @Test(arguments: [false, true])
++    func safeSaveWaitsButSlowBindingCannotBlockOrContaminateLaterClips(bindSucceeds: Bool) async throws {
++        let fixture = try CaptureFixture()
++        let fileGate = ProductCaptureTestGate()
++        let bindGate = ProductCaptureTestGate()
++        let device = ProductCaptureTestDevice(fixture: fixture)
++        let save = ProductCaptureTestSave(fileGate: fileGate)
++        let probe = PostSaveProbe(bindGate: bindGate, bindSucceeds: bindSucceeds)
++        let model = makeModel(fixture: fixture, devices: [device], save: save, probe: probe)
++        await model.load(); await model.prepare(); await model.record()
++        await eventually { model.capture?.phase == .recording }
++        await model.stop()
++        await fileGate.waitUntilHeld()
++        #expect(model.isSaving)
++        #expect(!model.canRecord)
++        await model.record()
++        await model.updatePreferences(.init())
++        #expect(await save.intents.count == 1)
++        #expect(model.preferences.desired == fixture.desired)
++        await fileGate.release()
++        await bindGate.waitUntilHeld()
++        await eventually { model.canRecord }
++        #expect(model.saveResult == .unknown(.notMeasured))
++        #expect(!model.isSaving)
++        await model.record()
++        await eventually { model.capture?.phase == .recording }
++        await model.stop()
++        await eventually { model.canRecord }
++        #expect(await save.files.count == 2)
++        #expect(await probe.bound.count == 1)
++        #expect(await probe.refreshes == 0)
++        await model.record()
++        await eventually { model.capture?.phase == .recording }
++        let third = try #require(model.capture?.context)
++        await bindGate.release()
++        await probe.waitForRefreshes(2)
++        #expect(model.capture?.context == third)
++        #expect(model.capture?.phase == .recording)
++        #expect(model.isSaving)
++        #expect(model.saveResult == nil)
++        #expect(model.issue == nil)
++        await device.repeatLastEndAndFile()
++        await model.stop()
++        await eventually { model.canRecord }
++        await probe.waitForRefreshes(3)
++        let originals = await save.intents.map(\.original)
++        #expect(await probe.bound == originals)
++        #expect(await probe.events == originals.flatMap { ["bind:\($0.rawValue)", "refresh"] })
++        #expect(await save.files.count == 3)
++        await device.emit(.observation(.init(code: "file_finalization_unconfirmed", context: third,
++            time: fixture.time, detail: "late-terminal")))
++        await device.repeatLastEndAndFile()
++        for _ in 0..<20 { await Task.yield() }
++        #expect(await probe.refreshes == 3)
++        #expect(model.issue == nil)
++        #expect(model.saveResult == .unknown(.notMeasured))
++        await model.leaveCapture()
++    }
++
++    @Test func settingsAndNavigationDoNotCancelQueuedOriginalOrAffectNewVisit() async throws {
++        let fixture = try CaptureFixture()
++        let bindGate = ProductCaptureTestGate()
++        let first = ProductCaptureTestDevice(fixture: fixture)
++        let second = ProductCaptureTestDevice(fixture: fixture)
++        let save = ProductCaptureTestSave()
++        let probe = PostSaveProbe(bindGate: bindGate, bindSucceeds: false)
++        let model = makeModel(fixture: fixture, devices: [first, second], save: save, probe: probe)
++        await model.load(); await model.prepare(); await model.record()
++        await eventually { model.capture?.phase == .recording }
++        await model.stop()
++        await bindGate.waitUntilHeld()
++        await eventually { model.canRecord }
++        let changed = ProductCapturePreferences(desired: fixture.desired, outputCandidate: .movieFile)
++        await model.updatePreferences(changed)
++        #expect(model.preferences == changed)
++        #expect(await first.shutdowns == 1)
++        await model.leaveCapture()
++        model.enterCapture()
++        await model.load(); await model.prepare(); await model.record()
++        await eventually { model.capture?.phase == .recording }
++        let context = try #require(model.capture?.context)
++        await bindGate.release()
++        await probe.waitForRefreshes(1)
++        #expect(model.capture?.context == context)
++        #expect(model.capture?.phase == .recording)
++        #expect(model.preferences == changed)
++        #expect(model.issue == nil)
++        #expect(model.saveResult == nil)
++        await model.stop()
++        await eventually { model.canRecord }
++        await probe.waitForRefreshes(2)
++        let originals = await save.intents.map(\.original)
++        #expect(await probe.bound == originals)
++        await model.leaveCapture()
++    }
++
++    @Test func failedSaveRefreshDoesNotDelayRepreparationOrOverwriteNextRecording() async throws {
++        let fixture = try CaptureFixture()
++        let first = ProductCaptureTestDevice(fixture: fixture)
++        let second = ProductCaptureTestDevice(fixture: fixture)
++        let factory = ProductCaptureTestDeviceFactory([first, second])
++        let probe = ProductCaptureTestProbe(holdRefresh: true)
++        let save = ProductCaptureTestSave(failResult: true)
++        let model = ProductCaptureCoordinator(preferences: ProductCaptureTestPreferences(fixture: fixture),
++            makeDevice: { await factory.make(candidate: $0) }, save: save,
++            bindOriginal: { await probe.bind($0) }, didSave: { await probe.refresh() }, calendarNow: { Date() })
++        model.enterCapture()
++        await model.load(); await model.prepare(); await model.record()
++        await eventually { model.capture?.phase == .recording }
++        await model.stop()
++        await probe.waitForRefresh()
++        #expect(!model.isSaving)
++        #expect(model.issue != nil)
++        #expect(model.saveResult == nil)
++        #expect(await probe.bound.isEmpty)
++        await model.prepare(); await model.record()
++        await eventually { model.capture?.phase == .recording }
++        let context = try #require(model.capture?.context)
++        await probe.releaseRefresh()
++        #expect(model.capture?.context == context)
++        #expect(model.issue == nil)
++        #expect(model.isSaving)
++        await model.stop()
++        await eventually { !model.isBusy }
++        await probe.waitForRefreshCount(2)
++        await model.leaveCapture()
++    }
++
++    private func makeModel(fixture: CaptureFixture, devices: [ProductCaptureTestDevice],
++                           save: ProductCaptureTestSave, probe: PostSaveProbe) -> ProductCaptureCoordinator {
++        let factory = ProductCaptureTestDeviceFactory(devices)
++        let model = ProductCaptureCoordinator(preferences: ProductCaptureTestPreferences(fixture: fixture),
++            makeDevice: { await factory.make(candidate: $0) }, save: save,
++            bindOriginal: { await probe.bind($0) }, didSave: { await probe.refresh() }, calendarNow: { Date() })
++        model.enterCapture()
++        return model
++    }
++
++    private func eventually(_ condition: @MainActor () -> Bool) async {
++        for _ in 0..<2_000 {
++            if condition() { return }
++            await Task.yield()
++        }
++        #expect(condition())
++    }
++}
++
++private actor PostSaveProbe {
++    private let bindGate: ProductCaptureTestGate
++    private let bindSucceeds: Bool
++    private(set) var bound: [CaptureOriginalReference] = []
++    private(set) var events: [String] = []
++    private(set) var refreshes = 0
++    private var waiters: [(Int, CheckedContinuation<Void, Never>)] = []
++
++    init(bindGate: ProductCaptureTestGate, bindSucceeds: Bool) {
++        self.bindGate = bindGate; self.bindSucceeds = bindSucceeds
++    }
++
++    func bind(_ original: CaptureOriginalReference) async -> Bool {
++        bound.append(original)
++        events.append("bind:\(original.rawValue)")
++        await bindGate.holdOnce()
++        return bindSucceeds
++    }
++
++    func refresh() {
++        events.append("refresh")
++        refreshes += 1
++        let ready = waiters.filter { $0.0 <= refreshes }
++        waiters.removeAll { $0.0 <= refreshes }
++        for (_, waiter) in ready { waiter.resume() }
++    }
++
++    func waitForRefreshes(_ count: Int) async {
++        if refreshes >= count { return }
++        await withCheckedContinuation { waiters.append((count, $0)) }
++    }
++}
+--- /dev/null	2026-10-18 23:18:14
++++ /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/ProductCapturePostSaveStorageTests.swift	2026-10-18 23:11:24
+@@ -0,0 +1,144 @@
++import Foundation
++import CryptoKit
++import Darwin
++import Testing
++@testable import FrameRelay
++
++struct ProductCapturePostSaveStorageTests {
++    @Test func unboundCommittedMovieReopensAsReconciliationWithoutAuthorizingTransferOrRemoval() async throws {
++        try await withStorageRun { run in
++            // This fixture commits the actual MOV save but deliberately does not bind it.
++            let binding = try await makeBindingMovie(run: run)
++            let reopened = try ExplorationRunDirectory.openExisting(at: run.url)
++            let store = try SQLiteRecordingStore(run: reopened, mode: .openExisting)
++            let files = ManagedOriginalStore(run: reopened)
++            let reader = LibraryStoreReader(store: store, files: files)
++            guard case .loaded(let snapshot) = await reader.loadLibrary() else {
++                Issue.record("Unbound durable save should remain visible"); return
++            }
++            let item = try #require(snapshot.items.first)
++            #expect(snapshot.revision == 2)
++            #expect(item.recording.result == binding.saveRecord)
++            #expect(item.file == .present(byteCount: binding.original.content.byteCount))
++            #expect(item.original == nil)
++            #expect(item.requiresReconciliation)
++            #expect(item.status(.original).contains("内容の対応未確定"))
++            #expect(snapshot.history.isEmpty)
++            let access = ManagedOriginalAccess(store: store, originals: files)
++            #expect(await access.describe(binding.reference) == .unavailable(.inaccessible))
++            #expect(await access.acquireRead(binding.original, operation: .init(rawValue: "unbound-upload"),
++                leaseID: .init(rawValue: "unbound-reader")) == .notExecuted)
++            #expect(await access.acquirePlayback(binding.original, operation: .init(rawValue: "unbound-play"),
++                leaseID: .init(rawValue: "unbound-player")) == .notExecuted)
++            let epoch = ReaderReconciliationEpoch(rawValue: "untrusted-test-epoch")
++            let released = AllReadersReleasedReceipt(original: binding.original,
++                accessGeneration: .init(rawValue: 0), epoch: epoch)
++            var readers = OriginalReadersState(original: binding.original, epoch: epoch, generation: .init(rawValue: 0))
++            try readers.reconcile([])
++            for purpose: RemovalPurpose in [.cleanup, .discard] {
++                let intent = RemovalIntent(operation: .init(rawValue: "unbound-remove"), original: binding.original, purpose: purpose)
++                let request = RemovalBoundaryRequest(intent: intent, eligibility: .eligible(binding.original, .init(rawValue: 0)),
++                    stopped: .neverStarted(.original(binding.original)), expectedTransport: .neverStarted(.original(binding.original)),
++                    released: released, readers: readers)
++                #expect(await access.reserveRemoval(request) == .notExecuted)
++            }
++            #expect(await reader.loadLibrary() == .loaded(snapshot))
++            guard case .succeeded(let state) = await store.loadOriginalState() else {
++                Issue.record("Durable store disappeared"); return
++            }
++            #expect(state.revision == 2)
++            #expect(state.originals.isEmpty)
++            #expect(try await files.digest(for: binding.reference).sha256 == binding.original.content.digest)
++        }
++    }
++
++    @Test(arguments: [false, true])
++    func actualDigestDoesNotBlockReservationAndCancellationClosesOnlyAfterReadReturns(cancel: Bool) async throws {
++        try await withStorageRun { run in
++            let checkpoint = OriginalDigestCheckpoint()
++            let files = ManagedOriginalStore(run: run, digestCheckpoint: { await checkpoint.pause($0) })
++            let original = CaptureOriginalReference(rawValue: "digest-original")
++            let url = try await files.reserve(original: original)
++            let bytes = Data((0..<131_101).map { UInt8($0 % 251) })
++            try bytes.write(to: url)
++            let hashing = Task { try await files.digest(for: original) }
++            await checkpoint.waitUntilHeld()
++            #expect(await checkpoint.originalDescriptorIsOpen())
++            let next = CaptureOriginalReference(rawValue: "next-recording")
++            let nextURL = try await files.reserve(original: next)
++            #expect(try await files.reservedURL(for: next) == nextURL)
++            #expect(await files.observeFile(next) == .absent)
++            if cancel { hashing.cancel() }
++            // A cancellation request must not close a descriptor the worker still owns.
++            #expect(await checkpoint.originalDescriptorIsOpen())
++            await checkpoint.release()
++            switch await hashing.result {
++            case .success(let digest):
++                #expect(!cancel)
++                #expect(digest.original == original)
++                #expect(digest.byteCount == UInt64(bytes.count))
++                #expect(digest.sha256 == SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined())
++            case .failure(let error):
++                #expect(cancel)
++                #expect(error is CancellationError)
++            }
++            #expect(await !checkpoint.originalDescriptorIsOpen())
++            #expect(try Data(contentsOf: url) == bytes)
++        }
++    }
++
++    @Test(arguments: [false, true])
++    func boundReadCancellationAndConcurrentChangeRejectTheActualDescriptor(cancel: Bool) async throws {
++        try await withStorageRun { run in
++            let binding = try await makeBindingMovie(run: run)
++            let checkpoint = OriginalDigestCheckpoint()
++            let files = ManagedOriginalStore(run: run, digestCheckpoint: { await checkpoint.pause($0) })
++            let opening = Task { try await files.openBoundRead(binding) }
++            await checkpoint.waitUntilHeld()
++            #expect(await checkpoint.originalDescriptorIsOpen())
++            if cancel {
++                opening.cancel()
++            } else {
++                let url = try await files.existingURL(for: binding.reference)
++                let writer = try FileHandle(forWritingTo: url)
++                try writer.truncate(atOffset: 1)
++                try writer.synchronize()
++                try writer.close()
++            }
++            #expect(await checkpoint.originalDescriptorIsOpen())
++            await checkpoint.release()
++            do {
++                let handle = try await opening.value
++                try handle.handle.close()
++                Issue.record("Cancelled or changed original must not return a bound read")
++            } catch {
++                if cancel { #expect(error is CancellationError) }
++                else { #expect(error is ExplorationStorageError) }
++            }
++            #expect(await !checkpoint.originalDescriptorIsOpen())
++        }
++    }
++}
++
++private actor OriginalDigestCheckpoint {
++    private let gate = ProductCaptureTestGate()
++    private var descriptor: Int32?
++    private var device: dev_t?
++    private var inode: ino_t?
++
++    func pause(_ descriptor: Int32) async {
++        self.descriptor = descriptor
++        var info = stat()
++        if fstat(descriptor, &info) == 0 { device = info.st_dev; inode = info.st_ino }
++        await gate.holdOnce()
++    }
++
++    func waitUntilHeld() async { await gate.waitUntilHeld() }
++    func release() async { await gate.release() }
++
++    func originalDescriptorIsOpen() -> Bool {
++        guard let descriptor, let device, let inode else { return false }
++        var info = stat()
++        return fstat(descriptor, &info) == 0 && info.st_dev == device && info.st_ino == inode
++    }
++}

@@ -9,9 +9,10 @@ import SwiftUI
 
 @main
 struct FrameRelayApp: App {
+    @State private var composition = ProductComposition()
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(composition: composition)
         }
     }
 }

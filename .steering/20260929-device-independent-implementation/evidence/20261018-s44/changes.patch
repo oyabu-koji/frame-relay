@@ -1,0 +1,1299 @@
+--- baseline/.steering/20260929-device-independent-implementation/design.md
++++ .steering/20260929-device-independent-implementation/design.md
+@@ -91,6 +91,12 @@
+ 
+ 無到着の猶予と復旧回数/時間は注入契約で分離する。2026-10-18に本人が暫定案を承認し、無到着2秒、本人の再試行操作ごとに音声入力/出力だけ1回再構成、復旧上限5秒を変更可能な製品設定として合意した。復旧中も2秒の無到着判定を適用するため、5秒は成功待ちを保証する時間ではなく試行全体の上限である。ProductCaptureFactoryが版付きの同一policyをNativeとcoordinatorへ明示注入する。失敗後の再試行には改めて本人操作を要し、タイムアウト後もSDKの処理終了まで次REC・重複試行を抑止する。製品接続・関連検証の進捗はS43に記録し、実音声/同期/OS障害・復旧品質と数値の実機採用はDV-10へ残す。U7の他の負荷・容量判断はこの合意に含めない。
+ 
++S44の補正接続（2026-10-18）: 既存SDK候補IDと保存希望を保持し、PRDの初回標準第一候補を変更可能な設定下書きへ反映する。候補をカメラ・4K・fps・Logで絞り、コーデック/記録方式を含む出力接続の対応と実適用はprepareで別に照合する。初回候補やformatの対応一覧を実機での効果・品質採用へ昇格させず、非対応の希望をOFFや別方式へ無断置換しない。preview専用候補は現在の4K記録へ適用せず理由を示す。
++
++NativeはMovie/sample writerの記録connectionを確認し、preferred要求とactive読戻しを分ける。補正・実倍率・format・主カメラ・セッション状態の変更を世代/連番付きsnapshotで渡し、Applicationは旧世代/逆順/別希望scopeを拒否する。失効後も同世代の通知高水位を保持し、再準備/離脱で旧画角を捨てる。REC受理前と原本予約後の実開始直前は共通規則で希望/出力/カメラ/寸法/倍率/準備時formatとの一致を再確認し、録画中に希望値を書き戻す補正変更は行わない。画面は準備時の適用値と現在の補正観測を分ける。
++
++S47への供給は画角revisionと観測条件までとし、formatの水平FOVを補正後cropへ換算しない。補正後画角は取得不能、独立したpreview connectionと記録の画角一致はOFFでも未確認として保持する。これらの未観測だけをREC阻害条件へ追加せず、構図予告/停止支援consumerの接続はS47、補正効果/構図/同期/継続性はDV-04の実機評価に残す。S44の実装・自動検証進捗はtasklistを正本とする。
++
+ ズームは目標選択時点では実倍率を変えない。制御中の観測実倍率で目標超過を防ぎ、目標・途中停止を同じ制御器へ渡す。停止支援候補は実カメラ・形式・解像度・補正の根拠付きとし、整数倍率だけで品質保証しない。設定は目的・根拠・適用範囲・版・変更箇所・未採用フラグ付きの暫定値、DV-08後の採用値を別記録する。数値・吸着方式・詳細設定画面を計画で追加決定しない。
+ 
+ D02資材は由来・版・利用条件・入力Log適合を先に確認する。資材適合待ちはS26変換本体／S48表示変換だけへ局所化し、周辺版管理・描画分離・既知入力機能試験を先行する。既知入力の技術試験は本人の画質採用試験ではない。出力1080p HEVC等は候補のまま、G3事前合意→DV-13評価→G5採用を維持する。
+--- baseline/.steering/20260929-device-independent-implementation/tasklist.md
++++ .steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,7 +12,15 @@
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-18、S43実装完了・独立検証は別セッション）
++## 現在の再開点（2026-10-18、S44実装完了）
++
++- **S44 / done（本体接続・関連自動検証完了）**: 補正候補を現在のカメラ/4K/fps/Logへ限定し、初回標準候補・保存希望の復元・非対応理由を接続。Movie/sample writerのconnection支持/要求/active読戻し、現在補正/倍率/format/実カメラの観測と旧画角失効、REC受理前/予約後の再照合を実装。補正cropとpreview一致は未確認のまま、S47へ渡す状態契約までを完了した。
++- **検証 / E-S44-01**: test-03のUnit53宣言/76展開ケースが成功、UIは旧1成功/新1失敗。画面録画で正しい初期表示を確認し、取得方法だけを修正したui-04はUI2成功。App/Unit/projectはtest-03・ios-build-01・最終版で同一、最終187入力はui-04と一致。Simulator test buildとgeneric iOS署名なしbuild成功、最終失敗/skip/runtimeWarnings0。test-01/02のcompile失敗・0件実行とtest-03のUI失敗を保持する。
++- **保全・所有**: 開始時6445file/121,908,241bytesのhashと証跡外356fileを `/private/tmp/fr-s44-20261018-o1usgoo1/` に保全。既存16file変更/6429不変、新5ソース、欠落/旧証跡変更/所有外変更0（今回追加証跡除外）。main＝本steering/証跡/差分確認、worker `s44_impl`＝限定App/test、document_author `s44_docs`＝functional-design/architectureの補正箇所。doc_reviewerは指摘なし。証跡は `evidence/20261018-s44/`。
++- **残件と次工程**: 実機DV-04/D01/G2B/補正効果・画角・同期・継続性、S47予告consumer、全FR-03受入は未確認。S43独立validation/S42修正後報告未受領、S27詳細等の既知残件を保持。S45以降は未着手。独立検証は同steeringへの明示 `$validate-implementation` で別途実施し、本実装内のtest/main確認を独立validationに代用しない。
++
++### 直前のS43実装完了記録
++
+ 
+ - **S43 / done（合意反映・製品接続・関連検証完了）**: 本人が「提案通り進めてください」と回答。無到着2秒、本人の再試行ごとに音声入力/出力だけ1回再構成、復旧上限5秒を変更可能な暫定製品設定v1として合意。同一policyをNativeとcoordinatorへ注入した。復旧中も2秒の無到着判定が働き、5秒は全体上限である。実機採用・品質合格にはしない。
+ - **今回の検証 / E-S43-02**: test-03はUnit19宣言/23展開ケース＋UI1が成功、失敗/skip/runtimeWarnings 0。Simulator test buildとgeneric iOS署名なしbuild成功。test-01の新規test記法修正後、test-02の未変更actor隔離診断は、ソース無変更の新DerivedDataでtest-03が成功。途中2回のcompile失敗/0件実行を保持。最終182入力一致、iOS buildとの差分はUnit test1fileだけでApp/project入力は一致。
+@@ -644,7 +652,14 @@
+ 
+ ### S44 補正選択・復元・画角状態を完成
+ 
+-- [ ] Status: pending
++- [x] Status: done
++  - 完了記録（2026-10-18）: 規則/SDK候補/通常UI/S41実接続/関連自動検証＝完了。現在条件の候補と出力実接続を分離し、保存希望優先・初回標準候補・非対応説明を実装。両出力の支持/要求/active、世代/連番/実カメラ/format/倍率を観測し、失効後の高水位を維持。RECの受理前と原本予約後に同じ判定で再照合する。S47への画角状態供給契約までであり、実crop/preview一致・予告UI・実機品質・PRD受入を完了にしない。
++  - 判断 S44-01: 既存6 SDK候補を保護し、PRD既存の標準第一候補を可逆なdraftへ具体化。新しい効果/品質・モード正式採用ではない。previewOptimizedは現4K記録に使用しない。format FOVから補正後cropを推定せず、未知の画角だけではRECを抑止しない。根拠は既存FR-03/DI-08と `sdk-observation-notes.txt` / `apple-references.json`。
++  - E-S44-01 / 検証: 確認済みFrameRelay.xcodeproj/scheme/test plan FrameRelay・Debug・App/Unit/UI、Xcode27.0 (27A266a)/Swift6.4・言語5.0/最低iOS27.0。当日確認Simulator `DFE46693-E8DD-4814-8957-4F327699F719` でtest-03 Unit53宣言/76展開全成功（候補条件/OFF等3モードのstore再open/実値相違/旧通知/失効/録画中設定拒否/開始前条件/観測終了/既存音声・保存・実AVPlayer）。ui-04は通常撮影と初期設定UI2成功。generic iOS署名なしbuild成功。xcresultのcompiler/analyzer/runtime診断0、stdoutの既存AppIntents依存なしメタデータ警告は保持。
++  - 途中失敗: test-01はSwift API名、test-02は新規testのmutating呼出し記法でcompile失敗/0件実行。test-03は新UIのPicker値取得が1失敗、映像上のfps未選択/標準未確認は正しく、UI testのみ修正。該当source hashに一致する失敗時copyとlog/xcresultを保持。mainレビューで発見した観測終了後の旧prepare fallbackは修正・中核test成功。
++  - 実行版/差分: `evidence/20261018-s44/` の各run.json/log/xcresult/summary/sources、`main-scope-review.json`、`changes.patch`、実行入力source-snapshotを参照。test-03とiOS buildは187入力一致。最終ui-04との差分はUI test1fileだけでApp/Unit/project不変。既存16file＋新5ソースのみ、旧6445file中6429不変/欠落0。mainが全差分/所有を確認、文書レビューは指摘なし。
++  - 引渡し残件: D01/実機全組合せ/3場面の補正効果/構図/音声同期/継続性/ズーム・レンズ切替維持はDV-04等。構図予告/停止支援の実consumerはS47。SDKの実KVO発火・実カメラRECはSimulatorでは未確認。S44独立検証は別明示 `$validate-implementation`。
++  - 今回所有: `s44_impl` がO-CAPTUREのDomain/Capture補正契約（新規含む）、ProductCaptureCoordinator、ProductCaptureConfigurationMatcher、NativeExplorationCapture/ExplorationCaptureValuesと新補正adapter、ProductCaptureSettingsView/ProductCaptureView/ProductCapturePreview、および補正関連Unit/UI testを単独所有。共有Portの補正観測追加が必要な場合はProductCapturePorts/ExplorationPortsだけを同workerへ直列引渡し、既存WB/音声契約を保持。Composition/LocalStore/project/その他taskは凍結。mainはtasklist/design/新証跡だけを所有。
+   - Depends: Start＝N01・既存能力／希望／実値契約（補正／復元規則）。Finish＝S41の実接続。着手時に独立部分と接続部分を別substatusで記録し、接続まで満たす前はtask全体をdoneにしない。
+   - Owner / Files: O-CAPTURE／`FrameRelay/Domain/Capture/CaptureSettings.swift`、`FrameRelay/Platform/Capture/` の補正adapter、`FrameRelay/Features/Capture/` と対応test。
+   - Done when: OFF＋複数モードの対応・実適用を照合、初回候補／条件復元／非対応説明、画角世代を予告へ供給。
+@@ -822,14 +837,14 @@
+ | FR-01 | AC-FR-01-01 | 音声付き4K24/30原本・写真非追加 | P05/P06/P09;CF-02/08 | EC,ES | S12,S41 | dep(S12,S41)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 通常撮影・保存・一覧再生接続済（実Log/品質未確認） | E-S41-01/02/03: 最新71case/UI1・開始拒否終端/離脱回帰・build | D0 | 部分証拠、実機未受入 | DV-01、DV-02 |
+ | FR-01 | AC-FR-01-02 | 3形式・カメラ対応・無断代替禁止 | P05/P06/P09;CF-02/08 | EC,ES | S41 | dep(S41)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 現能力照合・希望/実値・自動代替拒否を製品接続済 | E-S41-01/02: 設定/条件照合・build | D0 | 部分証拠、全組合せ未確認 | DV-01 |
+ | FR-01 | AC-FR-01-03 | 手動値維持・ND再評価 | P05/P06/P09;CF-02/08 | EC,ES | S41,S46 | dep(S41,S46)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | S41手動設定接続済、S46 ND未実装 | E-S41-01/02: 設定/適用部分のみ | D0 | 部分証拠、ND未受入 | DV-01、DV-07 |
+-| FR-01 | AC-FR-01-04 | 保存設定・WB/補正の条件復元 | P05/P06/P09;CF-02/08 | EC,ES | S41,S44 | dep(S41,S44)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | S41希望設定保存/条件復元済、S44補正未実装 | E-S41-01/02/03: 永続/再照合・遅延設定保存後の再準備 | D0 | 部分証拠、補正未受入 | DV-01、DV-04 |
++| FR-01 | AC-FR-01-04 | 保存設定・WB/補正の条件復元 | P05/P06/P09;CF-02/08 | EC,ES,E-S44-01 | S41,S44 | dep(S41,S44)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | S41希望保存・S44補正候補/条件復元接続済 | E-S41-01/02/03、E-S44-01: store再open/条件照合/非代替/初期UI | D0 | 部分証拠、実機補正未受入 | DV-01、DV-04 |
+ | FR-02 | AC-FR-02-01 | 固定Rec.709表示・非焼込み | P06/P12;CF-05 | EC:表示拒否境界のみ | S48 | dep(S48)＋対応A/Q01 | O-CAPTURE | I0 | A1 | D0 | R0 | DV-05 |
+ | FR-02 | AC-FR-02-02 | 確認状態分離・描画/録画品質 | P06/P12;CF-05 | EC:表示拒否境界のみ | S48,S4V | dep(S48,S4V)＋対応A/Q01 | O-CAPTURE | I0 | A1 | D0 | R0 | DV-05、DV-11 |
+-| FR-03 | AC-FR-03-01 | OFF＋複数実モード | P05/P06/P13;CF-06 | EC:能力/適用契約 | S44 | dep(S44)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04 |
+-| FR-03 | AC-FR-03-02 | 初回候補・対応条件復元 | P05/P06/P13;CF-06 | EC:能力/適用契約 | S41,S44 | dep(S41,S44)＋対応A/Q01 | O-CAPTURE | 共通設定保存/条件照合基盤済、補正候補/復元はS44待ち | E-S41-01/02: 共通基盤の部分証拠のみ | D0 | 部分証拠、実機未受入 | DV-01、DV-04 |
+-| FR-03 | AC-FR-03-03 | 3場面品質・設定不変 | P05/P06/P13;CF-06 | EC:能力/適用契約 | S44,S4V | dep(S44,S4V)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04、DV-11 |
+-| FR-03 | AC-FR-03-04 | 補正画角・予告・切替保持 | P05/P06/P13;CF-06 | EC:能力/適用契約 | S44,S47 | dep(S44,S47)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04、DV-08、DV-09 |
+-| FR-03 | AC-FR-03-05 | 標準不成立の制約と相談 | P05/P06/P13;CF-06 | EC:能力/適用契約 | S44 | dep(S44)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04 |
++| FR-03 | AC-FR-03-01 | OFF＋複数実モード | P05/P06/P13;CF-06 | EC:能力/適用契約,E-S44-01 | S44 | dep(S44)＋対応A/Q01 | O-CAPTURE | OFF＋複数SDK候補・両出力支持/active照合/現在値UI接続済 | E-S44-01: 候補条件/connection拒否/実値差/REC前再照合 | D0 | 本体の部分証拠、実機効果/正式採用未受入 | DV-04 |
++| FR-03 | AC-FR-03-02 | 初回候補・対応条件復元 | P05/P06/P13;CF-06 | EC:能力/適用契約,E-S44-01 | S41,S44 | dep(S41,S44)＋対応A/Q01 | O-CAPTURE | 初回standard候補・保存希望優先・条件復元/非代替を接続済 | E-S44-01: OFF/standard/cinematicExtendedの再open・条件照合・初期UI | D0 | 部分証拠、実機未受入 | DV-01、DV-04 |
++| FR-03 | AC-FR-03-03 | 3場面品質・設定不変 | P05/P06/P13;CF-06 | EC:能力/適用契約,E-S44-01 | S44,S4V | dep(S44,S4V)＋対応A/Q01 | O-CAPTURE | 録画中の設定変更拒否・現在補正観測を接続、品質未評価 | E-S44-01: 録画中不変/観測・保存/音声回帰 | D0 | 3場面品質/全体継続性未受入 | DV-04、DV-11 |
++| FR-03 | AC-FR-03-04 | 補正画角・予告・切替保持 | P05/P06/P13;CF-06 | EC:能力/適用契約,E-S44-01 | S44,S47 | dep(S44,S47)＋対応A/Q01 | O-CAPTURE | S44画角revision/現在条件/旧状態失効済、S47 consumer未接続 | E-S44-01: 旧世代/逆順/失効/再準備・format/倍率変更 | D0 | crop/preview一致/予告/切替維持未受入 | DV-04、DV-08、DV-09 |
++| FR-03 | AC-FR-03-05 | 標準不成立の制約と相談 | P05/P06/P13;CF-06 | EC:能力/適用契約,E-S44-01 | S44 | dep(S44)＋対応A/Q01 | O-CAPTURE | 非対応/未確認/実値不一致理由と本人選択・再準備導線済 | E-S44-01: 非代替/preview専用拒否/希望保持/UI | D0 | 実機標準成立・必要な要求再確認は未評価 | DV-04 |
+ | FR-04 | AC-FR-04-01 | 安定前RECと固定 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | 安定待ちなしの既存固定・製品接続済 | Unit89/UI1・iOS build成功、早期STOP/旧callback回帰 | D0 | 制御の部分証拠・実色/記録開始未確認 | DV-03 |
+ | FR-04 | AC-FR-04-02 | 本人再固定・他設定維持・品質 | P05/P06/P10;CF-03 | EC,E-S42-01,E-S42-V01,E-S42-02 | S42 | dep(S42)＋対応A/Q01 | O-CAPTURE | 対応能力確認/SDK再測定/固定/本人UI接続済、開始失敗理由の終端保持P2修正済 | E-S42-01 Unit89/UI1＋P2修正Unit65/UI1・iOS build成功、本人STOP競合/完全検査でも部分保存 | D0 | 本体/制御の部分証拠・修正後独立検証/実機色/継続性未確認 | DV-03 |
+ | FR-04 | AC-FR-04-03 | 最終フレーム・待機Auto・二本 | P05/P06/P10;CF-03 | EC,E-S42-01 | S42,S46 | dep(S42,S46)＋対応A/Q01 | O-CAPTURE | 終端後Auto/二本新測定/旧通知拒否接続済、NDはS46 | Unit89/UI1・iOS build成功、測定/固定待ちSTOP/二本/逆順 | D0 | 終端制御の部分証拠・実最終フレーム/ND統合未確認 | DV-03、DV-07 |
+@@ -1177,6 +1192,7 @@
+ | E-S42-02 | 2026-10-17、explorer/worker/main | S42 P2限定修正・関連回帰 | test-01/ios-build-01の175入力一致、Xcode27/Debug/iOS27 Simulator＋generic iOS | Native共用理由保持/終端、両方式×先行本人STOP、完全検査の部分保存/次clip成功、旧通知/S41/保存再生/UI | Unit43宣言/65展開＋UI1成功、新規7ケース、失敗/skip/runtimeWarnings0、Simulator/iOS build成功 | `evidence/20261017-s42-p2-fix/`。実SDK throw/実機品質/修正後独立validation未確認 |
+ | E-S43-01 | 2026-10-18、explorer/worker/document_author/doc_reviewer/main | S43部分・AC-FR-09-01〜04/AC-CF-04・探索互換 | 最終181入力一致、test-03不変範囲継承、Xcode27/Debug/iOS27 Simulator＋generic iOS | 各run.json、実PCM/静寂/故障保存/順序/有限復旧/所有/手動REC/遅延観測、UI・実保存再生回帰 | test-03 Unit60/87展開＋UI1、test-04 Unit26/32展開成功、build成功。途中失敗保持 | `evidence/20261018-s43/`。製品policy未合意/未接続でblocked、実機/DV-10/S42報告反映は未完 |
+ | E-S43-02 | 2026-10-18、worker/explorer/document_author/doc_reviewer/main | S43暫定製品policy合意・接続・限定回帰 | 最終182入力一致、test-02/03同一版、Xcode27/Debug/iOS27 Simulator＋generic iOS（App入力一致） | 各run.json、Factory/2秒無到着/1本人操作1試行/実5秒timeout/SDK終了待ち/再試行/自動RECなし、音声/保存再生/UI | test-03 Unit19宣言/23展開＋UI1成功、失敗/skip/runtimeWarnings0、build成功。compile失敗2回/0件実行も保持 | `evidence/20261018-s43-approved/`。S43実装done、実機/DV-10/S42報告受領/別セッション独立検証は残る |
++| E-S44-01 | 2026-10-18、explorer/worker/document_author/doc_reviewer/main | S44、AC-FR-03-01〜05/AC-CF-06・限定回帰 | test-03/ios-build-01の187入力、最終差分UI test1fileのみ | 各run.json、補正候補/希望復元/実active/画角失効/REC前再照合/旧通知/音声・保存再生/UI | Unit53宣言/76展開成功、最終UI2成功、build成功、最終失敗/skip/runtimeWarnings0。compile失敗2run/0件・途中UI1失敗保持 | `evidence/20261018-s44/`。実機品質/crop/preview一致/S47 consumer/独立validation未確認 |
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+ 
+@@ -1204,6 +1220,7 @@
+ | V-REVIEW-S42-P2 | E-S42-02の175入力、既存2file変更/新規2file | main | 通知前の故障保持、本人STOP競合、STOP理由/両終端の本番共用、旧clip除外、次clip reset、完全検査でも部分保存、所有範囲を照合 | E-S42-02、`evidence/20261017-s42-p2-fix/main-scope-review.json`。修正・関連検証完了、独立validationではない |
+ | V-REVIEW-S43部分 | E-S43-01の最終181入力、既存17file/新6file | main、文書はdoc_reviewer | PCM/4軸分離、STOP前故障保持/先行WB理由、観測順序、復旧所有、探索互換、製品未接続、旧差分/証跡保持を確認。文書P2は未有効明記で解消 | `evidence/20261018-s43/main-scope-review.json`。関連試験成功、S43全体blocked。独立validationではない |
+ | V-REVIEW-S43接続 | E-S43-02の最終182入力、既存8file/新test1file | main、文書はdoc_reviewer | 本人合意と同policyのNative/coordinator注入、実機未採用、1本人操作1試行/実5秒上限/SDK終了待ち/非自動REC、S42未受領、旧差分・所有を照合。文書P2修正後解消 | `evidence/20261018-s43-approved/main-scope-review.json`。S43実装done、独立validationは別セッション |
++| V-REVIEW-S44 | E-S44-01、最終187入力・既存16file/新5ソース | main、文書はdoc_reviewer | 条件候補/両出力/要求・実値/旧画角・高水位/REC再照合/観測終了/互換/旧差分保護を照合。失敗原因を修正し、App/Unit不変範囲の証拠を継承 | `evidence/20261018-s44/main-scope-review.json`。S44実装done、実機/独立validation未確認 |
+ 
+ ## 振り返り・引渡し
+ 
+--- baseline/FrameRelay/Application/Capture/ProductCaptureConfigurationMatcher.swift
++++ FrameRelay/Application/Capture/ProductCaptureConfigurationMatcher.swift
+@@ -1,5 +1,50 @@
+ /// A discover-time check only. Codec/manual controls still need preparation and SDK readback.
+ nonisolated enum ProductCaptureConfigurationMatcher {
++    static func stabilizationAvailability(mode: String, camera: String, width: Int = 3840,
++                                         height: Int = 2160, framesPerSecond: Int,
++                                         log: CaptureLogEncoding?,
++                                         cameras: [ExplorationCameraDescription]) -> CaptureStabilizationAvailability {
++        guard CaptureStabilizationCatalog.modes.contains(mode) else {
++            return .unsupported("保存した補正モードをこのアプリでは確認できません。")
++        }
++        // Apple documents this mode for preview-sized surfaces only, not recorded 4K.
++        guard mode != "previewOptimized" else {
++            return .unsupported("プレビュー用の補正です。4Kの記録出力には使用できません。")
++        }
++        guard !camera.isEmpty, framesPerSecond > 0, let log else {
++            return .unconfirmed("カメラ・fps・Logを選ぶと補正候補を確認できます。")
++        }
++        guard let camera = cameras.first(where: { $0.id == camera }) else {
++            return .unconfirmed("選択したカメラの現在の対応条件は未確認です。")
++        }
++        let formats = matchingFormats(camera: camera, width: width, height: height,
++                                      framesPerSecond: framesPerSecond, log: log)
++        guard !formats.isEmpty else {
++            return .unsupported("現在のカメラに選択した4K・fps・Logの組合せがありません。")
++        }
++        guard formats.contains(where: { $0.stabilizationModes.contains(mode) }) else {
++            return .unsupported("選択した4K・fps・Logの組合せは、この補正に対応していません。")
++        }
++        return .formatCandidate
++    }
++
++    static func stabilizationModes(camera: ExplorationCameraDescription?, framesPerSecond: Int,
++                                   log: CaptureLogEncoding?) -> [String] {
++        guard let camera, let log, framesPerSecond > 0 else { return [] }
++        let available = Set(matchingFormats(camera: camera, width: 3840, height: 2160,
++                                           framesPerSecond: framesPerSecond, log: log).flatMap(\.stabilizationModes))
++        return CaptureStabilizationCatalog.modes.filter { available.contains($0) }
++    }
++
++    private static func matchingFormats(camera: ExplorationCameraDescription, width: Int, height: Int,
++                                        framesPerSecond: Int, log: CaptureLogEncoding) -> [ExplorationFormatDescription] {
++        camera.formats.filter { format in
++            format.width == width && format.height == height
++                && format.frameRateRanges.contains { $0.contains(Double(framesPerSecond)) }
++                && format.logEncodings.contains(log)
++        }
++    }
++
+     static func hasCurrentFormat(for configuration: CaptureConfiguration,
+                                  cameras: [ExplorationCameraDescription]) -> Bool {
+         guard let camera = cameras.first(where: { $0.id == configuration.camera }) else { return false }
+--- baseline/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift
++++ FrameRelay/Application/Capture/ProductCaptureCoordinator.swift
+@@ -16,6 +16,7 @@
+     private(set) var isSaving = false
+     private(set) var preferencesLoaded = false
+     private(set) var captureVisit: UUID?
++    private(set) var framing = CaptureFramingState()
+     private(set) var observedAudio: CaptureAudioState?
+     private(set) var audioRecovery: ProductCaptureAudioRecoveryStatus = .idle
+     private(set) var isRecoveringAudio = false
+@@ -29,6 +30,8 @@
+     @ObservationIgnored private let captureNow: @Sendable () -> CaptureTimeObservation
+     @ObservationIgnored private var device: (any ProductCaptureDevicePort)?
+     @ObservationIgnored private var eventTask: Task<Void, Never>?
++    @ObservationIgnored private var hasStabilizationObservation = false
++    @ObservationIgnored private var stabilizationTask: Task<Void, Never>?
+     @ObservationIgnored private var audioTask: Task<Void, Never>?
+     @ObservationIgnored private var audioSequence: UInt64?
+     @ObservationIgnored private let audioPolicy: ProductCaptureAudioPolicy?
+@@ -70,7 +73,7 @@
+     var canRecord: Bool {
+         guard !isBusy, !leaveRequested, captureVisit != nil, preferencesLoaded, issue == nil, calendarNow != nil, let generation, let prepared,
+               preferences.desired != nil, preferences.outputCandidate != nil,
+-              currentAudio?.confirmedFailure == nil,
++              currentAudio?.confirmedFailure == nil, currentStabilizationAllowsRecording,
+               capture == nil || capture?.whiteBalance == .automatic else { return false }
+         return readiness(generation: generation, prepared: prepared).blockers.isEmpty
+     }
+@@ -180,6 +183,7 @@
+                 guard accepts(visit) else { await created.shutDown(); return }
+                 let stream = await created.productEvents()
+                 let audioStream = await created.audioSnapshots()
++                let stabilizationStream = await created.stabilizationSnapshots()
+                 guard accepts(visit) else { await created.shutDown(); return }
+                 let discovered = try await created.discoverCameras()
+                 guard accepts(visit) else { await created.shutDown(); return }
+@@ -195,6 +199,10 @@
+                 generation = nextGeneration
+                 cameras = discovered
+                 prepared = result
++                if let snapshot = result.stabilization {
++                    hasStabilizationObservation = framing.receive(snapshot, generation: nextGeneration,
++                        desired: desired, output: candidate)
++                }
+                 observedAudio = result.audio
+                 audioSequence = nil
+                 audioRecovery = .idle
+@@ -212,6 +220,14 @@
+                         guard !Task.isCancelled else { return }
+                         await self?.receiveAudio(snapshot, epoch: epoch)
+                     }
++                }
++                stabilizationTask = Task { [weak self] in
++                    for await snapshot in stabilizationStream {
++                        guard !Task.isCancelled else { return }
++                        self?.receiveStabilization(snapshot, epoch: epoch)
++                    }
++                    guard !Task.isCancelled else { return }
++                    self?.stabilizationObservationEnded(epoch: epoch)
+                 }
+                 if readiness(generation: nextGeneration, prepared: result).blockers.contains(where: { $0 != .audioNotValid }) {
+                     issue = "希望設定を適用できません。現在の対応条件と実適用値を確認してください。"
+@@ -284,6 +300,8 @@
+     /// Safe on navigation/background. Capture events and persistence continue until settled.
+     func leaveCapture() async {
+         leaveRequested = true
++        framing.invalidate(.interrupted)
++        stabilizationTask?.cancel(); stabilizationTask = nil
+         captureVisit = nil
+         preparationOwner = nil
+         isPreparing = false
+@@ -356,6 +374,40 @@
+         await finishLeavingIfPossible()
+     }
+ 
++    var currentStabilization: CaptureStabilizationSnapshot? { framing.snapshot }
++
++    private var currentStabilizationAllowsRecording: Bool {
++        // Existing adapters may provide only the prepare-time applied observation.
++        // Missing framing evidence never claims crop/preview equality or overrides that observation.
++        guard let snapshot = currentStabilization else {
++            return prepared?.stabilization == nil && !hasStabilizationObservation
++        }
++        guard let desired = preferences.desired, let generation, let output = preferences.outputCandidate else { return false }
++        return snapshot.matchesRecordingRequest(desired, generation: generation, output: output,
++                                                preparedFormatID: prepared?.stabilization?.formatID)
++    }
++
++    private func receiveStabilization(_ snapshot: CaptureStabilizationSnapshot, epoch: UUID) {
++        guard epoch == eventEpoch, !leaveRequested, captureVisit != nil, let generation else { return }
++        if framing.receive(snapshot, generation: generation, desired: preferences.desired, output: preferences.outputCandidate) {
++            hasStabilizationObservation = true
++        }
++    }
++
++    private func stabilizationObservationEnded(epoch: UUID) {
++        guard epoch == eventEpoch, !leaveRequested, hasStabilizationObservation else { return }
++        framing.invalidate(.resourceUnavailable)
++    }
++
++    var stabilizationConstraint: String? {
++        guard prepared != nil, !currentStabilizationAllowsRecording else { return nil }
++        guard let snapshot = currentStabilization else {
++            return "補正の現在値を確認できません。再準備してください。"
++        }
++        if !snapshot.matchesRequest { return "希望する補正の実動作が未確認または不一致です。次のRECを開始できません。" }
++        return "カメラ・形式・倍率が準備時の条件と一致しません。希望設定を確認して再準備してください。"
++    }
++
+     private func receiveAudio(_ snapshot: ProductCaptureAudioSnapshot, epoch: UUID) async {
+         guard epoch == eventEpoch, snapshot.generation == generation,
+               audioSequence.map({ snapshot.sequence > $0 }) ?? true else { return }
+@@ -501,6 +553,9 @@
+ 
+     private func releaseDevice() async {
+         eventEpoch = UUID()
++        framing.invalidate(.notMeasured)
++        hasStabilizationObservation = false
++        stabilizationTask?.cancel(); stabilizationTask = nil
+         let released = device
+         device = nil; previewSource = nil; prepared = nil; generation = nil; capture = nil
+         eventTask?.cancel(); eventTask = nil
+@@ -520,7 +575,13 @@
+         case .simulatorHasNoVerifiedCamera: return "Simulatorではカメラ撮影を利用できません。一覧と再生は利用できます。"
+         case .permissionDenied: return "カメラとマイクの使用許可を設定で確認してください。"
+         case .appliedValuesDiffer: return "希望設定と実際の適用値が一致しません。RECは開始できません。"
+-        case .capabilityUnconfirmed: return "現在のカメラでは選択した条件を確認できません。設定を変更してください。"
++        case .capabilityUnconfirmed(let reason) where reason.hasPrefix("stabilization_"):
++            switch reason {
++            case "stabilization_preview_only": return "選択した補正はプレビュー用で、4K記録には使えません。OFFまたは対応する補正を選んでください。"
++            case "stabilization_connection_unsupported": return "選択した記録方式の接続は希望する補正に対応していません。OFFまたは対応モードを選んでください。希望設定は保持しています。"
++            default: return "記録出力の補正を確認できません。接続と記録方式を確認して再準備してください。希望設定は保持しています。"
++            }
++        case .capabilityUnconfirmed: return "現在のカメラ・4K・fps・Log・補正・記録形式の組合せを確認できません。希望は保持しています。条件を確認し、対応モードまたはOFFを選んでください。"
+         default: return "カメラを準備できませんでした。条件を確認して再準備してください。"
+         }
+     }
+--- baseline/FrameRelay/Application/Ports/ExplorationPorts.swift
++++ FrameRelay/Application/Ports/ExplorationPorts.swift
+@@ -8,6 +8,7 @@
+     let capabilities: CaptureCapabilities
+     let applied: AppliedCaptureSettings
+     let audio: CaptureAudioState
++    var stabilization: CaptureStabilizationSnapshot? = nil
+ }
+ 
+ nonisolated struct ExplorationCameraDescription: Equatable, Sendable {
+--- baseline/FrameRelay/Application/Ports/ProductCapturePorts.swift
++++ FrameRelay/Application/Ports/ProductCapturePorts.swift
+@@ -17,6 +17,7 @@
+ nonisolated protocol ProductCaptureDevicePort: CaptureControlPort {
+     func discoverCameras() async throws -> [ExplorationCameraDescription]
+     func prepare(_ request: ProductCapturePreparation) async throws -> ExplorationPrepared
++    func stabilizationSnapshots() async -> AsyncStream<CaptureStabilizationSnapshot>
+     func audioSnapshots() async -> AsyncStream<ProductCaptureAudioSnapshot>
+     func recoverAudio(_ request: ProductCaptureAudioRecoveryRequest) async -> CaptureAudioRecoveryOutcome
+     func cancelAudioRecovery(_ request: ProductCaptureAudioRecoveryRequest) async
+@@ -34,6 +35,7 @@
+ extension OriginalSaveCoordinator: ProductCaptureSavePort {}
+ 
+ extension ProductCaptureDevicePort {
++    func stabilizationSnapshots() async -> AsyncStream<CaptureStabilizationSnapshot> { AsyncStream { $0.finish() } }
+     /// Adapters without audio observation remain explicitly unavailable; no fake valid input is made here.
+     func audioSnapshots() async -> AsyncStream<ProductCaptureAudioSnapshot> { AsyncStream { $0.finish() } }
+     func recoverAudio(_ request: ProductCaptureAudioRecoveryRequest) async -> CaptureAudioRecoveryOutcome {
+--- baseline/FrameRelay/Domain/Capture/CaptureStabilization.swift
++++ FrameRelay/Domain/Capture/CaptureStabilization.swift
+@@ -0,0 +1,92 @@
++/// Existing SDK candidate IDs. This catalog does not certify visual quality or device support.
++nonisolated enum CaptureStabilizationCatalog {
++    static let modes = ["off", "standard", "cinematic", "cinematicExtended", "previewOptimized", "cinematicExtendedEnhanced"]
++    static let initialCandidate = "standard"
++}
++
++nonisolated enum CaptureStabilizationAvailability: Equatable, Sendable {
++    case formatCandidate
++    case unconfirmed(String)
++    case unsupported(String)
++}
++
++/// Facts about the selected recording connection; preview connections are a separate surface.
++nonisolated enum CaptureStabilizationConnection: Equatable, Sendable {
++    case missing
++    case inactive
++    case unsupported
++    case ready
++}
++
++nonisolated struct CaptureStabilizationSnapshot: Equatable, Sendable {
++    let generation: CaptureGeneration
++    let sequence: UInt64
++    let output: ExplorationOutputCandidate
++    let requestedMode: String
++    let preferredMode: String?
++    let activeMode: CaptureObservation<String>
++    let connection: CaptureStabilizationConnection
++    let camera: String
++    let activePhysicalCamera: String?
++    let formatID: String
++    let width: Int
++    let height: Int
++    let zoom: Double
++    /// SDK format FOV only. It excludes the unknown stabilization crop; do not use as corrected FOV.
++    let uncorrectedFieldOfView: Double?
++
++    var matchesRequest: Bool {
++        connection == .ready && preferredMode == requestedMode && activeMode.value == requestedMode
++    }
++
++    /// Shared by coordinator admission and the SDK owner immediately before writer start.
++    /// A reserve await must not turn facts from a previous format/zoom into permission to REC.
++    func matchesRecordingRequest(_ desired: DesiredCaptureSettings, generation: CaptureGeneration,
++                                 output: ExplorationOutputCandidate, preparedFormatID: String?) -> Bool {
++        let configuration = desired.configuration
++        return self.generation == generation && self.output == output && matchesRequest
++            && requestedMode == configuration.stabilizationMode && camera == configuration.camera
++            && width == configuration.width && height == configuration.height && zoom == desired.zoom
++            && !formatID.isEmpty && preparedFormatID == formatID
++    }
++}
++
++/// S47 consumes the revision and source identity, never a guessed stabilization crop.
++/// Invalidating clears the prior facts so an obsolete preview cannot be reused.
++nonisolated struct CaptureFramingState: Equatable, Sendable {
++    private(set) var revision: UInt64 = 0
++    private(set) var snapshot: CaptureStabilizationSnapshot?
++    private(set) var invalidation: CaptureUnavailableReason = .notMeasured
++    private var observedGeneration: CaptureGeneration?
++    private var highestSequence: UInt64?
++
++    var correctedFieldOfView: CaptureObservation<Double> { .unavailable(.apiDoesNotExpose) }
++    var previewMatchesRecording: CaptureCapability<Bool> { .unqueried }
++
++    @discardableResult
++    mutating func receive(_ value: CaptureStabilizationSnapshot, generation: CaptureGeneration,
++                          desired: DesiredCaptureSettings? = nil, output: ExplorationOutputCandidate? = nil) -> Bool {
++        guard value.generation == generation,
++              observedGeneration != generation || (highestSequence.map({ value.sequence > $0 }) ?? true) else { return false }
++        observedGeneration = generation
++        highestSequence = value.sequence
++        revision += 1
++        if let desired, value.camera != desired.configuration.camera
++            || value.requestedMode != desired.configuration.stabilizationMode
++            || output.map({ value.output != $0 }) == true {
++            snapshot = nil
++            invalidation = .evidenceMismatch
++            return true
++        }
++        snapshot = value
++        invalidation = value.matchesRequest ? .apiDoesNotExpose : .evidenceMismatch
++        return true
++    }
++
++    mutating func invalidate(_ reason: CaptureUnavailableReason) {
++        revision += 1
++        snapshot = nil
++        invalidation = reason
++        // Keep the high-water mark: invalidation must not make delayed facts new again.
++    }
++}
+--- baseline/FrameRelay/Features/Capture/ProductCapturePreview.swift
++++ FrameRelay/Features/Capture/ProductCapturePreview.swift
+@@ -1,7 +1,9 @@
+ import AVFoundation
+ import SwiftUI
+ 
+-/// Camera framing only. This layer does not claim a standard Rec.709 transform.
++/// Live camera surface only. Its separate preview connection does not certify the
++/// recording connection's stabilization crop, even when recording stabilization is OFF.
++/// No standard Rec.709 transform or S47 framing forecast is implemented here.
+ struct ProductCapturePreview: UIViewRepresentable {
+     let source: NativeCapturePreviewSource
+ 
+--- baseline/FrameRelay/Features/Capture/ProductCaptureSettingsView.swift
++++ FrameRelay/Features/Capture/ProductCaptureSettingsView.swift
+@@ -83,10 +83,13 @@
+                     Picker("手ブレ補正", selection: $draft.stabilization) {
+                         Text("選択してください").tag("")
+                         ForEach(stabilizationChoices, id: \.self) { mode in
+-                            Text(ProductCaptureText.stabilization(mode)).tag(mode)
+-                        }
+-                    }
+-                    Text("補正の品質・動作の評価は未完了です。選んだ条件が使えるかを適用時に確認します。")
++                            Text(stabilizationLabel(mode)).tag(mode)
++                        }
++                    }
++                    .accessibilityIdentifier("capture.settings.stabilization")
++                    Text(stabilizationDescription)
++                        .accessibilityIdentifier("capture.settings.stabilizationStatus")
++                    Text("初回は標準を候補にします。補正効果・品質の評価は未完了です。記録形式・記録方式との組合せは保存して適用するときに確認します。")
+                         .font(.footnote)
+                 }
+                 Section("記録方式") {
+@@ -121,7 +124,7 @@
+             .navigationTitle("撮影設定")
+             .navigationBarTitleDisplayMode(.inline)
+             .toolbar {
+-                ToolbarItem(placement: .cancellationAction) { Button("閉じる") { dismiss() }.disabled(isApplying) }
++                ToolbarItem(placement: .cancellationAction) { Button("閉じる") { dismiss() }.disabled(isApplying).accessibilityIdentifier("capture.settings.close") }
+             }
+             .interactiveDismissDisabled(isApplying)
+         }
+@@ -130,9 +133,36 @@
+     private var selectedCamera: ExplorationCameraDescription? { model.cameras.first { $0.id == draft.camera } }
+ 
+     private var stabilizationChoices: [String] {
+-        var modes = Set(selectedCamera?.formats.flatMap(\.stabilizationModes) ?? [])
+-        if !draft.stabilization.isEmpty { modes.insert(draft.stabilization) }
+-        return modes.sorted()
++        var modes = ProductCaptureConfigurationMatcher.stabilizationModes(camera: selectedCamera,
++            framesPerSecond: draft.framesPerSecond, log: CaptureLogEncoding(rawValue: draft.log))
++        if !draft.stabilization.isEmpty, !modes.contains(draft.stabilization) { modes.append(draft.stabilization) }
++        return modes
++    }
++
++    private func stabilizationAvailability(_ mode: String) -> CaptureStabilizationAvailability {
++        ProductCaptureConfigurationMatcher.stabilizationAvailability(mode: mode, camera: draft.camera,
++            framesPerSecond: draft.framesPerSecond, log: CaptureLogEncoding(rawValue: draft.log), cameras: model.cameras)
++    }
++
++    private func stabilizationLabel(_ mode: String) -> String {
++        let suffix: String
++        switch stabilizationAvailability(mode) {
++        case .formatCandidate: suffix = "候補・出力は未確認"
++        case .unconfirmed: suffix = "未確認"
++        case .unsupported: suffix = "非対応"
++        }
++        return "\(ProductCaptureText.stabilization(mode))（\(suffix)）"
++    }
++
++    private var stabilizationDescription: String {
++        guard !draft.stabilization.isEmpty else { return "補正を選択してください。" }
++        switch stabilizationAvailability(draft.stabilization) {
++        case .formatCandidate:
++            return "選択したカメラ・4K・fps・Logの形式に補正候補があります。選んだ記録形式・記録方式で使えるか、実際に適用できるかはまだ未確認です。"
++        case .unconfirmed(let reason): return reason
++        case .unsupported(let reason):
++            return reason + " 希望は保持します。OFFまたは対応候補を選択してください。"
++        }
+     }
+ 
+     private var supportsAperture: Bool {
+@@ -184,7 +214,7 @@
+     var framesPerSecond = 0
+     var codec = ""
+     var log = ""
+-    var stabilization = ""
++    var stabilization = CaptureStabilizationCatalog.initialCandidate
+     var output = ""
+     var shutterTicks = ""
+     var shutterTimescale = ""
+--- baseline/FrameRelay/Features/Capture/ProductCaptureView.swift
++++ FrameRelay/Features/Capture/ProductCaptureView.swift
+@@ -55,10 +55,19 @@
+                         .accessibilityIdentifier("capture.prepare")
+                     }
+                     VStack(alignment: .leading, spacing: 8) {
+-                        Text("現在の適用状態").font(.headline)
++                        Text("準備時に確認した適用値").font(.headline)
+                         Text(appliedDescription).accessibilityIdentifier("capture.applied")
+                         Text("実機での記録方式・画質の確認は未完了です。")
+                             .font(.footnote)
++                    }
++                    VStack(alignment: .leading, spacing: 8) {
++                        Text("現在の手ブレ補正").font(.headline)
++                        Text(stabilizationDescription).accessibilityIdentifier("capture.stabilization")
++                        if let constraint = model.stabilizationConstraint {
++                            Text(constraint).accessibilityIdentifier("capture.stabilizationConstraint")
++                        }
++                        Text("補正後の撮影範囲は未確認です。プレビューと記録の画角の一致は確認できていません。")
++                            .font(.footnote).accessibilityIdentifier("capture.framing")
+                     }
+                     VStack(alignment: .leading, spacing: 8) {
+                         Text("ホワイトバランス").font(.headline)
+@@ -152,6 +161,24 @@
+                                            camera: model.cameras.first { $0.id == values.configuration.camera }?.label)
+     }
+ 
++    private var stabilizationDescription: String {
++        let desired = (model.preferences.desired?.configuration.stabilizationMode)
++            .map { ProductCaptureText.stabilization($0) } ?? "未選択"
++        guard let snapshot = model.currentStabilization else {
++            return "希望：\(desired)\n現在の補正は未確認です。保存した希望はカメラの準備時に再確認します。"
++        }
++        let preferred = snapshot.preferredMode.map { ProductCaptureText.stabilization($0) } ?? "未確認"
++        let active = snapshot.activeMode.value.map { ProductCaptureText.stabilization($0) } ?? "未確認"
++        let values = "希望：\(desired) · 接続への要求：\(preferred) · 実動作：\(active)\n現在の倍率：\(snapshot.zoom.formatted())×"
++        switch snapshot.connection {
++        case .missing: return values + "\n記録出力の接続を確認できません。再準備してください。"
++        case .inactive: return values + "\n記録出力が動作していないため補正の現在値は未確認です。"
++        case .unsupported: return values + "\n記録出力は希望する補正に非対応です。OFFまたは対応モードを選んでください。"
++        case .ready:
++            return values + (snapshot.matchesRequest ? "\n実動作は希望と一致しています。" : "\n希望と実動作が一致していません。自動で希望を書き換えず、次のRECを抑止しています。")
++        }
++    }
++
+     private var canStop: Bool {
+         model.capture?.phase == .starting || model.capture?.phase == .recording
+     }
+--- baseline/FrameRelay/Platform/Capture/ExplorationCaptureValues.swift
++++ FrameRelay/Platform/Capture/ExplorationCaptureValues.swift
+@@ -6,6 +6,10 @@
+         ("cinematicExtended", .cinematicExtended), ("previewOptimized", .previewOptimized),
+         ("cinematicExtendedEnhanced", .cinematicExtendedEnhanced)
+     ]
++
++    static func stabilizationName(_ value: AVCaptureVideoStabilizationMode) -> String? {
++        stabilizationModes.first { $0.1 == value }?.0
++    }
+ 
+     static func codec(_ value: CaptureCodec) -> AVVideoCodecType {
+         switch value {
+--- baseline/FrameRelay/Platform/Capture/NativeCaptureStabilization.swift
++++ FrameRelay/Platform/Capture/NativeCaptureStabilization.swift
+@@ -0,0 +1,25 @@
++import AVFoundation
++
++nonisolated enum NativeCaptureStabilization {
++    /// The same admission is used by both recording output candidates, including OFF.
++    static func admission(output: ExplorationOutputCandidate, requested: String,
++                          connectionExists: Bool, supportsStabilization: Bool) -> String? {
++        guard connectionExists else { return "stabilization_\(output.rawValue)_connection_missing" }
++        guard CaptureStabilizationCatalog.modes.contains(requested) else { return "stabilization_unknown_mode" }
++        guard requested != "previewOptimized" else { return "stabilization_preview_only" }
++        guard requested == "off" || supportsStabilization else { return "stabilization_connection_unsupported" }
++        return nil
++    }
++
++    static func request(_ mode: AVCaptureVideoStabilizationMode, on connection: AVCaptureConnection?,
++                        output: ExplorationOutputCandidate) throws {
++        let name = ExplorationCaptureValues.stabilizationName(mode) ?? "unknown"
++        if let reason = admission(output: output, requested: name, connectionExists: connection != nil,
++                                  supportsStabilization: connection?.isVideoStabilizationSupported == true) {
++            throw ExplorationIssue.capabilityUnconfirmed(reason)
++        }
++        connection?.preferredVideoStabilizationMode = mode
++        // Request readback is not active-mode evidence.
++        guard connection?.preferredVideoStabilizationMode == mode else { throw ExplorationIssue.appliedValuesDiffer }
++    }
++}
+--- baseline/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
++++ FrameRelay/Platform/Capture/NativeExplorationCapture.swift
+@@ -24,6 +24,12 @@
+     private let audioPolicy: ProductCaptureAudioPolicy?
+     private let audioStream: AsyncStream<ProductCaptureAudioSnapshot>
+     private let audioContinuation: AsyncStream<ProductCaptureAudioSnapshot>.Continuation
++    private let stabilizationStream: AsyncStream<CaptureStabilizationSnapshot>
++    private let stabilizationContinuation: AsyncStream<CaptureStabilizationSnapshot>.Continuation
++    private var stabilizationObservations: [NSKeyValueObservation] = []
++    private var stabilizationSequence: UInt64 = 0
++    private var latestStabilization: CaptureStabilizationSnapshot?
++    private var preparedStabilizationFormatID: String?
+     private var audioMonitorTask: Task<Void, Never>?
+     private var audioRecoveryRequest: ProductCaptureAudioRecoveryRequest?
+     private var latestAudioRecoveryRequest: ProductCaptureAudioRecoveryRequest?
+@@ -66,6 +72,9 @@
+         self.candidate = candidate
+         self.originals = originals
+         self.audioPolicy = audioPolicy
++        let stabilizationPair = AsyncStream<CaptureStabilizationSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
++        stabilizationStream = stabilizationPair.stream
++        stabilizationContinuation = stabilizationPair.continuation
+         let audioPair = AsyncStream<ProductCaptureAudioSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
+         audioStream = audioPair.stream
+         audioContinuation = audioPair.continuation
+@@ -82,6 +91,7 @@
+     func events() -> AsyncStream<CaptureIOEvent> { captureStream }
+     func explorationEvents() -> AsyncStream<ExplorationDeviceEvent> { eventStream }
+ 
++    func stabilizationSnapshots() -> AsyncStream<CaptureStabilizationSnapshot> { stabilizationStream }
+     func audioSnapshots() -> AsyncStream<ProductCaptureAudioSnapshot> { audioStream }
+     func productEvents() -> AsyncStream<ExplorationDeviceEvent> { eventStream }
+     func previewSource() -> (any ProductCapturePreviewSource)? { session.map(NativeCapturePreviewSource.init) }
+@@ -227,6 +237,7 @@
+             audioObservation.reset(at: ProcessInfo.processInfo.systemUptime)
+             captureSession.startRunning()
+             startAudioMonitoring(generation: request.generation)
++            startStabilizationObservation(generation: request.generation)
+             try selected.lockForConfiguration()
+             let appliedTime: CMTime = await withCheckedContinuation { continuation in
+                 selected.setExposureModeCustom(lensAperture: aperture, duration: shutter, iso: Float(desired.exposure.iso)) {
+@@ -237,6 +248,7 @@
+             return try readPrepared(device: selected, format: format, at: appliedTime, request: request)
+         } catch {
+             if session == nil { captureSession.commitConfiguration() }
++            clearStabilizationObservation()
+             captureSession.stopRunning()
+             session = nil
+             device = nil
+@@ -268,7 +280,7 @@
+             guard let video = output.connection(with: .video), output.connection(with: .audio) != nil else {
+                 throw ExplorationIssue.capabilityUnconfirmed("movie_connections")
+             }
+-            video.preferredVideoStabilizationMode = stabilization
++            try NativeCaptureStabilization.request(stabilization, on: video, output: candidate)
+             movie = output
+         } else {
+             let video = AVCaptureVideoDataOutput()
+@@ -283,7 +295,7 @@
+             video.alwaysDiscardsLateVideoFrames = true
+             let delegate = ExplorationSampleDelegate(owner: self)
+             video.setSampleBufferDelegate(delegate, queue: queue)
+-            video.connection(with: .video)?.preferredVideoStabilizationMode = stabilization
++            try NativeCaptureStabilization.request(stabilization, on: video.connection(with: .video), output: candidate)
+             sampleDelegate = delegate
+             videoOutput = video
+         }
+@@ -349,7 +361,75 @@
+             whiteBalanceLock: .supported(device.isWhiteBalanceModeSupported(.locked)),
+             whiteBalanceRefresh: .supported(device.isWhiteBalanceModeSupported(.autoWhiteBalance)))
+         observe("aperture_readback", context: nil, time: observationTime, detail: "lens_aperture=\(device.lensAperture)")
+-        return ExplorationPrepared(capabilities: capabilities, applied: applied, audio: audioObservation.state)
++        publishStabilization(generation: request.generation)
++        preparedStabilizationFormatID = latestStabilization?.formatID
++        return ExplorationPrepared(capabilities: capabilities, applied: applied, audio: audioObservation.state,
++                                   stabilization: latestStabilization)
++    }
++
++    private func startStabilizationObservation(generation: CaptureGeneration) {
++        clearStabilizationObservation()
++        guard let device, let connection = movie?.connection(with: .video) ?? videoOutput?.connection(with: .video),
++              let session else { return }
++        let changed: @Sendable () -> Void = { [weak self] in
++            // Read current SDK facts on the serial owner, never retain a stale KVO value.
++            Task { await self?.publishStabilization(generation: generation) }
++        }
++        stabilizationObservations = [
++            connection.observe(\.activeVideoStabilizationMode, options: [.new]) { _, _ in changed() },
++            connection.observe(\.preferredVideoStabilizationMode, options: [.new]) { _, _ in changed() },
++            connection.observe(\.isActive, options: [.new]) { _, _ in changed() },
++            connection.observe(\.isEnabled, options: [.new]) { _, _ in changed() },
++            device.observe(\.videoZoomFactor, options: [.new]) { _, _ in changed() },
++            device.observe(\.activeFormat, options: [.new]) { _, _ in changed() },
++            device.observe(\.activePrimaryConstituent, options: [.new]) { _, _ in changed() },
++            session.observe(\.isRunning, options: [.new]) { _, _ in changed() },
++            session.observe(\.isInterrupted, options: [.new]) { _, _ in changed() }
++        ]
++        publishStabilization(generation: generation)
++    }
++
++    private func clearStabilizationObservation() {
++        stabilizationObservations.forEach { $0.invalidate() }
++        stabilizationObservations.removeAll()
++        latestStabilization = nil
++        preparedStabilizationFormatID = nil
++    }
++
++    private var stabilizationAllowsRecording: Bool {
++        guard let preparation, let latestStabilization else { return false }
++        return latestStabilization.matchesRecordingRequest(preparation.desired, generation: preparation.generation,
++            output: candidate, preparedFormatID: preparedStabilizationFormatID)
++    }
++
++    private func publishStabilization(generation: CaptureGeneration) {
++        guard let preparation, preparation.generation == generation, let device else { return }
++        let connection = movie?.connection(with: .video) ?? videoOutput?.connection(with: .video)
++        let requested = preparation.desired.configuration.stabilizationMode
++        let state: CaptureStabilizationConnection
++        if connection == nil { state = .missing }
++        else if session?.isRunning != true || session?.isInterrupted == true || connection?.isActive != true || connection?.isEnabled != true { state = .inactive }
++        else if requested != "off" && connection?.isVideoStabilizationSupported != true { state = .unsupported }
++        else { state = .ready }
++        let active: CaptureObservation<String>
++        if state == .ready, let connection,
++           let mode = ExplorationCaptureValues.stabilizationName(connection.activeVideoStabilizationMode) {
++            active = .observed(mode, at: ExplorationCaptureValues.now(), method: .direct(source: "recording-connection-active-stabilization"))
++        } else { active = .unavailable(state == .unsupported ? .unsupported : .notMeasured) }
++        let format = device.activeFormat
++        let dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
++        stabilizationSequence += 1
++        let snapshot = CaptureStabilizationSnapshot(generation: generation, sequence: stabilizationSequence,
++            output: candidate, requestedMode: requested,
++            preferredMode: connection.flatMap { ExplorationCaptureValues.stabilizationName($0.preferredVideoStabilizationMode) },
++            activeMode: active, connection: state,
++            camera: preparation.trial == nil ? device.uniqueID : (devices.first(where: { $0.value === device })?.key ?? ""),
++            activePhysicalCamera: device.isVirtualDevice ? device.activePrimaryConstituent?.uniqueID : device.uniqueID,
++            formatID: device.formats.firstIndex(where: { $0 === format }).map { "current-format-\($0 + 1)" } ?? "",
++            width: Int(dimensions.width), height: Int(dimensions.height), zoom: Double(device.videoZoomFactor),
++            uncorrectedFieldOfView: format.videoFieldOfView > 0 ? Double(format.videoFieldOfView) : nil)
++        latestStabilization = snapshot
++        stabilizationContinuation.yield(snapshot)
+     }
+ 
+     func submit(_ command: CaptureIOCommand) async -> CaptureCommandAcceptance {
+@@ -378,11 +458,12 @@
+                 guard wbOrder?.appliedAutomatic(token) == true else { return .rejected(token, .evidenceMismatch) }
+                 emit(.automaticWhiteBalanceRestored(token, ExplorationCaptureValues.now()))
+             case .startRecording(_, let intent):
++                publishStabilization(generation: preparation.generation)
+                 let admission = startAdmission.admit(token: token, intentContext: intent.context,
+                     generation: preparation.generation, activeToken: activeToken,
+                     ownsWhiteBalanceLock: wbOrder?.canStart(token.context) == true,
+                     whiteBalanceLocked: device?.whiteBalanceMode == .locked,
+-                    sessionRunning: session?.isRunning == true,
++                    sessionRunning: session?.isRunning == true && stabilizationAllowsRecording,
+                     audioActive: currentAudioRoute() != nil && audioObservation.state.confirmedFailure == nil
+                         && { if case .valid = audioObservation.state.input { return true }; return false }(),
+                     observedAt: ExplorationCaptureValues.now())
+@@ -657,6 +738,7 @@
+     func shutDown() {
+         guard activeToken == nil else { stopRecording(); return }
+         clearWhiteBalanceObservation()
++        clearStabilizationObservation()
+         audioMonitorTask?.cancel(); audioMonitorTask = nil
+         if let request = latestAudioRecoveryRequest { cancelAudioRecovery(request) }
+         wbOrder = nil
+@@ -678,6 +760,8 @@
+ 
+ extension NativeExplorationCapture {
+     private func startRecording(url: URL, token: CaptureCommandToken, intent: RecordingIntent) throws {
++        publishStabilization(generation: token.context.generation)
++        guard stabilizationAllowsRecording else { throw ExplorationIssue.appliedValuesDiffer }
+         guard let preparation else { throw ExplorationIssue.operationInProgress }
+         sourceStart = nil
+         firstAccepted = false
+--- baseline/FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift
++++ FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift
+@@ -625,6 +625,9 @@
+     private(set) var sessionActive = false
+     private let stream: AsyncStream<ExplorationDeviceEvent>
+     private let continuation: AsyncStream<ExplorationDeviceEvent>.Continuation
++    private let stabilizationPair = AsyncStream<CaptureStabilizationSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(8))
++    private var stabilizationEnabled = false
++    private var stabilizationActive: String?
+     private let audioPair = AsyncStream<ProductCaptureAudioSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
+     private var recoveryOutcomes: [CaptureAudioRecoveryOutcome] = [.validInput(route: "recovered test mic")]
+     private var heldRecovery: CheckedContinuation<CaptureAudioRecoveryOutcome, Never>?
+@@ -652,6 +655,27 @@
+     func events() -> AsyncStream<CaptureIOEvent> { AsyncStream { $0.finish() } }
+     func productEvents() -> AsyncStream<ExplorationDeviceEvent> { stream }
+     func audioSnapshots() -> AsyncStream<ProductCaptureAudioSnapshot> { audioPair.stream }
++    func stabilizationSnapshots() -> AsyncStream<CaptureStabilizationSnapshot> { stabilizationPair.stream }
++    func finishStabilizationObservations() { stabilizationPair.continuation.finish() }
++    func configureStabilization(active: String?) { stabilizationEnabled = true; stabilizationActive = active }
++    func emitStabilization(sequence: UInt64, active: String?, generation override: CaptureGeneration? = nil,
++                           zoom: Double = 1, physicalCamera: String? = "synthetic-wide",
++                           formatID: String = "synthetic-format", connection: CaptureStabilizationConnection = .ready) {
++        guard let generation = override ?? generation else { return }
++        stabilizationPair.continuation.yield(stabilization(generation: generation, sequence: sequence, active: active,
++            zoom: zoom, physicalCamera: physicalCamera, formatID: formatID, connection: connection))
++    }
++    private func stabilization(generation: CaptureGeneration, sequence: UInt64, active: String?, zoom: Double = 1,
++                               physicalCamera: String? = "synthetic-wide", formatID: String = "synthetic-format",
++                               connection: CaptureStabilizationConnection = .ready) -> CaptureStabilizationSnapshot {
++        let c = fixture.desired.configuration
++        return .init(generation: generation, sequence: sequence, output: .sampleWriter,
++            requestedMode: c.stabilizationMode, preferredMode: c.stabilizationMode,
++            activeMode: active.map { .observed($0, at: fixture.time, method: .direct(source: "synthetic")) }
++                ?? .unavailable(.notMeasured), connection: connection, camera: c.camera,
++            activePhysicalCamera: physicalCamera, formatID: formatID, width: c.width, height: c.height,
++            zoom: zoom, uncorrectedFieldOfView: 70)
++    }
+     func emitAudio(_ state: CaptureAudioState, sequence: UInt64, capture: CaptureID? = nil,
+                    generation override: CaptureGeneration? = nil) {
+         guard let generation = override ?? generation else { return }
+@@ -703,7 +727,9 @@
+             whiteBalanceLock: c.whiteBalanceLock, whiteBalanceRefresh: .supported(refreshSupported)),
+             applied: .init(generation: request.generation, operation: request.operation,
+                 values: .observed(.init(configuration: request.desired.configuration, exposure: exposure, zoom: request.desired.zoom),
+-                    at: fixture.time, method: .direct(source: "synthetic"))), audio: fixture.audio)
++                    at: fixture.time, method: .direct(source: "synthetic"))), audio: fixture.audio,
++            stabilization: stabilizationEnabled ? stabilization(generation: request.generation,
++                sequence: 1, active: stabilizationActive) : nil)
+     }
+     func submit(_ command: CaptureIOCommand) -> CaptureCommandAcceptance {
+         commands.append(command)
+--- baseline/FrameRelayTests/Application/ProductCaptureStabilizationCoordinatorTests.swift
++++ FrameRelayTests/Application/ProductCaptureStabilizationCoordinatorTests.swift
+@@ -0,0 +1,217 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@MainActor
++struct ProductCaptureStabilizationCoordinatorTests {
++    @Test func actualChangesAreVisibleWithoutMutatingWishesOrOtherControls() async throws {
++        let fixture = try CaptureFixture()
++        let preferences = ProductCaptureTestPreferences(fixture: fixture)
++        let device = ProductCaptureTestDevice(fixture: fixture)
++        await device.configureStabilization(active: fixture.desired.configuration.stabilizationMode)
++        let model = makeModel(preferences: preferences, device: device)
++        await model.load(); await model.prepare()
++        #expect(model.canRecord)
++        let prepared = model.prepared?.applied
++        let wishes = model.preferences
++        let generation = try #require(model.currentStabilization?.generation)
++        let revision = model.framing.revision
++        await device.emitStabilization(sequence: 3, active: "off")
++        await eventually { model.currentStabilization?.sequence == 3 }
++        #expect(!model.canRecord)
++        #expect(model.currentStabilization?.activeMode.value == "off")
++        #expect(model.framing.revision > revision)
++        #expect(model.preferences == wishes)
++        #expect(await preferences.load() == wishes)
++        #expect(model.prepared?.applied == prepared)
++        await device.emitStabilization(sequence: 2, active: fixture.desired.configuration.stabilizationMode)
++        await device.emitStabilization(sequence: 100, active: "off",
++            generation: .init(session: .init(rawValue: "obsolete"), settings: generation.settings))
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.currentStabilization?.sequence == 3)
++        await device.emitStabilization(sequence: 4, active: nil, connection: .inactive)
++        await eventually { model.currentStabilization?.sequence == 4 }
++        #expect(!model.canRecord)
++        #expect(model.currentStabilization?.activeMode.value == nil)
++        await device.emitStabilization(sequence: 5, active: fixture.desired.configuration.stabilizationMode)
++        await eventually { model.canRecord }
++        #expect(model.framing.correctedFieldOfView.value == nil)
++        #expect(model.framing.previewMatchesRecording == .unqueried)
++        await model.leaveCapture()
++        #expect(model.currentStabilization == nil)
++    }
++
++    @Test func prepareMismatchRemainsVisibleAndDoesNotSubstituteOFF() async throws {
++        let fixture = try CaptureFixture()
++        let preferences = ProductCaptureTestPreferences(fixture: fixture)
++        let device = ProductCaptureTestDevice(fixture: fixture)
++        await device.configureStabilization(active: "off")
++        let model = makeModel(preferences: preferences, device: device)
++        await model.load(); await model.prepare(); await model.record()
++        #expect(!model.canRecord)
++        #expect(model.currentStabilization?.preferredMode == fixture.desired.configuration.stabilizationMode)
++        #expect(model.currentStabilization?.activeMode.value == "off")
++        #expect(model.preferences.desired == fixture.desired)
++        #expect(await device.startCount == 0)
++        #expect(await preferences.load() == model.preferences)
++        await model.leaveCapture()
++    }
++
++    @Test func recordingRejectsSettingChangesWhileCameraZoomAndModeObservationsInvalidateFraming() async throws {
++        let fixture = try CaptureFixture()
++        let preferences = ProductCaptureTestPreferences(fixture: fixture)
++        let device = ProductCaptureTestDevice(fixture: fixture)
++        await device.configureStabilization(active: fixture.desired.configuration.stabilizationMode)
++        let model = makeModel(preferences: preferences, device: device)
++        await model.load(); await model.prepare(); await model.record()
++        await eventually { model.capture?.phase == .recording }
++        let original = model.preferences
++        let applied = model.prepared?.applied
++        let revision = model.framing.revision
++        let configuration = fixture.desired.configuration
++        let changed = try CaptureConfiguration(camera: configuration.camera, width: configuration.width, height: configuration.height,
++            framesPerSecond: configuration.framesPerSecond, codec: configuration.codec, logEncoding: configuration.logEncoding,
++            stabilizationMode: "off")
++        await model.updatePreferences(.init(desired: try .init(configuration: changed, exposure: fixture.desired.exposure, zoom: 1),
++                                           outputCandidate: .movieFile))
++        await model.prepare()
++        #expect(model.preferences == original)
++        #expect(await preferences.load() == original)
++        #expect(await device.preparations == 1)
++        await device.emitStabilization(sequence: 2, active: "off", zoom: 2, physicalCamera: "synthetic-tele")
++        await eventually { model.currentStabilization?.sequence == 2 }
++        #expect(model.framing.revision > revision)
++        #expect(model.currentStabilization?.activePhysicalCamera == "synthetic-tele")
++        #expect(model.currentStabilization?.zoom == 2)
++        #expect(model.prepared?.applied == applied)
++        #expect(model.preferences == original)
++        #expect(model.capture?.phase == .recording)
++        #expect(model.framing.correctedFieldOfView.value == nil)
++        await model.stop()
++        await eventually { !model.isBusy }
++        #expect(!model.canRecord)
++        await model.leaveCapture()
++    }
++
++    @Test func reprepareClearsFramingBeforeAwaitAndRejectsPreviousGenerationAfterwards() async throws {
++        let fixture = try CaptureFixture()
++        let old = ProductCaptureTestDevice(fixture: fixture)
++        await old.configureStabilization(active: fixture.desired.configuration.stabilizationMode)
++        let gate = ProductCaptureTestGate()
++        let new = ProductCaptureTestDevice(fixture: fixture, prepareGate: gate)
++        await new.configureStabilization(active: fixture.desired.configuration.stabilizationMode)
++        let factory = ProductCaptureTestDeviceFactory([old, new])
++        let model = ProductCaptureCoordinator(preferences: ProductCaptureTestPreferences(fixture: fixture),
++            makeDevice: { await factory.make(candidate: $0) }, save: ProductCaptureTestSave(),
++            bindOriginal: { _ in true }, didSave: {}, calendarNow: { Date() })
++        model.enterCapture()
++        await model.load(); await model.prepare()
++        let previous = try #require(model.currentStabilization?.generation)
++        let preparing = Task { await model.prepare() }
++        await gate.waitUntilHeld()
++        #expect(model.currentStabilization == nil)
++        #expect(!model.canRecord)
++        await old.emitStabilization(sequence: 100, active: "off")
++        await gate.release()
++        await preparing.value
++        let current = try #require(model.currentStabilization?.generation)
++        #expect(current != previous)
++        await new.emitStabilization(sequence: 100, active: "off", generation: previous)
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.currentStabilization?.generation == current)
++        #expect(model.canRecord)
++        await model.leaveCapture()
++        await new.emitStabilization(sequence: 101, active: "off")
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.currentStabilization == nil)
++    }
++
++    @Test func changedFormatCannotReusePreviousRecordingSupport() async throws {
++        let fixture = try CaptureFixture()
++        let device = ProductCaptureTestDevice(fixture: fixture)
++        await device.configureStabilization(active: fixture.desired.configuration.stabilizationMode)
++        let model = makeModel(preferences: ProductCaptureTestPreferences(fixture: fixture), device: device)
++        await model.load(); await model.prepare()
++        #expect(model.canRecord)
++        await device.emitStabilization(sequence: 2, active: fixture.desired.configuration.stabilizationMode,
++                                       formatID: "new-format")
++        await eventually { model.currentStabilization?.sequence == 2 }
++        #expect(!model.canRecord)
++        await model.leaveCapture()
++    }
++
++    @Test func initiallyMissingSnapshotDoesNotRestoreStalePreparationAfterObservationStreamEnds() async throws {
++        let fixture = try CaptureFixture()
++        let old = ProductCaptureTestDevice(fixture: fixture)
++        let new = ProductCaptureTestDevice(fixture: fixture)
++        let factory = ProductCaptureTestDeviceFactory([old, new])
++        let model = ProductCaptureCoordinator(preferences: ProductCaptureTestPreferences(fixture: fixture),
++            makeDevice: { await factory.make(candidate: $0) }, save: ProductCaptureTestSave(),
++            bindOriginal: { _ in true }, didSave: {}, calendarNow: { Date() })
++        model.enterCapture()
++        await model.load(); await model.prepare()
++        #expect(model.prepared?.stabilization == nil)
++        #expect(model.canRecord)
++        await old.emitStabilization(sequence: 1, active: fixture.desired.configuration.stabilizationMode)
++        await eventually { model.currentStabilization?.sequence == 1 }
++        await old.finishStabilizationObservations()
++        await eventually { model.framing.invalidation == .resourceUnavailable }
++        #expect(model.currentStabilization == nil)
++        #expect(!model.canRecord)
++        await model.record()
++        #expect(await old.startCount == 0)
++        await model.prepare()
++        #expect(model.canRecord)
++        await model.leaveCapture()
++    }
++
++    @Test func legacyDefaultEmptyStabilizationStreamPreservesPrepareTimeRecordingAdmission() async throws {
++        let fixture = try CaptureFixture()
++        let underlying = ProductCaptureTestDevice(fixture: fixture)
++        let legacy = LegacyStabilizationTestDevice(underlying: underlying)
++        let stream = await legacy.stabilizationSnapshots()
++        var iterator = stream.makeAsyncIterator()
++        let first = await iterator.next()
++        #expect(first == nil)
++        let model = makeModel(preferences: ProductCaptureTestPreferences(fixture: fixture), device: legacy)
++        await model.load(); await model.prepare()
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.prepared?.stabilization == nil)
++        #expect(model.currentStabilization == nil)
++        #expect(model.canRecord)
++        await model.record()
++        await eventually { model.capture?.phase == .recording }
++        #expect(await underlying.startCount == 1)
++        await model.stop()
++        await eventually { !model.isBusy }
++        await model.leaveCapture()
++    }
++
++    private func makeModel(preferences: ProductCaptureTestPreferences, device: any ProductCaptureDevicePort) -> ProductCaptureCoordinator {
++        let model = ProductCaptureCoordinator(preferences: preferences, makeDevice: { _ in device }, save: ProductCaptureTestSave(),
++            bindOriginal: { _ in true }, didSave: {}, calendarNow: { Date() })
++        model.enterCapture()
++        return model
++    }
++
++    private func eventually(_ condition: @MainActor () -> Bool) async {
++        for _ in 0..<2_000 {
++            if condition() { return }
++            await Task.yield()
++        }
++        #expect(condition())
++    }
++}
++
++/// Intentionally relies on ProductCaptureDevicePort's default empty stabilization stream.
++private actor LegacyStabilizationTestDevice: ProductCaptureDevicePort {
++    let underlying: ProductCaptureTestDevice
++    init(underlying: ProductCaptureTestDevice) { self.underlying = underlying }
++    func events() async -> AsyncStream<CaptureIOEvent> { await underlying.events() }
++    func productEvents() async -> AsyncStream<ExplorationDeviceEvent> { await underlying.productEvents() }
++    func discoverCameras() async throws -> [ExplorationCameraDescription] { await underlying.discoverCameras() }
++    func prepare(_ request: ProductCapturePreparation) async throws -> ExplorationPrepared { try await underlying.prepare(request) }
++    func previewSource() async -> (any ProductCapturePreviewSource)? { await underlying.previewSource() }
++    func submit(_ command: CaptureIOCommand) async -> CaptureCommandAcceptance { await underlying.submit(command) }
++    func shutDown() async { await underlying.shutDown() }
++}
+--- baseline/FrameRelayTests/Domain/CaptureStabilizationTests.swift
++++ FrameRelayTests/Domain/CaptureStabilizationTests.swift
+@@ -0,0 +1,101 @@
++import Testing
++@testable import FrameRelay
++
++struct CaptureStabilizationTests {
++    @Test func candidatesAreScopedToSelectedCameraResolutionFPSAndLog() {
++        let camera = ExplorationCameraDescription(id: "A", label: "A", isVirtual: false, formats: [
++            .init(id: "24log", width: 3840, height: 2160, frameRateRanges: [24...24],
++                  logEncodings: [.appleLog], stabilizationModes: ["off", "standard", "cinematic"]),
++            .init(id: "30log2", width: 3840, height: 2160, frameRateRanges: [30...30],
++                  logEncodings: [.appleLog2], stabilizationModes: ["off", "cinematicExtended"]),
++            .init(id: "hd", width: 1920, height: 1080, frameRateRanges: [24...30],
++                  logEncodings: [.appleLog], stabilizationModes: ["cinematicExtendedEnhanced"])
++        ])
++        #expect(ProductCaptureConfigurationMatcher.stabilizationModes(camera: camera, framesPerSecond: 24, log: .appleLog)
++            == ["off", "standard", "cinematic"])
++        #expect(ProductCaptureConfigurationMatcher.stabilizationModes(camera: camera, framesPerSecond: 30, log: .appleLog2)
++            == ["off", "cinematicExtended"])
++        #expect(ProductCaptureConfigurationMatcher.stabilizationModes(camera: camera, framesPerSecond: 30, log: .appleLog).isEmpty)
++        #expect(ProductCaptureConfigurationMatcher.stabilizationModes(camera: nil, framesPerSecond: 24, log: .appleLog).isEmpty)
++        #expect(ProductCaptureConfigurationMatcher.stabilizationAvailability(mode: "standard", camera: "A",
++            framesPerSecond: 24, log: .appleLog, cameras: [camera]) == .formatCandidate)
++        guard case .unsupported = ProductCaptureConfigurationMatcher.stabilizationAvailability(mode: "standard", camera: "A",
++            framesPerSecond: 30, log: .appleLog2, cameras: [camera]) else { Issue.record("Other format must not confer support"); return }
++        guard case .unconfirmed = ProductCaptureConfigurationMatcher.stabilizationAvailability(mode: "standard", camera: "B",
++            framesPerSecond: 24, log: .appleLog, cameras: [camera]) else { Issue.record("Other camera must not confer support"); return }
++        guard case .unsupported = ProductCaptureConfigurationMatcher.stabilizationAvailability(mode: "previewOptimized", camera: "A",
++            framesPerSecond: 24, log: .appleLog, cameras: [camera]) else { Issue.record("Preview-only mode is not recording support"); return }
++    }
++
++    @Test func requestedPreferredAndActiveRemainSeparateAndFramingNeverInfersCrop() throws {
++        let generation = try CaptureFixture().context.generation
++        var framing = CaptureFramingState()
++        let off = snapshot(generation: generation, sequence: 1, active: "off")
++        #expect(!off.matchesRequest)
++        let acceptedInitial = framing.receive(off, generation: generation)
++        #expect(acceptedInitial)
++        let initialRevision = framing.revision
++        let acceptedNewZoom = framing.receive(snapshot(generation: generation, sequence: 3, active: "standard", zoom: 2), generation: generation)
++        #expect(acceptedNewZoom)
++        #expect(framing.revision > initialRevision)
++        #expect(framing.snapshot?.matchesRequest == true)
++        #expect(framing.snapshot?.zoom == 2)
++        let acceptedOldSequence = framing.receive(off, generation: generation)
++        #expect(!acceptedOldSequence)
++        let oldGeneration = CaptureGeneration(session: .init(rawValue: "old"), settings: 1)
++        let acceptedOldGeneration = framing.receive(snapshot(generation: oldGeneration, sequence: 99, active: "off"), generation: generation)
++        #expect(!acceptedOldGeneration)
++        #expect(framing.snapshot?.sequence == 3)
++        #expect(framing.correctedFieldOfView == .unavailable(.apiDoesNotExpose))
++        #expect(framing.previewMatchesRecording == .unqueried)
++        let acceptedUnconfirmed = framing.receive(snapshot(generation: generation, sequence: 4, active: nil), generation: generation)
++        #expect(acceptedUnconfirmed)
++        #expect(framing.snapshot?.activeMode.value == nil)
++        #expect(framing.invalidation == .evidenceMismatch)
++        framing.invalidate(.interrupted)
++        #expect(framing.snapshot == nil)
++        #expect(framing.invalidation == .interrupted)
++        #expect(framing.correctedFieldOfView.value == nil)
++        let acceptedAfterInvalidation = framing.receive(snapshot(generation: generation, sequence: 3, active: "standard"), generation: generation)
++        #expect(!acceptedAfterInvalidation)
++        #expect(framing.snapshot == nil)
++    }
++
++    @Test func recordingAdmissionUsesPreparedScopeAndCurrentGeometry() throws {
++        let fixture = try CaptureFixture()
++        let configuration = try CaptureConfiguration(camera: "A", width: 3840, height: 2160, framesPerSecond: 24,
++            codec: .proRes422LT, logEncoding: .appleLog, stabilizationMode: "standard")
++        let desired = try DesiredCaptureSettings(configuration: configuration, exposure: fixture.desired.exposure, zoom: 1)
++        let generation = fixture.context.generation
++        let initial = snapshot(generation: generation, sequence: 1, active: "standard")
++        #expect(initial.matchesRecordingRequest(desired, generation: generation, output: .sampleWriter,
++                                                preparedFormatID: "synthetic-format"))
++        #expect(!initial.matchesRecordingRequest(desired, generation: generation, output: .movieFile,
++                                                 preparedFormatID: "synthetic-format"))
++        #expect(!initial.matchesRecordingRequest(desired, generation: generation, output: .sampleWriter,
++                                                 preparedFormatID: "previous-format"))
++        let movedWhileReserveSuspended = snapshot(generation: generation, sequence: 2, active: "standard", zoom: 2)
++        #expect(movedWhileReserveSuspended.matchesRequest)
++        #expect(!movedWhileReserveSuspended.matchesRecordingRequest(desired, generation: generation,
++            output: .sampleWriter, preparedFormatID: "synthetic-format"))
++        #expect(!initial.matchesRecordingRequest(fixture.desired, generation: generation, output: .sampleWriter,
++                                                 preparedFormatID: "synthetic-format"))
++        var framing = CaptureFramingState()
++        let acceptedCurrentScope = framing.receive(initial, generation: generation, desired: desired, output: .sampleWriter)
++        #expect(acceptedCurrentScope)
++        let acceptedMismatchedScope = framing.receive(movedWhileReserveSuspended, generation: generation, desired: fixture.desired, output: .movieFile)
++        #expect(acceptedMismatchedScope)
++        #expect(framing.snapshot == nil)
++        #expect(framing.invalidation == .evidenceMismatch)
++        let acceptedPriorScope = framing.receive(initial, generation: generation, desired: desired, output: .sampleWriter)
++        #expect(!acceptedPriorScope)
++        #expect(framing.snapshot == nil)
++    }
++
++    private func snapshot(generation: CaptureGeneration, sequence: UInt64, active: String?, zoom: Double = 1) -> CaptureStabilizationSnapshot {
++        .init(generation: generation, sequence: sequence, output: .sampleWriter, requestedMode: "standard", preferredMode: "standard",
++              activeMode: active.map { .observed($0, at: .unavailable(.notMeasured), method: .direct(source: "synthetic")) }
++                  ?? .unavailable(.notMeasured), connection: .ready, camera: "A", activePhysicalCamera: "wide",
++              formatID: "synthetic-format", width: 3840, height: 2160, zoom: zoom, uncorrectedFieldOfView: 70)
++    }
++}
+--- baseline/FrameRelayTests/Platform/Capture/NativeCaptureStabilizationTests.swift
++++ FrameRelayTests/Platform/Capture/NativeCaptureStabilizationTests.swift
+@@ -0,0 +1,27 @@
++import AVFoundation
++import Testing
++@testable import FrameRelay
++
++struct NativeCaptureStabilizationTests {
++    @Test(arguments: [ExplorationOutputCandidate.movieFile, .sampleWriter])
++    func bothOutputsRequireConnectionAndRequestedModeSupport(output: ExplorationOutputCandidate) {
++        #expect(NativeCaptureStabilization.admission(output: output, requested: "standard", connectionExists: false,
++                                                     supportsStabilization: true) != nil)
++        #expect(NativeCaptureStabilization.admission(output: output, requested: "off", connectionExists: false,
++                                                     supportsStabilization: false) != nil)
++        #expect(NativeCaptureStabilization.admission(output: output, requested: "standard", connectionExists: true,
++                                                     supportsStabilization: false) == "stabilization_connection_unsupported")
++        #expect(NativeCaptureStabilization.admission(output: output, requested: "off", connectionExists: true,
++                                                     supportsStabilization: false) == nil)
++        #expect(NativeCaptureStabilization.admission(output: output, requested: "cinematic", connectionExists: true,
++                                                     supportsStabilization: true) == nil)
++        #expect(NativeCaptureStabilization.admission(output: output, requested: "previewOptimized", connectionExists: true,
++                                                     supportsStabilization: true) == "stabilization_preview_only")
++    }
++
++    @Test func sdkModesRetainStableIDsWithoutTreatingAutoAsAnAppliedKnownMode() {
++        #expect(ExplorationCaptureValues.stabilizationModes.map(\.0) == CaptureStabilizationCatalog.modes)
++        #expect(ExplorationCaptureValues.stabilizationName(.off) == "off")
++        #expect(ExplorationCaptureValues.stabilizationName(.auto) == nil)
++    }
++}
+--- baseline/FrameRelayTests/Platform/Capture/ProductCaptureSettingsTests.swift
++++ FrameRelayTests/Platform/Capture/ProductCaptureSettingsTests.swift
+@@ -14,11 +14,16 @@
+         #expect(restored.whiteBalanceLock == .supported(true))
+     }
+ 
+-    @Test func settingStoreReopenPreservesWishesWithoutCapabilitiesOrWBLock() async throws {
++    @Test(arguments: ["off", "standard", "cinematicExtended"])
++    func settingStoreReopenPreservesWishesWithoutCapabilitiesOrWBLock(mode: String) async throws {
+         let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("settings.json")
+         defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+         let fixture = try CaptureFixture()
+-        let wish = ProductCapturePreferences(desired: fixture.desired, outputCandidate: .movieFile)
++        let original = fixture.desired.configuration
++        let configuration = try CaptureConfiguration(camera: original.camera, width: original.width, height: original.height,
++            framesPerSecond: original.framesPerSecond, codec: original.codec, logEncoding: original.logEncoding, stabilizationMode: mode)
++        let desired = try DesiredCaptureSettings(configuration: configuration, exposure: fixture.desired.exposure, zoom: fixture.desired.zoom)
++        let wish = ProductCapturePreferences(desired: desired, outputCandidate: .movieFile)
+         let first = CapturePreferenceStore(url: url)
+         #expect(try await first.load() == .init())
+         try await first.save(wish)
+--- baseline/FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
++++ FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
+@@ -16,6 +16,11 @@
+         XCTAssertTrue(issue.waitForExistence(timeout: 10))
+         XCTAssertTrue(issue.label.contains("Simulator"))
+         XCTAssertFalse(app.buttons["capture.rec"].isEnabled)
++        let stabilization = app.staticTexts["capture.stabilization"]
++        if !stabilization.isHittable { app.swipeUp() }
++        XCTAssertTrue(stabilization.exists)
++        XCTAssertTrue(stabilization.label.contains("未確認"))
++        XCTAssertTrue(app.staticTexts["capture.framing"].label.contains("一致は確認できていません"))
+         let whiteBalance = app.staticTexts["capture.whiteBalance"]
+         if !whiteBalance.isHittable { app.swipeUp() }
+         XCTAssertTrue(whiteBalance.exists)
+@@ -32,4 +37,51 @@
+         XCTAssertTrue(app.buttons["library.refresh"].exists)
+         #endif
+     }
++
++    @MainActor func testStabilizationSettingsKeepCandidateUnconfirmedWithoutCameraAndDoNotInventFPS() throws {
++        #if !targetEnvironment(simulator)
++        throw XCTSkip("Simulatorで能力未確認の通常設定表示を検証します")
++        #else
++        let app = XCUIApplication()
++        app.launch()
++        let entry = app.buttons["product.capture"]
++        XCTAssertTrue(entry.waitForExistence(timeout: 10))
++        entry.tap()
++        let settings = app.buttons["capture.settings"]
++        XCTAssertTrue(settings.waitForExistence(timeout: 10))
++        XCTAssertTrue(app.staticTexts["capture.desired"].label.hasPrefix("未選択。"))
++        settings.tap()
++        let fps = app.buttons["capture.settings.fps"]
++        XCTAssertTrue(fps.waitForExistence(timeout: 5))
++        let fpsText = pickerDisplayedText(fps, attachmentName: "Initial frame-rate picker")
++        XCTAssertTrue(fpsText.contains("選択してください"), fpsText)
++        XCTAssertFalse(fpsText.contains("24 fps") || fpsText.contains("30 fps"), fpsText)
++        let picker = app.buttons["capture.settings.stabilization"]
++        for _ in 0..<5 where !picker.isHittable { app.swipeUp() }
++        XCTAssertTrue(picker.exists)
++        let status = app.staticTexts["capture.settings.stabilizationStatus"]
++        XCTAssertTrue(status.exists)
++        XCTAssertTrue(status.label.contains("カメラ") || status.label.contains("未確認"))
++        let stabilizationText = pickerDisplayedText(picker, attachmentName: "Initial stabilization picker")
++        XCTAssertTrue(stabilizationText.contains("標準（未確認）"), stabilizationText)
++        app.buttons["capture.settings.close"].tap()
++        app.buttons["capture.closeToolbar"].tap()
++        XCTAssertTrue(entry.waitForExistence(timeout: 5))
++        #endif
++    }
++
++    /// SwiftUI menu pickers can expose the displayed selection in the label or a
++    /// child static text while their value is a non-nil unrelated control value.
++    /// Scope all text to this picker, so another row's placeholder cannot satisfy it.
++    @MainActor private func pickerDisplayedText(_ picker: XCUIElement, attachmentName: String) -> String {
++        let labels = [picker.label] + picker.staticTexts.allElementsBoundByIndex.map(\.label)
++        let value = picker.value.map { String(describing: $0) } ?? "<nil>"
++        let text = (labels + [value]).joined(separator: "\n")
++        let attachment = XCTAttachment(string: "value=\(value)\n\(picker.debugDescription)")
++        attachment.name = attachmentName
++        attachment.lifetime = .keepAlways
++        add(attachment)
++        return text
++    }
++
+ }
+--- baseline/docs/architecture.md
++++ docs/architecture.md
+@@ -205,6 +205,16 @@
+ 
+ 無到着期限判定と有限復旧には、2026-10-18のS43で本人が合意した変更可能な暫定製品policyを使う。`ProductCaptureFactory` は無到着2秒、本人の再試行ごとに1回、復旧上限5秒の同一 `audioPolicy` をNativeとcoordinatorへ注入する。Nativeの再構成範囲は音声入力/出力だけとし、カメラ・形式・WB・Movie出力は保持する。復旧中も2秒の無到着判定が働き、5秒は復旧全体の上限である。音声復旧は試行ごとの世代・操作ID・順番で所有し、完了・時間切れ・取消を照合する。取消要求だけでSDK資源を解放済みにせず、同じ試行の終了を確認するまで次RECと重複復旧を抑止する。成功は実入力到着の再確認で判定し、本人のREC待機へ戻す。S43の製品接続・実装完了判定・検証証跡は現行tasklistを正本とし、暫定合意を実機採用・品質合格へ昇格しない。実機の音声・同期・復旧品質はDV-10の未確認範囲として保持する。
+ 
++S44の `CaptureStabilizationCatalog` は既存SDK候補の `off`、`standard`、`cinematic`、`cinematicExtended`、`previewOptimized`、`cinematicExtendedEnhanced` を保持する。保存希望がない初回の `standard` はPRDの第一候補を具体化した可逆な希望で、保存希望を上書きしない。`ProductCaptureConfigurationMatcher` は現在のカメラ・4K・fps・Logのformat条件で候補を絞り、コーデック・記録方式を含む支持と実適用は未確認として分離する。`previewOptimized` はプレビュー用で、現在の4K記録では候補理由を示して拒否する。候補外の保存希望も保持し、OFF・別モード・別の記録方式へ自動切替しない。
++
++`NativeCaptureStabilization` はMovieFileOutputとVideoDataOutput＋AssetWriterの両候補で記録用video connectionの存在を確認し、OFF以外では補正支持も要求して `preferredVideoStabilizationMode` を設定・読戻しする。要求値の読戻しだけでは実適用の証拠にしない。`NativeExplorationCapture` はセッションとconnectionの動作・有効状態を照合し、`activeVideoStabilizationMode` を別の観測として渡す。OFFでもconnectionの存在・動作と実active値を確認し、希望・要求・実動作の一致を記録開始条件にする。
++
++補正観測はactive/preferredモード、connectionのactive/enabled、倍率、active format、仮想カメラの実撮影カメラ、sessionの実行/中断をKVOで受け、Nativeの直列所有者上で現在値を読み直す。`CaptureStabilizationSnapshot` はセッション/設定世代・単調な連番・出力候補・カメラ/実カメラ・format/解像度・倍率と補正値を持ち、最新1件のstreamでApplicationへ渡す。`ProductCaptureCoordinator` は現在の所有者と世代を照合し、`CaptureFramingState` は旧世代・重複・逆順を拒否して状態のrevisionを更新する。再準備・中断・観測終了で旧状態を失効させても、同じ世代の受理済み連番の最大値は保持する。
++
++RECの受理前にcoordinatorが現在のsnapshotを希望設定と準備時のformatへ照合する。Nativeも開始命令の受理前と、記録先の非同期予約が戻った実記録開始直前にSDKの現在値を読み直し、`matchesRecordingRequest` で世代・出力・補正の希望/要求/実active・カメラ・format・解像度・倍率を再照合する。予約待ちの間に条件が変わっていれば開始を拒否し、古い準備結果を開始許可に使わない。画角観測を供給しない既存adapterの互換経路は準備時の実適用照合を維持するが、現在の画角やプレビューとの一致を補完しない。
++
++`CaptureFramingState` はS47向けに観測元とrevisionを供給する。`format.videoFieldOfView` は未補正のformat画角としてのみ保持し、補正後cropの数値へ換算しない。補正後の画角は取得不能、プレビューと記録の一致はOFFでも未確認のままとする。構図予告・ズーム停止支援UIへの接続、補正による実画角・3場面の品質・ズーム/切替との両立はS47とDV-04/08/09等の後続検証へ残す。S44の進捗・検証証跡は現行tasklistを正本とし、SDK候補の保持をモード数・名称・強さの正式採用や全FR-03受入へ昇格させない。
++
+ S41のカメラ表示は構図確認用で、標準Rec.709変換を備えた表示の達成証拠にはしない。標準表示変換の実装と検証はS48の範囲として残す。
+ 
+ 表示変換は入力Log種別と色特性が判明した経路だけに適用し、二重変換を避ける。Apple LogとApple Log 2には異なる色空間定義があるため、機種名やファイル名から一律に同じ変換を適用しない。採用するLog種別と変換係数・LUTの由来、表示とMac miniの変換整合は別途検証する。[AVCaptureColorSpace.appleLog](https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog)
+--- baseline/docs/functional-design.md
++++ docs/functional-design.md
+@@ -128,6 +128,10 @@
+ 
+ 通常撮影の設定保存は希望値と記録方式の候補を対象とする。初回fpsは未選択から本人が24/30fpsを選び、以後は保存して条件付きで復元する。復元時は現在のカメラ・形式・組合せを再照合し、適用後の読戻しを実適用値として表示する。以前の能力判定・実適用値・WB固定値は復元しない。記録方式はMovie/sample writerの二候補を保持し、保存済みのカメラ・形式・記録方式が使えなくても希望値を保持して自動切替しない。候補の保持と選択は合意済みだが、実機での記録方式の正式採用・品質確認とは区別する。
+ 
++S44の補正設定では、保存済み希望がない初回だけ `standard` を設定案の第一候補にする。これはPRDの標準相当候補を具体化した変更可能な希望であり、対応や実適用の保証ではない。保存済み希望を優先し、非対応でもOFF・別モード・別の記録方式へ自動代替しない。既存SDK候補の `off`、`standard`、`cinematic`、`cinematicExtended`、`previewOptimized`、`cinematicExtendedEnhanced` を保持するが、製品のモード数・名称・強さの正式採用はU6の未決事項として残す。
++
++設定画面は現在のカメラ・4K・fps・Logに合うformatから補正候補を絞り、「候補・出力は未確認」「未確認」「非対応」と理由を表示する。format上の候補を、コーデック・記録方式を含む実接続の支持や実適用へ昇格させない。`previewOptimized` はプレビュー用の候補として保持し、現在の4K記録には使用できない理由を示す。条件変更後に候補外となった保存済み希望も表示に残し、本人がOFFまたは対応候補を選べるようにする。
++
+ ### D2 人物・ND・ズーム
+ 
+ | 型・フィールド | Swiftの型例 | 必須性・欠損の意味 | 許容値・初期値・制約 |
+@@ -252,6 +256,10 @@
+ 
+ 合わせ直し中にSTOPを受けた場合は測定を打ち切り、その時点のWB固定を適用してから記録停止へ進む。固定の適用待ちと記録終端後のAuto復帰を区別し、STOP受付だけで待機Autoへ戻さない。次クリップは待機Autoから新しく測定する。色変化・録画継続性・最終フレームの品質は実機評価の対象として残す。
+ 
++S44の通常撮影は補正の希望、記録接続への要求、実動作と現在倍率を分けて表示する。Movie/sample writerの両出力で記録接続の存在・動作状態・補正支持と実active値を照合し、希望を送っただけで適用済みにしない。OFFでも接続と実active値の確認を省略しない。現在の補正・カメラ・format・解像度・倍率等が準備条件と一致しなければRECを受理せず、理由と再準備を案内する。記録先の予約後も、実記録開始直前に再確認する。
++
++補正・倍率・format・実カメラ・セッションの変化は、世代と通知順序を持つ画角状態へ反映する。旧世代・重複・逆順通知を採用せず、再準備・中断・観測終了では旧画角状態を失効させる。同じ世代で失効しても受理済み通知番号の最大値を保持し、遅れた通知で旧状態を復活させない。formatの画角は補正後cropの根拠にせず、補正後の撮影範囲とプレビュー・記録の一致はOFFでも未確認と表示する。S44はS47向けの状態供給までを扱い、構図予告・ズーム停止支援UIへの接続と実画角の検証は残す。進捗・検証証跡は現行tasklistを正本とし、3場面の補正品質や全FR-03受入の完了を意味しない。
++
+ 解析の受付結果はセッション・設定・対象・構図世代と有効期間が一致するときだけ採用する。WB更新・倍率/実カメラ変更・補正変更・アプリ中断で該当する解析を失効させる。有効期間・AF保持秒数は実測前に固定数値を作らず、T05/T06で評価条件と併せて決める。音声の障害判定猶予はS1・U7の暫定合意とT09/DV-10の実機評価を区別する。録画品質が維持できないときの補助処理削減案はU7で決め、削減を理由に補正や撮影設定を無断変更しない。
+ 
+ ### S3 原本保存と起動時の復旧
+@@ -375,7 +383,7 @@
+ | --- | --- | --- |
+ | T01 | 希望/実適用、対応/未確認/非対応、手動値変更時の世代、原本の保存先 | 各カメラで4K・24/30fps・LT/422/Proxy＋Log、音声付き原本、絞り対応、非対応時の説明、写真へ原本未追加 |
+ | T02 | 表示経路の確認イベントでは明示確認を作らない | 待機/録画中の固定Rec.709表示、Log非焼込み、描画性能・録画継続性を合意範囲で確認 |
+-| T03 | 対応条件付き復元、無断代替禁止、補正変更時の予告世代 | OFF＋複数モードの効果を歩き/静止手持ち/ゆっくりパンで評価。構図・音声同期・ズーム/切替との両立、標準不成立時の説明 |
++| T03 | 初回候補と保存希望優先、条件付き復元、format候補と実接続の分離、無断代替禁止、両出力の要求/実active照合、予約後の開始再確認、旧通知・画角失効と通知番号の保持 | 候補/未確認/非対応理由と希望/要求/実動作の表示。OFF＋複数モードの効果を歩き/静止手持ち/ゆっくりパンで評価。構図・音声同期・ズーム/切替との両立、標準不成立時の説明。予告/停止支援への接続と実画角はS47・実機評価で確認 |
+ | T04 | REC/STOP/合わせ直しの順序、WB値のクリップ間持越しなし | 安定前REC、最後の記録フレーム、合わせ直し時の色と連続性、二本連続撮影、他露出値の維持 |
+ | T05 | 主役と露出対象の分離、同じ主役のみ再捕捉、保持期限・古い候補、追跡OFF | 通常の主役合焦/前後追従、人物優先AFを距離・光・移動条件別に評価。人物なし・検出待ちでもREC可能 |
+ | T06 | 設定/対象/構図変更・解析停止で旧OKを失効、WB状態の世代照合 | 濃く/薄く/両立困難の合意代表例、反射・太陽・黒、WB Auto/固定、飽和/情報不足。保留だけで完成にしない |

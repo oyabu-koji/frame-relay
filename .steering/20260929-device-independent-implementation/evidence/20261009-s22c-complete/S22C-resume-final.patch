@@ -1,0 +1,1907 @@
+--- resume-baseline/FrameRelayTests/Support/RegistrationTestSupport.swift
++++ FrameRelayTests/Support/RegistrationTestSupport.swift
+@@ -22,6 +22,16 @@
+         [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
+          kSecAttrAccount as String: account, kSecAttrSynchronizable as String: false,
+          kSecUseDataProtectionKeychain as String: true]
++    }
++    func bytes(_ account: String) throws -> Data? {
++        var query = query(account)
++        query[kSecReturnData as String] = true
++        query[kSecMatchLimit as String] = kSecMatchLimitOne
++        var result: CFTypeRef?
++        let status = SecItemCopyMatching(query as CFDictionary, &result)
++        if status == errSecItemNotFound { return nil }
++        guard status == errSecSuccess, let data = result as? Data else { throw RegistrationAccessError.credentialUnavailable }
++        return data
+     }
+     /// Exact UUID namespace and just the two accounts this fixture can create.
+     /// No product credentials, wildcard deletes or access-group changes.
+@@ -50,15 +60,15 @@
+         return .succeeded(.init(destination: connection.destination, wireVersion: "1",
+                                  operations: [.destinationIdentity, .registration, .registrationLookup]))
+     }
+-    func discover(_ connection: RegistrationConnection) -> BackendOutcome<BackendCapabilities> {
++    func discover(_ connection: RegistrationConnection, storeIdentity: RegistrationStoreIdentity) -> BackendOutcome<BackendCapabilities> {
+         checkConnection(connection, bearer: "test")
+     }
+-    func lookup(_ intent: RegistrationIntent, at connection: RegistrationConnection) -> BackendOutcome<RegistrationServerReceipt> {
++    func lookup(_ intent: RegistrationIntent, at connection: RegistrationConnection, storeIdentity: RegistrationStoreIdentity) -> BackendOutcome<RegistrationServerReceipt> {
+         lookups += 1
+         if let lookupResult { return lookupResult }
+         return receipt.map { .succeeded($0) } ?? .notExecuted
+     }
+-    func register(_ command: RegistrationCommand, at connection: RegistrationConnection) -> BackendOutcome<RegistrationServerReceipt> {
++    func register(_ command: RegistrationCommand, at connection: RegistrationConnection, storeIdentity: RegistrationStoreIdentity) -> BackendOutcome<RegistrationServerReceipt> {
+         guard command.isCommitted else { return .failed(.rejected) }
+         posts += 1
+         let received = RegistrationServerReceipt(intent: command.intent, registration: .init(destination: command.intent.destination,
+@@ -82,3 +92,9 @@
+     guard case .loaded(let value) = await store.load() else { throw BackendContractError.unavailable }
+     return value
+ }
++
++nonisolated func establishRegistrationIdentity(_ store: any MediaOperationStorePort) async throws -> RegistrationStoreIdentity {
++    let snapshot = try await registrationSnapshot(store)
++    return try await store.establishRegistrationIdentity(expectedRevision: snapshot.revision,
++                                                         expectedIdentity: snapshot.storeIdentity)
++}
+--- resume-baseline/FrameRelayTests/Integration/Storage/MediaStoreLegacyMigrationTests.swift
++++ FrameRelayTests/Integration/Storage/MediaStoreLegacyMigrationTests.swift
+@@ -41,7 +41,7 @@
+ 
+             let migratedBytes = try readLegacyPayload(candidate: candidate, run: run)
+             let persisted = try JSONDecoder().decode(LegacyEvidenceProjection.self, from: migratedBytes)
+-            #expect(persisted.schema == 4)
++            #expect(persisted.schema == 5)
+             #expect(persisted.legacyRevision == 13)
+             #expect(persisted.transactionRevision == 14)
+             #expect(persisted.entries == legacy.entries)
+--- resume-baseline/FrameRelayTests/Integration/Storage/RecordingStorePersistenceTests.swift
++++ FrameRelayTests/Integration/Storage/RecordingStorePersistenceTests.swift
+@@ -89,10 +89,13 @@
+             #expect(throws: ExplorationStorageError.inaccessible) { try candidate.open(run, mode: .openExisting) }
+             _ = try candidate.open(run, mode: .createNew)
+             #expect(throws: ExplorationStorageError.alreadyExists) { try candidate.open(run, mode: .createNew) }
+-            // Only this test's newly created synthetic store is fault-injected.
++        }
++        try await withStorageRun { run in
++            // A separate fixture has never had a writer or SQLite connection.
++            // Do not replace an opened database or assume its descriptors closed.
+             let corrupt = Data("synthetic-corrupt-store".utf8)
+             let file = run.url.appendingPathComponent(candidate.fileName)
+-            try corrupt.write(to: file, options: .atomic)
++            try corrupt.write(to: file, options: .withoutOverwriting)
+             #expect(throws: (any Error).self) { try candidate.open(run, mode: .openExisting) }
+             #expect(try Data(contentsOf: file) == corrupt)
+         }
+--- resume-baseline/FrameRelayTests/Integration/Composition/RegistrationCompositionTests.swift
++++ FrameRelayTests/Integration/Composition/RegistrationCompositionTests.swift
+@@ -45,8 +45,8 @@
+ }
+ 
+ nonisolated private struct UnavailableRegistrationVault: RegistrationVaultPort {
+-    func connection() async throws -> RegistrationConnection? { throw RegistrationAccessError.credentialUnavailable }
+-    func saveConnection(_ connection: RegistrationConnection, bearer: String) async throws { throw RegistrationAccessError.credentialUnavailable }
+-    func prepareIntent(for destination: DestinationIdentity) async throws -> RegistrationIntent { throw RegistrationAccessError.credentialUnavailable }
+-    func requireCredential(for intent: RegistrationIntent) async throws { throw RegistrationAccessError.credentialUnavailable }
++    func connection(storeIdentity: RegistrationStoreIdentity?) async throws -> RegistrationConnection? { throw RegistrationAccessError.credentialUnavailable }
++    func saveConnection(_ connection: RegistrationConnection, bearer: String, storeIdentity: RegistrationStoreIdentity) async throws { throw RegistrationAccessError.credentialUnavailable }
++    func prepareIntent(for destination: DestinationIdentity, storeIdentity: RegistrationStoreIdentity) async throws -> RegistrationIntent { throw RegistrationAccessError.credentialUnavailable }
++    func requireCredential(for intent: RegistrationIntent, storeIdentity: RegistrationStoreIdentity) async throws { throw RegistrationAccessError.credentialUnavailable }
+ }
+--- resume-baseline/FrameRelayTests/Integration/Registration/KeychainRegistrationTests.swift
++++ FrameRelayTests/Integration/Registration/KeychainRegistrationTests.swift
+@@ -5,65 +5,157 @@
+ 
+ struct KeychainRegistrationTests {
+     @Test func realKeychainReopenRetainsCredentialBeforeAnyIntentCommit() async throws {
++        let identity = RegistrationStoreIdentity(rawValue: UUID())
+         let fixture = try RegistrationTestKeychain()
+         defer { fixture.cleanup() }
+         let vault = try fixture.vault()
+-        try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap")
+-        let first = try await vault.prepareIntent(for: fixture.connection.destination)
++        try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap", storeIdentity: identity)
++        let first = try await vault.prepareIntent(for: fixture.connection.destination, storeIdentity: identity)
+         let reopened = try fixture.vault()
+-        let second = try await reopened.prepareIntent(for: fixture.connection.destination)
++        let second = try await reopened.prepareIntent(for: fixture.connection.destination, storeIdentity: identity)
+         #expect(first == second)
+-        let material = try await vault.authorization(for: fixture.connection, intent: first)
+-        let again = try await reopened.authorization(for: fixture.connection, intent: second)
++        let material = try await vault.authorization(for: fixture.connection, intent: first, storeIdentity: identity)
++        let again = try await reopened.authorization(for: fixture.connection, intent: second, storeIdentity: identity)
+         let secretsMatch = material.secret == again.secret
+         #expect(secretsMatch)
+         #expect(material.secret?.utf8.count == 64)
+     }
+     @Test func concurrentAtomicAddsChooseOneOperationAndSecret() async throws {
++        let identity = RegistrationStoreIdentity(rawValue: UUID())
+         let fixture = try RegistrationTestKeychain()
+         defer { fixture.cleanup() }
+         let first = try fixture.vault(), second = try fixture.vault()
+-        try await first.saveConnection(fixture.connection, bearer: "fixture-bootstrap")
+-        async let a = first.prepareIntent(for: fixture.connection.destination)
+-        async let b = second.prepareIntent(for: fixture.connection.destination)
++        try await first.saveConnection(fixture.connection, bearer: "fixture-bootstrap", storeIdentity: identity)
++        async let a = first.prepareIntent(for: fixture.connection.destination, storeIdentity: identity)
++        async let b = second.prepareIntent(for: fixture.connection.destination, storeIdentity: identity)
+         let values = try await [a, b]
+         #expect(values[0] == values[1])
+     }
+     @Test func duplicateConnectionCannotReplaceCredentials() async throws {
++        let identity = RegistrationStoreIdentity(rawValue: UUID())
+         let fixture = try RegistrationTestKeychain()
+         defer { fixture.cleanup() }
+         let vault = try fixture.vault()
+-        try await vault.saveConnection(fixture.connection, bearer: "first-bootstrap")
++        try await vault.saveConnection(fixture.connection, bearer: "first-bootstrap", storeIdentity: identity)
+         do {
+-            try await vault.saveConnection(fixture.connection, bearer: "replacement-bootstrap")
++            try await vault.saveConnection(fixture.connection, bearer: "replacement-bootstrap", storeIdentity: identity)
+             Issue.record("Credential replacement was accepted")
+         } catch { #expect(error as? RegistrationAccessError == .credentialConflict) }
+-        let material = try await vault.authorization(for: fixture.connection, intent: nil)
++        let material = try await vault.authorization(for: fixture.connection, intent: nil, storeIdentity: identity)
+         let originalKept = material.bearer == "first-bootstrap"
+         #expect(originalKept)
+     }
+     @Test func missingAndMismatchedIntentCredentialAreNotRegenerated() async throws {
++        let identity = RegistrationStoreIdentity(rawValue: UUID())
+         let fixture = try RegistrationTestKeychain()
+         defer { fixture.cleanup() }
+         let vault = try fixture.vault()
+-        try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap")
++        try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap", storeIdentity: identity)
+         let missing = RegistrationIntent(operation: .init(rawValue: UUID().uuidString.lowercased()), destination: fixture.connection.destination)
+-        do { try await vault.requireCredential(for: missing); Issue.record("Missing credential accepted") }
++        do { try await vault.requireCredential(for: missing, storeIdentity: identity); Issue.record("Missing credential accepted") }
+         catch { #expect(error as? RegistrationAccessError == .credentialMissing) }
+-        let saved = try await vault.prepareIntent(for: fixture.connection.destination)
+-        do { try await vault.requireCredential(for: missing); Issue.record("Wrong operation accepted") }
++        let saved = try await vault.prepareIntent(for: fixture.connection.destination, storeIdentity: identity)
++        do { try await vault.requireCredential(for: missing, storeIdentity: identity); Issue.record("Wrong operation accepted") }
+         catch { #expect(error as? RegistrationAccessError == .credentialConflict) }
+-        #expect(try await vault.prepareIntent(for: fixture.connection.destination) == saved)
++        #expect(try await vault.prepareIntent(for: fixture.connection.destination, storeIdentity: identity) == saved)
+     }
+     @Test func corruptExistingKeychainRecordNeverBecomesNewRegistration() async throws {
++        let identity = RegistrationStoreIdentity(rawValue: UUID())
+         let fixture = try RegistrationTestKeychain()
+         defer { fixture.cleanup() }
+         let vault = try fixture.vault()
+-        try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap")
+-        _ = try await vault.prepareIntent(for: fixture.connection.destination)
++        try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap", storeIdentity: identity)
++        _ = try await vault.prepareIntent(for: fixture.connection.destination, storeIdentity: identity)
+         let query = fixture.query("initial." + fixture.connection.destination.rawValue)
+         #expect(SecItemUpdate(query as CFDictionary, [kSecValueData as String: Data("invalid".utf8)] as CFDictionary) == errSecSuccess)
+-        do { _ = try await vault.prepareIntent(for: fixture.connection.destination); Issue.record("Corrupt credential replaced") }
++        do { _ = try await vault.prepareIntent(for: fixture.connection.destination, storeIdentity: identity); Issue.record("Corrupt credential replaced") }
+         catch { #expect(error as? RegistrationAccessError == .corruptCredential) }
+     }
++    @Test func differentStoreCannotReadAdoptOrReplaceBoundCredentials() async throws {
++        let fixture = try RegistrationTestKeychain()
++        defer { fixture.cleanup() }
++        let identity = RegistrationStoreIdentity(rawValue: UUID())
++        let other = RegistrationStoreIdentity(rawValue: UUID())
++        let vault = try fixture.vault()
++        try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap", storeIdentity: identity)
++        let intent = try await vault.prepareIntent(for: fixture.connection.destination, storeIdentity: identity)
++        let connectionBytes = try fixture.bytes("connection")
++        let secretBytes = try fixture.bytes("initial." + fixture.connection.destination.rawValue)
++        for expected: RegistrationStoreIdentity? in [nil, other] {
++            do { _ = try await vault.connection(storeIdentity: expected); Issue.record("Store mismatch accepted") }
++            catch { #expect(error as? RegistrationAccessError == .credentialConflict) }
++        }
++        do { try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap", storeIdentity: other); Issue.record("Old binding adopted") }
++        catch { #expect(error as? RegistrationAccessError == .credentialConflict) }
++        do { _ = try await vault.prepareIntent(for: fixture.connection.destination, storeIdentity: other); Issue.record("Old intent adopted") }
++        catch { #expect(error as? RegistrationAccessError == .credentialConflict) }
++        do { try await vault.requireCredential(for: intent, storeIdentity: other); Issue.record("Old secret accepted") }
++        catch { #expect(error as? RegistrationAccessError == .credentialConflict) }
++        do { _ = try await vault.authorization(for: fixture.connection, intent: intent, storeIdentity: other); Issue.record("Old secret released") }
++        catch { #expect(error as? RegistrationAccessError == .credentialConflict) }
++        let connectionUnchanged = try fixture.bytes("connection") == connectionBytes
++        let secretUnchanged = try fixture.bytes("initial." + fixture.connection.destination.rawValue) == secretBytes
++        #expect(connectionUnchanged)
++        #expect(secretUnchanged)
++        try await vault.requireCredential(for: intent, storeIdentity: identity)
++    }
++
++    @Test(arguments: [false, true])
++    func legacyUnboundRecordsArePreservedAndNeverAdopted(credentialOnly: Bool) async throws {
++        let fixture = try RegistrationTestKeychain()
++        defer { fixture.cleanup() }
++        let identity = RegistrationStoreIdentity(rawValue: UUID())
++        let vault = try fixture.vault()
++        try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap", storeIdentity: identity)
++        let intent = try await vault.prepareIntent(for: fixture.connection.destination, storeIdentity: identity)
++        let account = credentialOnly ? "initial." + fixture.connection.destination.rawValue : "connection"
++        let savedBytes = try fixture.bytes(account)
++        let original = try #require(savedBytes)
++        var object = try #require(JSONSerialization.jsonObject(with: original) as? [String: Any])
++        object["version"] = 1
++        object.removeValue(forKey: "storeIdentity")
++        let legacy = try JSONSerialization.data(withJSONObject: object)
++        #expect(SecItemUpdate(fixture.query(account) as CFDictionary,
++            [kSecValueData as String: legacy] as CFDictionary) == errSecSuccess)
++        let reopened = try fixture.vault()
++        do { _ = try await reopened.prepareIntent(for: fixture.connection.destination, storeIdentity: identity); Issue.record("Legacy credential adopted") }
++        catch { #expect(error as? RegistrationAccessError == .credentialConflict) }
++        do { _ = try await reopened.authorization(for: fixture.connection, intent: intent, storeIdentity: identity); Issue.record("Legacy authorization released") }
++        catch { #expect(error as? RegistrationAccessError == .credentialConflict) }
++        let unchanged = try fixture.bytes(account) == legacy
++        #expect(unchanged)
++    }
++
++    @Test func transportRefusesAStoreMismatchBeforeReleasingAuthorization() async throws {
++        try await withStorageRun { run in
++            let fixture = try RegistrationTestKeychain()
++            defer { fixture.cleanup() }
++            let oldIdentity = RegistrationStoreIdentity(rawValue: UUID())
++            let vault = try fixture.vault()
++            try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap", storeIdentity: oldIdentity)
++            let intent = try await vault.prepareIntent(for: fixture.connection.destination, storeIdentity: oldIdentity)
++            let fresh = try SQLiteRecordingStore(run: run, mode: .createNew)
++            let freshIdentity = try await establishRegistrationIdentity(fresh)
++            let authorization = RegistrationObservedAuthorization(base: vault)
++            let remote = URLSessionRegistrationRemote(credentials: authorization, store: fresh)
++            #expect(await remote.discover(fixture.connection, storeIdentity: oldIdentity) == .failed(.rejected))
++            #expect(await remote.lookup(intent, at: fixture.connection, storeIdentity: oldIdentity) == .failed(.rejected))
++            #expect(await authorization.calls == 0)
++            #expect(await remote.discover(fixture.connection, storeIdentity: freshIdentity) == .failed(.rejected))
++            #expect(await authorization.calls == 1)
++        }
++    }
++
+ }
++
++
++private actor RegistrationObservedAuthorization: RegistrationAuthorizationPort {
++    let base: any RegistrationAuthorizationPort
++    private(set) var calls = 0
++    init(base: any RegistrationAuthorizationPort) { self.base = base }
++    func authorization(for connection: RegistrationConnection, intent: RegistrationIntent?,
++                       storeIdentity: RegistrationStoreIdentity) async throws -> RegistrationAuthorization {
++        calls += 1
++        return try await base.authorization(for: connection, intent: intent, storeIdentity: storeIdentity)
++    }
++}
+--- resume-baseline/FrameRelayTests/Integration/Registration/RegistrationCoordinatorTests.swift
++++ FrameRelayTests/Integration/Registration/RegistrationCoordinatorTests.swift
+@@ -46,9 +46,10 @@
+             let fixture = try RegistrationTestKeychain()
+             defer { fixture.cleanup() }
+             let vault = try fixture.vault(), remote = RegistrationTestRemote()
+-            try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap")
+-            let originalIntent = try await vault.prepareIntent(for: fixture.connection.destination)
+-            let store = try SQLiteRecordingStore(run: run, mode: .createNew)
++            let store = try SQLiteRecordingStore(run: run, mode: .createNew)
++            let identity = try await establishRegistrationIdentity(store)
++            try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap", storeIdentity: identity)
++            let originalIntent = try await vault.prepareIntent(for: fixture.connection.destination, storeIdentity: identity)
+             let coordinator = RegistrationCoordinator(store: store, vault: try fixture.vault(), remote: remote)
+             if case .needsRegistration = await coordinator.restore() {} else { Issue.record("Explicit continuation missing") }
+             #expect(await remote.posts == 0)
+@@ -64,9 +65,10 @@
+             let fixture = try RegistrationTestKeychain()
+             defer { fixture.cleanup() }
+             let vault = try fixture.vault(), remote = RegistrationTestRemote()
+-            try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap")
+-            let originalIntent = try await vault.prepareIntent(for: fixture.connection.destination)
+             let initial = try SQLiteRecordingStore(run: run, mode: .createNew)
++            let identity = try await establishRegistrationIdentity(initial)
++            try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap", storeIdentity: identity)
++            let originalIntent = try await vault.prepareIntent(for: fixture.connection.destination, storeIdentity: identity)
+             if atRegistration {
+                 let mutation = BackendStoreMutation(expectedRevision: 0, change: .registrationIntent(originalIntent))
+                 guard case .committed = await initial.commit(mutation) else { Issue.record("Intent preparation failed"); return }
+@@ -151,4 +153,119 @@
+             #expect(try await registrationSnapshot(store).registrations.count == 1)
+         }
+     }
++    @Test(arguments: [false, true], [false, true])
++    func newStoreCannotReuseRetainedKeychainAtAnyEntry(registered: Bool, samePath: Bool) async throws {
++        try await withStorageRun { run in
++            let fixture = try RegistrationTestKeychain()
++            defer { fixture.cleanup() }
++            let vault = try fixture.vault(), remote = RegistrationTestRemote()
++            let original = try SQLiteRecordingStore(run: run, mode: .createNew)
++            if registered {
++                let initial = RegistrationCoordinator(store: original, vault: vault, remote: remote)
++                try #require(registrationIsCommitted(await initial.register(connection: fixture.connection, bearer: "fixture-bootstrap")))
++            } else {
++                let identity = try await establishRegistrationIdentity(original)
++                try await vault.saveConnection(fixture.connection, bearer: "fixture-bootstrap", storeIdentity: identity)
++                _ = try await vault.prepareIntent(for: fixture.connection.destination, storeIdentity: identity)
++            }
++            let originalIdentity = try #require(try await registrationSnapshot(original).storeIdentity)
++            let beforeConnection = try fixture.bytes("connection")
++            let beforeSecret = try fixture.bytes("initial." + fixture.connection.destination.rawValue)
++            let priorPosts = await remote.posts, priorLookups = await remote.lookups, priorDiscovery = await remote.discoveries
++            let freshRun: ExplorationRunDirectory
++            if samePath { freshRun = try replaceRegistrationTestRun(run) }
++            else {
++                freshRun = try ExplorationRunDirectory.createNew(at: run.url.deletingLastPathComponent()
++                    .appendingPathComponent("FrameRelay-new-store-" + UUID().uuidString))
++            }
++            let fresh = try SQLiteRecordingStore(run: freshRun, mode: .createNew)
++            let next = RegistrationCoordinator(store: fresh, vault: try fixture.vault(), remote: remote)
++            #expect(await next.restore() == .unavailable(.credentialConflict))
++            #expect(await next.permitsInitialInput() == false)
++            #expect(await next.registerSavedConnection() == .unavailable(.credentialConflict))
++            #expect(await next.register(connection: fixture.connection, bearer: "fixture-bootstrap") == .unavailable(.credentialConflict))
++            #expect(try await registrationSnapshot(fresh).storeIdentity == nil)
++            let newIdentity = try await establishRegistrationIdentity(fresh)
++            #expect(newIdentity != originalIdentity)
++            #expect(await next.restore() == .unavailable(.credentialConflict))
++            #expect(await next.registerSavedConnection() == .unavailable(.credentialConflict))
++            #expect(await remote.posts == priorPosts)
++            #expect(await remote.lookups == priorLookups)
++            #expect(await remote.discoveries == priorDiscovery)
++            let connectionUnchanged = try fixture.bytes("connection") == beforeConnection
++            let secretUnchanged = try fixture.bytes("initial." + fixture.connection.destination.rawValue) == beforeSecret
++            #expect(connectionUnchanged)
++            #expect(secretUnchanged)
++            #expect(try await registrationSnapshot(fresh).registrationIntents.isEmpty)
++            #expect(try await registrationSnapshot(fresh).registrations.isEmpty)
++        }
++    }
++
++    @Test(arguments: [RecordingStoreFault.beforeDiskCommit, .afterDiskCommitBeforeReply])
++    func identityCommitMustFinishBeforeKeychainOrNetwork(fault: RecordingStoreFault) async throws {
++        try await withStorageRun { run in
++            let fixture = try RegistrationTestKeychain()
++            defer { fixture.cleanup() }
++            let remote = RegistrationTestRemote()
++            let faulty = try SQLiteRecordingStore(run: run, mode: .createNew, fault: fault)
++            let interrupted = RegistrationCoordinator(store: faulty, vault: try fixture.vault(), remote: remote)
++            #expect(await interrupted.register(connection: fixture.connection, bearer: "fixture-bootstrap") == .unavailable(.storage))
++            #expect(try fixture.bytes("connection") == nil)
++            #expect(try fixture.bytes("initial." + fixture.connection.destination.rawValue) == nil)
++            #expect(await remote.posts == 0)
++            #expect(await remote.lookups == 0)
++            #expect(await remote.discoveries == 0)
++            let reopened = try SQLiteRecordingStore(run: run, mode: .openExisting)
++            let snapshot = try await registrationSnapshot(reopened)
++            #expect((snapshot.storeIdentity == nil) == (fault == .beforeDiskCommit))
++            let next = RegistrationCoordinator(store: reopened, vault: try fixture.vault(), remote: remote)
++            #expect(await next.restore() == .needsConnection)
++            #expect(registrationIsCommitted(await next.register(connection: fixture.connection, bearer: "fixture-bootstrap")))
++            if let identity = snapshot.storeIdentity { #expect(try await registrationSnapshot(reopened).storeIdentity == identity) }
++            #expect(await remote.posts == 1)
++        }
++    }
++
++    @Test func replacementDuringAwaitCannotCommitIntentIntoNewStoreAtSameRevision() async throws {
++        try await withStorageRun { run in
++            let fixture = try RegistrationTestKeychain()
++            defer { fixture.cleanup() }
++            let first = try SQLiteRecordingStore(run: run, mode: .createNew)
++            let switching = RegistrationReplacingStore(base: first, run: run)
++            let remote = RegistrationTestRemote()
++            let coordinator = RegistrationCoordinator(store: switching, vault: try fixture.vault(), remote: remote)
++            #expect(await coordinator.register(connection: fixture.connection, bearer: "fixture-bootstrap") == .unavailable(.identity))
++            let snapshot = try await registrationSnapshot(switching)
++            #expect(snapshot.revision == 0 && snapshot.registrationIntents.isEmpty && snapshot.registrations.isEmpty)
++            #expect(await remote.posts == 0)
++            #expect(await remote.lookups == 0)
++            #expect(await coordinator.restore() == .unavailable(.credentialConflict))
++        }
++    }
++
+ }
++
++
++private actor RegistrationReplacingStore: MediaOperationStorePort {
++    private var base: SQLiteRecordingStore
++    private let run: ExplorationRunDirectory
++    private var shouldReplace = true
++    init(base: SQLiteRecordingStore, run: ExplorationRunDirectory) { self.base = base; self.run = run }
++    func establishRegistrationIdentity(expectedRevision: UInt64,
++        expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity {
++        try await base.establishRegistrationIdentity(expectedRevision: expectedRevision, expectedIdentity: expectedIdentity)
++    }
++    func load() async -> BackendStoreLoadResult { await base.load() }
++    func lookupCommit(_ mutation: BackendStoreMutation) async -> BackendCommitResult { await base.lookupCommit(mutation) }
++    func commit(_ mutation: BackendStoreMutation) async -> BackendCommitResult {
++        if shouldReplace {
++            shouldReplace = false
++            do {
++                let freshRun = try replaceRegistrationTestRun(run)
++                base = try SQLiteRecordingStore(run: freshRun, mode: .createNew)
++                _ = try await base.establishRegistrationIdentity(expectedRevision: 0, expectedIdentity: nil)
++            } catch { return .unavailable(.inaccessible) }
++        }
++        return await base.commit(mutation)
++    }
++}
+--- resume-baseline/FrameRelayTests/Integration/Registration/RegistrationServerProbeTests.swift
++++ FrameRelayTests/Integration/Registration/RegistrationServerProbeTests.swift
+@@ -13,8 +13,8 @@
+             let fixture = try configuration.keychain()
+             defer { fixture.cleanup() }
+             let vault = try fixture.vault()
+-            let remote = ObservedRegistrationRemote(base: URLSessionRegistrationRemote(credentials: vault))
+             let store = try SQLiteRecordingStore(run: run, mode: .createNew)
++            let remote = ObservedRegistrationRemote(base: URLSessionRegistrationRemote(credentials: vault, store: store))
+             let coordinator = RegistrationCoordinator(store: store, vault: vault, remote: remote)
+             let initial = await coordinator.register(connection: fixture.connection, bearer: configuration.bearer)
+             try #require(registrationIsCommitted(initial))
+@@ -27,7 +27,7 @@
+ 
+             let reopened = try SQLiteRecordingStore(run: .openExisting(at: run.url), mode: .openExisting)
+             let nextVault = try fixture.vault()
+-            let nextRemote = ObservedRegistrationRemote(base: URLSessionRegistrationRemote(credentials: nextVault))
++            let nextRemote = ObservedRegistrationRemote(base: URLSessionRegistrationRemote(credentials: nextVault, store: reopened))
+             let next = RegistrationCoordinator(store: reopened, vault: nextVault, remote: nextRemote)
+             try #require(registrationIsCommitted(await next.restore()))
+             try #require(try await registrationSnapshot(reopened) == before)
+@@ -46,8 +46,8 @@
+                 let fixture = try configuration.keychain()
+                 defer { fixture.cleanup() }
+                 let vault = try fixture.vault()
+-                let remote = ObservedRegistrationRemote(base: URLSessionRegistrationRemote(credentials: vault), hidesFirstReply: boundary == 0)
+                 let initial = try SQLiteRecordingStore(run: run, mode: .createNew)
++                let remote = ObservedRegistrationRemote(base: URLSessionRegistrationRemote(credentials: vault, store: initial), hidesFirstReply: boundary == 0)
+                 let interrupted: RegistrationCoordinator
+                 if boundary == 0 {
+                     interrupted = RegistrationCoordinator(store: initial, vault: vault, remote: remote)
+@@ -57,8 +57,9 @@
+                     // Discovery and credential persistence are real; seed only the already-committed intent boundary.
+                     let capability = await remote.checkConnection(fixture.connection, bearer: configuration.bearer)
+                     guard case .succeeded = capability else { Issue.record("Real discovery failed"); return }
+-                    try await vault.saveConnection(fixture.connection, bearer: configuration.bearer)
+-                    let intent = try await vault.prepareIntent(for: fixture.connection.destination)
++                    let identity = try await establishRegistrationIdentity(initial)
++                    try await vault.saveConnection(fixture.connection, bearer: configuration.bearer, storeIdentity: identity)
++                    let intent = try await vault.prepareIntent(for: fixture.connection.destination, storeIdentity: identity)
+                     guard case .committed = await initial.commit(.init(expectedRevision: 0, change: .registrationIntent(intent))) else {
+                         Issue.record("Intent commit failed"); return
+                     }
+@@ -94,25 +95,26 @@
+             let fixture = try configuration.keychain()
+             defer { fixture.cleanup() }
+             let vault = try fixture.vault()
+-            let actual = URLSessionRegistrationRemote(credentials: vault)
++            let store = try SQLiteRecordingStore(run: run, mode: .createNew)
++            let identity = try await establishRegistrationIdentity(store)
++            let actual = URLSessionRegistrationRemote(credentials: vault, store: store)
+             let other = try RegistrationConnection(endpoint: fixture.connection.endpoint,
+                 destination: .init(rawValue: UUID().uuidString.lowercased()))
+             let discovery = await actual.checkConnection(other, bearer: configuration.bearer)
+             if case .succeeded = discovery { Issue.record("Wrong destination accepted"); return }
+-            try await vault.saveConnection(fixture.connection, bearer: configuration.bearer)
+-            let intent = try await vault.prepareIntent(for: fixture.connection.destination)
+-            let store = try SQLiteRecordingStore(run: run, mode: .createNew)
++            try await vault.saveConnection(fixture.connection, bearer: configuration.bearer, storeIdentity: identity)
++            let intent = try await vault.prepareIntent(for: fixture.connection.destination, storeIdentity: identity)
+             guard case .committed(let commit) = await store.commit(.init(expectedRevision: 0, change: .registrationIntent(intent))) else {
+                 Issue.record("Intent commit failed"); return
+             }
+             let command = RegistrationCommand(intent: intent, intentCommit: commit)
+-            guard case .succeeded(let first) = await actual.register(command, at: fixture.connection) else {
++            guard case .succeeded(let first) = await actual.register(command, at: fixture.connection, storeIdentity: identity) else {
+                 Issue.record("Real server registration failed"); return
+             }
+-            let invalid = URLSessionRegistrationRemote(credentials: WrongSecretAuthorization(base: vault))
+-            try #require(await invalid.lookup(intent, at: fixture.connection) == .failed(.authenticationRequired))
+-            try #require(await invalid.register(command, at: fixture.connection) == .failed(.authenticationRequired))
+-            guard case .succeeded(let same) = await actual.lookup(intent, at: fixture.connection) else {
++            let invalid = URLSessionRegistrationRemote(credentials: WrongSecretAuthorization(base: vault), store: store)
++            try #require(await invalid.lookup(intent, at: fixture.connection, storeIdentity: identity) == .failed(.authenticationRequired))
++            try #require(await invalid.register(command, at: fixture.connection, storeIdentity: identity) == .failed(.authenticationRequired))
++            guard case .succeeded(let same) = await actual.lookup(intent, at: fixture.connection, storeIdentity: identity) else {
+                 Issue.record("Original credential lost after rejected retry"); return
+             }
+             try #require(first == same)
+@@ -169,30 +171,30 @@
+         observation.discoveries += 1
+         return await base.checkConnection(connection, bearer: bearer)
+     }
+-    func discover(_ connection: RegistrationConnection) async -> BackendOutcome<BackendCapabilities> {
++    func discover(_ connection: RegistrationConnection, storeIdentity: RegistrationStoreIdentity) async -> BackendOutcome<BackendCapabilities> {
+         observation.discoveries += 1
+-        return await base.discover(connection)
+-    }
+-    func lookup(_ intent: RegistrationIntent, at connection: RegistrationConnection) async -> BackendOutcome<RegistrationServerReceipt> {
++        return await base.discover(connection, storeIdentity: storeIdentity)
++    }
++    func lookup(_ intent: RegistrationIntent, at connection: RegistrationConnection, storeIdentity: RegistrationStoreIdentity) async -> BackendOutcome<RegistrationServerReceipt> {
+         observation.lookups += 1
+-        let result = await base.lookup(intent, at: connection)
++        let result = await base.lookup(intent, at: connection, storeIdentity: storeIdentity)
+         if substitutesReceipt, case .succeeded(let receipt) = result {
+             return .succeeded(.init(intent: .init(operation: .init(rawValue: UUID().uuidString.lowercased()), destination: intent.destination),
+                                     registration: receipt.registration))
+         }
+         return result
+     }
+-    func register(_ command: RegistrationCommand, at connection: RegistrationConnection) async -> BackendOutcome<RegistrationServerReceipt> {
++    func register(_ command: RegistrationCommand, at connection: RegistrationConnection, storeIdentity: RegistrationStoreIdentity) async -> BackendOutcome<RegistrationServerReceipt> {
+         observation.posts += 1
+-        let result = await base.register(command, at: connection)
++        let result = await base.register(command, at: connection, storeIdentity: storeIdentity)
+         if hidesFirstReply, case .succeeded = result { hidesFirstReply = false; return .unknown }
+         return result
+     }
+ }
+ nonisolated private struct WrongSecretAuthorization: RegistrationAuthorizationPort {
+     let base: any RegistrationAuthorizationPort
+-    func authorization(for connection: RegistrationConnection, intent: RegistrationIntent?) async throws -> RegistrationAuthorization {
+-        let original = try await base.authorization(for: connection, intent: intent)
++    func authorization(for connection: RegistrationConnection, intent: RegistrationIntent?, storeIdentity: RegistrationStoreIdentity) async throws -> RegistrationAuthorization {
++        let original = try await base.authorization(for: connection, intent: intent, storeIdentity: storeIdentity)
+         guard let secret = original.secret else { throw RegistrationAccessError.credentialMissing }
+         let wrong = (secret.first == "a" ? "b" : "a") + secret.dropFirst()
+         return .init(bearer: original.bearer, secret: wrong)
+--- resume-baseline/FrameRelay/Domain/Operations/BackendCommit.swift
++++ FrameRelay/Domain/Operations/BackendCommit.swift
+@@ -1,3 +1,10 @@
++import Foundation
++
++/// Persisted in the common writer document; never derived from a path or a file identifier.
++nonisolated struct RegistrationStoreIdentity: Equatable, Hashable, Sendable, Codable {
++    let rawValue: UUID
++}
++
+ /// An exact semantic key, not a response code or an in-memory save notification.
+ nonisolated enum BackendCommitKey: Hashable, Sendable, Codable {
+     case registrationIntent(RegistrationOperationID, DestinationIdentity)
+--- resume-baseline/FrameRelay/Application/Ports/RegistrationPorts.swift
++++ FrameRelay/Application/Ports/RegistrationPorts.swift
+@@ -63,23 +63,23 @@
+ }
+ 
+ nonisolated protocol RegistrationVaultPort: Sendable {
+-    func connection() async throws -> RegistrationConnection?
+-    func saveConnection(_ connection: RegistrationConnection, bearer: String) async throws
++    func connection(storeIdentity: RegistrationStoreIdentity?) async throws -> RegistrationConnection?
++    func saveConnection(_ connection: RegistrationConnection, bearer: String, storeIdentity: RegistrationStoreIdentity) async throws
+     /// Persist credential material before returning the operation reference. This is not an intent commit.
+-    func prepareIntent(for destination: DestinationIdentity) async throws -> RegistrationIntent
+-    func requireCredential(for intent: RegistrationIntent) async throws
++    func prepareIntent(for destination: DestinationIdentity, storeIdentity: RegistrationStoreIdentity) async throws -> RegistrationIntent
++    func requireCredential(for intent: RegistrationIntent, storeIdentity: RegistrationStoreIdentity) async throws
+ }
+ 
+ nonisolated protocol RegistrationAuthorizationPort: Sendable {
+-    func authorization(for connection: RegistrationConnection, intent: RegistrationIntent?) async throws -> RegistrationAuthorization
++    func authorization(for connection: RegistrationConnection, intent: RegistrationIntent?, storeIdentity: RegistrationStoreIdentity) async throws -> RegistrationAuthorization
+ }
+ 
+ nonisolated protocol RegistrationRemotePort: Sendable {
+     /// Checks a user-entered connection before retaining it. Never creates an intent.
+     func checkConnection(_ connection: RegistrationConnection, bearer: String) async -> BackendOutcome<BackendCapabilities>
+-    func discover(_ connection: RegistrationConnection) async -> BackendOutcome<BackendCapabilities>
+-    func register(_ command: RegistrationCommand, at connection: RegistrationConnection) async -> BackendOutcome<RegistrationServerReceipt>
+-    func lookup(_ intent: RegistrationIntent, at connection: RegistrationConnection) async -> BackendOutcome<RegistrationServerReceipt>
++    func discover(_ connection: RegistrationConnection, storeIdentity: RegistrationStoreIdentity) async -> BackendOutcome<BackendCapabilities>
++    func register(_ command: RegistrationCommand, at connection: RegistrationConnection, storeIdentity: RegistrationStoreIdentity) async -> BackendOutcome<RegistrationServerReceipt>
++    func lookup(_ intent: RegistrationIntent, at connection: RegistrationConnection, storeIdentity: RegistrationStoreIdentity) async -> BackendOutcome<RegistrationServerReceipt>
+ }
+ 
+ nonisolated enum RegistrationWireIdentity {
+--- resume-baseline/FrameRelay/Application/Ports/MediaOperationStorePort.swift
++++ FrameRelay/Application/Ports/MediaOperationStorePort.swift
+@@ -38,6 +38,15 @@
+ nonisolated struct BackendStoreMutation: Equatable, Sendable, Codable {
+     let expectedRevision: UInt64
+     let change: BackendStoreChange
++    /// Optional only for journal compatibility and existing non-registration consumers.
++    let expectedStoreIdentity: RegistrationStoreIdentity?
++
++    init(expectedRevision: UInt64, change: BackendStoreChange,
++         expectedStoreIdentity: RegistrationStoreIdentity? = nil) {
++        self.expectedRevision = expectedRevision
++        self.change = change
++        self.expectedStoreIdentity = expectedStoreIdentity
++    }
+ }
+ 
+ nonisolated enum BackendSyncEntry: Equatable, Sendable, Codable {
+@@ -65,6 +74,7 @@
+     let confirmations: [ConfirmationRecord]
+     let invalidations: [InvalidationAcknowledgement]
+     let outbox: [BackendSyncEntry]
++    var storeIdentity: RegistrationStoreIdentity? = nil
+     var publications: [StoredPublication] = []
+     var confirmationStates: [ConfirmationState] = []
+     var deliveries: [BackendSyncDelivery] = []
+@@ -79,7 +89,18 @@
+ /// Single writer. Never report `committed` before the durable transaction completes.
+ /// Lookup reconciles a lost response for the exact mutation, including target and payload.
+ nonisolated protocol MediaOperationStorePort: Sendable {
++    /// Explicit metadata commit before any registration credential is persisted.
++    /// Does not increment the journal revision; compares identity and revision under the writer lock.
++    func establishRegistrationIdentity(expectedRevision: UInt64,
++        expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity
+     func load() async -> BackendStoreLoadResult
+     func commit(_ mutation: BackendStoreMutation) async -> BackendCommitResult
+     func lookupCommit(_ mutation: BackendStoreMutation) async -> BackendCommitResult
+ }
++
++nonisolated extension MediaOperationStorePort {
++    func establishRegistrationIdentity(expectedRevision: UInt64,
++        expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity {
++        throw BackendContractError.unavailable
++    }
++}
+--- resume-baseline/FrameRelay/Application/MediaOperations/RegistrationCoordinator.swift
++++ FrameRelay/Application/MediaOperations/RegistrationCoordinator.swift
+@@ -17,7 +17,9 @@
+         do {
+             let snapshot = try await load()
+             guard snapshot.registrationIntents.isEmpty, snapshot.registrations.isEmpty else { return false }
+-            return try await vault.connection() == nil
++            guard try await vault.connection(storeIdentity: snapshot.storeIdentity) == nil else { return false }
++            let current = try await load()
++            return current.storeIdentity == snapshot.storeIdentity && current.registrationIntents.isEmpty && current.registrations.isEmpty
+         } catch { return false }
+     }
+ 
+@@ -29,11 +31,12 @@
+         defer { running = false }
+         do {
+             let snapshot = try await load()
+-            guard let connection = try await vault.connection() else {
++            guard let connection = try await vault.connection(storeIdentity: snapshot.storeIdentity) else {
+                 return snapshot.registrationIntents.isEmpty && snapshot.registrations.isEmpty
+                     ? .needsConnection : .unavailable(.credentials)
+             }
+-            return try await resume(connection, snapshot: snapshot)
++            guard let identity = snapshot.storeIdentity else { throw RegistrationAccessError.credentialConflict }
++            return try await resume(connection, snapshot: try await load(expectedIdentity: identity), identity: identity)
+         } catch { return .unavailable(issue(error)) }
+     }
+ 
+@@ -44,17 +47,29 @@
+         defer { running = false }
+         do {
+             let snapshot = try await load()
++            let savedConnection = try await vault.connection(storeIdentity: snapshot.storeIdentity)
++            guard savedConnection == nil || savedConnection == connection else { return .unavailable(.credentialConflict) }
+             if !snapshot.registrationIntents.isEmpty || !snapshot.registrations.isEmpty {
+-                guard try await vault.connection() == connection else { return .unavailable(.identity) }
+-                return try await resume(connection, snapshot: snapshot)
+-            }
++                guard savedConnection == connection, let identity = snapshot.storeIdentity else { return .unavailable(.credentials) }
++                return try await resume(connection, snapshot: try await load(expectedIdentity: identity), identity: identity)
++            }
++            // Explicit metadata transaction precedes all Keychain writes. An uncertain
++            // commit stops here; the next explicit action reads back the durable UUID.
++            let identity: RegistrationStoreIdentity
++            if let existing = snapshot.storeIdentity { identity = existing }
++            else {
++                identity = try await store.establishRegistrationIdentity(expectedRevision: snapshot.revision,
++                                                                         expectedIdentity: nil)
++            }
++            _ = try await load(expectedIdentity: identity)
+             let discovery = await remote.checkConnection(connection, bearer: bearer)
+             guard case .succeeded(let capabilities) = discovery,
+                   capabilities.supports([.registration, .registrationLookup], versions: ["1"], destination: connection.destination) else {
+                 return .unavailable(issue(discovery))
+             }
+-            try await vault.saveConnection(connection, bearer: bearer)
+-            return try await begin(connection)
++            _ = try await load(expectedIdentity: identity)
++            try await vault.saveConnection(connection, bearer: bearer, storeIdentity: identity)
++            return try await begin(connection, identity: identity)
+         } catch { return .unavailable(issue(error)) }
+     }
+ 
+@@ -64,30 +79,33 @@
+         running = true
+         defer { running = false }
+         do {
+-            guard let connection = try await vault.connection() else { return .needsConnection }
+-            let snapshot = try await load()
+-            if !snapshot.registrationIntents.isEmpty || !snapshot.registrations.isEmpty {
+-                return try await resume(connection, snapshot: snapshot)
+-            }
+-            let discovery = await remote.discover(connection)
++            let snapshot = try await load()
++            guard let connection = try await vault.connection(storeIdentity: snapshot.storeIdentity) else { return .needsConnection }
++            guard let identity = snapshot.storeIdentity else { throw RegistrationAccessError.credentialConflict }
++            let current = try await load(expectedIdentity: identity)
++            if !current.registrationIntents.isEmpty || !current.registrations.isEmpty {
++                return try await resume(connection, snapshot: current, identity: identity)
++            }
++            let discovery = await remote.discover(connection, storeIdentity: identity)
+             guard case .succeeded(let capabilities) = discovery,
+                   capabilities.supports([.registration, .registrationLookup], versions: ["1"], destination: connection.destination) else {
+                 return .unavailable(issue(discovery))
+             }
+-            return try await begin(connection)
++            return try await begin(connection, identity: identity)
+         } catch { return .unavailable(issue(error)) }
+     }
+ 
+-    private func begin(_ connection: RegistrationConnection) async throws -> RegistrationState {
+-        let intent = try await vault.prepareIntent(for: connection.destination)
++    private func begin(_ connection: RegistrationConnection, identity: RegistrationStoreIdentity) async throws -> RegistrationState {
++        _ = try await load(expectedIdentity: identity)
++        let intent = try await vault.prepareIntent(for: connection.destination, storeIdentity: identity)
+         guard intent.destination == connection.destination else { return .unavailable(.identity) }
+-        guard try await persist(.registrationIntent(intent)) else { return .pending(connection, intent) }
++        guard try await persist(.registrationIntent(intent), identity: identity) else { return .pending(connection, intent) }
+         // Lookup also covers a process death after an earlier POST; no new intent is allocated.
+-        let current = try await load()
+-        return try await resume(connection, snapshot: current)
+-    }
+-
+-    private func resume(_ connection: RegistrationConnection, snapshot: BackendStoreSnapshot) async throws -> RegistrationState {
++        let current = try await load(expectedIdentity: identity)
++        return try await resume(connection, snapshot: current, identity: identity)
++    }
++
++    private func resume(_ connection: RegistrationConnection, snapshot: BackendStoreSnapshot, identity: RegistrationStoreIdentity) async throws -> RegistrationState {
+         let intents = snapshot.registrationIntents.filter { $0.intent.destination == connection.destination }
+         guard intents.count == snapshot.registrationIntents.count, intents.count <= 1,
+               snapshot.registrations.allSatisfy({ $0.server.intent.destination == connection.destination }) else {
+@@ -98,14 +116,16 @@
+         }
+         let registrations = snapshot.registrations.filter { $0.server.intent == saved.intent }
+         guard registrations.count <= 1, registrations.count == snapshot.registrations.count else { return .unavailable(.identity) }
+-        try await vault.requireCredential(for: saved.intent)
++        try await vault.requireCredential(for: saved.intent, storeIdentity: identity)
+         var recovery = try RegistrationRecovery(revision: snapshot.revision, savedIntent: saved,
+                                                 savedRegistration: registrations.first)
++        _ = try await load(expectedIdentity: identity)
+         if case .use(let registration) = recovery.action { return .registered(connection, registration) }
+-        var result = await remote.lookup(saved.intent, at: connection)
++        var result = await remote.lookup(saved.intent, at: connection, storeIdentity: identity)
+         if result == .notExecuted {
+             // A known absence is not permission for a different operation or secret.
+-            result = await remote.register(.init(intent: saved.intent, intentCommit: saved.commit), at: connection)
++            _ = try await load(expectedIdentity: identity)
++            result = await remote.register(.init(intent: saved.intent, intentCommit: saved.commit), at: connection, storeIdentity: identity)
+         }
+         guard case .succeeded = result else {
+             if case .failed(let failure) = result { return .unavailable(issue(BackendOutcome<RegistrationServerReceipt>.failed(failure))) }
+@@ -113,8 +133,8 @@
+         }
+         try recovery.reconcile(result)
+         guard case .commitServerResult(let receipt) = recovery.action else { return .unavailable(.identity) }
+-        guard try await persist(.registration(receipt)) else { return .pending(connection, saved.intent) }
+-        let current = try await load()
++        guard try await persist(.registration(receipt), identity: identity) else { return .pending(connection, saved.intent) }
++        let current = try await load(expectedIdentity: identity)
+         guard let committedIntent = current.registrationIntents.first(where: { $0.intent == saved.intent }),
+               let committed = current.registrations.first(where: { $0.server == receipt }) else { return .unavailable(.storage) }
+         let recovered = try RegistrationRecovery(revision: current.revision, savedIntent: committedIntent,
+@@ -124,9 +144,9 @@
+     }
+ 
+     /// Rebase only a definite revision conflict. Unknown responses retain the exact mutation for lookup.
+-    private func persist(_ change: BackendStoreChange) async throws -> Bool {
++    private func persist(_ change: BackendStoreChange, identity: RegistrationStoreIdentity) async throws -> Bool {
+         for _ in 0..<3 {
+-            let snapshot = try await load()
++            let snapshot = try await load(expectedIdentity: identity)
+             switch change {
+             case .registrationIntent(let intent):
+                 if let saved = snapshot.registrationIntents.first(where: { $0.intent.operation == intent.operation }) {
+@@ -140,7 +160,7 @@
+                 }
+             default: throw BackendContractError.wrongStage
+             }
+-            let mutation = BackendStoreMutation(expectedRevision: snapshot.revision, change: change)
++            let mutation = BackendStoreMutation(expectedRevision: snapshot.revision, change: change, expectedStoreIdentity: identity)
+             let result = await store.commit(mutation)
+             switch result {
+             case .committed(let receipt):
+@@ -158,8 +178,9 @@
+         }
+         return false
+     }
+-    private func load() async throws -> BackendStoreSnapshot {
++    private func load(expectedIdentity: RegistrationStoreIdentity? = nil) async throws -> BackendStoreSnapshot {
+         guard case .loaded(let value) = await store.load() else { throw BackendContractError.unavailable }
++        if let expectedIdentity, value.storeIdentity != expectedIdentity { throw RegistrationAccessError.credentialConflict }
+         return value
+     }
+     private func issue<T>(_ result: BackendOutcome<T>) -> RegistrationIssue {
+--- resume-baseline/FrameRelay/Composition/ProductComposition.swift
++++ FrameRelay/Composition/ProductComposition.swift
+@@ -14,7 +14,7 @@
+     init(factory: ProductLibraryFactory = .shared,
+          registrationFactory: @escaping @Sendable (any MediaOperationStorePort) -> RegistrationCoordinator = { store in
+              let vault = KeychainRegistrationVault()
+-             return RegistrationCoordinator(store: store, vault: vault, remote: URLSessionRegistrationRemote(credentials: vault))
++             return RegistrationCoordinator(store: store, vault: vault, remote: URLSessionRegistrationRemote(credentials: vault, store: store))
+          }) {
+         self.factory = factory
+         self.registrationFactory = registrationFactory
+--- resume-baseline/FrameRelay/Platform/LocalStore/RecordingStoreDocument.swift
++++ FrameRelay/Platform/LocalStore/RecordingStoreDocument.swift
+@@ -1,8 +1,11 @@
+ import Foundation
+ 
+ nonisolated struct RecordingStoreDocument: Codable {
+-    static let currentSchema = 4
++    static let currentSchema = 5
+     var schema = currentSchema
++    /// Nil for stores which have not explicitly established registration identity.
++    /// Reading or migrating a legacy document never generates one.
++    var storeIdentity: RegistrationStoreIdentity? = nil
+     var entries: [Entry] = []
+     /// Store transaction order, independent of capture/settings/content generations.
+     var transactionRevision: UInt64 = 0
+@@ -65,6 +68,11 @@
+                 migrated.originalJournal = previous.originalJournal
+                 migrated.legacyRevision = previous.transactionRevision
+                 document = migrated
++            } else if header.schema == 4 {
++                var migrated = try decoder.decode(Self.self, from: data)
++                guard migrated.storeIdentity == nil else { throw ExplorationStorageError.corruptStore }
++                migrated.schema = currentSchema
++                document = migrated
+             } else {
+                 document = try decoder.decode(Self.self, from: data)
+             }
+--- resume-baseline/FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift
++++ FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift
+@@ -38,6 +38,10 @@
+     func loadRecordings() -> RecordingStoreLoadResult { disk.loadRecordings() }
+     func loadOriginalState() -> BackendOutcome<OriginalStoreSnapshot> { disk.loadOriginalState() }
+     func commitOriginal(_ mutation: OriginalStoreMutation) -> OriginalStoreCommitResult { disk.commitOriginal(mutation) }
++    func establishRegistrationIdentity(expectedRevision: UInt64,
++        expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity {
++        try disk.establishRegistrationIdentity(expectedRevision: expectedRevision, expectedIdentity: expectedIdentity)
++    }
+     func load() -> BackendStoreLoadResult { disk.loadBackend() }
+     func commit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.commitBackend(mutation) }
+     func lookupCommit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.lookupBackend(mutation) }
+@@ -61,6 +65,10 @@
+     func loadRecordings() -> RecordingStoreLoadResult { disk.loadRecordings() }
+     func loadOriginalState() -> BackendOutcome<OriginalStoreSnapshot> { disk.loadOriginalState() }
+     func commitOriginal(_ mutation: OriginalStoreMutation) -> OriginalStoreCommitResult { disk.commitOriginal(mutation) }
++    func establishRegistrationIdentity(expectedRevision: UInt64,
++        expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity {
++        try disk.establishRegistrationIdentity(expectedRevision: expectedRevision, expectedIdentity: expectedIdentity)
++    }
+     func load() -> BackendStoreLoadResult { disk.loadBackend() }
+     func commit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.commitBackend(mutation) }
+     func lookupCommit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.lookupBackend(mutation) }
+@@ -77,6 +85,9 @@
+     private let file: URL
+     private let lockName: String
+     private let context: NSManagedObjectContext?
++    /// Session-only guard against a live SQLite connection following an unlinked old file.
++    /// This is never persisted or used as the credential/store identity.
++    private var openedSQLiteFile: (device: dev_t, inode: ino_t)?
+     private let fault: RecordingStoreFault?
+     private let supportedVerificationSchemas: Set<String>
+     private let reconciliationEpoch = ReaderReconciliationEpoch(rawValue: UUID().uuidString)
+@@ -90,6 +101,7 @@
+         let lockName = kind == .atomicFile ? "recordings-file.lock" : "recordings-sqlite.lock"
+         self.file = file
+         self.lockName = lockName
++        var openedFile: (device: dev_t, inode: ino_t)?
+         context = try ExplorationFileLock.withLock(run: run, name: lockName) {
+             var info = stat()
+             let exists = lstat(file.path, &info) == 0
+@@ -120,9 +132,13 @@
+                         _ = try Self.readDocument(context).document
+                     } catch { context.rollback(); context.reset(); throw error }
+                 }
++                var info = stat()
++                guard lstat(file.path, &info) == 0 else { throw ExplorationStorageError.inaccessible }
++                openedFile = (info.st_dev, info.st_ino)
+                 return context
+             }
+         }
++        openedSQLiteFile = openedFile
+     }
+ 
+     private static func validateSQLiteSidecars(_ file: URL, creating: Bool) throws {
+@@ -179,6 +195,11 @@
+         try ExplorationFileLock.withLock(run: run, name: lockName) {
+             try ExplorationRunDirectory.requireRegularFile(file)
+             if let context {
++                var info = stat()
++                guard let openedSQLiteFile, lstat(file.path, &info) == 0,
++                      info.st_dev == openedSQLiteFile.device, info.st_ino == openedSQLiteFile.inode else {
++                    throw ExplorationStorageError.inaccessible
++                }
+                 try Self.validateSQLiteSidecars(file, creating: false)
+                 let interruptsBefore = fault?.interruptsBefore(backendIdentity) == true
+                 return try context.performAndWait {
+@@ -263,8 +284,23 @@
+         catch { return .unavailable(.inaccessible) }
+     }
+ 
++    func establishRegistrationIdentity(expectedRevision: UInt64,
++        expectedIdentity: RegistrationStoreIdentity?) throws -> RegistrationStoreIdentity {
++        let identity = try transaction(write: true) { document in
++            if let expectedIdentity, document.storeIdentity != expectedIdentity { throw BackendContractError.identityMismatch }
++            guard document.transactionRevision == expectedRevision else { throw BackendContractError.revisionConflict }
++            if let identity = document.storeIdentity { return identity }
++            let identity = RegistrationStoreIdentity(rawValue: UUID())
++            document.storeIdentity = identity
++            try document.validate()
++            return identity
++        }
++        if fault == .afterDiskCommitBeforeReply { throw ExplorationStorageError.inaccessible }
++        return identity
++    }
++
+     func loadBackend() -> BackendStoreLoadResult {
+-        do { return .loaded(try transaction(write: false) { try $0.replayStore().snapshot(revision: $0.transactionRevision) }) }
++        do { return .loaded(try transaction(write: false) { try $0.replayStore().snapshot(revision: $0.transactionRevision, storeIdentity: $0.storeIdentity) }) }
+         catch ExplorationStorageError.unknownSchema { return .unavailable(.unknownSchema) }
+         catch ExplorationStorageError.corruptStore { return .unavailable(.corruptStore) }
+         catch { return .unavailable(.inaccessible) }
+--- resume-baseline/FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift
++++ FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift
+@@ -28,12 +28,12 @@
+     var mediaUses: [MediaReadLease] = []
+     var distributionObservations: [StoredMediaDistributionObservation] = []
+ 
+-    func snapshot(revision: UInt64) throws -> BackendStoreSnapshot {
++    func snapshot(revision: UInt64, storeIdentity: RegistrationStoreIdentity? = nil) throws -> BackendStoreSnapshot {
+         .init(revision: revision, registrationIntents: registrationIntents, registrations: registrations,
+             batches: batches, requests: requests, verifications: verifications, confirmations: confirmations,
+             invalidations: invalidations,
+             outbox: allOutbox.filter { entry in !deliveries.contains(where: { $0.entry == entry }) },
+-            publications: publications,
++            storeIdentity: storeIdentity, publications: publications,
+             confirmationStates: try confirmationStates.map { try $0.atStoreRevision(revision) },
+             deliveries: deliveries, distributionObservations: distributionObservations)
+     }
+@@ -88,6 +88,9 @@
+ extension RecordingStoreDocument {
+     nonisolated mutating func applyBackend(_ mutation: BackendStoreMutation,
+         reconciliationEpoch: ReaderReconciliationEpoch? = nil) throws -> BackendCommitReceipt {
++        if let expected = mutation.expectedStoreIdentity, expected != storeIdentity {
++            throw BackendContractError.identityMismatch
++        }
+         if let previous = backendJournal.first(where: {
+             $0.mutation.change.key.operationIdentity == mutation.change.key.operationIdentity
+         }) {
+@@ -110,6 +113,9 @@
+     }
+ 
+     nonisolated func lookupBackend(_ mutation: BackendStoreMutation) -> BackendCommitResult {
++        if let expected = mutation.expectedStoreIdentity, expected != storeIdentity {
++            return .rejected(.identityMismatch)
++        }
+         guard let stored = backendJournal.first(where: {
+             $0.mutation.change.key.operationIdentity == mutation.change.key.operationIdentity
+         }) else { return .unknown }
+@@ -145,6 +151,9 @@
+             } else if let backend {
+                 let mutation = backend.mutation
+                 let receipt = backend.receipt
++                if let expected = mutation.expectedStoreIdentity, expected != storeIdentity {
++                    throw BackendContractError.identityMismatch
++                }
+                 guard backendOperations.insert(mutation.change.key.operationIdentity).inserted,
+                       receipt.matches(mutation.change.key, revision: mutation.expectedRevision),
+                       receipt.committedRevision > legacyRevision, receipt.previousRevision >= previous,
+--- resume-baseline/FrameRelay/Platform/Remote/URLSessionRegistrationRemote.swift
++++ FrameRelay/Platform/Remote/URLSessionRegistrationRemote.swift
+@@ -4,19 +4,23 @@
+ /// Metadata only. This adapter advertises no upload, playback, confirmation or ACK capability.
+ actor URLSessionRegistrationRemote: RegistrationRemotePort {
+     private let credentials: any RegistrationAuthorizationPort
+-    init(credentials: any RegistrationAuthorizationPort) { self.credentials = credentials }
++    private let store: any MediaOperationStorePort
++    init(credentials: any RegistrationAuthorizationPort, store: any MediaOperationStorePort) {
++        self.credentials = credentials
++        self.store = store
++    }
+ 
+     func checkConnection(_ connection: RegistrationConnection, bearer: String) async -> BackendOutcome<BackendCapabilities> {
+         guard !bearer.isEmpty, bearer.utf8.count <= 4096,
+               bearer.utf8.allSatisfy({ (33...126).contains($0) }) else { return .failed(.authenticationRequired) }
+-        return await discovery(connection, initialBearer: bearer)
+-    }
+-    func discover(_ connection: RegistrationConnection) async -> BackendOutcome<BackendCapabilities> {
+-        await discovery(connection, initialBearer: nil)
+-    }
+-    private func discovery(_ connection: RegistrationConnection, initialBearer: String?) async -> BackendOutcome<BackendCapabilities> {
++        return await discovery(connection, initialBearer: bearer, storeIdentity: nil)
++    }
++    func discover(_ connection: RegistrationConnection, storeIdentity: RegistrationStoreIdentity) async -> BackendOutcome<BackendCapabilities> {
++        await discovery(connection, initialBearer: nil, storeIdentity: storeIdentity)
++    }
++    private func discovery(_ connection: RegistrationConnection, initialBearer: String?, storeIdentity: RegistrationStoreIdentity?) async -> BackendOutcome<BackendCapabilities> {
+         do {
+-            let response = try await request(connection, path: "capabilities", intent: nil, post: false, initialBearer: initialBearer)
++            let response = try await request(connection, path: "capabilities", intent: nil, post: false, initialBearer: initialBearer, storeIdentity: storeIdentity)
+             guard response.status == 200 else { return .failed(failure(response.status)) }
+             return .succeeded(try RegistrationWire.capabilities(response.data, connection: connection))
+         } catch let error as RegistrationAccessError { return .failed(accessFailure(error)) }
+@@ -24,21 +28,21 @@
+         catch { return .failed(.connectionUnavailable) }
+     }
+ 
+-    func register(_ command: RegistrationCommand, at connection: RegistrationConnection) async -> BackendOutcome<RegistrationServerReceipt> {
++    func register(_ command: RegistrationCommand, at connection: RegistrationConnection, storeIdentity: RegistrationStoreIdentity) async -> BackendOutcome<RegistrationServerReceipt> {
+         guard command.isCommitted, command.intent.destination == connection.destination else { return .failed(.rejected) }
+-        return await receipt(command.intent, connection: connection, post: true)
+-    }
+-
+-    func lookup(_ intent: RegistrationIntent, at connection: RegistrationConnection) async -> BackendOutcome<RegistrationServerReceipt> {
++        return await receipt(command.intent, connection: connection, post: true, storeIdentity: storeIdentity)
++    }
++
++    func lookup(_ intent: RegistrationIntent, at connection: RegistrationConnection, storeIdentity: RegistrationStoreIdentity) async -> BackendOutcome<RegistrationServerReceipt> {
+         guard intent.destination == connection.destination else { return .failed(.rejected) }
+-        return await receipt(intent, connection: connection, post: false)
+-    }
+-
+-    private func receipt(_ intent: RegistrationIntent, connection: RegistrationConnection, post: Bool) async -> BackendOutcome<RegistrationServerReceipt> {
++        return await receipt(intent, connection: connection, post: false, storeIdentity: storeIdentity)
++    }
++
++    private func receipt(_ intent: RegistrationIntent, connection: RegistrationConnection, post: Bool, storeIdentity: RegistrationStoreIdentity) async -> BackendOutcome<RegistrationServerReceipt> {
+         do {
+             let response = try await request(connection,
+                 path: post ? "registrations" : "registration-intents/" + intent.operation.rawValue,
+-                intent: intent, post: post)
++                intent: intent, post: post, storeIdentity: storeIdentity)
+             if response.status == 200 { return .succeeded(try RegistrationWire.receipt(response.data, intent: intent)) }
+             if !post, response.status == 404, RegistrationWire.isKnownAbsent(response.data, intent: intent) { return .notExecuted }
+             return .failed(failure(response.status))
+@@ -48,7 +52,7 @@
+     }
+ 
+     private func request(_ connection: RegistrationConnection, path: String,
+-                         intent: RegistrationIntent?, post: Bool, initialBearer: String? = nil) async throws -> RegistrationHTTPResponse {
++                         intent: RegistrationIntent?, post: Bool, initialBearer: String? = nil, storeIdentity: RegistrationStoreIdentity?) async throws -> RegistrationHTTPResponse {
+         if let intent {
+             guard RegistrationWireIdentity.isCanonical(intent.operation.rawValue), intent.destination == connection.destination else {
+                 throw BackendContractError.identityMismatch
+@@ -56,7 +60,12 @@
+         }
+         let material: RegistrationAuthorization
+         if let initialBearer { material = .init(bearer: initialBearer, secret: nil) }
+-        else { material = try await credentials.authorization(for: connection, intent: intent) }
++        else {
++            guard let storeIdentity else { throw RegistrationAccessError.credentialConflict }
++            try await requireStore(storeIdentity)
++            material = try await credentials.authorization(for: connection, intent: intent, storeIdentity: storeIdentity)
++            try await requireStore(storeIdentity)
++        }
+         let url = connection.endpoint.url(path: path, destination: !post && intent != nil ? connection.destination : nil)
+         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 15)
+         request.httpMethod = post ? "POST" : "GET"
+@@ -73,6 +82,11 @@
+             }
+         }
+         return try await RegistrationURLSessionRequest.perform(request)
++    }
++
++    private func requireStore(_ identity: RegistrationStoreIdentity) async throws {
++        guard case .loaded(let snapshot) = await store.load() else { throw RegistrationAccessError.credentialUnavailable }
++        guard snapshot.storeIdentity == identity else { throw RegistrationAccessError.credentialConflict }
+     }
+ 
+     private func failure(_ status: Int) -> BackendFailure {
+--- resume-baseline/FrameRelay/Platform/Credentials/KeychainRegistrationVault.swift
++++ FrameRelay/Platform/Credentials/KeychainRegistrationVault.swift
+@@ -23,10 +23,11 @@
+     }
+     #endif
+ 
+-    func connection() throws -> RegistrationConnection? {
++    func connection(storeIdentity: RegistrationStoreIdentity?) throws -> RegistrationConnection? {
+         guard let data = try read("connection") else { return nil }
+         let value: SavedConnection = try decode(data)
+-        guard value.version == 1, Self.validBearer(value.bearer) else {
++        try requireBinding(version: value.version, actual: value.storeIdentity, expected: storeIdentity)
++        guard Self.validBearer(value.bearer) else {
+             throw RegistrationAccessError.corruptCredential
+         }
+         let endpoint: RegistrationEndpoint
+@@ -35,12 +36,12 @@
+         return try RegistrationConnection(endpoint: endpoint, destination: .init(rawValue: value.destination))
+     }
+ 
+-    func saveConnection(_ connection: RegistrationConnection, bearer: String) throws {
++    func saveConnection(_ connection: RegistrationConnection, bearer: String, storeIdentity: RegistrationStoreIdentity) throws {
+         guard Self.validBearer(bearer) else { throw RegistrationAccessError.invalidConfiguration }
+         if connection.endpoint.origin.scheme != "https", connection.endpoint != probeEndpoint {
+             throw RegistrationAccessError.invalidConfiguration
+         }
+-        let record = SavedConnection(version: 1, origin: connection.endpoint.origin.absoluteString,
++        let record = SavedConnection(version: 2, storeIdentity: storeIdentity, origin: connection.endpoint.origin.absoluteString,
+                                      destination: connection.destination.rawValue, bearer: bearer)
+         let data = try JSONEncoder().encode(record)
+         let saved = try addOrRead(data, account: "connection")
+@@ -48,56 +49,66 @@
+         guard existing == record else { throw RegistrationAccessError.credentialConflict }
+     }
+ 
+-    func prepareIntent(for destination: DestinationIdentity) throws -> RegistrationIntent {
+-        guard try connection()?.destination == destination else { throw RegistrationAccessError.credentialConflict }
++    func prepareIntent(for destination: DestinationIdentity, storeIdentity: RegistrationStoreIdentity) throws -> RegistrationIntent {
++        guard try connection(storeIdentity: storeIdentity)?.destination == destination else { throw RegistrationAccessError.credentialConflict }
+         let account = "initial." + destination.rawValue
+-        if let saved = try read(account) { return try credential(saved, destination: destination).intent }
++        if let saved = try read(account) { return try credential(saved, destination: destination, storeIdentity: storeIdentity).intent }
+         var bytes = [UInt8](repeating: 0, count: 32)
+         guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else {
+             throw RegistrationAccessError.credentialUnavailable
+         }
+         let secret = bytes.map { String(format: "%02x", $0) }.joined()
+-        let record = SavedCredential(version: 1, destination: destination.rawValue,
++        let record = SavedCredential(version: 2, storeIdentity: storeIdentity, destination: destination.rawValue,
+             operation: UUID().uuidString.lowercased(), secret: secret)
+         // An overlapping process may have won the atomic add. Reuse its exact reference.
+         let saved = try addOrRead(JSONEncoder().encode(record), account: account)
+-        return try credential(saved, destination: destination).intent
++        return try credential(saved, destination: destination, storeIdentity: storeIdentity).intent
+     }
+ 
+-    func requireCredential(for intent: RegistrationIntent) throws {
+-        _ = try matchingCredential(intent)
++    func requireCredential(for intent: RegistrationIntent, storeIdentity: RegistrationStoreIdentity) throws {
++        _ = try matchingCredential(intent, storeIdentity: storeIdentity)
+     }
+ 
+-    func authorization(for connection: RegistrationConnection, intent: RegistrationIntent?) throws -> RegistrationAuthorization {
+-        guard try self.connection() == connection, let data = try read("connection") else {
++    func authorization(for connection: RegistrationConnection, intent: RegistrationIntent?, storeIdentity: RegistrationStoreIdentity) throws -> RegistrationAuthorization {
++        guard try self.connection(storeIdentity: storeIdentity) == connection, let data = try read("connection") else {
+             throw RegistrationAccessError.credentialConflict
+         }
+         let saved: SavedConnection = try decode(data)
++        try requireBinding(version: saved.version, actual: saved.storeIdentity, expected: storeIdentity)
+         let secret: String?
+         if let intent {
+             guard intent.destination == connection.destination else { throw RegistrationAccessError.credentialConflict }
+-            secret = try matchingCredential(intent).secret
++            secret = try matchingCredential(intent, storeIdentity: storeIdentity).secret
+         } else { secret = nil }
+         return .init(bearer: saved.bearer, secret: secret)
+     }
+ 
+-    private func matchingCredential(_ intent: RegistrationIntent) throws -> SavedCredential {
++    private func matchingCredential(_ intent: RegistrationIntent, storeIdentity: RegistrationStoreIdentity) throws -> SavedCredential {
+         guard let data = try read("initial." + intent.destination.rawValue) else {
+             throw RegistrationAccessError.credentialMissing
+         }
+-        let saved = try credential(data, destination: intent.destination)
++        let saved = try credential(data, destination: intent.destination, storeIdentity: storeIdentity)
+         guard saved.intent == intent else { throw RegistrationAccessError.credentialConflict }
+         return saved
+     }
+ 
+-    private func credential(_ data: Data, destination: DestinationIdentity) throws -> SavedCredential {
++    private func credential(_ data: Data, destination: DestinationIdentity, storeIdentity: RegistrationStoreIdentity) throws -> SavedCredential {
+         let record: SavedCredential = try decode(data)
+-        guard record.version == 1, record.destination == destination.rawValue,
++        try requireBinding(version: record.version, actual: record.storeIdentity, expected: storeIdentity)
++        guard record.destination == destination.rawValue,
+               RegistrationWireIdentity.isCanonical(record.operation),
+               record.secret.utf8.count == 64, record.secret.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }) else {
+             throw RegistrationAccessError.corruptCredential
+         }
+         return record
++    }
++
++    private func requireBinding(version: Int, actual: RegistrationStoreIdentity?,
++                                expected: RegistrationStoreIdentity?) throws {
++        // Legacy v1 credentials are preserved, never adopted by a new or migrated store.
++        guard version != 1 else { throw RegistrationAccessError.credentialConflict }
++        guard version == 2, let actual else { throw RegistrationAccessError.corruptCredential }
++        guard actual == expected else { throw RegistrationAccessError.credentialConflict }
+     }
+ 
+     private func query(_ account: String) -> [String: Any] {
+@@ -139,12 +150,14 @@
+ 
+     nonisolated private struct SavedConnection: Codable, Equatable {
+         let version: Int
++        let storeIdentity: RegistrationStoreIdentity?
+         let origin: String
+         let destination: String
+         let bearer: String
+     }
+     nonisolated private struct SavedCredential: Codable {
+         let version: Int
++        let storeIdentity: RegistrationStoreIdentity?
+         let destination: String
+         let operation: String
+         let secret: String
+--- resume-baseline/.steering/20260929-device-independent-implementation/tasklist.md
++++ .steering/20260929-device-independent-implementation/tasklist.md
+@@ -14,6 +14,7 @@
+ 
+ ## 別セッションへの再開メモ（2026-10-08、本人指示で停止）
+ 
++- 再開（2026-10-09）: 同じpathへの明示implementを受領。`/private/tmp/fr-di-20261009-resume/` に現存355ファイルのhashと開始時copy/diff/statusを保全し、停止時UI01 source121件は全一致。前回listener/Xcode試験process残存なしを権限付きで確認。以下の停止記録は履歴として保持し、S22Cの資格情報/store対応修正から再開する。
+ - ユーザーが一旦停止を指示。mainと全subagentの実装を停止し、既存差分・未追跡成果を保持。再開には同じ作業フォルダで `$implement-steering .steering/20260929-device-independent-implementation/` を明示する。AGENTS.md、PROJECT_CONTEXT.md、要求/設計/本tasklistと参照確定仕様を読み、N00の保全・現行正本・所有を継承する。
+ - 直近はS22C。登録基盤の関連Unitは39宣言/51実行成功（新規22宣言/25実行を含む）、製品接続UIは2件成功、失敗/skip/compiler/analyzer warning/errorは各0。S22Cは完了していない。先に下記のKeychain残存と新storeの取り違えを修正・検証し、その後、実登録HTTPの6probe・全Unit/既存製品root VERIFY・最終差分確認へ進む。通常UI成功をHTTPS接続成功としない。
+ - 未修正指摘: Keychainだけ残る再インストールと、同じstoreで意図commit前に中断したケースを現実装が区別できず、本人継続で旧登録を再利用し得る。資格情報と永続store instanceの対応を確立する必要がある。worker提案のroot path＋stat(device/inode/birthtime) digest束縛は未採用。通常のアプリ更新/container移動とstore置換を区別できるかも検討し、共有storeへの変更が必要なら単独所有を明示して引き渡す。Keychainへ論理操作台帳を複製しない。
+@@ -69,6 +70,7 @@
+   - 証拠 N01-01: Xcode 27.0 (27A266a)、Swift compiler 6.4、iOS Simulator SDK 27.0／runtime 24A434。入口 `FrameRelay.xcodeproj`、scheme／test plan `FrameRelay`、Debug、AppとUnit/UI両targetがTest action設定に存在。最低iOS 27.0／Swift mode 5.0維持、App既定隔離MainActor。
+   - 実行先: 当日の `simctl list` と再度の `-showdestinations` で確認したiOS 27.0・boot済み `DFE46693-E8DD-4814-8957-4F327699F719`。最初のsandbox照会はCoreSimulator接続拒否、権限取得後の初回一覧はgenericのみ、runtime列挙後の再照会で具体destination確認。旧IDの推測採用ではない。
+   - 再開確認 N01-02（2026-10-04）: `xcode-select -p`／`xcodebuild -version` は同じXcode 27.0 (27A266a)。`simctl list devices available` と当日 `-showdestinations` の両方で同じ具体destination・arm64／iOS 27.0を再確認。Shutdownだった当該Simulatorだけを `simctl boot` で起動し、S14の新規試験へ引渡した。既存合格証拠は保持し、変更範囲の必要試験から再開する。
++  - 再開確認 N01-03（2026-10-09）: 同じXcode 27.0 (27A266a)／Swift compiler 6.4、project/scheme/test plan FrameRelay、App/Unit/UIのTest action、Debug／Swift mode 5.0／最低iOS27.0を再確認。simctlのsandbox接続拒否後、権限付きdevicesとshowdestinationsでboot済み `DFE46693-E8DD-4814-8957-4F327699F719`（arm64／iOS27.0）を確認。実行証拠は `/private/tmp/fr-di-20261009-resume/` のxcode-list/test-plans/destinations/build-settings/confirmed-build-settingsとdevices-verified。失敗したsandbox照会も保持、構成照会をtest成功とは扱わない。
+   - 反復検証の実行条件: S14で失敗後のverbose Simulator診断回収が600秒timeoutした。現 `xcodebuild -help` で確認した `-collect-test-diagnostics never` をS15以降の通常反復へ適用し、OS原因調査を要する個別runだけ有効へ戻す。失敗記録・通常stdout・xcresult・build診断は保持する。`-parallel-testing-enabled NO` はS14-test-04で実行成功を確認し、同一端末containerを使う後続UI引渡しにも使用する。scheme/project設定は変更しない。
+   - コマンド: `xcode-select -p`、`xcodebuild -version`、`xcrun swift --version`、`xcodebuild -list -project FrameRelay.xcodeproj -disableAutomaticPackageResolution`、同project/schemeの `-showTestPlans`／`-showdestinations`、`-configuration Debug -destination platform=iOS\ Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719 test -showBuildSettings -json -disableAutomaticPackageResolution`。構成照会でありtest未実行。証拠root `/private/tmp/fr-di-20261001-5ljls2fr/`、DerivedData・xcresultは同root下へ。
+ 
+@@ -259,8 +261,15 @@
+ 
+ ### S22C 端末登録commitと不明時照合
+ 
+-- [ ] Status: blocked
++- [ ] Status: in-progress
+   - Depends: S21,S22。
++  - 再開・単独所有（2026-10-09）: mainが現在差分を上記baselineへ保全し、既存成果への限定加算方針を確定。`registration_fix`（worker）へRegistrationPorts／RegistrationCoordinator／KeychainRegistrationVault、同writerのRecordingStoreDocument・ExplorationRecordingStores・MediaOperationStoreAdapter、必要な登録専用Composition接続と関連testだけを単独引渡し。共有storeはこのtask中だけ同worker所有とし、他のApp/project/文書/旧証拠は凍結。mainはtasklist・新証拠・実行/差分統合を所有。`registration_audit` と `registration_probe_audit` は読取のみ。
++  - 内部方式 S22C-ID-01（2026-10-09）: path/inodeではなく同じ永続documentにstore instance UUIDを保存し、同writerの明示的な確定処理をKeychain保存より先に行う。読取だけの旧schema移行でUUIDを生成・書換しない。通常再open/container移動は同identityを維持、新storeは別identity。対応不明の旧資格情報や不一致を自動束縛せず保持/拒否する。操作journalや秘密をKeychain/store間で複製しない。実OSの再インストール/保護領域はDV-15/02へ残し、同store中断・移動・置換を実diskで検証する。
++  - 追加所有/境界（2026-10-09）: 同workerへBackendCommit.swiftのstore identity値、MediaOperationStorePort.swiftのsnapshot/期待identity、URLSessionRegistrationRemote.swiftのauthorization適合を追加引渡し。writer内の期待UUID比較でawaitを跨ぐ別storeへのcommitを拒否する。存命SQLite contextの物理差替はsession内guardで停止し、永続資格情報の対応にはpath/statを使わない。UUIDを含むstore全体copy/backup rollbackの検知はこの方式の保証外。
++  - 実通信再開監査（2026-10-09）: `registration_probe_audit` が旧preparation-001のarchive/live6件、凍結support11件、S22/S22C snapshot253件、外部source246件・site-packages1657件・interpreter一致とruntime/execution/ready/result/secret未作成をread-only確認。未実行001を準備入力として再利用し、App修正版を新source manifestへ凍結後に今回の具体supervisor権限で初回実行する。旧中断要求は許可/成功と扱わない。新revisionを作る場合のsupervisor/checkpoint自己参照問題は、今回の未実行001再利用には影響しない。
++  - E-S22C-IDENTITY（2026-10-09）: 修正16file＋新store identity test1fileを単独workerから受領。schema5 metadata UUIDは明示commitまでnil、既存journal/revisionを不変とし、期待UUID journalのUUID欠落は破損拒否。Keychain v2の接続/秘密をUUIDへ束縛し、旧v1は保持/拒否。test-04は追加testのmacro内try不足1件でcompile失敗/未実行/exit65。1箇所修正した `S22C-test-05` はN01-03構成、関連9suiteの58宣言/88実行成功、fail/skip/compiler/analyzer warning/error各0、exit0。同store中断・並行確定・再open・container移動・同path置換・await中置換・schema1〜4読取非書換・identity commit前後fault・v1保持/拒否を確認。新規22caseを含む。実行版126file/source copy・summary/build/tests/logを再開証拠rootへ保存。実HTTP6件/全Unit/製品root VERIFY/UI再確認・最終diffは残件。
++  - E-S22C-HTTP-01（2026-10-09）: 今回承認された凍結supervisorを初実行。listener/wrapper/stop helperの実exitは全0、secret削除・listener終端/FD解放・残task/connection0、guard拒否/未知import0・input不変。ただしxcresultは0件、server全route到達0であり実HTTP成功ではない。Xcode enumerationによりSwift Testingの正確な6method IDは末尾`()`を含み、旧only-testing指定が不一致と確認。`registration_probe_fix`（worker）へsupport/server-isolationのwrapper/supervisor/新prepare helperとpreparation-002だけを単独引渡し、正確な6IDと実行件数/結果検査を追加。旧001のruntime/結果/失敗は保持。App/project/backend overlay/guardの権限範囲は拡張しない。
++  - E-S22C-REGRESSION（2026-10-09）: 凍結App版の `S22C-test-06` は全Unit＋既存製品root VERIFYで195宣言/258実行成功、fail/skip/compiler/analyzer各0、exit0。実通信8件、再seed、空exampleは明示的に対象外とし、VERIFYは実実行/原本identity・全hash・reader解放一致。action logに旧RecordingStorePersistenceTestsの生きたSQLiteへatomic corruptionを注入する準備によるvnode診断1件を検出（test-05にはなし）。同workerへ当該test1fileだけを追加所有し、破損branchをwriter未openのfresh fixtureへ分離して再検証する。`S22C-ui-02` のConnectionFlowTestsは2件成功、fail/skip/compiler/analyzer各0。UIの成功を実HTTPS登録や実LAN権限の証明にしない。
+   - 開始（2026-10-06）: S21同writer/既存RegistrationRecoveryとS22 wire v1/46成功を受領。新規registration_clientがO-IOS-BI＋必要なO-PORTを単独所有し、Keychain・厳密wire/実URLSession・登録coordinator・試験を実装する。共有契約引渡し後に同taskのO-COMPOSEを直列取得する。registration_serverはS22コードを凍結し、S22C用の隔離listener/試験設定だけを非重複所有。mainが具体範囲レビューと実行、tasklist/差分統合を担当。
+   - 契約checkpoint（2026-10-07）: 製品入口はHTTPSの厳密origin＋期待destination＋bootstrap入力を一時authorizationで実照合してからKeychainへ保存する可逆な内部方式を選択。誤入力で未確定profileを固定しない。Keychainの32byte secret保存→同writer意図commit→server→同writer結果commitを守り、資格情報だけ残った中断を自動POSTにしない。正常再起動は確定登録を再利用し、欠落/不整合を未登録へ戻さない。DEBUGかつSimulatorの明示probe constructorだけ127.0.0.1のHTTPを許容し、製品ATS設定は無変更。既存Domain/store/RemoteStatusPortは再利用/凍結し、新登録Portを加算する。登録3routeだけ公開するfresh隔離listenerとsecret env wrapperは準備中、現時点でS22C実通信・Keychain・build/testは未検証。
+   - 途中レビュー/初回実行（2026-10-07）: mainがApp/Unit/UI/projectの変更17件を確認しcopy/hash凍結、新Unit22宣言/25実行と既存共有store/契約/製品rootVERIFYの集合を選定。`S22C-test-01` はsandbox CoreSimulator接続拒否でbuild/test前にexit70。権限取得後、同じsourceの `test-02` はURLSessionRegistrationRemoteのproxyConfigurations参照でcompile error1、test未実行、exit65。installed SDKではNetwork moduleのURLSessionConfiguration拡張であることをmainが確認し、import不足を担当へ差戻し。両source/log/xcresultを保持し、失敗を上書きしない。製品初回formは同writer/Keychainが共に未設定と確認できる時だけ表示し、資格情報不明は再照合へ分離済みだが実UI未確認。
+--- resume-baseline/.steering/20260929-device-independent-implementation/support/server-isolation/run_registration_integration.py
++++ .steering/20260929-device-independent-implementation/support/server-isolation/run_registration_integration.py
+@@ -9,6 +9,7 @@
+ import math
+ import os
+ from pathlib import Path
++import re
+ import signal
+ import stat
+ import subprocess
+@@ -16,8 +17,7 @@
+ from urllib.parse import urlsplit
+ 
+ 
+-PREPARATION = Path("/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001")
+-CHECKPOINT_SHA256 = "81046378b07ffee00ebfafe6d302cd538858b832aa9bdad8f98cfd957374bda5"
++SERVER_ROOT = Path("/private/tmp/fr-di-20261001-5ljls2fr/S22C/server")
+ PROJECT = Path("/Users/oyabu/dev/rep/FrameRelay")
+ READY_SECONDS = 30
+ OVERALL_SECONDS = 1260
+@@ -40,28 +40,44 @@
+     return os.fdopen(os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "wb")
+ 
+ 
+-def verify_inputs():
+-    checkpoint_path = PREPARATION / "checkpoint-files.json"
+-    if file_record(checkpoint_path)["sha256"] != CHECKPOINT_SHA256:
++def verify_inputs(preparation, checkpoint_sha256, supervisor_manifest_sha256):
++    if (preparation.parent != SERVER_ROOT or
++            re.fullmatch(r"preparation-[0-9]{3}", preparation.name) is None or
++            any(re.fullmatch(r"[0-9a-f]{64}", value) is None
++                for value in (checkpoint_sha256, supervisor_manifest_sha256))):
++        raise RuntimeError("Expected explicit reviewed preparation namespace and hashes")
++    auxiliary_path = preparation / "supervisor-manifest.json"
++    if file_record(auxiliary_path)["sha256"] != supervisor_manifest_sha256:
++        raise RuntimeError("Frozen S22C supervisor manifest changed")
++    auxiliary = read_json(auxiliary_path)
++    for name in ("run_registration_integration.py", "prepare_registration_listener.py"):
++        if file_record(preparation / name) != auxiliary["files"][name]:
++            raise RuntimeError("Frozen S22C preparation/supervisor changed")
++    if (file_record(Path(__file__)) != auxiliary["files"]["run_registration_integration.py"] or
++            auxiliary["checkpoint_sha256"] != checkpoint_sha256):
++        raise RuntimeError("Supervisor or checkpoint differs from reviewed manifest")
++    checkpoint_path = preparation / "checkpoint-files.json"
++    if file_record(checkpoint_path)["sha256"] != checkpoint_sha256:
+         raise RuntimeError("Frozen S22C checkpoint changed")
+     checkpoint = read_json(checkpoint_path)
+     for name, key in (("commands.json", "commands"), ("run-config.json", "run_config"),
+                       ("provenance-before.json", "provenance")):
+-        if file_record(PREPARATION / name) != checkpoint[key]:
++        if file_record(preparation / name) != checkpoint[key]:
+             raise RuntimeError("Frozen S22C command/config/provenance changed")
+-    source = PREPARATION / "source-snapshot"
++    source = preparation / "source-snapshot"
+     actual = {str(path.relative_to(source)): file_record(path) for path in source.rglob("*")
+               if path.is_file() or path.is_symlink()}
+     if actual != checkpoint["frozen_sources"] or len(actual) != 11:
+         raise RuntimeError("Frozen S22C source set changed")
+-    config = read_json(PREPARATION / "run-config.json")
+-    commands = read_json(PREPARATION / "commands.json")
++    config = read_json(preparation / "run-config.json")
++    commands = read_json(preparation / "commands.json")
+     runtime = Path(config["runtime"])
+-    if runtime != PREPARATION.parent / "runtime-listener-001":
++    revision = preparation.name.removeprefix("preparation-")
++    if runtime != preparation.parent / ("runtime-listener-" + revision):
+         raise RuntimeError("Unexpected runtime namespace")
+     if runtime.exists() or runtime.is_symlink():
+         raise RuntimeError("Refusing to reuse the listener runtime")
+-    config_arguments = ["--config", str(PREPARATION / "run-config.json")]
++    config_arguments = ["--config", str(preparation / "run-config.json")]
+     exact = {
+         "listener": [config["interpreter"], "-I", "-B", "-S", str(source / "run_pytest.py"), *config_arguments],
+         "simulator": ["python3", "-I", "-B", "-S", str(source / "run_registration_simulator_probe.py"),
+@@ -100,10 +116,15 @@
+ 
+ def main():
+     parser = argparse.ArgumentParser()
++    parser.add_argument("--preparation", type=Path, required=True)
++    parser.add_argument("--checkpoint-sha256", required=True)
++    parser.add_argument("--supervisor-manifest-sha256", required=True)
+     parser.add_argument("--execute-reviewed-integration", action="store_true")
+     args = parser.parse_args()
+-    config, commands, runtime = verify_inputs()
+-    evidence = PREPARATION / "integration-execution-001"
++    preparation = args.preparation.resolve(strict=True)
++    config, commands, runtime = verify_inputs(preparation, args.checkpoint_sha256,
++                                              args.supervisor_manifest_sha256)
++    evidence = preparation / "integration-execution-001"
+     if evidence.exists() or evidence.is_symlink():
+         raise SystemExit("Refusing to overwrite prior integration execution evidence")
+     if not args.execute_reviewed_integration:
+@@ -128,7 +149,7 @@
+         "environment_keys_inherited": sorted(environment), "children": {}, "signals_sent": [],
+         "ready_observed": False, "stop_helper_attempted": False, "passed": False,
+         "output_policy": "0600 logs contain frozen listener metadata and wrapper summaries; supervisor does not read credentials or echo child output",
+-        "interpretation": "process lifecycle result only; main must separately inspect the six XCTest results and transport/DB evidence"}
++        "interpretation": "process lifecycle plus exact six-method result check; main must separately inspect transport/DB evidence"}
+ 
+     def capture_signal(signum, _frame):
+         nonlocal observed_signal
+@@ -203,7 +224,7 @@
+                 # The wrapper requests listener stop in its finally block, just
+                 # before persisting its own result and exiting. Reap that short
+                 # tail before interpreting an early listener exit as a failure.
+-                if collect("simulator", 5):
++                if collect("simulator", 25):
+                     break
+                 raise RuntimeError("Listener exited while Simulator wrapper was running")
+             if time.monotonic() >= wrapper_deadline:
+@@ -238,12 +259,21 @@
+             path = runtime / filename
+             if path.is_file() and not path.is_symlink():
+                 outcome[name + "_result_file"] = file_record(path)
++        outcome["exact_test_results_passed"] = False
++        if "wrapper_result_file" in outcome:
++            wrapper_result = read_json(runtime / "registration-wrapper-result.json")
++            outcome["exact_test_results_passed"] = (
++                wrapper_result.get("run_identity") == config["run_identity"] and
++                wrapper_result.get("exit_code") == 0 and
++                wrapper_result.get("xcode_exit_code") == 0 and
++                wrapper_result.get("test_verification", {}).get("passed") is True)
+         exits = outcome["children"]
+         outcome["passed"] = (outcome["ready_observed"] and "failure_type" not in outcome and
+             "stop_helper_failure_type" not in outcome and observed_signal is None and
+             set(exits) == set(commands) and all(value["actual_exit_observed"] and value["exit_code"] == 0
+                                                for value in exits.values()) and
+             outcome["secret_file_absent_after_child_exit"] and
++            outcome["exact_test_results_passed"] and
+             all(name + "_result_file" in outcome for name in ("runner", "listener", "wrapper")))
+         with private_output(evidence / "result.json") as stream:
+             stream.write((json.dumps(outcome, indent=2, sort_keys=True) + "\n").encode())
+--- resume-baseline/.steering/20260929-device-independent-implementation/support/server-isolation/README.md
++++ .steering/20260929-device-independent-implementation/support/server-isolation/README.md
+@@ -96,6 +96,16 @@
+ 2. checkpoint 4のlistener/Simulator wrapperは準備済み・未起動。上記command/hash/新runtime/停止方法をmainがレビューし、具体許可後だけ実行する。
+ 3. 保全済み30秒H264/PCM Movie（485721 bytes、SHA256 `0f567596a4bd101d970dc978f38a2bd1095cefb470a66fc2e0c4b6a11f3df725`）をread-onlyで読みruntimeへcopy/hash照合する。旧helperの非Log技術fixtureへseedするが、既存verified欄は契約入力であり実upload検証/Log/変換合格/新製品receiptへ昇格しない。libraryのopt-in実AVPlayer試験に `FR_LEGACY_PROBE_*` を引渡す。元Movieの終了時hashも照合する。
+ 
++## S22C preparation-002（2026-10-09、実行前の準備）
++
++preparation-001 の実行は Xcode exit 0 でも実行0件・listener到達0件だった。`-enumerate-tests` の6つの method ID は末尾 `()` を含み、旧指定にはこれがなかった。旧001のsource・runtime・結果は保持し、新しい `prepare_registration_listener.py --revision 002 --enumeration /private/tmp/fr-di-20261009-resume/S22C-probe-enumeration.json` で S22 成功snapshot253件の同一copyと新runtime設定を準備する。このhelperはbackendをimportせず、外部source・site-packages・interpreter・guardをread-only照合する。
++
++凍結するruntime sourceは旧来の11件を明示列挙する。prepare helperとsupervisorはその外側へcopyし、別の `supervisor-manifest.json` でhashを記録する。supervisorは `--preparation`・`--checkpoint-sha256`・`--supervisor-manifest-sha256` によって今回の版へ束縛するため、checkpoint内に自己hashを埋め込まない。実行コマンドは新preparationの `integration-command.json` に保存する。`--execute-reviewed-integration` を省いたsupervisorと、`--execute-reviewed-xcode` を省いたwrapperはdry-runだけを行う。mainの準備レビューと今回の具体権限後に実行する。
++
++wrapperは列挙済み6method IDを完全一致で指定し、Xcode exit 0でも自動的に合格にしない。SDK標準 `xcresulttool get test-results summary/tests` のmetadataだけを読み、宣言・実行とも6件成功、失敗・skip・expected failure各0、既定destination1件、Test CaseのID集合と各Passed結果の一致を要求する。0件・欠落・重複・skip・不明結果やmetadata取得失敗はwrapper exit 71とし、supervisorも当該結果を必須にする。metadata toolには秘密環境を渡さず、各10秒上限、raw診断・添付をexportしない。
++
++認証・secret環境4件・guard・127.0.0.1:0・listener1200秒・supervisor1260秒上限は維持する。Xcode終端で従来のstop helperへ要求してからmetadataを確認し、finallyでも同じ冪等要求を行う。listenerが先に終了した場合のwrapper回収猶予はmetadata確認の最大20秒を含む25秒とする。実停止・秘密削除・process回収と、実HTTP/DB成功は引き続き別々に確認する。この準備とdry-runは実probe成功ではない。
++
+ ## 後続のsnapshot実ファイル所有候補
+ 
+ 次の割当はこのsnapshot上の将来task用であり、今回の準備ではbackendファイルを編集しない。外部repoへの反映・deploy・実DB操作は別の明示許可が必要。
+--- resume-baseline/.steering/20260929-device-independent-implementation/support/server-isolation/run_registration_simulator_probe.py
++++ .steering/20260929-device-independent-implementation/support/server-isolation/run_registration_simulator_probe.py
+@@ -25,6 +25,64 @@
+ DESTINATION = "platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719"
+ EXPECTED_KEYS = {"FR_REGISTRATION_PROBE", "FR_REGISTRATION_BASE_URL",
+                  "FR_REGISTRATION_BOOTSTRAP_TOKEN", "FR_REGISTRATION_DESTINATION_ID"}
++EXPECTED_TESTS = (
++    "FrameRelayTests/RegistrationServerProbeTests/testLostResponseAndLocalCommitRecovery()",
++    "FrameRelayTests/RegistrationServerProbeTests/testRegistrationCommitAndReopenUsesSameIdentity()",
++    "FrameRelayTests/RegistrationServerProbeTests/testWrongDestinationAndSecretAreRejected()",
++    "FrameRelayTests/RegistrationTransportProbeTests/testCancellationAfterResponseTerminatesTaskAndSession()",
++    "FrameRelayTests/RegistrationTransportProbeTests/testOversizeMetadataIsBoundedAndSessionTerminates()",
++    "FrameRelayTests/RegistrationTransportProbeTests/testRedirectIsRefusedAndSessionTerminates()",
++)
++
++
++def evaluate_test_metadata(summary, test_results):
++    """Fail closed on zero, missing, duplicate, skipped or unexpected test cases."""
++    cases = []
++
++    def visit(node):
++        if not isinstance(node, dict):
++            raise RuntimeError("Unexpected xcresult test node shape")
++        if node.get("nodeType") == "Test Case":
++            cases.append({"identifier": node.get("nodeIdentifier"), "result": node.get("result")})
++        for child in node.get("children", []):
++            visit(child)
++
++    for node in test_results.get("testNodes", []):
++        visit(node)
++    fields = ("totalTestCount", "passedTests", "failedTests", "skippedTests", "expectedFailures")
++    counts = {key: summary.get(key) for key in fields}
++    devices = summary.get("devicesAndConfigurations", [])
++    expected = {test.removeprefix("FrameRelayTests/") for test in EXPECTED_TESTS}
++    identifiers = [case["identifier"] for case in cases]
++    passed = (summary.get("result") == "Passed" and
++        all(type(value) is int for value in counts.values()) and
++        counts == {"totalTestCount": 6, "passedTests": 6, "failedTests": 0,
++                   "skippedTests": 0, "expectedFailures": 0} and
++        len(devices) == 1 and
++        devices[0].get("device", {}).get("deviceId") == DESTINATION.split("id=", 1)[1] and
++        all(type(devices[0].get(key)) is int and devices[0][key] == count
++            for key, count in (("passedTests", 6), ("failedTests", 0),
++                               ("skippedTests", 0), ("expectedFailures", 0))) and
++        len(cases) == 6 and set(identifiers) == expected and
++        all(case["result"] == "Passed" for case in cases))
++    return {"passed": passed, "counts": counts, "expected_tests": list(EXPECTED_TESTS),
++            "test_cases": cases, "device_configuration_count": len(devices)}
++
++
++def read_test_metadata(bundle, environment):
++    # Never pass TEST_RUNNER_* credentials to xcresulttool or export attachments/logs.
++    metadata_environment = {key: value for key, value in environment.items()
++                            if not key.startswith("TEST_RUNNER_")}
++    documents = []
++    for kind in ("summary", "tests"):
++        command = ["/usr/bin/xcrun", "xcresulttool", "get", "test-results", kind,
++                   "--path", str(bundle)]
++        result = subprocess.run(command, env=metadata_environment, stdin=subprocess.DEVNULL,
++            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=10, check=True)
++        if len(result.stdout) > 2 * 1024 * 1024:
++            raise RuntimeError("Unexpected xcresult metadata size")
++        documents.append(json.loads(result.stdout))
++    return evaluate_test_metadata(*documents)
+ 
+ 
+ def read_regular_json(path, *, private=False):
+@@ -52,11 +110,8 @@
+             config.get("allow_reviewed_loopback_listener") is not True):
+         raise SystemExit("Unreviewed registration listener namespace/config")
+     tests = config.get("xcode_only_testing")
+-    if (not isinstance(tests, list) or not tests or len(tests) != len(set(tests)) or
+-            any(not isinstance(test, str) or re.fullmatch(
+-                r"FrameRelayTests/Registration(?:Server|Transport)ProbeTests/test[A-Za-z0-9_]+", test
+-            ) is None for test in tests)):
+-        raise SystemExit("Expected explicit reviewed registration probe methods")
++    if tests != list(EXPECTED_TESTS):
++        raise SystemExit("Expected the exact six enumerated registration probe method IDs including ()")
+     if any("/RegistrationTransportProbeTests/" in test for test in tests) and (
+             config.get("allow_registration_transport_probe_routes") is not True or
+             config.get("transport_probe_oversize_bytes") != 16385 or
+@@ -83,6 +138,7 @@
+     started = time.monotonic()
+     outcome = {"command": command, "run_identity": config["run_identity"],
+         "token_in_argv": False, "exit_code": None, "stop_requested": False,
++        "xcode_exit_code": None, "test_verification": {"passed": False},
+         "listener_stop_margin_seconds": 60,
+         "limitation": "Xcode internal diagnostics may retain disposable test environment; listener exit revokes bootstrap token"}
+ 
+@@ -183,7 +239,19 @@
+         except subprocess.TimeoutExpired:
+             outcome["timed_out"] = True
+             stop_own_process()
+-        outcome["exit_code"] = process.poll()
++        outcome["xcode_exit_code"] = process.poll()
++        outcome["exit_code"] = outcome["xcode_exit_code"]
++        # End listener exposure before reading result metadata; preserve the usual
++        # finally stop request even when metadata is missing or malformed.
++        helper.request_stop(runtime, "registration-simulator-xcode-finished")
++        outcome["stop_requested"] = True
++        if outcome["xcode_exit_code"] == 0 and not outcome.get("timed_out"):
++            try:
++                outcome["test_verification"] = read_test_metadata(bundle, environment)
++            except Exception as error:
++                outcome["test_verification"] = {"passed": False, "failure_type": type(error).__name__}
++        if outcome["xcode_exit_code"] == 0 and not outcome["test_verification"]["passed"]:
++            outcome["exit_code"] = 71
+     except BaseException as error:
+         outcome["interrupted_by"] = type(error).__name__
+         stop_own_process()
+--- resume-baseline/.steering/20260929-device-independent-implementation/support/server-isolation/prepare_registration_listener.py
++++ .steering/20260929-device-independent-implementation/support/server-isolation/prepare_registration_listener.py
+@@ -0,0 +1,225 @@
++"""Copy verified S22 to a fresh S22C namespace without importing backend/pytest."""
++import argparse
++import ast
++import difflib
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import shutil
++from uuid import uuid4
++
++
++ROOT = Path("/private/tmp/fr-di-20261001-5ljls2fr")
++OUTPUT = ROOT / "S22C/server"
++SUPPORT = Path("/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/support/server-isolation")
++BASE = ROOT / "S22/snapshot-001"
++BASE_PREPARATION = ROOT / "S22/preparation-001"
++FROZEN_SOURCES = (
++    "README.md", "cases.json", "isolation_guard.py", "listener_probe.py", "prepare_snapshot.py",
++    "range_probe.py", "registration_listener.py", "request_listener_stop.py", "run_pytest.py",
++    "run_registration_simulator_probe.py", "run_simulator_probe.py",
++)
++
++
++def expected_methods():
++    # Read the literal allowlist without importing the wrapper or backend.
++    module = ast.parse((SUPPORT / "run_registration_simulator_probe.py").read_text())
++    for node in module.body:
++        if isinstance(node, ast.Assign) and any(
++                isinstance(target, ast.Name) and target.id == "EXPECTED_TESTS" for target in node.targets):
++            tests = ast.literal_eval(node.value)
++            if (len(tests) == 6 and len(set(tests)) == 6 and all(re.fullmatch(
++                    r"FrameRelayTests/Registration(?:Server|Transport)ProbeTests/test[A-Za-z0-9_]+\(\)",
++                    item) for item in tests)):
++                return list(tests)
++    raise RuntimeError("Expected the literal exact six-method allowlist")
++
++
++def record(path):
++    if path.is_symlink() or not path.is_file():
++        raise RuntimeError("Expected regular source file")
++    data = path.read_bytes()
++    return {"kind": "file", "size": len(data), "sha256": hashlib.sha256(data).hexdigest()}
++
++
++def tree(root):
++    return {str(path.relative_to(root)): record(path) for path in sorted(root.rglob("*"))
++            if path.is_file() or path.is_symlink()}
++
++
++def verify_external_runtime(original):
++    site = Path(original["site_packages_root"])
++
++    def dependency_record(path):
++        if path.is_symlink():
++            return {"kind": "symlink", "target": os.readlink(path),
++                    "resolved": str(path.resolve(strict=True))}
++        return record(path)
++
++    site_manifest = {str(path.relative_to(site)): dependency_record(path)
++        for path in sorted(site.rglob("*")) if path.is_file() or path.is_symlink()}
++    interpreter = Path(original["interpreter"]["entry"])
++    if (site_manifest != original["site_packages_before"] or
++            dependency_record(interpreter) != original["interpreter"]["record"] or
++            record(interpreter.resolve(strict=True)) != original["interpreter"]["resolved_record"] or
++            (interpreter.parent.parent / "pyvenv.cfg").read_text() != original["pyvenv_cfg"] or
++            {str(path.relative_to(site)): path.read_text() for path in sorted(site.glob("*.pth"))}
++            != original["pth"]):
++        raise RuntimeError("External site-packages/interpreter configuration changed")
++
++
++def dump(path, value):
++    with path.open("x") as stream:
++        json.dump(value, stream, indent=2, sort_keys=True)
++        stream.write("\n")
++
++
++def copy(source, destination):
++    record(source)
++    destination.parent.mkdir(parents=True, exist_ok=True)
++    with source.open("rb") as reader, destination.open("xb") as writer:
++        shutil.copyfileobj(reader, writer)
++
++
++def main():
++    parser = argparse.ArgumentParser()
++    parser.add_argument("--revision", required=True)
++    parser.add_argument("--enumeration", type=Path, required=True)
++    args = parser.parse_args()
++    if re.fullmatch(r"[0-9]{3}", args.revision) is None:
++        raise SystemExit("Expected three-digit fresh revision")
++    tests = expected_methods()
++    record(args.enumeration)
++    enumeration = json.loads(args.enumeration.read_text())
++    plans = enumeration.get("values", [])
++    if (enumeration.get("errors") != [] or len(plans) != 1 or
++            plans[0].get("testPlan") != "FrameRelay" or
++            sorted(item["identifier"] for item in plans[0].get("enabledTests", [])) != tests):
++        raise SystemExit("Enumeration must enable exactly the six reviewed methods including ()")
++    provenance_path = BASE_PREPARATION / "provenance-before.json"
++    original = json.loads(provenance_path.read_text())
++    base_before = tree(BASE)
++    if base_before != original["snapshot"] or len(base_before) != 253:
++        raise SystemExit("Verified S22 snapshot identity mismatch")
++    result_path = ROOT / "S22/runtime-pytest-001/result.json"
++    result = json.loads(result_path.read_text())
++    if (result["exit_code"] != 0 or result["pytest_exit_code"] != 0 or
++            result["pytest_counts"] != {"tests": 46, "failures": 0, "errors": 0, "skipped": 0} or
++            result["inputs_unchanged"] is not True or result["unreviewed_import_origins"]):
++        raise SystemExit("Expected successful S22 evidence")
++    external = Path(original["external_root"])
++    source_before = {name: record(external / name) for name in original["source_before"]}
++    if source_before != original["source_before"]:
++        raise SystemExit("External tracked source changed")
++    verify_external_runtime(original)
++    support_before = {name: record(SUPPORT / name) for name in FROZEN_SOURCES}
++    auxiliary_before = {name: record(SUPPORT / name) for name in
++                        ("prepare_registration_listener.py", "run_registration_integration.py")}
++    guard_before = record(SUPPORT / "isolation_guard.py")
++    if guard_before != record(BASE_PREPARATION / "source-snapshot/server-isolation/isolation_guard.py"):
++        raise SystemExit("Guard differs from successful S22 version; separate review required")
++    for name in (*support_before, *auxiliary_before):
++        if name.endswith(".py"):
++            ast.parse((SUPPORT / name).read_text(), filename=name)
++    snapshot = OUTPUT / ("snapshot-" + args.revision)
++    evidence = OUTPUT / ("preparation-" + args.revision)
++    runtime = OUTPUT / ("runtime-listener-" + args.revision)
++    if any(path.exists() or path.is_symlink() for path in (snapshot, evidence, runtime)):
++        raise SystemExit("Refusing to reuse snapshot/evidence/runtime")
++    snapshot.mkdir(parents=True)
++    evidence.mkdir()
++    for name in base_before:
++        copy(BASE / name, snapshot / name)
++    frozen = evidence / "source-snapshot"
++    for name in support_before:
++        copy(SUPPORT / name, frozen / name)
++    copy(Path(__file__), evidence / "prepare_registration_listener.py")
++    copy(SUPPORT / "run_registration_integration.py", evidence / "run_registration_integration.py")
++    copy(args.enumeration, evidence / "xcode-test-enumeration.json")
++    snapshot_manifest = tree(snapshot)
++    if (snapshot_manifest != base_before or tree(BASE) != base_before or
++            {name: record(SUPPORT / name) for name in FROZEN_SOURCES} != support_before or
++            {name: record(SUPPORT / name) for name in auxiliary_before} != auxiliary_before):
++        raise SystemExit("Source changed during copy")
++    source_after = {name: record(external / name) for name in original["source_before"]}
++    if source_after != source_before:
++        raise SystemExit("External source changed during copy")
++    verify_external_runtime(original)
++    provenance = dict(original)
++    provenance.update({"snapshot": snapshot_manifest,
++        "s22_parent_provenance": str(provenance_path), "s22_parent_provenance_record": record(provenance_path),
++        "s22_verified_snapshot": str(BASE), "s22_verified_result_record": record(result_path),
++        "snapshot_is_byte_identical_s22_copy": True, "source_after_snapshot": source_after,
++        "backend_imported": False, "tests_executed": False})
++    new_provenance = evidence / "provenance-before.json"
++    dump(new_provenance, provenance)
++    config = {"snapshot": str(snapshot), "runtime": str(runtime),
++        "external_root": str(external), "site_packages": original["site_packages_root"],
++        "provenance": str(new_provenance), "interpreter": original["interpreter"]["entry"],
++        "allow_missing_ffprobe_version_probe": True, "action": "registration-listener",
++        "allow_reviewed_loopback_listener": True, "listener_deadline_seconds": 1200,
++        "allow_registration_transport_probe_routes": True,
++        "transport_probe_oversize_bytes": 16385, "transport_probe_slow_seconds": 5,
++        "run_identity": str(uuid4()), "xcode_only_testing": tests}
++    config_path = evidence / "run-config.json"
++    dump(config_path, config)
++    prior_runner = BASE_PREPARATION / "source-snapshot/server-isolation/run_pytest.py"
++    runner_diff = "".join(difflib.unified_diff(prior_runner.read_text().splitlines(keepends=True),
++        (SUPPORT / "run_pytest.py").read_text().splitlines(keepends=True),
++        fromfile="S22-frozen/run_pytest.py", tofile="S22C/run_pytest.py"))
++    (evidence / "runner.diff").write_text(runner_diff)
++    commands = {"listener": [config["interpreter"], "-I", "-B", "-S", str(frozen / "run_pytest.py"),
++                              "--config", str(config_path)],
++        "simulator": ["python3", "-I", "-B", "-S", str(frozen / "run_registration_simulator_probe.py"),
++                      "--config", str(config_path), "--execute-reviewed-xcode"],
++        "stop_request": ["python3", "-I", "-B", "-S", str(frozen / "request_listener_stop.py"),
++                         "--config", str(config_path)],
++        "env_names": ["FR_REGISTRATION_PROBE", "FR_REGISTRATION_BASE_URL",
++                      "FR_REGISTRATION_BOOTSTRAP_TOKEN", "FR_REGISTRATION_DESTINATION_ID"],
++        "executed": False, "requires": "main review and permission for this listener and Xcode wrapper"}
++    dump(evidence / "commands.json", commands)
++    for directory in (snapshot, frozen):
++        for path in directory.rglob("*"):
++            if path.is_file():
++                path.chmod(0o444)
++    manifest = {"snapshot": snapshot_manifest, "frozen_sources": tree(frozen),
++        "snapshot_is_byte_identical_s22_copy": True, "s22_base_unchanged": True,
++        "external_tracked_source_unchanged": True, "guard_unchanged_from_s22": True,
++        "external_runtime_unchanged": True,
++        "base_provenance": record(provenance_path), "s22_result": record(result_path),
++        "provenance": record(new_provenance), "run_config": record(config_path),
++        "commands": record(evidence / "commands.json"), "runner_diff": record(evidence / "runner.diff"),
++        "xcode_test_enumeration": record(evidence / "xcode-test-enumeration.json"),
++        "xcode_only_testing": tests, "backend_imported": False, "tests_executed": False,
++        "listener_started": False, "runtime_created": False,
++        "limits": ["guard is Python audit/SQLite containment, not a complete native OS sandbox",
++                   "Xcode wrapper needs separately reviewed ordinary Simulator/Xcode writes",
++                   "no real Wi-Fi/TLS/background/physical-device or PRD acceptance claim"]}
++    manifest_path = evidence / "checkpoint-files.json"
++    dump(manifest_path, manifest)
++    checkpoint_sha256 = record(manifest_path)["sha256"]
++    supervisor_manifest = {"files": {name: record(evidence / name) for name in auxiliary_before},
++        "checkpoint_sha256": checkpoint_sha256,
++        "meaning": "Preparation helper and supervisor are outside the eleven frozen runtime sources; no hash self-reference"}
++    supervisor_manifest_path = evidence / "supervisor-manifest.json"
++    dump(supervisor_manifest_path, supervisor_manifest)
++    integration_command = ["python3", "-I", "-B", "-S",
++        str(evidence / "run_registration_integration.py"), "--preparation", str(evidence),
++        "--checkpoint-sha256", checkpoint_sha256, "--supervisor-manifest-sha256",
++        record(supervisor_manifest_path)["sha256"], "--execute-reviewed-integration"]
++    dump(evidence / "integration-command.json", {"command": integration_command, "executed": False,
++        "requires": "main review and permission for this fresh listener and Xcode run"})
++    for path in evidence.iterdir():
++        if path.is_file():
++            path.chmod(0o444)
++    print(json.dumps({"evidence": str(evidence), "snapshot_files": len(snapshot_manifest),
++        "frozen_source_files": len(support_before), "test_methods": len(tests),
++        "checkpoint_sha256": checkpoint_sha256,
++        "supervisor_manifest_sha256": record(supervisor_manifest_path)["sha256"],
++        "runtime_created": False}))
++
++
++if __name__ == "__main__":
++    main()
+--- resume-baseline/FrameRelayTests/Integration/Storage/RegistrationStoreIdentityTests.swift
++++ FrameRelayTests/Integration/Storage/RegistrationStoreIdentityTests.swift
+@@ -0,0 +1,168 @@
++import CoreData
++import Foundation
++import Testing
++@testable import FrameRelay
++
++struct RegistrationStoreIdentityTests {
++    @Test func identityCommitPersistsWithoutInventingJournalRevision() async throws {
++        try await withStorageRun { run in
++            let store = try SQLiteRecordingStore(run: run, mode: .createNew)
++            let before = try await registrationSnapshot(store)
++            #expect(before.storeIdentity == nil && before.revision == 0)
++            let identity = try await establishRegistrationIdentity(store)
++            let reopened = try SQLiteRecordingStore(run: run, mode: .openExisting)
++            let after = try await registrationSnapshot(reopened)
++            #expect(after.storeIdentity == identity && after.revision == before.revision)
++            #expect(after.registrationIntents.isEmpty && after.registrations.isEmpty)
++            #expect(try await establishRegistrationIdentity(reopened) == identity)
++        }
++    }
++
++    @Test func sameWriterAndSeparateAdaptersConvergeOnOneDurableIdentity() async throws {
++        try await withStorageRun { run in
++            let first = try SQLiteRecordingStore(run: run, mode: .createNew)
++            let second = try SQLiteRecordingStore(run: run, mode: .openExisting)
++            async let a = first.establishRegistrationIdentity(expectedRevision: 0, expectedIdentity: nil)
++            async let b = first.establishRegistrationIdentity(expectedRevision: 0, expectedIdentity: nil)
++            async let c = second.establishRegistrationIdentity(expectedRevision: 0, expectedIdentity: nil)
++            let identities = try await [a, b, c]
++            #expect(Set(identities).count == 1)
++            #expect(try await registrationSnapshot(second).storeIdentity == identities[0])
++        }
++    }
++
++    @Test func containerRelocationRetainsIdentityAndOldOpenWriterStops() async throws {
++        try await withStorageRun { run in
++            let store = try SQLiteRecordingStore(run: run, mode: .createNew)
++            let identity = try await establishRegistrationIdentity(store)
++            let moved = run.url.deletingLastPathComponent().appendingPathComponent("FrameRelay-moved-" + UUID().uuidString)
++            // Move the complete isolated container including its SQLite sidecars; retain all evidence.
++            try FileManager.default.moveItem(at: run.url, to: moved)
++            let reopened = try SQLiteRecordingStore(run: .openExisting(at: moved), mode: .openExisting)
++            #expect(try await registrationSnapshot(reopened).storeIdentity == identity)
++            #expect(await store.load() == .unavailable(.inaccessible))
++        }
++    }
++
++    @Test func replacementAtSamePathRejectsOldIdentityEvenAtSameRevision() async throws {
++        try await withStorageRun { run in
++            let old = try SQLiteRecordingStore(run: run, mode: .createNew)
++            let oldIdentity = try await establishRegistrationIdentity(old)
++            let replacementRun = try replaceRegistrationTestRun(run)
++            let fresh = try SQLiteRecordingStore(run: replacementRun, mode: .createNew)
++            let freshIdentity = try await establishRegistrationIdentity(fresh)
++            #expect(freshIdentity != oldIdentity)
++            #expect(await old.load() == .unavailable(.inaccessible))
++            let intent = RegistrationIntent(operation: .init(rawValue: UUID().uuidString.lowercased()),
++                destination: .init(rawValue: UUID().uuidString.lowercased()))
++            let mutation = BackendStoreMutation(expectedRevision: 0, change: .registrationIntent(intent),
++                                                 expectedStoreIdentity: oldIdentity)
++            #expect(await fresh.commit(mutation) == .rejected(.identityMismatch))
++            #expect(await fresh.lookupCommit(mutation) == .rejected(.identityMismatch))
++            #expect(await old.commit(mutation) == .unavailable(.inaccessible))
++            #expect(try await registrationSnapshot(fresh).revision == 0)
++            #expect(try await registrationSnapshot(fresh).registrationIntents.isEmpty)
++        }
++    }
++
++    @Test(arguments: [1, 2, 3, 4])
++    func legacyReadIsBytePreservingAndOnlyExplicitIdentityCommitMigrates(schema: Int) async throws {
++        try await withStorageRun { run in
++            // Frozen legacy envelopes, independent of the current document encoder.
++            let envelopes = [
++                #"{"schema":1,"entries":[]}"#,
++                #"{"schema":2,"entries":[],"transactionRevision":0}"#,
++                #"{"schema":3,"entries":[],"transactionRevision":0,"originalJournal":[]}"#,
++                #"{"schema":4,"entries":[],"transactionRevision":0,"originalJournal":[],"backendJournal":[],"legacyRevision":0}"#
++            ]
++            let bytes = Data(envelopes[schema - 1].utf8)
++            try registrationFixturePayload(run, install: bytes)
++            let store = try SQLiteRecordingStore(run: run, mode: .openExisting)
++            let before = try await registrationSnapshot(store)
++            #expect(before.storeIdentity == nil && before.revision == 0)
++            #expect(try registrationFixturePayload(run) == bytes)
++            let reopened = try SQLiteRecordingStore(run: run, mode: .openExisting)
++            #expect(try await registrationSnapshot(reopened) == before)
++            #expect(try registrationFixturePayload(run) == bytes)
++            let identity = try await establishRegistrationIdentity(store)
++            let document = try RecordingStoreDocument.decode(registrationFixturePayload(run))
++            #expect(document.schema == 5 && document.storeIdentity == identity)
++            #expect(document.transactionRevision == 0 && document.legacyRevision == 0)
++            #expect(document.entries.isEmpty && document.originalJournal.isEmpty && document.backendJournal.isEmpty)
++        }
++    }
++
++    @Test(arguments: [RecordingStoreFault.beforeDiskCommit, .afterDiskCommitBeforeReply])
++    func identityCommitFaultIsReconciledOnlyFromDisk(fault: RecordingStoreFault) async throws {
++        try await withStorageRun { run in
++            let faulty = try SQLiteRecordingStore(run: run, mode: .createNew, fault: fault)
++            do {
++                _ = try await faulty.establishRegistrationIdentity(expectedRevision: 0, expectedIdentity: nil)
++                Issue.record("Injected commit boundary returned success")
++            } catch {}
++            let reopened = try SQLiteRecordingStore(run: run, mode: .openExisting)
++            let recovered = try await registrationSnapshot(reopened)
++            #expect((recovered.storeIdentity == nil) == (fault == .beforeDiskCommit))
++            let identity = try await establishRegistrationIdentity(reopened)
++            if let committed = recovered.storeIdentity { #expect(identity == committed) }
++            #expect(try await registrationSnapshot(reopened).revision == 0)
++        }
++    }
++    @Test func boundJournalRejectsMissingOrSubstitutedDocumentIdentity() throws {
++        let identity = RegistrationStoreIdentity(rawValue: UUID())
++        var document = RecordingStoreDocument()
++        document.storeIdentity = identity
++        let intent = RegistrationIntent(operation: .init(rawValue: UUID().uuidString.lowercased()),
++            destination: .init(rawValue: UUID().uuidString.lowercased()))
++        _ = try document.applyBackend(.init(expectedRevision: 0, change: .registrationIntent(intent),
++                                            expectedStoreIdentity: identity))
++        let encoded = try JSONEncoder().encode(document)
++        var object = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
++        object.removeValue(forKey: "storeIdentity")
++        #expect(throws: ExplorationStorageError.corruptStore) {
++            try RecordingStoreDocument.decode(JSONSerialization.data(withJSONObject: object))
++        }
++        document.storeIdentity = RegistrationStoreIdentity(rawValue: UUID())
++        #expect(throws: ExplorationStorageError.corruptStore) {
++            try RecordingStoreDocument.decode(JSONEncoder().encode(document))
++        }
++    }
++
++}
++
++/// Replaces only this UUID-isolated test container. The old database and its sidecars remain intact.
++nonisolated func replaceRegistrationTestRun(_ run: ExplorationRunDirectory) throws -> ExplorationRunDirectory {
++    let archived = run.url.deletingLastPathComponent().appendingPathComponent("FrameRelay-replaced-" + UUID().uuidString)
++    try FileManager.default.moveItem(at: run.url, to: archived)
++    return try .createNew(at: run.url)
++}
++
++/// Explicitly closes its fixture-only coordinator; the production writer is never replaced by this helper.
++@discardableResult nonisolated private func registrationFixturePayload(_ run: ExplorationRunDirectory,
++                                                                      install: Data? = nil) throws -> Data {
++    let entity = NSEntityDescription()
++    entity.name = "Document"; entity.managedObjectClassName = "NSManagedObject"
++    let payload = NSAttributeDescription()
++    payload.name = "payload"; payload.attributeType = .binaryDataAttributeType; payload.isOptional = false
++    entity.properties = [payload]
++    let model = NSManagedObjectModel()
++    model.entities = [entity]; model.versionIdentifiers = ["FrameRelay-D04-v1"]
++    let coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
++    let persistent = try coordinator.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil,
++        at: run.url.appendingPathComponent("recordings.sqlite"))
++    defer { try? coordinator.remove(persistent) }
++    let context = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
++    context.persistentStoreCoordinator = coordinator
++    return try context.performAndWait {
++        if let install {
++            try #require(context.count(for: NSFetchRequest<NSFetchRequestResult>(entityName: "Document")) == 0)
++            let row = NSEntityDescription.insertNewObject(forEntityName: "Document", into: context)
++            row.setValue(install, forKey: "payload")
++            try context.save()
++            return install
++        }
++        let rows = try context.fetch(NSFetchRequest<NSManagedObject>(entityName: "Document"))
++        try #require(rows.count == 1)
++        return try #require(rows[0].value(forKey: "payload") as? Data)
++    }
++}

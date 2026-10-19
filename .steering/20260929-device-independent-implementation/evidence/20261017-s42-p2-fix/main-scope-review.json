@@ -1,0 +1,43 @@
+{
+  "baselineFileCount": 347,
+  "changedExisting": [
+    ".steering/20260929-device-independent-implementation/tasklist.md",
+    "FrameRelay/Platform/Capture/NativeExplorationCapture.swift"
+  ],
+  "unchangedCount": 345,
+  "new": [
+    "FrameRelay/Platform/Capture/NativeRecordingTermination.swift",
+    "FrameRelayTests/Platform/Capture/NativeRecordingTerminationTests.swift"
+  ],
+  "missing": [],
+  "outOfScopeChanges": [],
+  "previousEvidenceFileCount": 4960,
+  "previousEvidenceChanges": [],
+  "executionSourceVerification": {
+    "test-01": {
+      "inputCount": 175,
+      "mismatches": []
+    },
+    "ios-build-01": {
+      "inputCount": 175,
+      "mismatches": []
+    }
+  },
+  "diffCheck": {
+    "exitCode": 0,
+    "output": "",
+    "newFileTrailingWhitespace": []
+  },
+  "review": [
+    "Refresh throw is recorded synchronously before commandFailed; user STOP race retains failure.",
+    "Native STOP/writer/movie use the tested production termination component.",
+    "Failure reset and existing audio/SDK finalization priority are preserved.",
+    "No project, settings, Ports, save contract, UI, docs or design changes.",
+    "No S27 detailed work, S43+, or independent validation after this fix."
+  ],
+  "limitations": [
+    "Shared Native STOP/termination logic tested, real SDK throw and camera KVO unverified.",
+    "Real color, recording continuity, last frame and D01/G2B remain unverified.",
+    "Independent validation of the fixed S42 remains pending."
+  ]
+}

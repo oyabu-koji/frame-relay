@@ -1,0 +1,108 @@
+{
+  "command": [
+    "/usr/bin/xcodebuild",
+    "-project",
+    "/Users/oyabu/dev/rep/FrameRelay/FrameRelay.xcodeproj",
+    "-scheme",
+    "FrameRelay",
+    "-configuration",
+    "Debug",
+    "-destination",
+    "platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719",
+    "-derivedDataPath",
+    "/private/tmp/fr-di-20261001-5ljls2fr/DerivedData",
+    "-disableAutomaticPackageResolution",
+    "-parallel-testing-enabled",
+    "NO",
+    "-collect-test-diagnostics",
+    "never",
+    "-resultBundlePath",
+    "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/runtime-listener-002/registration-probe.xcresult",
+    "-only-testing:FrameRelayTests/RegistrationServerProbeTests/testLostResponseAndLocalCommitRecovery()",
+    "-only-testing:FrameRelayTests/RegistrationServerProbeTests/testRegistrationCommitAndReopenUsesSameIdentity()",
+    "-only-testing:FrameRelayTests/RegistrationServerProbeTests/testWrongDestinationAndSecretAreRejected()",
+    "-only-testing:FrameRelayTests/RegistrationTransportProbeTests/testCancellationAfterResponseTerminatesTaskAndSession()",
+    "-only-testing:FrameRelayTests/RegistrationTransportProbeTests/testOversizeMetadataIsBoundedAndSessionTerminates()",
+    "-only-testing:FrameRelayTests/RegistrationTransportProbeTests/testRedirectIsRefusedAndSessionTerminates()",
+    "test",
+    "-quiet"
+  ],
+  "run_identity": "a910c4c7-a4a6-49ca-b4e1-723d52bc4db5",
+  "token_in_argv": false,
+  "exit_code": 0,
+  "stop_requested": true,
+  "xcode_exit_code": 0,
+  "test_verification": {
+    "passed": true,
+    "counts": {
+      "totalTestCount": 6,
+      "passedTests": 6,
+      "failedTests": 0,
+      "skippedTests": 0,
+      "expectedFailures": 0
+    },
+    "expected_tests": [
+      "FrameRelayTests/RegistrationServerProbeTests/testLostResponseAndLocalCommitRecovery()",
+      "FrameRelayTests/RegistrationServerProbeTests/testRegistrationCommitAndReopenUsesSameIdentity()",
+      "FrameRelayTests/RegistrationServerProbeTests/testWrongDestinationAndSecretAreRejected()",
+      "FrameRelayTests/RegistrationTransportProbeTests/testCancellationAfterResponseTerminatesTaskAndSession()",
+      "FrameRelayTests/RegistrationTransportProbeTests/testOversizeMetadataIsBoundedAndSessionTerminates()",
+      "FrameRelayTests/RegistrationTransportProbeTests/testRedirectIsRefusedAndSessionTerminates()"
+    ],
+    "test_cases": [
+      {
+        "identifier": "RegistrationServerProbeTests/testRegistrationCommitAndReopenUsesSameIdentity()",
+        "result": "Passed"
+      },
+      {
+        "identifier": "RegistrationServerProbeTests/testLostResponseAndLocalCommitRecovery()",
+        "result": "Passed"
+      },
+      {
+        "identifier": "RegistrationServerProbeTests/testWrongDestinationAndSecretAreRejected()",
+        "result": "Passed"
+      },
+      {
+        "identifier": "RegistrationTransportProbeTests/testRedirectIsRefusedAndSessionTerminates()",
+        "result": "Passed"
+      },
+      {
+        "identifier": "RegistrationTransportProbeTests/testOversizeMetadataIsBoundedAndSessionTerminates()",
+        "result": "Passed"
+      },
+      {
+        "identifier": "RegistrationTransportProbeTests/testCancellationAfterResponseTerminatesTaskAndSession()",
+        "result": "Passed"
+      }
+    ],
+    "device_configuration_count": 1
+  },
+  "listener_stop_margin_seconds": 60,
+  "limitation": "Xcode internal diagnostics may retain disposable test environment; listener exit revokes bootstrap token",
+  "environment_keys_added": [
+    "TEST_RUNNER_FR_REGISTRATION_BASE_URL",
+    "TEST_RUNNER_FR_REGISTRATION_BOOTSTRAP_TOKEN",
+    "TEST_RUNNER_FR_REGISTRATION_DESTINATION_ID",
+    "TEST_RUNNER_FR_REGISTRATION_PROBE"
+  ],
+  "xcodebuild_sha256": "cdd556d44e6ecae330e9549b2243a6ed5873a050864272d28e9a81f2bde56556",
+  "inherited_environment_keys": [
+    "HOME",
+    "LANG",
+    "LC_ALL",
+    "LC_CTYPE",
+    "LOGNAME",
+    "PATH",
+    "TMPDIR",
+    "USER"
+  ],
+  "home_inherited_unchanged": true,
+  "sdk_environment": {},
+  "listener_pid": 68757,
+  "listener_process_command": "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python -I -B -S /private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-002/source-snapshot/run_pytest.py --config /private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-002/run-config.json",
+  "selected_developer_directory": "/Applications/Xcode.app/Contents/Developer",
+  "xcode_version": "Xcode 27.0\nBuild version 27A266a",
+  "deadline_seconds": 1100,
+  "xcode_pid": 68764,
+  "elapsed_seconds": 5.410689166048542
+}

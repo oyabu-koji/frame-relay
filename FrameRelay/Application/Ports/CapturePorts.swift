@@ -92,9 +92,48 @@ nonisolated enum UnfinishedRecordingLoadResult: Equatable, Sendable {
     case corruptStore
 }
 
+nonisolated struct RecordingStoreEntry: Equatable, Sendable {
+    let intentToken: CaptureCommandToken
+    let intent: RecordingIntent
+    let revision: UInt64
+    let resultToken: CaptureCommandToken?
+    let result: RecordingResultRecord?
+
+    var resultCommit: RecordingCommitReceipt? {
+        guard let resultToken, result != nil, revision == 2 else { return nil }
+        return .init(token: resultToken, previousRevision: 1, committedRevision: revision)
+    }
+}
+
+nonisolated struct RecordingStoreSnapshot: Equatable, Sendable {
+    let revision: UInt64
+    let recordings: [RecordingStoreEntry]
+}
+
+nonisolated enum RecordingStoreLoadResult: Equatable, Sendable {
+    case loaded(RecordingStoreSnapshot)
+    case unavailable(CaptureUnavailableReason)
+    case unrecognizedSchema
+    case corruptStore
+}
+
 nonisolated protocol RecordingStorePort: Sendable {
     func execute(_ command: RecordingStoreCommand) async -> RecordingStoreResult
     func loadUnfinished() async -> UnfinishedRecordingLoadResult
+    /// Includes successful records; an unfinished-only query is not a library.
+    func loadRecordings() async -> RecordingStoreLoadResult
+}
+
+nonisolated enum OriginalFileObservation: Equatable, Sendable {
+    case present(byteCount: UInt64)
+    case absent
+    case unavailable(CaptureUnavailableReason)
+}
+
+/// Application uses opaque references; only platform writers resolve file URLs.
+nonisolated protocol RecordingOriginalFilePort: Sendable {
+    func reserveForRecording(_ original: CaptureOriginalReference) async throws
+    func observeFile(_ original: CaptureOriginalReference) async -> OriginalFileObservation
 }
 
 nonisolated struct CaptureInspectionRequest: Equatable, Sendable {

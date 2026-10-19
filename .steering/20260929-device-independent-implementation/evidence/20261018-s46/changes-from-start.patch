@@ -1,0 +1,1517 @@
+--- baseline/.steering/20260929-device-independent-implementation/tasklist.md
++++ final/.steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,7 +12,13 @@
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-18、S45実装・自動検証完了）
++## 現在の再開点（2026-10-18、S46本体・注入試験完了／製品policy判断待ち）
++
++- **S46 / blocked（製品policyの本人判断待ち）**: 実画素解析・人物/背景別評価・方向/理由・失効・UIと注入経路を実装。通常FactoryのND policyはnilで、通常撮影のND解析は未有効。「暫定1秒で失効」「入力信号/意図別の交換可能な暫定基準で方向と理由だけ参考表示」の2点は質問済み・回答未受領。実機未確認だけの完成品とは扱わない。
++- **E-S46-01**: 通常構成の関連Unit48宣言/64展開、修正後ND16宣言/22展開、最後の時刻境界修正後Native ND12宣言/18展開、通常UI1件が各成功。generic iOS署名なしbuild成功。各版と差分/継承範囲を下記S46と `evidence/20261018-s46/` に記録し、重複caseを合算しない。実写の方向一致・WB対応/連続Auto時の保留・負荷はDV-07へ残す。
++- **保全・所有**: 開始時7311fileのhash、証跡外の現物copy、git差分を `/private/tmp/fr-s46-20261018-ck1k643l/` に保存。未コミット/未追跡成果の現物へ加算し、旧証跡/README/memo/他taskを保持する。mainが本steering・証跡・差分確認を所有。`s46_explore` は接続点のread-only調査。
++
++### 直前のS45実装完了記録
+ 
+ - **S45 / done（実装・自動検証範囲）**: 前セッションの本体を継承し、Simulatorで同一特徴量を別人へ誤適用する問題を修正。本人承認の位置指定AF・撮影意図選択/保存復元・暫定3秒の猶予を、同一policyで通常FactoryのNative/coordinatorへ接続した。REC非阻害を維持。
+ - **E-S45-02**: 最終Unit81宣言/112展開ケース、通常UI3件すべて成功、skip/runtimeWarnings 0。Simulator test build・generic iOS署名なしbuild成功、compiler/analyzer診断0。202入力は各最終run/現物で一致。証跡 `evidence/20261018-s45-resume/`。
+@@ -707,7 +713,19 @@
+ 
+ ### S46 ND方向・理由・保留と設定再評価
+ 
+-- [ ] Status: pending
++- [ ] Status: blocked
++  - E-S46-01 / 現在状態: 本体・注入可能なNative/coordinator/UIと関連自動検証＝実装済。通常Factoryの同policy採用/有効化＝本人判断待ち。暫定1秒とcode-domain暫定基準による方向/理由の参考表示は質問済み・未回答。通常画面は評価基準未設定の保留を明示し、S46全体done・FR-06受入にはしない。
++  - E-S46-01 / 本体: BGRA、8/10bit bi-planarのfull/video range（5形式）と実attachmentを照合し、709/sRGB/AppleLog/Log2を区別する。最大96×96標本、処理中1件＋置換待機1件。複数人物を平均で潰さず、人物外背景との相反/方向/理由/根拠不足を評価。全面黒/白・平坦・小反射だけを正解にせず、EV/IRE/正確なND段数へ変換しない。解析から録画画像/露出設定/REC可否へ書き戻さない。
++  - E-S46-01 / 失効: 設定/構図/選択/意図/独立WB revision、入力時刻/順序/期限と解析失効epochを照合。選択処理中・人物欠落・停止後のin-flight復活、古い高sequence通知で現結果の期限が無効になる問題を修正。開始/変更/失効の単調時刻validAfterより前の実bufferは新contextでも拒否する。WB KVOは通知時の変化を確認しA→B→Aも失効。validAfterは保守的な観測下限でありフレーム固有gainの証明ではない。Auto WBが変わり続ける間は保留が続く可能性を実機残件とする。
++  - E-S46-01 / 検証: `worker/test-06` 通常構成48宣言/64展開成功。再停止epoch修正後 `test-07` ND16宣言/22展開成功。最後のvalidAfter/KVO修正後 `test-09` Native ND12宣言/18展開成功。fail/skip/runtimeWarnings/compiler/analyzer 0。`ui-final-01` は通常撮影入口/ND保留・理由/閉じる操作1件成功。UI後の変更はDomain/Native/対応Unitの3fileのみで、UI/未注入Factory/coordinatorは不変のためUI結果を継承。`ios-build-final-01` はgeneric iOS、CODE_SIGNING_ALLOWED=NOで成功（buildでありtest0件は合格件数へ含めない）。stdoutの既存AppIntents依存なしmetadata警告は保持。
++  - E-S46-01 / 版と証跡: 最終test-09の201 Swift sourceは現物・iOSbuildの209入力の対応部分と一致。各command/exit/log/source hash/summary、関連test tree/build-results、失敗/最終の所有sourceと開始時差分を `evidence/20261018-s46/` へ保存。raw xcresult/DerivedData/完全な開始時copyは `/private/tmp/fr-s46-20261018-ck1k643l/`。test-01〜03のcompile失敗・test0件を保持。診断用test-04のdisable-batch成功は通常構成の証明にしない。新規test helperのpolicy default引数を明示引数へ変えたtest-05以降は通常batchで成功し、既存actor/project設定は不変。コンパイラ内部原因は未確定。
++  - E-S46-01 / 最終差分: mainが開始時7311fileと所有差分を確認。コード/対応test13file、関連永続2文書、本tasklistだけを変更し、旧証跡・project・README・memo・共有store等を保持。文書差分はdoc_reviewer指摘なし。mainの実装内確認であり独立validationではない。
++  - 再開条件: 上記2点の本人回答後、同じ版付きpolicyを通常FactoryのNative/coordinatorへ注入し、必要なComposition/通常UIの限定検証を行う。実カメラdestinationがないため実入力/実WB KVO/補正crop座標/実写の方向一致・黒い服や反射・品質/負荷はDV-07に残す。未校正の人工入力成功を本人合意の代表場面の合格にしない。独立validationは本体の製品接続後に同じsteeringへの明示 `$validate-implementation` で行い、暗黙開始しない。他taskの独立部分へ新しい依存は追加しない。
++  - 再開当初（2026-10-18、履歴）: 明示implement、開始baseline `/private/tmp/fr-s46-20261018-ck1k643l/`。S41/S42/S45の既存接続を継承。mainがsteering/証跡/統合を所有、`s46_explore` がSDK入力と世代接続をread-only調査。
++  - 所有引渡し: worker `s46_impl`＝新規ND Domain/解析/調停/表示と、接続に必要なNativeExplorationCapture、ProductCaptureCoordinator、ProductCapturePorts、ProductCaptureFactory、ProductCaptureView、対応Capture Unit/Composition/UI testだけ。mainは本steering/証跡を所有。project/共有store/原本/他媒体機能/docsはworker所有外。既存変更を戻さず、同じファイルへ並行書込しない。
++  - 追加所有: ROI逆変換に必要なNativeCaptureSubjectGeometryと対応testも同workerへ単独引渡し。document_author `s46_docs` は `docs/architecture.md` と `docs/functional-design.md` のND構造だけを同期し、未合意policy/製品未接続/実機未確認を保持する。コードと文書の所有は重ねない。
++  - 構成再確認: Xcode27.0(27A266a)/Swift6.4、既存project/scheme/testPlan FrameRelay、Debug/App・Unit・UIを実照会。iOS27.0のboot済みSimulator DFE46693-E8DD-4814-8957-4F327699F719を当日のdevices/showdestinationsで確認。Swift言語5/最低iOS27.0を保持。構成照会は試験成功と区別し、build-settingsとcommandをbaseline rootへ保存。
++  - 途中結果: 実buffer解析/有界入力/独立WB監視/ND状態とUIを追加。初回compile失敗と既存actorへの隔離診断を保持し、診断用 `-disable-batch-mode` のtest-04は14宣言/20展開ケース成功、fail/skip/runtimeWarnings 0。通常構成の成功とは分け、通常batch再検証とmain指摘の期限・in-flight境界修正を継続中。source/command/log/xcresultはbaseline rootの `worker/`。製品policy回答は未受領のため通常Factoryへ注入していない。
+   - Depends: Start＝N01・既存設定／WB観測契約（ND解析・規則・UI）。Finish＝S41,S42の実接続。着手時に独立部分と接続部分を別substatusで記録し、接続まで満たす前はtask全体をdoneにしない。
+   - Owner / Files: O-CAPTURE／`FrameRelay/{Application,Platform}/Capture/` のND解析、`FrameRelay/Domain/Capture/` の評価対象契約、`FrameRelay/Features/Capture/` と対応test。
+   - Done when: 実解析入力・複数露出対象・設定／WB世代から濃淡方向／理由／両立困難。遅延・停止・根拠不足で旧OK失効。
+@@ -866,7 +884,7 @@
+ | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+ | FR-01 | AC-FR-01-01 | 音声付き4K24/30原本・写真非追加 | P05/P06/P09;CF-02/08 | EC,ES | S12,S41 | dep(S12,S41)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 通常撮影・保存・一覧再生接続済（実Log/品質未確認） | E-S41-01/02/03: 最新71case/UI1・開始拒否終端/離脱回帰・build | D0 | 部分証拠、実機未受入 | DV-01、DV-02 |
+ | FR-01 | AC-FR-01-02 | 3形式・カメラ対応・無断代替禁止 | P05/P06/P09;CF-02/08 | EC,ES | S41 | dep(S41)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 現能力照合・希望/実値・自動代替拒否を製品接続済 | E-S41-01/02: 設定/条件照合・build | D0 | 部分証拠、全組合せ未確認 | DV-01 |
+-| FR-01 | AC-FR-01-03 | 手動値維持・ND再評価 | P05/P06/P09;CF-02/08 | EC,ES | S41,S46 | dep(S41,S46)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | S41手動設定接続済、S46 ND未実装 | E-S41-01/02: 設定/適用部分のみ | D0 | 部分証拠、ND未受入 | DV-01、DV-07 |
++| FR-01 | AC-FR-01-03 | 手動値維持・ND再評価 | P05/P06/P09;CF-02/08 | EC,ES | S41,S46 | dep(S41,S46)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | S41手動設定接続済、S46 ND本体/失効実装・製品未有効 | E-S41-01/02、E-S46-01: 設定世代/時刻境界の注入試験 | D0 | 部分証拠、ND未受入 | DV-01、DV-07 |
+ | FR-01 | AC-FR-01-04 | 保存設定・WB/補正の条件復元 | P05/P06/P09;CF-02/08 | EC,ES,E-S44-01 | S41,S44 | dep(S41,S44)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | S41希望保存・S44補正候補/条件復元接続済 | E-S41-01/02/03、E-S44-01: store再open/条件照合/非代替/初期UI | D0 | 部分証拠、実機補正未受入 | DV-01、DV-04 |
+ | FR-02 | AC-FR-02-01 | 固定Rec.709表示・非焼込み | P06/P12;CF-05 | EC:表示拒否境界のみ | S48 | dep(S48)＋対応A/Q01 | O-CAPTURE | I0 | A1 | D0 | R0 | DV-05 |
+ | FR-02 | AC-FR-02-02 | 確認状態分離・描画/録画品質 | P06/P12;CF-05 | EC:表示拒否境界のみ | S48,S4V | dep(S48,S4V)＋対応A/Q01 | O-CAPTURE | I0 | A1 | D0 | R0 | DV-05、DV-11 |
+@@ -883,10 +901,10 @@
+ | FR-05 | AC-FR-05-03 | 人物未確定でもREC | P05のREC非依存のみ;CF-09部分/後続必須 | EC,E-S45-01,E-S45-02 | S45,S41 | dep(S45,S41)＋対応A/Q01 | O-CAPTURE | 人物/意図/解析をREC条件へ追加せず通常接続 | E-S45-02: 未選択/解析なし/遅延保存中REC・継続/両候補Factory成功 | D0 | REC非阻害の自動検証済、実機未受入 | DV-06 |
+ | FR-05 | AC-FR-05-04 | 通常合焦・前後追従品質 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01,E-S45-02 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | SDK AF計画/読戻し/不成立表示を製品接続 | E-S45-02: AF計画/座標/状態境界成功 | D0 | 実合焦/前後追従・衝突防御の保持制約/負荷品質未受入 | DV-06 |
+ | FR-05 | AC-FR-05-05 | 追跡OFFの人物優先AF品質 | P05のREC非依存のみ;CF-09部分/後続必須 | E-S45-01,E-S45-02 | S45 | dep(S45)＋対応A/Q01 | O-CAPTURE | 追跡OFF人物優先AFとscene後復帰を製品接続 | E-S45-02: OFF非固定/人物再登場/AF計画成功 | D0 | 実人物優先AF品質未受入 | DV-06 |
+-| FR-06 | AC-FR-06-01 | 濃く/薄くの方向と理由 | P05/P10設定事実;CF-09部分/後続必須 | E0（旧計画の後続要求のみ） | S46 | dep(S46)＋対応A/Q01 | O-CAPTURE | I0 | A0 | D0 | R0 | DV-07 |
+-| FR-06 | AC-FR-06-02 | 人物背景両立困難・太陽反射黒 | P05/P10設定事実;CF-09部分/後続必須 | E0（旧計画の後続要求のみ） | S46 | dep(S46)＋対応A/Q01 | O-CAPTURE | I0 | A0 | D0 | R0 | DV-07 |
+-| FR-06 | AC-FR-06-03 | 停止遅延保留・旧OK失効・REC | P05/P10設定事実;CF-09部分/後続必須 | EC:REC非依存/設定WB事実のみ | S46,S41 | dep(S46,S41)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-07 |
+-| FR-06 | AC-FR-06-04 | WB状態と飽和情報の限界 | P05/P10設定事実;CF-09部分/後続必須 | EC:REC非依存/設定WB事実のみ | S46,S42 | dep(S46,S42)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-03、DV-07 |
++| FR-06 | AC-FR-06-01 | 濃く/薄くの方向と理由 | P05/P10設定事実;CF-09部分/後続必須 | E-S46-01 | S46 | dep(S46)＋対応A/Q01 | O-CAPTURE | 実画素の方向/理由本体・通常Factory未注入 | E-S46-01: 5画素形式/4信号の人工入力で方向成立 | D0 | 部分証拠、製品policy/実写一致未受入 | DV-07 |
++| FR-06 | AC-FR-06-02 | 人物背景両立困難・太陽反射黒 | P05/P10設定事実;CF-09部分/後続必須 | E-S46-01 | S46 | dep(S46)＋対応A/Q01 | O-CAPTURE | 人物別/背景別評価・相反/不足を実装、製品未有効 | E-S46-01: 複数対象/相反/小反射/黒/飽和の人工入力 | D0 | 部分証拠、実写の材質/意図との一致未受入 | DV-07 |
++| FR-06 | AC-FR-06-03 | 停止遅延保留・旧OK失効・REC | P05/P10設定事実;CF-09部分/後続必須 | E-S46-01 | S46,S41 | dep(S46,S41)＋対応A/Q01 | O-CAPTURE | 世代/時刻/停止/期限失効・REC非阻害の注入経路 | E-S46-01: in-flight/再停止/高sequenceと期限/REC継続成功 | D0 | 部分証拠、通常製品policy待ち | DV-07 |
++| FR-06 | AC-FR-06-04 | WB状態と飽和情報の限界 | P05/P10設定事実;CF-09部分/後続必須 | E-S46-01 | S46,S42 | dep(S46,S42)＋対応A/Q01 | O-CAPTURE | 独立WB観測/validAfter/飽和保留、製品未有効 | E-S46-01: 新context付き古フレーム拒否/飽和/境界入力 | D0 | 部分証拠、実WB KVO/連続Auto/実写未受入 | DV-03、DV-07 |
+ | FR-07 | AC-FR-07-01 | 目標構図予告・倍率不変・非焼込み | P05/P14;CF-07（予告は後続必須） | EC:倍率/停止契約のみ | S47 | dep(S47)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-08 |
+ | FR-07 | AC-FR-07-02 | 目標/途中停止・操作と品質 | P05/P14;CF-07（予告は後続必須） | EC:倍率/停止契約のみ | S47 | dep(S47)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-08 |
+ | FR-07 | AC-FR-07-03 | 停止支援・引く予告・画角/画質/負荷 | P05/P14;CF-07（予告は後続必須） | EC:倍率/停止契約のみ | S47,S44 | dep(S47,S44)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-04、DV-08、DV-09 |
+@@ -1225,7 +1243,7 @@
+ | E-S44-01 | 2026-10-18、explorer/worker/document_author/doc_reviewer/main | S44、AC-FR-03-01〜05/AC-CF-06・限定回帰 | test-03/ios-build-01の187入力、最終差分UI test1fileのみ | 各run.json、補正候補/希望復元/実active/画角失効/REC前再照合/旧通知/音声・保存再生/UI | Unit53宣言/76展開成功、最終UI2成功、build成功、最終失敗/skip/runtimeWarnings0。compile失敗2run/0件・途中UI1失敗保持 | `evidence/20261018-s44/`。実機品質/crop/preview一致/S47 consumer/独立validation未確認 |
+ | E-S45-01 | 2026-10-18、explorer/worker/document_author/doc_reviewer/main | S45部分・AC-FR-05-01〜05と限定回帰 | 最終203入力、test-final-05/ios-build-03一致 | 各run.json、公開画像実Vision/世代/状態/設定保存/REC非阻害/AF計画/座標/UI、host同ソース診断 | Unit76宣言/99展開中75/98成功・1宣言2issues失敗、UI2成功、build成功、skip/runtimeWarnings0。途中失敗保持 | `evidence/20261018-s45/`。本人判断/Factory注入・Simulator同一特徴量問題でblocked。実機/独立validation未確認 |
+ | E-S45-02 | 2026-10-18、explorer/workers/document_author/doc_reviewer/main | S45再開・AC-FR-05-01〜05と限定回帰 | 最終202入力・Unit/UI/iOSbuild/現物一致 | 各run.json、公開画像実Vision/即時別人拒否/猶予変更/5画素形式/両候補Factory/意図実disk復元/通常UI | Unit81宣言112展開/UI3件全成功、build成功、skip/runtimeWarnings/compiler/analyzer0。診断途中失敗保持 | `evidence/20261018-s45-resume/`。S45実装・自動検証done、SDK内部原因/実機品質/独立validation未確認 |
+-
++| E-S46-01 | 2026-10-18、explorer/worker/document_author/doc_reviewer/main | S46部分・AC-FR-06-01〜04/AC-FR-01-03 | 最終201 SwiftとiOSbuild209入力を照合、UIは不変範囲継承 | 各command/run/source hash、実buffer/複数ROI/失効/REC/通常UI | 通常関連48宣言64展開、修正ND16宣言22展開、最終Native12宣言18展開、UI1成功。iOSbuild成功・診断0。重複合算なし | `evidence/20261018-s46/`。製品policy未回答/通常Factory未注入でblocked。実写/実機/独立validation未確認 |
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+ 
+@@ -1256,6 +1274,7 @@
+ | V-REVIEW-S44 | E-S44-01、最終187入力・既存16file/新5ソース | main、文書はdoc_reviewer | 条件候補/両出力/要求・実値/旧画角・高水位/REC再照合/観測終了/互換/旧差分保護を照合。失敗原因を修正し、App/Unit不変範囲の証拠を継承 | `evidence/20261018-s44/main-scope-review.json`。S44実装done、実機/独立validation未確認 |
+ | V-REVIEW-S45部分 | E-S45-01、最終203入力・既存11/新13file | main、文書はdoc_reviewer | 記録経路非変更/有界解析/人物不在と解析失敗の分離/世代/REC非依存/意図保持/固定参照/適用と品質/未注入/保全を照合 | `evidence/20261018-s45/main-scope-review.json`。別人拒否1失敗を保持、本人判断/製品未注入でS45 blocked。独立validationではない |
+ | V-REVIEW-S45再開 | E-S45-02、最終202入力・既存15file変更 | main、文書はdoc_reviewer | 既存成果継承/本人承認/同policy注入/固定参照衝突拒否/即時置換/REC非阻害/実機境界/保全を照合 | `evidence/20261018-s45-resume/main-scope-review.json`、`doc-review.json`。独立validationではない |
++| V-REVIEW-S46部分 | E-S46-01、最終201 Swift・所有コード13file/文書2file | main、文書はdoc_reviewer | 実signal/ROI/有界入力/独立WB/時刻境界/失効後復活/高水位と期限/REC非阻害/未注入/既存保全を確認・修正 | `evidence/20261018-s46/main-scope-review.json` とdoc-review.json。本人判断待ち、実機/独立validation未確認 |
+ 
+ ## 振り返り・引渡し
+ 
+--- baseline/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift
++++ final/FrameRelay/Application/Capture/ProductCaptureCoordinator.swift
+@@ -16,6 +16,8 @@
+     private(set) var isSaving = false
+     private(set) var preferencesLoaded = false
+     private(set) var captureVisit: UUID?
++    private(set) var ndSnapshot: CaptureNDSnapshot?
++    private(set) var ndAdvice = CaptureNDAdvice.pending(.policyUnavailable)
+     private(set) var subjects: CaptureSubjectSnapshot?
+     private(set) var isUpdatingSubjects = false
+     private(set) var subjectIssue: String?
+@@ -36,6 +38,11 @@
+     @ObservationIgnored private var eventTask: Task<Void, Never>?
+     @ObservationIgnored private var hasStabilizationObservation = false
+     @ObservationIgnored private var stabilizationTask: Task<Void, Never>?
++    @ObservationIgnored private let ndPolicy: CaptureNDPolicy?
++    @ObservationIgnored private var ndTask: Task<Void, Never>?
++    @ObservationIgnored private var ndExpiryTask: Task<Void, Never>?
++    @ObservationIgnored private var ndSequence: UInt64?
++    @ObservationIgnored private var ndContext: CaptureNDContext?
+     @ObservationIgnored private var subjectTask: Task<Void, Never>?
+     @ObservationIgnored private var subjectSequence: UInt64?
+     @ObservationIgnored private let subjectPolicy: CaptureSubjectPolicy?
+@@ -64,6 +71,7 @@
+          didSave: @escaping @MainActor @Sendable () async -> Void,
+          audioPolicy: ProductCaptureAudioPolicy? = nil,
+          subjectPolicy: CaptureSubjectPolicy? = nil,
++         ndPolicy: CaptureNDPolicy? = nil,
+          calendarNow: (@Sendable () -> Date)? = nil,
+          captureNow: @escaping @Sendable () -> CaptureTimeObservation = { .unavailable(.notMeasured) }) {
+         preferenceStore = preferences; self.makeDevice = makeDevice; self.save = save
+@@ -71,6 +79,8 @@
+         self.calendarNow = calendarNow; self.captureNow = captureNow
+         self.audioPolicy = audioPolicy
+         self.subjectPolicy = subjectPolicy
++        self.ndPolicy = ndPolicy?.isValid == true ? ndPolicy : nil
++        ndAdvice = .pending(self.ndPolicy == nil ? .policyUnavailable : .evaluating)
+     }
+ 
+     var isBusy: Bool {
+@@ -194,6 +204,7 @@
+                 let audioStream = await created.audioSnapshots()
+                 let stabilizationStream = await created.stabilizationSnapshots()
+                 let subjectStream = await created.subjectSnapshots()
++                let ndStream = await created.ndSnapshots()
+                 guard accepts(visit) else { await created.shutDown(); return }
+                 let discovered = try await created.discoverCameras()
+                 guard accepts(visit) else { await created.shutDown(); return }
+@@ -203,6 +214,7 @@
+                 let result = try await created.prepare(.init(desired: desired, generation: nextGeneration,
+                     operation: .init(rawValue: "prepare-\(UUID().uuidString)")))
+                 guard accepts(visit) else { await created.shutDown(); return }
++                await created.updateNDIntent(preferences.shootingIntent, generation: nextGeneration)
+                 let preview = await created.previewSource()
+                 guard accepts(visit) else { await created.shutDown(); return }
+                 device = created
+@@ -231,6 +243,14 @@
+                         await self?.receiveAudio(snapshot, epoch: epoch)
+                     }
+                 }
++                ndTask = Task { [weak self] in
++                    for await snapshot in ndStream {
++                        guard !Task.isCancelled else { return }
++                        self?.receiveND(snapshot, epoch: epoch)
++                    }
++                    guard !Task.isCancelled else { return }
++                    if self?.eventEpoch == epoch { self?.invalidateND(.stopped) }
++                }
+                 subjectTask = Task { [weak self] in
+                     for await snapshot in subjectStream {
+                         guard !Task.isCancelled else { return }
+@@ -276,6 +296,7 @@
+ 
+     func record() async {
+         guard canRecord, let generation, let prepared, let desired = preferences.desired, let calendarNow else { return }
++        invalidateND(.contextChanged)
+         isStarting = true
+         let context = CaptureContext(generation: generation, capture: .init(rawValue: UUID().uuidString))
+         let operation = CaptureOperationID(rawValue: UUID().uuidString)
+@@ -318,6 +339,8 @@
+     /// Safe on navigation/background. Capture events and persistence continue until settled.
+     func leaveCapture() async {
+         leaveRequested = true
++        invalidateND(.stopped)
++        ndTask?.cancel(); ndTask = nil
+         subjects = nil
+         subjectTask?.cancel(); subjectTask = nil
+         framing.invalidate(.interrupted)
+@@ -340,6 +363,7 @@
+     func chooseShootingIntent(_ intent: CaptureShootingIntent) async {
+         guard subjectControlsConfigured, preferencesLoaded, !isSavingShootingIntent, !isPreparing,
+               let visit = captureVisit, accepts(visit) else { return }
++        invalidateND(.contextChanged)
+         isSavingShootingIntent = true
+         defer { isSavingShootingIntent = false }
+         var value = preferences
+@@ -348,6 +372,7 @@
+             try await preferenceStore.save(value)
+             guard accepts(visit) else { preferencesLoaded = false; return }
+             preferences = value
++            if let generation { await device?.updateNDIntent(intent, generation: generation) }
+             subjectIssue = nil
+         } catch { if accepts(visit) { subjectIssue = "撮影意図を保存できませんでした。録画は続けられます。" } }
+     }
+@@ -356,6 +381,7 @@
+         guard subjectControlsConfigured, !isUpdatingSubjects, let subjects, let device,
+               !leaveRequested, captureVisit != nil else { return }
+         let epoch = eventEpoch
++        invalidateND(.contextChanged)
+         isUpdatingSubjects = true
+         defer { isUpdatingSubjects = false }
+         let result = await device.updateSubjects(.init(context: subjects.context, command: command))
+@@ -379,6 +405,43 @@
+     private func subjectObservationEnded(epoch: UUID) {
+         guard epoch == eventEpoch else { return }
+         subjects = nil
++    }
++
++    private func invalidateND(_ reason: CaptureNDReason) {
++        ndSnapshot = nil
++        ndAdvice = .pending(ndPolicy == nil ? .policyUnavailable : reason)
++        ndExpiryTask?.cancel(); ndExpiryTask = nil
++    }
++
++    private func receiveND(_ value: CaptureNDSnapshot, epoch: UUID) {
++        guard let policy = ndPolicy, epoch == eventEpoch, !leaveRequested, captureVisit != nil,
++              !isSavingShootingIntent, !isUpdatingSubjects, value.context.generation == generation,
++              value.context.intent == preferences.shootingIntent else { return }
++        guard ndSequence.map({ value.sequence > $0 }) ?? true else { invalidateND(.outOfOrder); return }
++        ndSequence = value.sequence
++        if let previous = ndContext,
++           value.context.framingRevision < previous.framingRevision
++            || value.context.selectionRevision < previous.selectionRevision
++            || value.context.whiteBalanceRevision < previous.whiteBalanceRevision
++            || value.context.analysisRevision < previous.analysisRevision { return }
++        if let subjects, value.context.framingRevision < subjects.context.framingRevision
++            || value.context.selectionRevision < subjects.context.selectionRevision { return }
++        ndExpiryTask?.cancel(); ndExpiryTask = nil
++        guard value.result != nil || value.advice.direction == .pending else { invalidateND(.contextChanged); return }
++        if let result = value.result {
++            guard result.context == value.context, result.advice == value.advice else {
++                invalidateND(.contextChanged); return
++            }
++            let age = ProcessInfo.processInfo.systemUptime - result.observedAt
++            guard age.isFinite, age >= 0, age <= policy.maximumResultAge else { invalidateND(.stale); return }
++            let delay = policy.maximumResultAge - age
++            ndExpiryTask = Task { [weak self] in
++                do { try await Task.sleep(for: .seconds(delay)) } catch { return }
++                guard self?.eventEpoch == epoch, self?.ndSnapshot?.sequence == value.sequence else { return }
++                self?.invalidateND(.stale)
++            }
++        }
++        ndContext = value.context; ndSnapshot = value; ndAdvice = value.advice
+     }
+ 
+     var currentAudio: CaptureAudioState? { observedAudio ?? prepared?.audio }
+@@ -624,6 +687,8 @@
+ 
+     private func releaseDevice() async {
+         eventEpoch = UUID()
++        invalidateND(.stopped); ndSequence = nil; ndContext = nil
++        ndTask?.cancel(); ndTask = nil
+         subjects = nil; subjectSequence = nil; subjectIssue = nil
+         subjectTask?.cancel(); subjectTask = nil
+         framing.invalidate(.notMeasured)
+--- baseline/FrameRelay/Application/Ports/ProductCapturePorts.swift
++++ final/FrameRelay/Application/Ports/ProductCapturePorts.swift
+@@ -17,6 +17,8 @@
+ nonisolated protocol ProductCaptureDevicePort: CaptureControlPort {
+     func discoverCameras() async throws -> [ExplorationCameraDescription]
+     func prepare(_ request: ProductCapturePreparation) async throws -> ExplorationPrepared
++    func ndSnapshots() async -> AsyncStream<CaptureNDSnapshot>
++    func updateNDIntent(_ intent: CaptureShootingIntent?, generation: CaptureGeneration) async
+     func subjectSnapshots() async -> AsyncStream<CaptureSubjectSnapshot>
+     func updateSubjects(_ request: CaptureSubjectRequest) async -> CaptureSubjectSnapshot?
+     func stabilizationSnapshots() async -> AsyncStream<CaptureStabilizationSnapshot>
+@@ -37,6 +39,8 @@
+ extension OriginalSaveCoordinator: ProductCaptureSavePort {}
+ 
+ extension ProductCaptureDevicePort {
++    func ndSnapshots() async -> AsyncStream<CaptureNDSnapshot> { AsyncStream { $0.finish() } }
++    func updateNDIntent(_ intent: CaptureShootingIntent?, generation: CaptureGeneration) async {}
+     func subjectSnapshots() async -> AsyncStream<CaptureSubjectSnapshot> { AsyncStream { $0.finish() } }
+     func updateSubjects(_ request: CaptureSubjectRequest) async -> CaptureSubjectSnapshot? { nil }
+     func stabilizationSnapshots() async -> AsyncStream<CaptureStabilizationSnapshot> { AsyncStream { $0.finish() } }
+--- baseline/FrameRelay/Composition/ProductCaptureFactory.swift
++++ final/FrameRelay/Composition/ProductCaptureFactory.swift
+@@ -21,6 +21,11 @@
+     nonisolated static let provisionalSubjectPolicyV1 = CaptureSubjectPolicy(
+         version: "s45-provisional-v1", lostGrace: 3, noPersonFocus: .tapPosition)
+ 
++    /// S46 product adoption awaits explicit agreement on lifetime and reference bands.
++    /// The implementation is exercisable with injected policies; the product does not
++    /// silently adopt the test reference settings.
++    nonisolated static let ndPolicy: CaptureNDPolicy? = nil
++
+     static func make(services: ProductLibraryServices,
+                      didSave: @escaping @MainActor @Sendable () async -> Void) -> ProductCaptureCoordinator {
+         make(services: services, didSave: didSave, makeDevice: { candidate, audioPolicy, subjectPolicy in
+@@ -32,7 +37,7 @@
+             #endif
+             return NativeExplorationCapture(candidate: candidate,
+                 originals: ProductReservedOriginalDestination(store: services.originals),
+-                audioPolicy: audioPolicy, subjectPolicy: subjectPolicy)
++                audioPolicy: audioPolicy, subjectPolicy: subjectPolicy, ndPolicy: ndPolicy)
+         })
+     }
+ 
+@@ -52,7 +57,7 @@
+             let operation = MediaOperationID(rawValue: "capture-bind-" + UUID().uuidString)
+             if case .succeeded = await services.access.bind(reference, operation: operation) { return true }
+             return false
+-        }, didSave: didSave, audioPolicy: audioPolicy, subjectPolicy: subjectPolicy,
++        }, didSave: didSave, audioPolicy: audioPolicy, subjectPolicy: subjectPolicy, ndPolicy: ndPolicy,
+             calendarNow: { Date() }, captureNow: { ExplorationCaptureValues.now() })
+     }
+ 
+--- /dev/null
++++ final/FrameRelay/Domain/Capture/CaptureNDAdvice.swift
+@@ -0,0 +1,167 @@
++import Foundation
++
++/// Identifies the actual input signal, never the recording wish or preview transform.
++nonisolated enum CaptureNDSignal: String, CaseIterable, Sendable {
++    case rec709, sRGB, appleLog, appleLog2
++}
++
++nonisolated enum CaptureNDDirection: Equatable, Sendable {
++    case darker, lighter, acceptable, difficult, pending
++}
++nonisolated enum CaptureNDReason: Equatable, Sendable {
++    case evaluating, stopped, stale, outOfOrder, contextChanged, policyUnavailable
++    case unknownSignal, insufficientSignal, saturated, selectIntent, selectPeople, missingPeople
++    case broadHighlights, broadShadows, selectedPeopleBright, selectedPeopleDark, withinReference
++    case conflictingPeople, peopleAndBackgroundConflict
++}
++nonisolated struct CaptureNDAdvice: Equatable, Sendable {
++    let direction: CaptureNDDirection
++    let reasons: [CaptureNDReason]
++    static func pending(_ reason: CaptureNDReason) -> Self { .init(direction: .pending, reasons: [reason]) }
++}
++
++/// Code-domain screening bands, NOT calibrated exposure, IRE, headroom, skin-tone,
++/// RGB-equality or WB targets. Every supported signal has its own replaceable band.
++nonisolated struct CaptureNDBand: Equatable, Sendable {
++    let low: Double
++    let high: Double
++    let broadFraction: Double
++    let minimumSpread: Double
++}
++nonisolated struct CaptureNDPolicy: Equatable, Sendable {
++    let version: String
++    let maximumResultAge: TimeInterval
++    let minimumFrameInterval: TimeInterval
++    let maximumSubjectAge: TimeInterval
++    let bands: [CaptureNDSignal: CaptureNDBand]
++
++    var isValid: Bool {
++        !version.isEmpty && [maximumResultAge, minimumFrameInterval, maximumSubjectAge].allSatisfy { $0.isFinite && $0 > 0 }
++            && !bands.isEmpty && bands.values.allSatisfy {
++                [$0.low, $0.high, $0.broadFraction, $0.minimumSpread].allSatisfy(\.isFinite)
++                && $0.low > 0 && $0.high < 1 && $0.low < $0.high
++                && $0.broadFraction > 0 && $0.broadFraction <= 1 && $0.minimumSpread > 0 && $0.minimumSpread < 1
++            }
++    }
++
++    /// Provisional reference screening only; physical ND density is not measured.
++    /// 2026-10 S46 candidate. Signal-specific code values intentionally avoid any
++    /// transfer inversion or universal clip-rate/EV target. Device calibration pending.
++    static func provisionalV1(maximumResultAge: TimeInterval) -> Self {
++        .init(version: "s46-code-domain-reference-v1-uncalibrated", maximumResultAge: maximumResultAge,
++              minimumFrameInterval: 0.2, maximumSubjectAge: 0.8, bands: [
++                .rec709: .init(low: 0.20, high: 0.75, broadFraction: 0.35, minimumSpread: 0.02),
++                .sRGB: .init(low: 0.22, high: 0.78, broadFraction: 0.35, minimumSpread: 0.02),
++                .appleLog: .init(low: 0.20, high: 0.68, broadFraction: 0.35, minimumSpread: 0.02),
++                .appleLog2: .init(low: 0.20, high: 0.68, broadFraction: 0.35, minimumSpread: 0.02)])
++    }
++}
++
++nonisolated struct CaptureNDWhiteBalance: Equatable, Sendable {
++    enum Mode: Equatable, Sendable { case automatic, measuring, locked, unknown }
++    let mode: Mode
++    let red: Double
++    let green: Double
++    let blue: Double
++    var isValid: Bool { mode != .unknown && [red, green, blue].allSatisfy { $0.isFinite && $0 > 0 } }
++}
++nonisolated struct CaptureNDContext: Equatable, Sendable {
++    let generation: CaptureGeneration
++    let framingRevision: UInt64
++    let selectionRevision: UInt64
++    let whiteBalanceRevision: UInt64
++    let intent: CaptureShootingIntent?
++    let analysisRevision: UInt64
++    init(generation: CaptureGeneration, framingRevision: UInt64, selectionRevision: UInt64,
++         whiteBalanceRevision: UInt64, intent: CaptureShootingIntent?, analysisRevision: UInt64 = 0) {
++        self.generation = generation; self.framingRevision = framingRevision; self.selectionRevision = selectionRevision
++        self.whiteBalanceRevision = whiteBalanceRevision; self.intent = intent; self.analysisRevision = analysisRevision
++    }
++}
++nonisolated struct CaptureNDRegionEvidence: Equatable, Sendable {
++    let person: CapturePersonID?
++    let sampleCount: Int
++    let lower: Double
++    let median: Double
++    let upper: Double
++    let darkFraction: Double
++    let brightFraction: Double
++    let clippedFraction: Double
++}
++nonisolated struct CaptureNDEvidence: Equatable, Sendable {
++    let signal: CaptureNDSignal
++    let policyVersion: String
++    let scene: CaptureNDRegionEvidence
++    let people: [CaptureNDRegionEvidence]
++    let background: CaptureNDRegionEvidence?
++    /// Explicit provenance: these are encoded input statistics, not display IRE or stops.
++    let isCalibrated = false
++}
++nonisolated struct CaptureNDResult: Equatable, Sendable {
++    let context: CaptureNDContext
++    let sequence: UInt64
++    let observedAt: TimeInterval
++    let advice: CaptureNDAdvice
++    let evidence: CaptureNDEvidence?
++}
++nonisolated struct CaptureNDSnapshot: Equatable, Sendable {
++    let context: CaptureNDContext
++    let sequence: UInt64
++    let result: CaptureNDResult?
++    let advice: CaptureNDAdvice
++}
++
++/// No capture command exists at this boundary. It cannot change exposure or gate REC.
++nonisolated struct CaptureNDSession: Sendable {
++    private(set) var context: CaptureNDContext
++    private(set) var validAfter: TimeInterval
++    private(set) var result: CaptureNDResult?
++    private(set) var advice = CaptureNDAdvice.pending(.evaluating)
++    private(set) var highestSequence: UInt64 = 0
++    private(set) var lastObservedAt: TimeInterval?
++    private var inputSubmittedSinceInvalidation = false
++    let policy: CaptureNDPolicy
++
++    /// A conservative observation boundary, not evidence of frame-specific WB gains.
++    init(context: CaptureNDContext, policy: CaptureNDPolicy, validAfter: TimeInterval) {
++        self.context = context; self.policy = policy
++        self.validAfter = validAfter.isFinite ? validAfter : .infinity
++    }
++    func acceptsInput(observedAt: TimeInterval, now: TimeInterval) -> Bool {
++        policy.isValid && observedAt.isFinite && now.isFinite && observedAt >= validAfter
++            && observedAt <= now && now - observedAt <= policy.maximumResultAge
++    }
++    private mutating func advanceValidityBoundary(to now: TimeInterval) {
++        validAfter = now.isFinite ? max(validAfter, now) : .infinity
++    }
++    mutating func willSubmitInput() { inputSubmittedSinceInvalidation = true }
++    mutating func update(_ next: CaptureNDContext, now: TimeInterval) {
++        guard next != context else { return }
++        context = next; advanceValidityBoundary(to: now); inputSubmittedSinceInvalidation = false; invalidate(.contextChanged)
++    }
++    mutating func invalidate(_ reason: CaptureNDReason) { result = nil; advice = .pending(reason) }
++    mutating func invalidateInput(_ reason: CaptureNDReason, now: TimeInterval) {
++        guard inputSubmittedSinceInvalidation || advice != .pending(reason) else { return }
++        inputSubmittedSinceInvalidation = false
++        advanceValidityBoundary(to: now)
++        context = .init(generation: context.generation, framingRevision: context.framingRevision,
++            selectionRevision: context.selectionRevision, whiteBalanceRevision: context.whiteBalanceRevision,
++            intent: context.intent, analysisRevision: context.analysisRevision + 1)
++        invalidate(reason)
++    }
++    @discardableResult mutating func receive(_ value: CaptureNDResult, now: TimeInterval) -> Bool {
++        guard value.context == context else { return false }
++        guard value.sequence > highestSequence, lastObservedAt.map({ value.observedAt >= $0 }) ?? true else {
++            invalidate(.outOfOrder); return false
++        }
++        highestSequence = value.sequence
++        guard acceptsInput(observedAt: value.observedAt, now: now) else { invalidate(.stale); return false }
++        lastObservedAt = value.observedAt
++        result = value; advice = value.advice; return true
++    }
++    @discardableResult mutating func expire(now: TimeInterval) -> Bool {
++        guard let result, now - result.observedAt > policy.maximumResultAge else { return false }
++        invalidate(.stale); return true
++    }
++    func snapshot(sequence: UInt64) -> CaptureNDSnapshot { .init(context: context, sequence: sequence, result: result, advice: advice) }
++}
+--- /dev/null
++++ final/FrameRelay/Features/Capture/ProductCaptureNDView.swift
+@@ -0,0 +1,52 @@
++import SwiftUI
++
++struct ProductCaptureNDView: View {
++    let advice: CaptureNDAdvice
++    let evidence: CaptureNDEvidence?
++    var body: some View {
++        VStack(alignment: .leading, spacing: 8) {
++            Text("NDの参考案内").font(.headline)
++            Text(title).accessibilityIdentifier("capture.ndAdvice")
++            Text(advice.reasons.map(Self.reason).joined(separator: "\n"))
++                .fixedSize(horizontal: false, vertical: true)
++                .accessibilityIdentifier("capture.ndReason")
++            if let evidence {
++                Text("入力信号：\(evidence.signal.rawValue)。未校正の暫定基準による参考です。NDの段数・露出の正確な余裕は測定していません。")
++                    .font(.footnote)
++            }
++            Text("物理NDは手動で調整してください。判定中や警告でも録画できます。")
++                .font(.footnote)
++        }
++    }
++    private var title: String {
++        switch advice.direction {
++        case .darker: "濃くする方向（参考）"
++        case .lighter: "薄くする方向（参考）"
++        case .acceptable: "現在の暫定基準の範囲内（参考）"
++        case .difficult: "NDだけでの両立は難しい可能性があります"
++        case .pending: "判定を保留しています"
++        }
++    }
++    private nonisolated static func reason(_ reason: CaptureNDReason) -> String {
++        switch reason {
++        case .evaluating: "現在の入力を確認しています。"
++        case .stopped: "解析入力が停止しています。以前の結果は使いません。"
++        case .stale: "解析が遅れているため、以前の結果を取り消しました。"
++        case .outOfOrder, .contextChanged: "撮影条件が変わったため、新しい結果を待っています。"
++        case .policyUnavailable: "参考案内の評価基準はまだ設定されていません。"
++        case .unknownSignal: "入力の色特性・画素形式を確認できないため評価できません。"
++        case .insufficientSignal: "十分な明暗の情報がありません。黒い物や小さな反射だけでは判断しません。"
++        case .saturated: "広い範囲で信号が飽和しており、正確な余裕を評価できません。"
++        case .selectIntent: "撮影意図を選ぶと、その意図で評価します。"
++        case .selectPeople: "人物の露出対象を選んでください。"
++        case .missingPeople: "選択した人物全員の現在の情報を確認できません。"
++        case .broadHighlights: "画面の広い明部が、入力信号の暫定基準を上回っています。"
++        case .broadShadows: "画面の広い暗部が、入力信号の暫定基準を下回っています。"
++        case .selectedPeopleBright: "選択した人物の明部が暫定基準を上回っています。"
++        case .selectedPeopleDark: "選択した人物の暗部が暫定基準を下回っています。"
++        case .withinReference: "評価できた対象の明暗は暫定基準の範囲内です。画質や適正露出を保証する表示ではありません。"
++        case .conflictingPeople: "人物ごとに必要な調整方向が異なります。光・構図・優先対象の変更を検討してください。"
++        case .peopleAndBackgroundConflict: "人物と背景で必要な調整が異なります。光・構図・優先対象の変更を検討してください。"
++        }
++    }
++}
+--- baseline/FrameRelay/Features/Capture/ProductCaptureView.swift
++++ final/FrameRelay/Features/Capture/ProductCaptureView.swift
+@@ -86,6 +86,7 @@
+                         }
+                     }
+                     ProductCaptureSubjectsView(model: model)
++                    ProductCaptureNDView(advice: model.ndAdvice, evidence: model.ndSnapshot?.result?.evidence)
+                     ProductCaptureAudioView(state: model.currentAudio, recovery: model.audioRecovery,
+                         canRetry: model.canRetryAudio && !isClosing) { Task { await model.retryAudio() } }
+                     VStack(alignment: .leading, spacing: 8) {
+--- /dev/null
++++ final/FrameRelay/Platform/Capture/NativeCaptureNDAnalysis.swift
+@@ -0,0 +1,45 @@
++import CoreVideo
++import Foundation
++
++/// One in-flight and one replaceable pending input, separate from capture/writer queues.
++nonisolated final class NativeCaptureNDAnalysis: @unchecked Sendable {
++    private struct Input {
++        let buffer: CVPixelBuffer
++        let instruction: NativeCaptureNDInstruction
++        let sequence: UInt64
++        let observedAt: TimeInterval
++    }
++    private let lock = NSLock()
++    private let queue = DispatchQueue(label: "FrameRelay.NDAnalysis", qos: .utility)
++    private let policy: CaptureNDPolicy
++    private let output: @Sendable (CaptureNDResult) -> Void
++    private var pending: Input?
++    private var running = false
++    private var stopped = false
++    private var sequence: UInt64 = 0
++    private var lastSubmitted = -Double.infinity
++    init(policy: CaptureNDPolicy, output: @escaping @Sendable (CaptureNDResult) -> Void) {
++        self.policy = policy; self.output = output
++    }
++    func submit(_ buffer: CVPixelBuffer, instruction: NativeCaptureNDInstruction, observedAt: TimeInterval) {
++        lock.lock()
++        guard !stopped, policy.isValid, observedAt.isFinite, observedAt - lastSubmitted >= policy.minimumFrameInterval else { lock.unlock(); return }
++        lastSubmitted = observedAt; sequence += 1
++        pending = Input(buffer: buffer, instruction: instruction, sequence: sequence, observedAt: observedAt)
++        let start = !running; running = true
++        lock.unlock()
++        if start { queue.async { [self] in drain() } }
++    }
++    func stop() { lock.lock(); stopped = true; pending = nil; lock.unlock() }
++    private func drain() {
++        while true {
++            lock.lock()
++            guard !stopped, let input = pending else { running = false; lock.unlock(); return }
++            pending = nil; lock.unlock()
++            let result = autoreleasepool { NativeCaptureNDPixels.evaluate(input.buffer, instruction: input.instruction,
++                policy: policy, sequence: input.sequence, observedAt: input.observedAt) }
++            lock.lock(); let publish = !stopped; lock.unlock()
++            if publish { output(result) }
++        }
++    }
++}
+--- /dev/null
++++ final/FrameRelay/Platform/Capture/NativeCaptureNDPixels.swift
+@@ -0,0 +1,157 @@
++import CoreVideo
++import Foundation
++
++nonisolated struct NativeCaptureNDTarget: Equatable, Sendable {
++    let person: CapturePersonID
++    let bounds: CaptureSubjectRect // normalized input-buffer coordinates, top left
++}
++nonisolated struct NativeCaptureNDInstruction: Equatable, Sendable {
++    let context: CaptureNDContext
++    let targets: [NativeCaptureNDTarget]
++    let targetsAvailable: Bool
++}
++
++/// Reads the immutable analysis branch only. No rendering, camera command or writer access.
++nonisolated enum NativeCaptureNDPixels {
++    static func signal(_ buffer: CVPixelBuffer) -> CaptureNDSignal? {
++        func tag(_ key: CFString) -> String? { CVBufferCopyAttachment(buffer, key, nil) as? String }
++        let primaries = tag(kCVImageBufferColorPrimariesKey)
++        let transfer = tag(kCVImageBufferTransferFunctionKey)
++        let matrix = tag(kCVImageBufferYCbCrMatrixKey)
++        let log = tag(kCVImageBufferLogTransferFunctionKey)
++        let bgra = CVPixelBufferGetPixelFormatType(buffer) == kCVPixelFormatType_32BGRA
++        if let log {
++            guard !bgra, matrix == kCVImageBufferYCbCrMatrix_ITU_R_2020 as String else { return nil }
++            if log == kCVImageBufferLogTransferFunction_AppleLog as String,
++               primaries == kCVImageBufferColorPrimaries_ITU_R_2020 as String,
++               transfer == nil || transfer == kCVImageBufferTransferFunction_Linear as String {
++                return .appleLog
++            }
++            // CVImageBuffer.h explicitly defines Log2 as a whole color space, with
++            // absent/undefined primaries and transfer and a 2020 YCbCr matrix.
++            if log == kCVImageBufferLogTransferFunction_AppleLog2 as String,
++               primaries == nil, transfer == nil { return .appleLog2 }
++            return nil
++        }
++        guard primaries == kCVImageBufferColorPrimaries_ITU_R_709_2 as String,
++              bgra || matrix == kCVImageBufferYCbCrMatrix_ITU_R_709_2 as String else { return nil }
++        if transfer == kCVImageBufferTransferFunction_ITU_R_709_2 as String { return .rec709 }
++        if transfer == kCVImageBufferTransferFunction_sRGB as String { return .sRGB }
++        return nil
++    }
++
++    static func evaluate(_ buffer: CVPixelBuffer, instruction: NativeCaptureNDInstruction,
++                         policy: CaptureNDPolicy, sequence: UInt64, observedAt: TimeInterval) -> CaptureNDResult {
++        func result(_ advice: CaptureNDAdvice, _ evidence: CaptureNDEvidence? = nil) -> CaptureNDResult {
++            .init(context: instruction.context, sequence: sequence, observedAt: observedAt, advice: advice, evidence: evidence)
++        }
++        guard policy.isValid else { return result(.pending(.policyUnavailable)) }
++        guard let intent = instruction.context.intent else { return result(.pending(.selectIntent)) }
++        guard let signal = signal(buffer), let band = policy.bands[signal] else { return result(.pending(.unknownSignal)) }
++        if intent != .scenery {
++            guard !instruction.targets.isEmpty else { return result(.pending(.selectPeople)) }
++            guard instruction.targetsAvailable else { return result(.pending(.missingPeople)) }
++        }
++        guard let samples = read(buffer), !samples.isEmpty else { return result(.pending(.insufficientSignal)) }
++        let scene = statistics(samples.map(\.value), person: nil, band: band)
++        var people: [CaptureNDRegionEvidence] = []
++        for target in instruction.targets {
++            guard target.bounds.isValid else { return result(.pending(.missingPeople)) }
++            people.append(statistics(samples.filter { contains(target.bounds, $0) }.map(\.value), person: target.person, band: band))
++        }
++        let background = instruction.targets.isEmpty ? nil : statistics(samples.filter { sample in
++            !instruction.targets.contains { contains($0.bounds, sample) }
++        }.map(\.value), person: nil, band: band)
++        let evidence = CaptureNDEvidence(signal: signal, policyVersion: policy.version,
++            scene: scene, people: people, background: background)
++        let relevant = intent == .scenery ? [scene] : people
++        // A selected but undersampled, flat, clipped or black region cannot silently
++        // disappear from a multiple-person decision. Extreme values provide no headroom.
++        if relevant.contains(where: { $0.clippedFraction > 0.95 }) { return result(.pending(.saturated), evidence) }
++        guard relevant.allSatisfy({ usable($0, band: band) }) else { return result(.pending(.insufficientSignal), evidence) }
++        let directions = relevant.map { direction($0, band: band) }
++        if directions.contains(.darker) && directions.contains(.lighter) {
++            return result(.init(direction: .difficult, reasons: [.conflictingPeople]), evidence)
++        }
++        let primary: CaptureNDDirection = directions.contains(.darker) ? .darker : directions.contains(.lighter) ? .lighter : .acceptable
++        if intent != .scenery, let background, usable(background, band: band) {
++            let other = direction(background, band: band)
++            if (primary == .lighter && other == .darker) || (primary == .darker && other == .lighter) {
++                return result(.init(direction: .difficult, reasons: [.peopleAndBackgroundConflict]), evidence)
++            }
++            if intent == .peopleAndBackground, primary == .acceptable, other != .acceptable {
++                return result(.init(direction: .difficult, reasons: [.peopleAndBackgroundConflict]), evidence)
++            }
++        } else if intent == .peopleAndBackground {
++            return result(.pending(.insufficientSignal), evidence)
++        }
++        let reason: CaptureNDReason = primary == .acceptable ? .withinReference : primary == .darker
++            ? (intent == .scenery ? .broadHighlights : .selectedPeopleBright)
++            : (intent == .scenery ? .broadShadows : .selectedPeopleDark)
++        return result(.init(direction: primary, reasons: [reason]), evidence)
++    }
++
++    private static func usable(_ value: CaptureNDRegionEvidence, band: CaptureNDBand) -> Bool {
++        value.sampleCount >= 16 && value.upper - value.lower >= band.minimumSpread
++            && value.median > 0.02 && value.clippedFraction <= 0.95
++    }
++    private static func direction(_ value: CaptureNDRegionEvidence, band: CaptureNDBand) -> CaptureNDDirection {
++        if value.median > band.high && value.brightFraction >= band.broadFraction { return .darker }
++        if value.median < band.low && value.darkFraction >= band.broadFraction { return .lighter }
++        return .acceptable
++    }
++    private static func statistics(_ values: [Double], person: CapturePersonID?, band: CaptureNDBand) -> CaptureNDRegionEvidence {
++        let ordered = values.sorted()
++        func quantile(_ fraction: Double) -> Double { ordered.isEmpty ? 0 : ordered[Int(Double(ordered.count - 1) * fraction)] }
++        let count = Double(max(1, values.count))
++        return .init(person: person, sampleCount: values.count, lower: quantile(0.2), median: quantile(0.5), upper: quantile(0.8),
++            darkFraction: Double(values.filter { $0 < band.low }.count) / count,
++            brightFraction: Double(values.filter { $0 > band.high }.count) / count,
++            clippedFraction: Double(values.filter { $0 >= 1 }.count) / count)
++    }
++    private struct Sample { let x: Double; let y: Double; let value: Double }
++    private static func contains(_ rect: CaptureSubjectRect, _ sample: Sample) -> Bool {
++        sample.x >= rect.x && sample.x < rect.x + rect.width && sample.y >= rect.y && sample.y < rect.y + rect.height
++    }
++    private static func read(_ buffer: CVPixelBuffer) -> [Sample]? {
++        let format = CVPixelBufferGetPixelFormatType(buffer)
++        let bytes: Int, black: Double, white: Double, bgra: Bool
++        switch format {
++        case kCVPixelFormatType_32BGRA: bytes = 4; black = 0; white = 255; bgra = true
++        case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange: bytes = 1; black = 16; white = 235; bgra = false
++        case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange: bytes = 1; black = 0; white = 255; bgra = false
++        case kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange: bytes = 2; black = 64; white = 940; bgra = false
++        case kCVPixelFormatType_420YpCbCr10BiPlanarFullRange: bytes = 2; black = 0; white = 1023; bgra = false
++        default: return nil
++        }
++        guard CVPixelBufferLockBaseAddress(buffer, .readOnly) == kCVReturnSuccess else { return nil }
++        defer { CVPixelBufferUnlockBaseAddress(buffer, .readOnly) }
++        guard bgra ? !CVPixelBufferIsPlanar(buffer) : CVPixelBufferGetPlaneCount(buffer) == 2 else { return nil }
++        let width = bgra ? CVPixelBufferGetWidth(buffer) : CVPixelBufferGetWidthOfPlane(buffer, 0)
++        let height = bgra ? CVPixelBufferGetHeight(buffer) : CVPixelBufferGetHeightOfPlane(buffer, 0)
++        let rowBytes = bgra ? CVPixelBufferGetBytesPerRow(buffer) : CVPixelBufferGetBytesPerRowOfPlane(buffer, 0)
++        let pointer = bgra ? CVPixelBufferGetBaseAddress(buffer) : CVPixelBufferGetBaseAddressOfPlane(buffer, 0)
++        guard let pointer, width > 0, height > 0, rowBytes >= width * bytes else { return nil }
++        // At most 96 × 96 pixels; no retained full-frame copy, histogram or image in UI.
++        let columns = min(width, 96), rows = min(height, 96)
++        var values: [Sample] = []; values.reserveCapacity(columns * rows)
++        for row in 0..<rows {
++            let y = min(height - 1, Int((Double(row) + 0.5) * Double(height) / Double(rows)))
++            for column in 0..<columns {
++                let x = min(width - 1, Int((Double(column) + 0.5) * Double(width) / Double(columns)))
++                let pixel = pointer.advanced(by: y * rowBytes + x * bytes)
++                let code: Double
++                if bgra {
++                    let b = Double(pixel.load(fromByteOffset: 0, as: UInt8.self))
++                    let g = Double(pixel.load(fromByteOffset: 1, as: UInt8.self))
++                    let r = Double(pixel.load(fromByteOffset: 2, as: UInt8.self))
++                    code = 0.2126 * r + 0.7152 * g + 0.0722 * b
++                } else if bytes == 2 { code = Double(pixel.load(as: UInt16.self) >> 6) }
++                else { code = Double(pixel.load(as: UInt8.self)) }
++                values.append(.init(x: (Double(x) + 0.5) / Double(width), y: (Double(y) + 0.5) / Double(height),
++                    value: (code - black) / (white - black)))
++            }
++        }
++        return values
++    }
++}
+--- baseline/FrameRelay/Platform/Capture/NativeCaptureSubjectGeometry.swift
++++ final/FrameRelay/Platform/Capture/NativeCaptureSubjectGeometry.swift
+@@ -33,6 +33,15 @@
+                      candidates: candidates, available: raw.available && candidates.count == raw.candidates.count)
+     }
+ 
++    func normalizedOutputBounds(fromMetadata bounds: CaptureSubjectRect) -> CaptureSubjectRect? {
++        let area = outputAreaInMetadata
++        guard bounds.isValid, area.isValid else { return nil }
++        let result = CaptureSubjectRect(x: (bounds.x - area.x) / area.width, y: (bounds.y - area.y) / area.height,
++            width: bounds.width / area.width, height: bounds.height / area.height)
++        // Do not silently clip a partially missing selected person to a different ROI.
++        return result.isValid ? result : nil
++    }
++
+     func metadataBounds(fromNormalizedOutput bounds: CaptureSubjectRect) -> CaptureSubjectRect? {
+         guard bounds.isValid else { return nil }
+         let area = outputAreaInMetadata
+--- baseline/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
++++ final/FrameRelay/Platform/Capture/NativeExplorationCapture.swift
+@@ -30,6 +30,20 @@
+     private var subjectFramingRevision: UInt64 = 1
+     private var subjectAnalysisStartedAt: TimeInterval?
+     private var subjectFocus: CaptureSubjectFocusAvailability = .unconfirmed
++    private let ndPolicy: CaptureNDPolicy?
++    private let ndStream: AsyncStream<CaptureNDSnapshot>
++    private let ndContinuation: AsyncStream<CaptureNDSnapshot>.Continuation
++    private var ndSession: CaptureNDSession?
++    private var ndAnalysis: NativeCaptureNDAnalysis?
++    private var ndTimer: Task<Void, Never>?
++    private var ndWhiteBalanceObservations: [NSKeyValueObservation] = []
++    private var ndWhiteBalance: CaptureNDWhiteBalance?
++    private var ndWhiteBalanceRevision: UInt64 = 0
++    private var ndFramingRevision: UInt64 = 1
++    private var ndGeometry: NativeCaptureSubjectGeometry?
++    private var ndSequence: UInt64 = 0
++    private var ndIntent: CaptureShootingIntent?
++    private var ndExposureTargets: Set<CapturePersonID> = []
+     private var audioOutput: AVCaptureAudioDataOutput?
+     private var microphoneInput: AVCaptureDeviceInput?
+     private var audioObservation = NativeCaptureAudioObservation(beganAt: ProcessInfo.processInfo.systemUptime)
+@@ -80,11 +94,14 @@
+     private var durationTask: Task<Void, Never>?
+ 
+     init(candidate: ExplorationOutputCandidate, originals: any ExplorationOriginalDestinationPort,
+-         audioPolicy: ProductCaptureAudioPolicy? = nil, subjectPolicy: CaptureSubjectPolicy? = nil) {
++         audioPolicy: ProductCaptureAudioPolicy? = nil, subjectPolicy: CaptureSubjectPolicy? = nil, ndPolicy: CaptureNDPolicy? = nil) {
+         self.candidate = candidate
+         self.originals = originals
+         self.audioPolicy = audioPolicy
+         self.subjectPolicy = subjectPolicy
++        self.ndPolicy = ndPolicy?.isValid == true ? ndPolicy : nil
++        let ndPair = AsyncStream<CaptureNDSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
++        ndStream = ndPair.stream; ndContinuation = ndPair.continuation
+         let subjectPair = AsyncStream<CaptureSubjectSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
+         subjectStream = subjectPair.stream
+         subjectContinuation = subjectPair.continuation
+@@ -107,6 +124,7 @@
+     func events() -> AsyncStream<CaptureIOEvent> { captureStream }
+     func explorationEvents() -> AsyncStream<ExplorationDeviceEvent> { eventStream }
+ 
++    func ndSnapshots() -> AsyncStream<CaptureNDSnapshot> { ndStream }
+     func subjectSnapshots() -> AsyncStream<CaptureSubjectSnapshot> { subjectStream }
+     func stabilizationSnapshots() -> AsyncStream<CaptureStabilizationSnapshot> { stabilizationStream }
+     func audioSnapshots() -> AsyncStream<ProductCaptureAudioSnapshot> { audioStream }
+@@ -264,7 +282,7 @@
+             }
+             let prepared = try readPrepared(device: selected, format: format, at: appliedTime, request: request)
+             // Analysis must not publish frames from the pre-application exposure setup.
+-            if request.trial == nil { startSubjectAnalysis(generation: request.generation) }
++            if request.trial == nil { startSubjectAnalysis(generation: request.generation); startNDAnalysis(generation: request.generation) }
+             return prepared
+         } catch {
+             if session == nil { captureSession.commitConfiguration() }
+@@ -303,7 +321,7 @@
+             }
+             try NativeCaptureStabilization.request(stabilization, on: video, output: candidate)
+             movie = output
+-            if subjectPolicy != nil { configureSubjectOutput(session) }
++            if subjectPolicy != nil || ndPolicy != nil { configureSubjectOutput(session) }
+         } else {
+             let video = AVCaptureVideoDataOutput()
+             guard session.canAddOutput(video) else {
+@@ -1131,7 +1149,7 @@
+ 
+ extension NativeExplorationCapture {
+     private func configureSubjectCoordinates(_ connection: AVCaptureConnection?) {
+-        guard subjectPolicy != nil, let connection else { return }
++        guard subjectPolicy != nil || ndPolicy != nil, let connection else { return }
+         if connection.isVideoRotationAngleSupported(0) { connection.videoRotationAngle = 0 }
+         if connection.isVideoMirroringSupported {
+             connection.automaticallyAdjustsVideoMirroring = false
+@@ -1175,6 +1193,8 @@
+     func updateSubjects(_ request: CaptureSubjectRequest) -> CaptureSubjectSnapshot? {
+         guard session?.isRunning == true, session?.isInterrupted != true,
+               subjects?.command(request, now: ProcessInfo.processInfo.systemUptime) != nil else { return nil }
++        ndExposureTargets = subjects?.exposureTargets ?? []
++        updateNDContext()
+         configureSubjectAnalysis(); applySubjectFocus(); publishSubjects()
+         return subjects?.snapshot(sequence: subjectSequence, focus: subjectFocus)
+     }
+@@ -1182,27 +1202,35 @@
+     fileprivate func isCurrentVideoOutput(_ output: AVCaptureOutput) -> Bool { output === videoOutput }
+ 
+     fileprivate func observeSubjects(_ sample: CMSampleBuffer, output: AVCaptureOutput) {
+-        guard let subjectAnalysis, output === subjectVideoOutput || output === videoOutput,
+-              session?.isRunning == true, session?.isInterrupted != true,
+-              let connection = output.connection(with: .video), connection.isActive, connection.isEnabled,
++        guard subjectAnalysis != nil || ndAnalysis != nil, output === subjectVideoOutput || output === videoOutput else { return }
++        guard session?.isRunning == true, session?.isInterrupted != true else { invalidateNDInput(.stopped); return }
++        guard let connection = output.connection(with: .video), connection.isActive, connection.isEnabled,
+               connection.videoRotationAngle == 0, !connection.isVideoMirrored,
+-              CMSampleBufferDataIsReady(sample), let buffer = CMSampleBufferGetImageBuffer(sample) else { return }
++              CMSampleBufferDataIsReady(sample), let buffer = CMSampleBufferGetImageBuffer(sample) else {
++            invalidateNDInput(.insufficientSignal); return
++        }
+         guard let geometry = NativeCaptureSubjectGeometry.capture(width: CVPixelBufferGetWidth(buffer),
+             height: CVPixelBufferGetHeight(buffer), rotation: connection.videoRotationAngle,
+-            mirrored: connection.isVideoMirrored, convertPixels: { output.metadataOutputRectConverted(fromOutputRect: $0) }) else { return }
+-        guard let clock = session?.synchronizationClock, let policy = subjectPolicy else { return }
++            mirrored: connection.isVideoMirrored, convertPixels: { output.metadataOutputRectConverted(fromOutputRect: $0) }) else {
++            invalidateNDInput(.insufficientSignal); return
++        }
++        guard let clock = session?.synchronizationClock else { invalidateNDInput(.insufficientSignal); return }
+         let pts = CMSampleBufferGetPresentationTimeStamp(sample)
+         let clockTime = CMClockGetTime(clock)
+         guard pts.isNumeric, clockTime.isNumeric, pts.epoch == clockTime.epoch,
+               let observedAt = NativeCaptureSubjectGeometry.observedAt(presentationSeconds: CMTimeGetSeconds(pts),
+                 clockSeconds: CMTimeGetSeconds(clockTime), uptime: ProcessInfo.processInfo.systemUptime,
+-                maximumAge: policy.maximumResultAge) else { return }
+-        subjectAnalysis.submit(buffer, geometry: geometry, observedAt: observedAt)
++                maximumAge: max(subjectPolicy?.maximumResultAge ?? 0, ndPolicy?.maximumResultAge ?? 0)) else {
++            invalidateNDInput(.stale); return
++        }
++        subjectAnalysis?.submit(buffer, geometry: geometry, observedAt: observedAt)
++        observeND(buffer, geometry: geometry, observedAt: observedAt)
+     }
+ 
+     private func receiveSubjectAnalysis(_ result: CaptureSubjectAnalysis) {
+         guard session?.isRunning == true, session?.isInterrupted != true,
+               subjects?.receive(result, now: ProcessInfo.processInfo.systemUptime) == true else { return }
++        if !currentNDTargetsAvailable(now: ProcessInfo.processInfo.systemUptime) { invalidateNDInput(.missingPeople) }
+         configureSubjectAnalysis(); applySubjectFocus(); publishSubjects()
+     }
+ 
+@@ -1217,6 +1245,7 @@
+     }
+ 
+     private func invalidateSubjectWhiteBalance() {
++        ndWhiteBalanceRevision += 1; updateNDContext()
+         guard subjects != nil else { return }
+         subjects?.invalidateWhiteBalance(now: ProcessInfo.processInfo.systemUptime)
+         configureSubjectAnalysis(); applySubjectFocus(); publishSubjects()
+@@ -1249,10 +1278,12 @@
+             || value.connection != previous.connection else { return }
+         subjectFramingRevision += 1
+         subjects?.invalidateFraming(subjectFramingRevision)
++        ndExposureTargets = []; ndFramingRevision += 1; updateNDContext()
+         configureSubjectAnalysis(); applySubjectFocus(); publishSubjects()
+     }
+ 
+     private func stopSubjectAnalysis() {
++        stopNDAnalysis()
+         subjectTimer?.cancel(); subjectTimer = nil
+         subjectAnalysis?.stop(); subjectAnalysis = nil
+         subjectVideoOutput?.setSampleBufferDelegate(nil, queue: nil)
+@@ -1270,3 +1301,155 @@
+     }
+     func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {}
+ }
++
++
++extension NativeExplorationCapture {
++    private func startNDAnalysis(generation: CaptureGeneration) {
++        guard let policy = ndPolicy else { return }
++        ndSession = CaptureNDSession(context: .init(generation: generation, framingRevision: subjectFramingRevision,
++            selectionRevision: subjects?.context.selectionRevision ?? 0, whiteBalanceRevision: ndWhiteBalanceRevision,
++            intent: ndIntent), policy: policy, validAfter: ProcessInfo.processInfo.systemUptime)
++        ndAnalysis = NativeCaptureNDAnalysis(policy: policy) { [weak self] result in
++            Task { await self?.receiveND(result) }
++        }
++        if let device {
++            ndWhiteBalanceObservations = [
++                device.observe(\.deviceWhiteBalanceGains, options: [.old, .new]) { [weak self] _, change in
++                    // Compare notification values before hopping queues. A -> B -> A
++                    // must invalidate even when the actor later reads A for both events.
++                    // Only the change fact and generation cross the concurrency boundary.
++                    if let old = change.oldValue, let new = change.newValue,
++                       old.redGain == new.redGain, old.greenGain == new.greenGain, old.blueGain == new.blueGain { return }
++                    Task { await self?.ndWhiteBalanceNotification(generation: generation) }
++                },
++                device.observe(\.whiteBalanceMode, options: [.old, .new]) { [weak self] _, change in
++                    if let old = change.oldValue, let new = change.newValue, old == new { return }
++                    Task { await self?.ndWhiteBalanceNotification(generation: generation) }
++                }]
++        }
++        observeNDWhiteBalance(); publishND()
++        ndTimer = Task { [weak self] in
++            while !Task.isCancelled {
++                do { try await Task.sleep(for: .milliseconds(100)) } catch { return }
++                await self?.expireND(generation: generation)
++            }
++        }
++    }
++
++    func updateNDIntent(_ intent: CaptureShootingIntent?, generation: CaptureGeneration) {
++        guard ndSession?.context.generation == generation else { return }
++        ndIntent = intent; updateNDContext()
++    }
++
++    private func ndWhiteBalanceNotification(generation: CaptureGeneration) {
++        guard ndSession?.context.generation == generation else { return }
++        ndWhiteBalanceRevision += 1; updateNDContext()
++        observeNDWhiteBalance()
++    }
++
++    private func observeNDWhiteBalance() {
++        guard ndSession != nil, let device else { return }
++        let mode: CaptureNDWhiteBalance.Mode
++        switch device.whiteBalanceMode {
++        case .locked: mode = .locked
++        case .continuousAutoWhiteBalance: mode = .automatic
++        case .autoWhiteBalance: mode = .measuring
++        @unknown default: mode = .unknown
++        }
++        let gains = device.deviceWhiteBalanceGains
++        let value = CaptureNDWhiteBalance(mode: mode, red: Double(gains.redGain), green: Double(gains.greenGain), blue: Double(gains.blueGain))
++        guard value != ndWhiteBalance else { return }
++        ndWhiteBalance = value; ndWhiteBalanceRevision += 1; updateNDContext()
++    }
++
++    private func updateNDContext() {
++        guard let current = ndSession?.context else { return }
++        let next = CaptureNDContext(generation: current.generation, framingRevision: max(subjectFramingRevision, ndFramingRevision),
++            selectionRevision: subjects?.context.selectionRevision ?? current.selectionRevision,
++            whiteBalanceRevision: ndWhiteBalanceRevision, intent: ndIntent, analysisRevision: current.analysisRevision)
++        if next != current { ndSession?.update(next, now: ProcessInfo.processInfo.systemUptime); publishND() }
++    }
++
++    private func observeND(_ buffer: CVPixelBuffer, geometry: NativeCaptureSubjectGeometry, observedAt: TimeInterval) {
++        guard let policy = ndPolicy, let analysis = ndAnalysis else { return }
++        if let previous = ndGeometry, previous != geometry { ndFramingRevision += 1 }
++        ndGeometry = geometry
++        observeNDWhiteBalance(); updateNDContext()
++        guard let context = ndSession?.context else { return }
++        // The gain read above is current SDK state, not metadata on this frame.
++        // Reject delayed frames captured before the latest observed context change.
++        // Continuously changing Auto WB may keep advice pending; no gain tolerance
++        // or frame-specific WB correspondence is inferred here.
++        guard ndSession?.acceptsInput(observedAt: observedAt, now: ProcessInfo.processInfo.systemUptime) == true else {
++            invalidateNDInput(.stale); return
++        }
++        guard ndWhiteBalance?.isValid == true, ndWhiteBalance?.mode != .measuring else {
++            invalidateNDInput(.contextChanged); return
++        }
++        var targets: [NativeCaptureNDTarget] = []
++        let fresh = subjects?.analysisAvailable == true && subjects?.lastObservedAt.map {
++            observedAt >= $0 && observedAt - $0 <= policy.maximumSubjectAge
++        } == true
++        for id in ndExposureTargets {
++            if let person = subjects?.candidates.first(where: { $0.id == id }),
++               let bounds = geometry.normalizedOutputBounds(fromMetadata: person.bounds) {
++                targets.append(.init(person: id, bounds: bounds))
++            }
++        }
++        let complete = fresh && targets.count == ndExposureTargets.count
++        if ndIntent != .scenery, !ndExposureTargets.isEmpty, !complete {
++            invalidateNDInput(.missingPeople); return
++        }
++        ndSession?.willSubmitInput()
++        analysis.submit(buffer, instruction: .init(context: context, targets: targets, targetsAvailable: complete), observedAt: observedAt)
++    }
++
++    private func receiveND(_ result: CaptureNDResult) {
++        guard session?.isRunning == true, session?.isInterrupted != true else {
++            invalidateNDInput(.stopped); return
++        }
++        observeNDWhiteBalance(); updateNDContext()
++        guard result.context == ndSession?.context else { return }
++        if !currentNDTargetsAvailable(now: ProcessInfo.processInfo.systemUptime) {
++            invalidateNDInput(.missingPeople); return
++        }
++        _ = ndSession?.receive(result, now: ProcessInfo.processInfo.systemUptime)
++        publishND()
++    }
++
++    private func expireND(generation: CaptureGeneration) {
++        guard ndSession?.context.generation == generation else { return }
++        if session?.isRunning != true || session?.isInterrupted == true {
++            invalidateNDInput(.stopped)
++        } else if !currentNDTargetsAvailable(now: ProcessInfo.processInfo.systemUptime) {
++            invalidateNDInput(.missingPeople)
++        } else if ndSession?.expire(now: ProcessInfo.processInfo.systemUptime) == true { publishND() }
++    }
++
++    private func currentNDTargetsAvailable(now: TimeInterval) -> Bool {
++        guard ndIntent != .scenery, !ndExposureTargets.isEmpty else { return true }
++        guard let policy = ndPolicy, let subjects, subjects.analysisAvailable,
++              let observedAt = subjects.lastObservedAt, now >= observedAt, now - observedAt <= policy.maximumSubjectAge else { return false }
++        return ndExposureTargets.isSubset(of: Set(subjects.candidates.map(\.id)))
++    }
++
++    private func invalidateNDInput(_ reason: CaptureNDReason) {
++        guard let before = ndSession?.context else { return }
++        let advice = ndSession?.advice
++        ndSession?.invalidateInput(reason, now: ProcessInfo.processInfo.systemUptime)
++        if before != ndSession?.context || advice != ndSession?.advice { publishND() }
++    }
++
++    private func publishND() {
++        guard let ndSession else { return }
++        ndSequence += 1; ndContinuation.yield(ndSession.snapshot(sequence: ndSequence))
++    }
++
++    private func stopNDAnalysis() {
++        ndTimer?.cancel(); ndTimer = nil
++        ndWhiteBalanceObservations.forEach { $0.invalidate() }; ndWhiteBalanceObservations = []
++        ndAnalysis?.stop(); ndAnalysis = nil
++        ndSession?.invalidate(.stopped); publishND(); ndSession = nil
++        ndWhiteBalance = nil; ndIntent = nil; ndExposureTargets = []; ndGeometry = nil
++    }
++}
+--- /dev/null
++++ final/FrameRelayTests/Application/ProductCaptureNDCoordinatorTests.swift
+@@ -0,0 +1,147 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@MainActor
++struct ProductCaptureNDCoordinatorTests {
++    @Test func pendingWarningsAndExpiredNDNeverGateRECAndStoppedStreamClearsOK() async throws {
++        let fixture = try CaptureFixture()
++        let device = NDCoordinatorDevice(fixture: fixture)
++        let model = makeModel(fixture: fixture, device: device, policy: .provisionalV1(maximumResultAge: 0.05))
++        await model.load(); await model.prepare()
++        #expect(model.canRecord)
++        await model.chooseShootingIntent(.scenery)
++        await device.emit(.acceptable)
++        await eventually { model.ndAdvice.direction == .acceptable }
++        try await Task.sleep(for: .milliseconds(80))
++        #expect(model.ndAdvice == .pending(.stale))
++        #expect(model.canRecord)
++        await device.emit(.difficult)
++        await eventually { model.ndAdvice.direction == .difficult }
++        await model.record()
++        await eventually { model.capture?.phase == .recording }
++        await device.emit(.pending)
++        await eventually { model.ndAdvice.direction == .pending }
++        #expect(model.capture?.phase == .recording)
++        #expect(model.preferences.desired == fixture.desired)
++        await device.emit(.acceptable)
++        await eventually { model.ndAdvice.direction == .acceptable }
++        await device.endND()
++        await eventually { model.ndAdvice == .pending(.stopped) }
++        #expect(model.capture?.phase == .recording)
++        await model.stop()
++        await eventually { !model.isBusy }
++        await model.leaveCapture()
++        #expect(model.ndSnapshot == nil)
++    }
++
++    @Test func intentContextSequenceAndLateVisitCannotRestoreOldOK() async throws {
++        let fixture = try CaptureFixture()
++        let device = NDCoordinatorDevice(fixture: fixture)
++        let policy = CaptureNDPolicy.provisionalV1(maximumResultAge: 1)
++        let model = makeModel(fixture: fixture, device: device, policy: policy)
++        await model.load(); await model.prepare(); await model.chooseShootingIntent(.scenery)
++        await device.emit(.acceptable, sequence: 3, wb: 2)
++        await eventually { model.ndAdvice.direction == .acceptable }
++        await device.emit(.acceptable, sequence: 2)
++        await eventually { model.ndAdvice == .pending(.outOfOrder) }
++        await device.emit(.acceptable, sequence: 4, wb: 1)
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.ndAdvice.direction == .pending)
++        await model.chooseShootingIntent(.people)
++        await device.emit(.acceptable, sequence: 5, wb: 3, intentOverride: .scenery)
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.ndAdvice.direction == .pending)
++        await model.leaveCapture()
++        await device.emit(.acceptable, sequence: 6, wb: 3)
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.ndSnapshot == nil)
++        #expect(!model.canRecord)
++    }
++
++    @Test func rejectedOldContextWithHigherSequenceCannotCancelCurrentExpiry() async throws {
++        let fixture = try CaptureFixture()
++        let device = NDCoordinatorDevice(fixture: fixture)
++        let policy = CaptureNDPolicy.provisionalV1(maximumResultAge: 0.05)
++        let model = makeModel(fixture: fixture, device: device, policy: policy)
++        await model.load(); await model.prepare(); await model.chooseShootingIntent(.scenery)
++        await device.emit(.acceptable, sequence: 3, wb: 2)
++        await eventually { model.ndAdvice.direction == .acceptable }
++        await device.emit(.acceptable, sequence: 4, wb: 1)
++        try await Task.sleep(for: .milliseconds(80))
++        #expect(model.ndAdvice == .pending(.stale))
++        #expect(model.ndSnapshot == nil)
++        #expect(model.canRecord)
++        await model.leaveCapture()
++    }
++
++    @Test func malformedSnapshotCannotShowOKWithoutMatchingResult() async throws {
++        let fixture = try CaptureFixture()
++        let device = NDCoordinatorDevice(fixture: fixture)
++        let policy = CaptureNDPolicy.provisionalV1(maximumResultAge: 1)
++        let model = makeModel(fixture: fixture, device: device, policy: policy)
++        await model.load(); await model.prepare(); await model.chooseShootingIntent(.scenery)
++        await device.emit(.acceptable, mismatchedResult: true)
++        await eventually { model.ndAdvice == .pending(.contextChanged) }
++        #expect(model.ndSnapshot == nil)
++        await model.leaveCapture()
++    }
++
++    @Test func policyMissingNeverShowsInjectedSuccessButKeepsRECAvailable() async throws {
++        let fixture = try CaptureFixture()
++        let device = NDCoordinatorDevice(fixture: fixture)
++        let model = makeModel(fixture: fixture, device: device, policy: nil)
++        await model.load(); await model.prepare(); await model.chooseShootingIntent(.scenery)
++        await device.emit(.acceptable)
++        for _ in 0..<30 { await Task.yield() }
++        #expect(model.ndAdvice == .pending(.policyUnavailable))
++        #expect(model.canRecord)
++        await model.leaveCapture()
++    }
++
++    private func makeModel(fixture: CaptureFixture, device: NDCoordinatorDevice,
++                           policy: CaptureNDPolicy?) -> ProductCaptureCoordinator {
++        let model = ProductCaptureCoordinator(preferences: ProductCaptureTestPreferences(fixture: fixture),
++            makeDevice: { _ in device }, save: ProductCaptureTestSave(), bindOriginal: { _ in true }, didSave: {},
++            subjectPolicy: .init(version: "test", lostGrace: 3, noPersonFocus: .tapPosition), ndPolicy: policy, calendarNow: { Date() })
++        model.enterCapture(); return model
++    }
++    private func eventually(_ condition: @MainActor () -> Bool) async {
++        for _ in 0..<2_000 { if condition() { return }; await Task.yield() }
++        #expect(condition())
++    }
++}
++
++private actor NDCoordinatorDevice: ProductCaptureDevicePort {
++    let underlying: ProductCaptureTestDevice
++    private var generation: CaptureGeneration?
++    private var intent: CaptureShootingIntent?
++    private var sequence: UInt64 = 0
++    private let pair = AsyncStream<CaptureNDSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
++    init(fixture: CaptureFixture) { underlying = ProductCaptureTestDevice(fixture: fixture) }
++    func events() async -> AsyncStream<CaptureIOEvent> { await underlying.events() }
++    func productEvents() async -> AsyncStream<ExplorationDeviceEvent> { await underlying.productEvents() }
++    func discoverCameras() async throws -> [ExplorationCameraDescription] { await underlying.discoverCameras() }
++    func prepare(_ request: ProductCapturePreparation) async throws -> ExplorationPrepared {
++        generation = request.generation; return try await underlying.prepare(request)
++    }
++    func previewSource() async -> (any ProductCapturePreviewSource)? { await underlying.previewSource() }
++    func submit(_ command: CaptureIOCommand) async -> CaptureCommandAcceptance { await underlying.submit(command) }
++    func shutDown() async { await underlying.shutDown() }
++    func ndSnapshots() -> AsyncStream<CaptureNDSnapshot> { pair.stream }
++    func updateNDIntent(_ intent: CaptureShootingIntent?, generation: CaptureGeneration) { if self.generation == generation { self.intent = intent } }
++    func endND() { pair.continuation.finish() }
++    func emit(_ direction: CaptureNDDirection, sequence override: UInt64? = nil, wb: UInt64 = 0,
++              intentOverride: CaptureShootingIntent? = nil, mismatchedResult: Bool = false) {
++        guard let generation else { return }
++        sequence = override ?? sequence + 1
++        let context = CaptureNDContext(generation: generation, framingRevision: 1, selectionRevision: 0,
++            whiteBalanceRevision: wb, intent: intentOverride ?? intent)
++        let advice = CaptureNDAdvice(direction: direction, reasons: direction == .acceptable ? [.withinReference] : [.evaluating])
++        let resultContext = mismatchedResult ? CaptureNDContext(generation: generation, framingRevision: 99,
++            selectionRevision: 0, whiteBalanceRevision: wb, intent: intent) : context
++        let result = CaptureNDResult(context: resultContext, sequence: sequence, observedAt: ProcessInfo.processInfo.systemUptime,
++            advice: advice, evidence: nil)
++        pair.continuation.yield(.init(context: context, sequence: sequence, result: result, advice: advice))
++    }
++}
+--- /dev/null
++++ final/FrameRelayTests/Platform/Capture/NativeCaptureNDTests.swift
+@@ -0,0 +1,254 @@
++import CoreVideo
++import Foundation
++import Testing
++@testable import FrameRelay
++
++struct NativeCaptureNDTests {
++    private let policy = CaptureNDPolicy.provisionalV1(maximumResultAge: 1)
++    private func context(intent: CaptureShootingIntent? = .scenery, wb: UInt64 = 0, framing: UInt64 = 1, selection: UInt64 = 0) -> CaptureNDContext {
++        .init(generation: .init(session: .init(rawValue: "nd-test"), settings: 1), framingRevision: framing,
++              selectionRevision: selection, whiteBalanceRevision: wb, intent: intent)
++    }
++    private func evaluate(_ buffer: CVPixelBuffer, intent: CaptureShootingIntent? = .scenery,
++                          targets: [NativeCaptureNDTarget] = [], available: Bool = true) -> CaptureNDResult {
++        NativeCaptureNDPixels.evaluate(buffer, instruction: .init(context: context(intent: intent), targets: targets,
++            targetsAvailable: available), policy: policy, sequence: 1, observedAt: 10)
++    }
++
++    @Test(arguments: [kCVPixelFormatType_32BGRA, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
++        kCVPixelFormatType_420YpCbCr8BiPlanarFullRange, kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange,
++        kCVPixelFormatType_420YpCbCr10BiPlanarFullRange])
++    func actualPixelFormatsProduceDirectionsWithKnownSignal(format: OSType) throws {
++        for (range, expected) in [(0.05...0.15, CaptureNDDirection.lighter), (0.3...0.6, .acceptable), (0.80...0.94, .darker)] {
++            let buffer = try pixels(format: format) { x, _ in range.lowerBound + Double(x % 24) / 23 * (range.upperBound - range.lowerBound) }
++            let result = evaluate(buffer)
++            #expect(result.advice.direction == expected)
++            #expect(result.evidence?.signal == .rec709)
++            #expect(result.evidence?.isCalibrated == false)
++            #expect(result.evidence?.policyVersion == policy.version)
++        }
++    }
++
++    @Test(arguments: [CaptureNDSignal.appleLog, .appleLog2, .sRGB])
++    func actualTaggedSignalsUseOwnProfile(signal: CaptureNDSignal) throws {
++        let buffer = try pixels(format: signal == .sRGB ? kCVPixelFormatType_32BGRA : kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange,
++            signal: signal) { x, _ in 0.80 + Double(x % 20) / 100 }
++        let result = evaluate(buffer)
++        #expect(result.evidence?.signal == signal)
++        #expect(result.advice.direction == .darker)
++    }
++
++    @Test func unknownOrContradictoryTagsDoNotBorrowRecordingWish() throws {
++        let buffer = try pixels { x, _ in 0.3 + Double(x % 20) / 100 }
++        CVBufferRemoveAttachment(buffer, kCVImageBufferTransferFunctionKey)
++        #expect(evaluate(buffer).advice == .pending(.unknownSignal))
++        let log2 = try pixels(format: kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange, signal: .appleLog2) { x, _ in 0.3 + Double(x % 20) / 100 }
++        CVBufferSetAttachment(log2, kCVImageBufferColorPrimariesKey, kCVImageBufferColorPrimaries_ITU_R_2020, .shouldPropagate)
++        #expect(evaluate(log2).advice == .pending(.unknownSignal))
++        let yuv = try pixels(format: kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange) { x, _ in 0.3 + Double(x % 20) / 100 }
++        CVBufferRemoveAttachment(yuv, kCVImageBufferYCbCrMatrixKey)
++        #expect(evaluate(yuv).advice == .pending(.unknownSignal))
++    }
++
++    @Test func smallSunReflectionAndBlackClothesDoNotDetermineDirection() throws {
++        let buffer = try pixels { x, y in
++            if x < 4 && y < 4 { return 1 }
++            if x > 58 && y > 55 { return 0 }
++            return 0.3 + Double(x % 20) / 100
++        }
++        #expect(evaluate(buffer).advice.direction == .acceptable)
++        let broadBlack = try pixels { x, _ in x < 42 ? 0 : 0.3 + Double(x % 20) / 100 }
++        #expect(evaluate(broadBlack).advice == .pending(.insufficientSignal))
++        for code in [0.0, 0.4, 1.0] {
++            #expect(try evaluate(pixels { _, _ in code }).advice.direction == .pending)
++        }
++    }
++
++    @Test func selectedPeopleAndExcludedBackgroundAreEvaluatedIndependently() throws {
++        let person = CapturePersonID()
++        let target = NativeCaptureNDTarget(person: person, bounds: .init(x: 0, y: 0, width: 0.5, height: 1))
++        let buffer = try pixels { x, _ in x < 32 ? 0.05 + Double(x % 12) / 100 : 0.8 + Double(x % 12) / 100 }
++        let result = evaluate(buffer, intent: .peopleAndBackground, targets: [target])
++        #expect(result.advice.direction == .difficult)
++        #expect(result.advice.reasons == [.peopleAndBackgroundConflict])
++        #expect(result.evidence?.people.first?.person == person)
++        #expect((result.evidence?.people.first?.median ?? 1) < 0.2)
++        #expect((result.evidence?.background?.median ?? 0) > 0.75)
++    }
++
++    @Test func multiplePeopleHaveNoSilentDropOrAverage() throws {
++        let first = NativeCaptureNDTarget(person: .init(), bounds: .init(x: 0, y: 0, width: 0.5, height: 1))
++        let second = NativeCaptureNDTarget(person: .init(), bounds: .init(x: 0.5, y: 0, width: 0.5, height: 1))
++        let buffer = try pixels { x, _ in x < 32 ? 0.06 + Double(x % 10) / 100 : 0.81 + Double(x % 10) / 100 }
++        #expect(evaluate(buffer, intent: .people, targets: [first, second]).advice.reasons == [.conflictingPeople])
++        #expect(evaluate(buffer, intent: .people, targets: [first], available: false).advice == .pending(.missingPeople))
++        let obscure = try pixels { x, _ in x < 32 ? 0.3 + Double(x % 10) / 100 : 0 }
++        #expect(evaluate(obscure, intent: .people, targets: [first, second]).advice == .pending(.insufficientSignal))
++        #expect(evaluate(buffer, intent: .people).advice == .pending(.selectPeople))
++        #expect(evaluate(buffer, intent: nil).advice == .pending(.selectIntent))
++    }
++
++    @Test func geometryReversesMetadataCropAndRejectsPartiallyMissingPerson() throws {
++        let geometry = NativeCaptureSubjectGeometry(outputAreaInMetadata: .init(x: 0.1, y: 0.2, width: 0.8, height: 0.6))
++        let raw = CaptureSubjectRect(x: 0.25, y: 0.25, width: 0.5, height: 0.5)
++        let metadata = try #require(geometry.metadataBounds(fromNormalizedOutput: raw))
++        let recovered = try #require(geometry.normalizedOutputBounds(fromMetadata: metadata))
++        #expect(abs(recovered.x - raw.x) < 0.000001)
++        #expect(abs(recovered.height - raw.height) < 0.000001)
++        #expect(geometry.normalizedOutputBounds(fromMetadata: .init(x: 0, y: 0, width: 0.4, height: 0.4)) == nil)
++    }
++
++    @Test func pixelResultExpiresAndOldOrderCannotRestoreOK() throws {
++        let buffer = try pixels { x, _ in 0.3 + Double(x % 20) / 100 }
++        let result = evaluate(buffer)
++        var session = CaptureNDSession(context: context(), policy: policy, validAfter: 9)
++        let accepted = session.receive(result, now: 10.1)
++        #expect(accepted)
++        #expect(session.advice.direction == .acceptable)
++        let expired = session.expire(now: 11.01)
++        #expect(expired)
++        #expect(session.advice == .pending(.stale))
++        let oldAccepted = session.receive(result, now: 11.1)
++        #expect(!oldAccepted)
++        #expect(session.advice == .pending(.outOfOrder))
++        for changed in [context(wb: 1), context(framing: 2), context(selection: 1), context(intent: .people)] {
++            session.update(changed, now: 10.1)
++            let obsoleteAccepted = session.receive(result, now: 10.2)
++            #expect(!obsoleteAccepted)
++            #expect(session.advice.direction == .pending)
++        }
++    }
++
++    @Test func unavailableInputFencesAlreadyRunningResultBeforeItCanRestoreOK() throws {
++        let buffer = try pixels { x, _ in 0.3 + Double(x % 20) / 100 }
++        let running = evaluate(buffer)
++        for reason in [CaptureNDReason.missingPeople, .stopped, .insufficientSignal] {
++            var session = CaptureNDSession(context: context(), policy: policy, validAfter: 9)
++            session.invalidateInput(reason, now: 10.05)
++            let accepted = session.receive(running, now: 10.1)
++            #expect(!accepted)
++            #expect(session.advice == .pending(reason))
++            #expect(session.context.analysisRevision == 1)
++            session.willSubmitInput()
++            let recoveryInFlight = NativeCaptureNDPixels.evaluate(buffer, instruction: .init(context: session.context, targets: [], targetsAvailable: true),
++                policy: policy, sequence: 2, observedAt: 10.2)
++            session.invalidateInput(reason, now: 10.25)
++            let recoveryAccepted = session.receive(recoveryInFlight, now: 10.3)
++            #expect(!recoveryAccepted)
++            #expect(session.context.analysisRevision == 2)
++            let fresh = NativeCaptureNDPixels.evaluate(buffer, instruction: .init(context: session.context, targets: [], targetsAvailable: true),
++                policy: policy, sequence: 3, observedAt: 10.3)
++            let freshAccepted = session.receive(fresh, now: 10.4)
++            #expect(freshAccepted && session.advice.direction == .acceptable)
++        }
++    }
++
++    @Test func delayedPixelBufferCannotAcquireTheNewContextAfterObservedChanges() throws {
++        let buffer = try pixels { x, _ in 0.3 + Double(x % 20) / 100 }
++        var session = CaptureNDSession(context: context(), policy: policy, validAfter: 10)
++        // Even with a matching context, a frame from before analysis started is old.
++        let beforeStart = NativeCaptureNDPixels.evaluate(buffer, instruction: .init(context: session.context, targets: [], targetsAvailable: true),
++            policy: policy, sequence: 1, observedAt: 9.9)
++        #expect(!session.acceptsInput(observedAt: beforeStart.observedAt, now: 10.1))
++        let startAccepted = session.receive(beforeStart, now: 10.1)
++        #expect(!startAccepted && session.advice.direction == .pending)
++        // Apply current gain/context to an older actual buffer, reproducing a late
++        // delivery across WB, framing and explicit selection changes.
++        var sequence: UInt64 = 2
++        var boundary: TimeInterval = 11
++        for changed in [context(wb: 1), context(wb: 2, framing: 2), context(wb: 2, framing: 2, selection: 1)] {
++            session.update(changed, now: boundary)
++            let oldFrame = NativeCaptureNDPixels.evaluate(buffer, instruction: .init(context: changed, targets: [], targetsAvailable: true),
++                policy: policy, sequence: sequence, observedAt: boundary - 0.1)
++            #expect(!session.acceptsInput(observedAt: oldFrame.observedAt, now: boundary + 0.1))
++            let oldAccepted = session.receive(oldFrame, now: boundary + 0.1)
++            #expect(!oldAccepted && session.advice.direction == .pending)
++            let newFrame = NativeCaptureNDPixels.evaluate(buffer, instruction: .init(context: changed, targets: [], targetsAvailable: true),
++                policy: policy, sequence: sequence + 1, observedAt: boundary + 0.05)
++            #expect(session.acceptsInput(observedAt: newFrame.observedAt, now: boundary + 0.1))
++            let newAccepted = session.receive(newFrame, now: boundary + 0.1)
++            #expect(newAccepted && session.advice.direction == .acceptable)
++            boundary += 1; sequence += 2
++        }
++        session.willSubmitInput()
++        session.invalidateInput(.stopped, now: boundary)
++        let beforeResume = NativeCaptureNDPixels.evaluate(buffer, instruction: .init(context: session.context, targets: [], targetsAvailable: true),
++            policy: policy, sequence: sequence, observedAt: boundary - 0.1)
++        let resumedOldAccepted = session.receive(beforeResume, now: boundary + 0.1)
++        #expect(!resumedOldAccepted && session.advice.direction == .pending)
++        #expect(!session.acceptsInput(observedAt: .nan, now: boundary))
++        #expect(!session.acceptsInput(observedAt: boundary + 1, now: boundary))
++    }
++
++    @Test func invalidPolicyIsRejectedBeforePixelEvaluation() throws {
++        let invalid = CaptureNDPolicy(version: "bad", maximumResultAge: .nan, minimumFrameInterval: 0.2,
++            maximumSubjectAge: 1, bands: policy.bands)
++        #expect(!invalid.isValid)
++        let buffer = try pixels { x, _ in 0.3 + Double(x % 20) / 100 }
++        let result = NativeCaptureNDPixels.evaluate(buffer, instruction: .init(context: context(), targets: [], targetsAvailable: true),
++            policy: invalid, sequence: 1, observedAt: 10)
++        #expect(result.advice == .pending(.policyUnavailable))
++    }
++
++    @Test func realBufferRunsThroughAsyncAnalysisAndStopReleasesPendingInputs() async throws {
++        let results = AsyncStream<CaptureNDResult>.makeStream(bufferingPolicy: .bufferingNewest(1))
++        let analysis = NativeCaptureNDAnalysis(policy: policy) { results.continuation.yield($0) }
++        let buffer = try pixels { x, _ in 0.8 + Double(x % 12) / 100 }
++        analysis.submit(buffer, instruction: .init(context: context(), targets: [], targetsAvailable: true), observedAt: .infinity)
++        analysis.submit(buffer, instruction: .init(context: context(), targets: [], targetsAvailable: true), observedAt: .nan)
++        analysis.submit(buffer, instruction: .init(context: context(), targets: [], targetsAvailable: true), observedAt: 10)
++        var iterator = results.stream.makeAsyncIterator()
++        let result = try #require(await iterator.next())
++        #expect(result.advice.direction == .darker)
++        var session = CaptureNDSession(context: context(), policy: policy, validAfter: 9)
++        let accepted = session.receive(result, now: 10.1)
++        #expect(accepted)
++        analysis.stop()
++        session.invalidate(.stopped)
++        #expect(session.result == nil && session.advice == .pending(.stopped))
++        analysis.submit(buffer, instruction: .init(context: context(), targets: [], targetsAvailable: true), observedAt: 11)
++        results.continuation.finish()
++        let afterStop = await iterator.next()
++        #expect(afterStop == nil)
++    }
++
++    private func pixels(format: OSType = kCVPixelFormatType_32BGRA, signal: CaptureNDSignal = .rec709,
++                        value: (Int, Int) -> Double) throws -> CVPixelBuffer {
++        var created: CVPixelBuffer?
++        #expect(CVPixelBufferCreate(kCFAllocatorDefault, 64, 64, format,
++            [kCVPixelBufferIOSurfacePropertiesKey: [:]] as CFDictionary, &created) == kCVReturnSuccess)
++        let buffer = try #require(created)
++        if signal == .appleLog || signal == .appleLog2 {
++            CVBufferSetAttachment(buffer, kCVImageBufferLogTransferFunctionKey,
++                signal == .appleLog ? kCVImageBufferLogTransferFunction_AppleLog : kCVImageBufferLogTransferFunction_AppleLog2, .shouldPropagate)
++            CVBufferSetAttachment(buffer, kCVImageBufferYCbCrMatrixKey, kCVImageBufferYCbCrMatrix_ITU_R_2020, .shouldPropagate)
++            if signal == .appleLog { CVBufferSetAttachment(buffer, kCVImageBufferColorPrimariesKey, kCVImageBufferColorPrimaries_ITU_R_2020, .shouldPropagate) }
++        } else {
++            CVBufferSetAttachment(buffer, kCVImageBufferColorPrimariesKey, kCVImageBufferColorPrimaries_ITU_R_709_2, .shouldPropagate)
++            CVBufferSetAttachment(buffer, kCVImageBufferTransferFunctionKey,
++                signal == .sRGB ? kCVImageBufferTransferFunction_sRGB : kCVImageBufferTransferFunction_ITU_R_709_2, .shouldPropagate)
++            if format != kCVPixelFormatType_32BGRA { CVBufferSetAttachment(buffer, kCVImageBufferYCbCrMatrixKey, kCVImageBufferYCbCrMatrix_ITU_R_709_2, .shouldPropagate) }
++        }
++        CVPixelBufferLockBaseAddress(buffer, [])
++        defer { CVPixelBufferUnlockBaseAddress(buffer, []) }
++        let bgra = format == kCVPixelFormatType_32BGRA
++        let ten = format == kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange || format == kCVPixelFormatType_420YpCbCr10BiPlanarFullRange
++        let video = format == kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange || format == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
++        let base = try #require(bgra ? CVPixelBufferGetBaseAddress(buffer) : CVPixelBufferGetBaseAddressOfPlane(buffer, 0))
++        let rowBytes = bgra ? CVPixelBufferGetBytesPerRow(buffer) : CVPixelBufferGetBytesPerRowOfPlane(buffer, 0)
++        for y in 0..<64 { for x in 0..<64 {
++            let v = min(1, max(0, value(x, y)))
++            if bgra {
++                let pixel = base.advanced(by: y * rowBytes + x * 4)
++                for channel in 0..<3 { pixel.storeBytes(of: UInt8((v * 255).rounded()), toByteOffset: channel, as: UInt8.self) }
++                pixel.storeBytes(of: UInt8(255), toByteOffset: 3, as: UInt8.self)
++            } else if ten {
++                let code = UInt16(((video ? 64 : 0) + v * (video ? 876 : 1023)).rounded()) << 6
++                base.storeBytes(of: code, toByteOffset: y * rowBytes + x * 2, as: UInt16.self)
++            } else {
++                base.storeBytes(of: UInt8(((video ? 16 : 0) + v * (video ? 219 : 255)).rounded()), toByteOffset: y * rowBytes + x, as: UInt8.self)
++            }
++        } }
++        return buffer
++    }
++}
+--- baseline/FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
++++ final/FrameRelayUITests/Flows/ProductCaptureFlowTests.swift
+@@ -31,6 +31,11 @@
+         XCTAssertTrue(subjects.exists)
+         XCTAssertTrue(subjects.label.contains("未確認"))
+         XCTAssertTrue(subjects.label.contains("REC"))
++        let ndAdvice = app.staticTexts["capture.ndAdvice"]
++        for _ in 0..<3 where !ndAdvice.isHittable { app.swipeUp() }
++        XCTAssertTrue(ndAdvice.exists)
++        XCTAssertTrue(ndAdvice.label.contains("保留"))
++        XCTAssertTrue(app.staticTexts["capture.ndReason"].label.contains("評価基準"))
+         let audio = app.staticTexts["capture.audio.input"]
+         if !audio.isHittable { app.swipeUp() }
+         XCTAssertTrue(audio.exists)
+--- baseline/docs/architecture.md
++++ final/docs/architecture.md
+@@ -234,6 +234,12 @@
+ 
+ `NativeCaptureSubjectFocus` は主役への継続AF、見失い時の保持、追跡OFFの人物優先AF、人物なし時のタップ位置AFを能力照合して適用する。主役指定中は自動の顔切替を無効にし、非対応のAFを無断で固定へ代替しない。変更対象はフォーカス設定だけとし、読戻しによる適用・非対応・失敗を合焦品質から分離する。公開の上半身画像fixtureによる実Vision解析は技術試験の入力であり、別人通過・前後移動・再捕捉・距離/照明・補正crop座標・Log・記録負荷の実機受入を代替しない。製品接続、検証結果、未確認範囲はS45/DV-06で追跡する。
+ 
++S46のND経路では、`NativeCaptureNDAnalysis` が処理中1件と置換可能な待機1件を専用queueで処理し、`NativeCaptureNDPixels` が解析分岐の実 `CVPixelBuffer` をread-onlyで読む。入力の色特性attachmentと画素形式・video/full rangeを照合し、撮影希望やプレビュー変換から入力信号を推定しない。画素を有界に標本化し、全体・選択した各人物のROI・その外側の背景を分ける。人物の鮮度・座標・選択全員の情報が揃わなければ、その人物を評価から黙って除外せず保留する。解析画像や案内を原本へ書き戻さない。
++
++`CaptureNDSession` は人物AFとは別のcontextにセッション/設定・構図・対象選択・WBの世代と撮影意図を持つ。`NativeExplorationCapture` はWB modeと実gainの変化を観測し、入力時と結果受理時にcontextを照合する。設定・対象・意図・WBの変更、逆順・遅延・期限超過・解析停止で旧結果を失効させ、`ProductCaptureDevicePort` の最新1件のsnapshotからcoordinatorとND表示へ渡す。coordinatorも現在の所有者・世代・順序・期限を確認し、入力が止まっても旧「許容」を残さない。WB固定後の解析を継続する経路とし、ND未完了や警告をREC条件に追加せず、露出・WB・物理NDを操作する命令を持たせない。
++
++`CaptureNDPolicy` は入力信号ごとの交換可能なcode-domainの暫定基準を持ち、撮影意図に応じた対象から方向・理由・両立困難を返す。符号値の分布は表示IRE・EV・ND段数・センサー余裕の測定ではなく、飽和や情報不足から精密量を補完しない。現時点では通常 `ProductCaptureFactory` へのND policy注入は未実施で、暫定基準と有効期間の製品利用は本人判断待ちである。注入可能な実装経路と製品有効化を区別し、進捗・検証証跡はS46のtasklistを正本とする。方向の有用性、実入力色特性、WB変化・ROI・記録負荷等の実機評価とFR-06受入は未確認として残す。
++
+ ### 全動画通信の共通契約
+ 
+ `MediaIOGate`は操作ID・対象内容・本人意思を受け、許可中のleaseと抑止理由を返す。原本送信、写真保存用取得、確認再生用取得/streamingの全経路がleaseを必要とする。REC受理時に新しいleaseを閉じ、既存の動画I/Oへ停止を通知する。保存/異常終了処理の抑止は、対応する処理が終わるまで解除しない。Mac miniで開始済みの変換には停止命令を送らない。
+--- baseline/docs/functional-design.md
++++ final/docs/functional-design.md
+@@ -146,6 +146,8 @@
+ 
+ S45は、露出評価対象の集合と一人の主役を別に選ぶ状態・UI、撮影意図の保存・復元、人物解析・AFを通常撮影へ接続する。`ProductCaptureFactory` からNativeとcoordinatorへ同一の `subjectPolicy` を注入し、人物なし時のタップ位置AFと、見失い猶予の変更可能な暫定3秒を共有する。候補IDと主役はセッション内だけに保持し、撮影意図や露出対象の選択からISO・シャッターを自動変更しない。接続・検証の進捗はS45のtasklistを正本とし、U5の今回合意を実機品質の受入にしない。
+ 
++S46のNDは `CaptureNDContext` にセッション/設定・構図・対象選択・WBの世代と撮影意図を保持し、結果に入力時点・連番・実入力信号・policy版・評価領域の根拠を付ける。全体、選択した各人物、人物ROI外の背景を分け、選択全員の新しい情報が揃わなければ保留する。調整方向の参考情報であり、正確なND段数・EV・IRE・センサー余裕は算出しない。入力信号別の交換可能な暫定基準と有効期間は本人判断待ちで、通常FactoryへのND policy注入は未実施である。実装経路・製品有効化・実機受入を分け、進捗はS46のtasklistで管理する。
++
+ ### D3 撮影項目とローカル原本
+ 
+ | 型・フィールド | Swiftの型例 | 必須性・欠損の意味 | 許容値・初期値・制約 |
+@@ -390,7 +392,7 @@
+ | T03 | 初回候補と保存希望優先、条件付き復元、format候補と実接続の分離、無断代替禁止、両出力の要求/実active照合、予約後の開始再確認、旧通知・画角失効と通知番号の保持 | 候補/未確認/非対応理由と希望/要求/実動作の表示。OFF＋複数モードの効果を歩き/静止手持ち/ゆっくりパンで評価。構図・音声同期・ズーム/切替との両立、標準不成立時の説明。予告/停止支援への接続と実画角はS47・実機評価で確認 |
+ | T04 | REC/STOP/合わせ直しの順序、WB値のクリップ間持越しなし | 安定前REC、最後の記録フレーム、合わせ直し時の色と連続性、二本連続撮影、他露出値の維持 |
+ | T05 | 主役と露出対象の分離、同じ主役のみ再捕捉、曖昧な対応の拒否、暫定3秒の猶予と期限後の保持/再指定、旧世代・逆順/期限超過の候補、追跡OFF、人物なし時のタップ位置AF、意図保存/復元・未選択REC。公開の上半身画像fixtureによる実Vision解析は限定的な技術試験として扱う | 通常の主役合焦/前後追従、人物優先AFを距離・光・移動条件別に評価。人物なし・検出待ちでもREC可能。静止fixtureやAF設定の読戻しは、動く人物の同一性・合焦品質・補正crop座標・Log・記録負荷の実機受入を代替しない。実行結果と未確認範囲はS45/DV-06へ記録 |
+-| T06 | 設定/対象/構図変更・解析停止で旧OKを失効、WB状態の世代照合 | 濃く/薄く/両立困難の合意代表例、反射・太陽・黒、WB Auto/固定、飽和/情報不足。保留だけで完成にしない |
++| T06 | 実pixel bufferの信号・画素range照合、複数人物ROIと背景の分離、有界入力、設定/対象/構図/意図・WB mode/gain変更、逆順/期限超過/停止による旧OK失効、REC非阻害。暫定code-domain基準を用いた技術試験と製品採用を区別 | 濃く/薄く/両立困難の合意代表例、反射・太陽・黒、WB Auto/固定、飽和/情報不足、実ROI・負荷・有効期間を評価。精密量・適正露出の保証にせず、保留だけで完成にしない。実行結果と実機未確認範囲はS46/DV-07へ記録 |
+ | T07 | 予告中の倍率不変、目標到達/途中停止、候補不在、古い予告 | 録画中に寄る/引く/止まる操作、滑らかさ・停止精度・原本非焼込み、実画角との差、補正、停止前後の実画質 |
+ | T08 | 限定ISO補正の範囲、実値表示、非対応切替拒否、手動変更の優先 | 切替の途切れ・明るさ/色/ピント/位置/時間・音声同期・記録継続、戻すレンズ時の方針、無断変更なし |
+ | T09 | ゼロレベルと障害の分離、開始阻止、録画停止、書込障害、有限復旧・自動REC禁止 | 音声の到着と実ファイルの書込、静寂/入力不能/音割れ、部分保存・結果不明表示。音声省略で起動目標を満たさない |

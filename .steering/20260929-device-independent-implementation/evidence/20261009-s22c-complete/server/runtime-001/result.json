@@ -1,0 +1,179 @@
+{
+  "execution_kind": "registration-listener",
+  "exit_code": 0,
+  "failure": null,
+  "fd_after_explicit_sqlite_close": [
+    {
+      "dev": 1075263326,
+      "fd": 0,
+      "ino": 336,
+      "mode": 8630,
+      "path": "/dev/null"
+    },
+    {
+      "dev": 16777234,
+      "fd": 1,
+      "ino": 24618677,
+      "mode": 33152,
+      "path": "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/integration-execution-001/listener.log"
+    },
+    {
+      "dev": 16777234,
+      "fd": 2,
+      "ino": 24618677,
+      "mode": 33152,
+      "path": "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/integration-execution-001/listener.log"
+    },
+    {
+      "dev": 16777234,
+      "fd": 3,
+      "ino": 24618682,
+      "mode": 33188,
+      "path": "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/runtime-listener-001/audit.jsonl"
+    },
+    {
+      "closed_during_enumeration": true,
+      "fd": 4
+    }
+  ],
+  "fd_before_explicit_sqlite_close": [
+    {
+      "dev": 1075263326,
+      "fd": 0,
+      "ino": 336,
+      "mode": 8630,
+      "path": "/dev/null"
+    },
+    {
+      "dev": 16777234,
+      "fd": 1,
+      "ino": 24618677,
+      "mode": 33152,
+      "path": "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/integration-execution-001/listener.log"
+    },
+    {
+      "dev": 16777234,
+      "fd": 2,
+      "ino": 24618677,
+      "mode": 33152,
+      "path": "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/preparation-001/integration-execution-001/listener.log"
+    },
+    {
+      "dev": 16777234,
+      "fd": 3,
+      "ino": 24618682,
+      "mode": 33188,
+      "path": "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/runtime-listener-001/audit.jsonl"
+    },
+    {
+      "closed_during_enumeration": true,
+      "fd": 4
+    },
+    {
+      "dev": 16777234,
+      "fd": 9,
+      "ino": 24618715,
+      "mode": 33188,
+      "path": "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/runtime-listener-001/db.sqlite3"
+    },
+    {
+      "dev": 16777234,
+      "fd": 10,
+      "ino": 24618719,
+      "mode": 33188,
+      "path": "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/runtime-listener-001/db.sqlite3-wal"
+    },
+    {
+      "dev": 16777234,
+      "fd": 11,
+      "ino": 24618720,
+      "mode": 33188,
+      "path": "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/runtime-listener-001/db.sqlite3-shm"
+    },
+    {
+      "dev": 16777234,
+      "fd": 12,
+      "ino": 24618715,
+      "mode": 33188,
+      "path": "/private/tmp/fr-di-20261001-5ljls2fr/S22C/server/runtime-listener-001/db.sqlite3"
+    }
+  ],
+  "guard": {
+    "counts": {
+      "allowed:loopback-bind": 1,
+      "open": 23,
+      "os.chdir": 1,
+      "os.chmod": 16,
+      "os.mkdir": 22,
+      "os.remove": 2,
+      "os.utime": 16,
+      "sqlite3.connect": 4
+    },
+    "denials": [],
+    "foreign_thread_connections_not_explicitly_closed": [],
+    "limitation": "Python audit/connection guard is not an OS/native-code sandbox",
+    "sqlite_close_failures": [],
+    "sqlite_connection_events": [
+      {
+        "event": "opened",
+        "id": 4421569360,
+        "thread": 8323309952
+      },
+      {
+        "event": "closed",
+        "id": 4421569360
+      },
+      {
+        "event": "opened",
+        "id": 4421569616,
+        "thread": 8323309952
+      },
+      {
+        "event": "opened",
+        "id": 4420695376,
+        "thread": 8323309952
+      },
+      {
+        "event": "closed",
+        "id": 4420695376
+      },
+      {
+        "event": "garbage_collected",
+        "id": 4421569360
+      },
+      {
+        "event": "garbage_collected",
+        "id": 4420695376
+      },
+      {
+        "event": "opened",
+        "id": 4420695376,
+        "thread": 8323309952
+      },
+      {
+        "event": "closed",
+        "id": 4420695376
+      },
+      {
+        "event": "garbage_collected",
+        "id": 4420695376
+      },
+      {
+        "event": "closed",
+        "id": 4421569616
+      },
+      {
+        "event": "garbage_collected",
+        "id": 4421569616
+      }
+    ],
+    "sqlite_connections_alive_after_explicit_close": 0,
+    "sqlite_connections_alive_before_explicit_close": 1
+  },
+  "inputs_unchanged": true,
+  "interpretation": "actual registration app/SQLite and loopback lifecycle; iOS results are separate; real Wi-Fi/TLS/background remain unverified",
+  "process_exit": "parent must observe actual exit; this is a pre-exit FD inventory",
+  "pytest_counts": null,
+  "pytest_exit_code": null,
+  "unreviewed_import_origins": []
+}

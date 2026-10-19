@@ -1,0 +1,103 @@
+{
+  "task": "S26J",
+  "reviewed_at": "2026-10-13T15:14:19.774560+00:00",
+  "independent_validation": false,
+  "changed_support": [
+    "server-implementation/backend-overlay/app/db/frame_relay_migrations.py",
+    "server-implementation/backend-overlay/app/repositories/jobs.py",
+    "server-implementation/backend-overlay/app/services/frame_relay_storage.py",
+    "server-implementation/backend-overlay/app/workers/worker.py",
+    "server-implementation/backend-overlay/tests/test_frame_relay_storage.py",
+    "server-implementation/backend-overlay/tests/test_worker_jobs.py"
+  ],
+  "added_support": [
+    "server-implementation/README-conversion.md",
+    "server-implementation/backend-conversion-overlay.diff",
+    "server-implementation/backend-overlay/app/db/frame_relay_schema/003_conversion_candidates.sql",
+    "server-implementation/backend-overlay/app/repositories/frame_relay_conversion.py",
+    "server-implementation/backend-overlay/app/services/frame_relay_conversion.py",
+    "server-implementation/backend-overlay/tests/test_frame_relay_conversion.py",
+    "server-implementation/cases-conversion.json",
+    "server-implementation/prepare_conversion_snapshot.py"
+  ],
+  "snapshot_files": 265,
+  "frozen_support_files": 65,
+  "unchanged_app_test_project_files": 126,
+  "baseline355_changed": [
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/db/frame_relay_migrations.py",
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/main.py",
+    ".steering/20260929-device-independent-implementation/support/server-isolation/README.md",
+    ".steering/20260929-device-independent-implementation/support/server-isolation/isolation_guard.py",
+    ".steering/20260929-device-independent-implementation/support/server-isolation/run_pytest.py",
+    ".steering/20260929-device-independent-implementation/support/server-isolation/run_registration_integration.py",
+    ".steering/20260929-device-independent-implementation/support/server-isolation/run_registration_simulator_probe.py",
+    ".steering/20260929-device-independent-implementation/tasklist.md",
+    "FrameRelay/Application/MediaOperations/RegistrationCoordinator.swift",
+    "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+    "FrameRelay/Application/Ports/RegistrationPorts.swift",
+    "FrameRelay/Composition/ProductComposition.swift",
+    "FrameRelay/Domain/Operations/BackendCommit.swift",
+    "FrameRelay/Features/Library/LibraryView.swift",
+    "FrameRelay/Features/Playback/OriginalPlaybackModel.swift",
+    "FrameRelay/Features/Playback/OriginalPlaybackView.swift",
+    "FrameRelay/Platform/Credentials/KeychainRegistrationVault.swift",
+    "FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift",
+    "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+    "FrameRelay/Platform/LocalStore/RecordingStoreDocument.swift",
+    "FrameRelay/Platform/Playback/AVOriginalPlayback.swift",
+    "FrameRelay/Platform/Playback/OriginalResourceLoader.swift",
+    "FrameRelay/Platform/Remote/URLSessionRegistrationRemote.swift",
+    "FrameRelayTests/Integration/Composition/RegistrationCompositionTests.swift",
+    "FrameRelayTests/Integration/Playback/OriginalPlaybackTests.swift",
+    "FrameRelayTests/Integration/Registration/KeychainRegistrationTests.swift",
+    "FrameRelayTests/Integration/Registration/RegistrationCoordinatorTests.swift",
+    "FrameRelayTests/Integration/Registration/RegistrationServerProbeTests.swift",
+    "FrameRelayTests/Integration/Storage/MediaStoreLegacyMigrationTests.swift",
+    "FrameRelayTests/Integration/Storage/RecordingStorePersistenceTests.swift",
+    "FrameRelayTests/Support/RegistrationTestSupport.swift",
+    "FrameRelayUITests/Flows/LibraryFlowTests.swift",
+    "FrameRelayUITests/Flows/PlaybackTestCleanup.swift"
+  ],
+  "baseline355_unchanged": 322,
+  "baseline_source": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261009-s22c-complete/baseline-manifest.json",
+  "baseline_archive_entry_verified": true,
+  "temporary_baseline_missing": true,
+  "review_script_observations": [
+    "First stopped before writing due to missing temporary baseline.",
+    "Second stopped before writing due to older archive schema using records instead of entries.",
+    "Archived baseline hash/size and all 355 current sources subsequently checked."
+  ],
+  "ownership_violations": [],
+  "checkpoint_sha256": "97065e9b32b3c91542fc6e57c95e20838a7a6d1f20e1380bc526062d9ea73649",
+  "review": [
+    "Reviewed full backend diff, all new tests, helper, fixed archive provenance, effective config and exact command.",
+    "Durable exact S24 evidence gates allocation and current claims; candidates and retry intents use the same DB/jobs.",
+    "Candidate revision is separate from claim generation/token; replay preserves acceptance identity and observes current state.",
+    "Adapter=None terminates once as not implemented; technical fixture success is unpublished and Rec.709 unverified.",
+    "New read-only input FD is fully hashed and held through adapter termination; fingerprint checks and current fences guard input/output; long reads are outside the writer.",
+    "Exclusive staging, no-overwrite candidate paths and current fences protect success/failure/renew/cleanup against stale claims.",
+    "Original, published V1 pointer/bytes and confirmation are unchanged; migration 001/002 and registration tests retained."
+  ],
+  "verification": {
+    "pytest_nodes": 137,
+    "pytest": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 160
+    },
+    "parent_exit_code": 0,
+    "guard_denials": 0,
+    "remaining_sqlite_connections": 0,
+    "foreign_thread_connections_not_closed": 0,
+    "inputs_unchanged": true,
+    "git_diff_check": "passed",
+    "process_scan_matches": []
+  },
+  "limitations": [
+    "Synthetic fixtures; no actual Log classification, standard Rec.709 conversion, publication ACK, device acceptance or deploy.",
+    "App source unchanged; no new Xcode run for server-only task.",
+    "Obsolete attempts and precommit candidate files are retained; no automatic cleanup policy added."
+  ],
+  "acceptance_met_for_S26J": true
+}

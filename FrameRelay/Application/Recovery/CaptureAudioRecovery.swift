@@ -1,4 +1,4 @@
-/// Values come from a bound trial. They are not product retry/grace defaults.
+/// Values are explicitly supplied by a bound trial or versioned product policy.
 nonisolated struct CaptureAudioRecoveryPolicy: Equatable, Sendable {
     let maximumAttempts: Int
     let attemptTimeout: CaptureRationalTime

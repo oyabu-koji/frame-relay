@@ -1,0 +1,83 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "DFE46693-E8DD-4814-8957-4F327699F719",
+        "deviceName" : "FrameRelay CF 20260927 tmi2p8vs",
+        "modelName" : "iPhone 18 Pro",
+        "osBuildNumber" : "24A434",
+        "osVersion" : "27.0",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 4,
+      "passedTests" : 363,
+      "skippedTests" : 2,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "FrameRelay · Built with macOS 26.6.2",
+  "expectedFailures" : 0,
+  "failedTests" : 4,
+  "finishTime" : 1792330575.346,
+  "passedTests" : 276,
+  "result" : "Failed",
+  "runtimeWarnings" : [
+
+  ],
+  "skippedTests" : 2,
+  "startTime" : 1792330513.583,
+  "statistics" : [
+    {
+      "subtitle" : "133 test runs",
+      "title" : "46 tests ran with dynamic parameters"
+    }
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "Expectation failed: model.canRecord\nmodel → FrameRelay.ProductCaptureCoordinator\ncanRecord → false",
+      "targetName" : "FrameRelayTests",
+      "testIdentifier" : 281,
+      "testIdentifierString" : "ProductCaptureZoomCoordinatorTests/newManualValueWinsOverDelayedControlCompletionEvenWithHigherSequence()",
+      "testIdentifierURL" : "test://com.apple.xcode/FrameRelay/FrameRelayTests/ProductCaptureZoomCoordinatorTests/newManualValueWinsOverDelayedControlCompletionEvenWithHigherSequence()",
+      "testName" : "newManualValueWinsOverDelayedControlCompletionEvenWithHigherSequence()"
+    },
+    {
+      "failureText" : "Expectation failed: await device.requests.last?.command == .move(target: 1.98)",
+      "targetName" : "FrameRelayTests",
+      "testIdentifier" : 278,
+      "testIdentifierString" : "ProductCaptureZoomCompositionTests/ordinaryCompositionInjectsVersionedZoomAndKeepsUnagreedISODisabled()",
+      "testIdentifierURL" : "test://com.apple.xcode/FrameRelay/FrameRelayTests/ProductCaptureZoomCompositionTests/ordinaryCompositionInjectsVersionedZoomAndKeepsUnagreedISODisabled()",
+      "testName" : "ordinaryCompositionInjectsVersionedZoomAndKeepsUnagreedISODisabled()"
+    },
+    {
+      "failureText" : "Expectation failed: await eventually { model.capture?.phase == .recording }",
+      "targetName" : "FrameRelayTests",
+      "testIdentifier" : 279,
+      "testIdentifierString" : "ProductCaptureZoomCoordinatorTests/previewOnlyThenMovementAndStopsStaySeparateFromRecordingAndIntent()",
+      "testIdentifierURL" : "test://com.apple.xcode/FrameRelay/FrameRelayTests/ProductCaptureZoomCoordinatorTests/previewOnlyThenMovementAndStopsStaySeparateFromRecordingAndIntent()",
+      "testName" : "previewOnlyThenMovementAndStopsStaySeparateFromRecordingAndIntent()"
+    },
+    {
+      "failureText" : "Testing was canceled",
+      "targetName" : "FrameRelayTests",
+      "testIdentifier" : 282,
+      "testIdentifierString" : "ProductCaptureZoomCoordinatorTests/stopDuringPendingStartWinsAndLateLeaveCannotClearNewVisit()",
+      "testIdentifierURL" : "test://com.apple.xcode/FrameRelay/FrameRelayTests/ProductCaptureZoomCoordinatorTests/stopDuringPendingStartWinsAndLateLeaveCannotClearNewVisit()",
+      "testName" : "stopDuringPendingStartWinsAndLateLeaveCannotClearNewVisit()"
+    }
+  ],
+  "title" : "Test - FrameRelay",
+  "topInsights" : [
+    {
+      "category" : "Longest Test Runs",
+      "impact" : "54% of duration",
+      "text" : "4 longest test runs with outlier durations exceeding 1.01s (three standard deviations)"
+    }
+  ],
+  "totalTestCount" : 282
+}

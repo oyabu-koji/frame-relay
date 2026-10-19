@@ -4,6 +4,121 @@ import Testing
 
 @MainActor
 struct ExplorationCoordinatorTests {
+    @Test func checkingPreparationAcceptsDelayedAudioWithoutPreparingAgain() async throws {
+        let fixture = try CaptureFixture()
+        let factory = TestExplorationFactory(fixture: fixture)
+        var checking = fixture.audio; checking.input = .checking
+        await factory.device.setPreparedAudio(checking)
+        let model = try configuredModel(factory: factory, fixture: fixture)
+        await model.prepare()
+        await model.record()
+        #expect(model.capture?.phase == .ready)
+        #expect(await factory.device.commands.isEmpty)
+        await factory.device.emitAudio(fixture.audio, sequence: 1)
+        await eventually { model.prepared?.audio.input == fixture.audio.input }
+        #expect(await factory.diagnostics.attempts.isEmpty) // Meter snapshots are not diagnostic events.
+        let recording = Task { await model.record() }
+        await factory.store.waitForIntent()
+        #expect(model.capture?.phase == .starting)
+        #expect(model.capture?.audio.input == fixture.audio.input)
+        #expect(await factory.makeCount == 1)
+        await model.stop()
+        await factory.store.releaseIntent()
+        await recording.value
+    }
+
+    @Test func idleAudioFailureRejectsRECAndIgnoresOldGenerationAndSequence() async throws {
+        let fixture = try CaptureFixture()
+        let factory = TestExplorationFactory(fixture: fixture)
+        let model = try configuredModel(factory: factory, fixture: fixture)
+        await model.prepare()
+        var failed = fixture.audio
+        failed.input = .failed(.confirmedNoSamples(.init(rawValue: "synthetic-arrival-deadline")))
+        await factory.device.emitAudio(failed, sequence: 4)
+        await eventually { model.prepared?.audio == failed }
+        await factory.device.emitAudio(fixture.audio, sequence: 3)
+        let old = CaptureGeneration(session: .init(rawValue: "old-session"), settings: 1)
+        await factory.device.emitAudio(fixture.audio, sequence: 100, generation: old)
+        for _ in 0..<30 { await Task.yield() }
+        #expect(model.prepared?.audio == failed)
+        await model.record()
+        #expect(model.capture?.phase == .ready)
+        #expect(await factory.device.commands.isEmpty)
+    }
+
+    @Test func currentClipAudioSharesControlOrderingAndRejectsCallbacksAfterTerminal() async throws {
+        let fixture = try CaptureFixture()
+        let factory = TestExplorationFactory(fixture: fixture)
+        let model = try configuredModel(factory: factory, fixture: fixture)
+        await model.prepare()
+        let recording = Task { await model.record() }
+        await factory.store.waitForIntent()
+        let lock = try #require(await factory.device.commands.compactMap { command -> CaptureCommandToken? in
+            if case .lockCurrentWhiteBalance(let token) = command { return token }; return nil
+        }.first)
+        await factory.device.emit(.capture(.whiteBalanceLocked(lock, fixture.lock)))
+        await factory.store.releaseIntent()
+        await recording.value
+        await eventually { model.capture?.whiteBalance == .locked(fixture.lock) }
+        let start = try #require(await factory.device.commands.compactMap { command -> CaptureCommandToken? in
+            if case .startRecording(let token, _) = command { return token }; return nil
+        }.first)
+        await factory.device.emit(.capture(.recordingStarted(start, fixture.time)))
+        await eventually { model.capture?.phase == .recording }
+        var failed = fixture.audio
+        failed.writing = .failed(.writerFailed(.init(rawValue: "synthetic-write-failure")))
+        await factory.device.emitAudio(failed, sequence: 10, capture: fixture.context.capture)
+        await eventually { model.capture?.phase == .stopping }
+        await factory.device.emit(.capture(.audioObserved(fixture.context, sequence: 9, fixture.audio)))
+        await factory.device.emit(.capture(.audioObserved(fixture.context, sequence: 10, failed)))
+        for _ in 0..<30 { await Task.yield() }
+        #expect(model.capture?.audio == failed)
+        #expect(await factory.device.commands.filter { if case .stopRecording = $0 { return true }; return false }.count == 1)
+        await factory.device.emit(.capture(.recordingEnded(start, fixture.end)))
+        await eventually { model.capture?.phase == .ended }
+        let end = model.capture?.end
+        await factory.device.emitAudio(fixture.audio, sequence: 100, capture: fixture.context.capture)
+        await factory.device.emit(.capture(.audioObserved(fixture.context, sequence: 101, fixture.audio)))
+        for _ in 0..<30 { await Task.yield() }
+        #expect(model.capture?.audio == failed)
+        #expect(model.capture?.end == end)
+        await factory.device.emitAudio(fixture.audio, sequence: 11)
+        await eventually { model.prepared?.audio == fixture.audio }
+        #expect(model.capture?.audio == failed) // Finished clip evidence stays immutable.
+    }
+
+    @Test func abandonedAudioSubscriptionCannotChangeRepreparedSession() async throws {
+        let fixture = try CaptureFixture()
+        let factory = TestExplorationFactory(fixture: fixture)
+        var checking = fixture.audio; checking.input = .checking
+        await factory.device.setPreparedAudio(checking)
+        await factory.device.failNextReadback()
+        let model = try configuredModel(factory: factory, fixture: fixture)
+        await model.prepare()
+        #expect(model.issues == [.appliedValuesDiffer])
+        await model.prepare()
+        #expect(await factory.makeCount == 2)
+        #expect(model.prepared?.audio.input == .checking)
+        await factory.device.emitAudio(fixture.audio, sequence: 100, subscription: 0)
+        for _ in 0..<30 { await Task.yield() }
+        #expect(model.prepared?.audio.input == .checking)
+        await factory.device.emitAudio(fixture.audio, sequence: 1, subscription: 1)
+        await eventually { model.prepared?.audio.input == fixture.audio.input }
+    }
+
+    private func configuredModel(factory: TestExplorationFactory, fixture: CaptureFixture) throws -> ExplorationCoordinator {
+        let model = ExplorationCoordinator(factory: factory)
+        model.bindTicket(data: try JSONEncoder().encode(explorationTicket(fixture: fixture)))
+        model.selectOutput(.sampleWriter)
+        model.selectStore(.atomicFile)
+        return model
+    }
+
+    private func eventually(_ condition: @MainActor () -> Bool) async {
+        for _ in 0..<3_000 { if condition() { return }; await Task.yield() }
+        #expect(condition())
+    }
+
     @Test func initializationAndSimulatorPreparationCannotCreateMediaOrRequestCapture() async throws {
         let fixture = try CaptureFixture()
         let factory = TestExplorationFactory(fixture: fixture, runtime: .simulator)
@@ -219,20 +334,44 @@ private actor TestExplorationFactory: ExplorationFactoryPort {
 private actor TestExplorationDevice: ExplorationDevicePort {
     let fixture: CaptureFixture
     let rejectWB: Bool
-    let stream: AsyncStream<ExplorationDeviceEvent>
-    let continuation: AsyncStream<ExplorationDeviceEvent>.Continuation
+    var stream: AsyncStream<ExplorationDeviceEvent>
+    var continuation: AsyncStream<ExplorationDeviceEvent>.Continuation
+    private var audioContinuations: [AsyncStream<ProductCaptureAudioSnapshot>.Continuation] = []
+    private var preparedAudio: CaptureAudioState
+    private var failReadback = false
     private(set) var commands: [CaptureIOCommand] = []
     init(fixture: CaptureFixture, rejectWB: Bool) {
         self.fixture = fixture
         self.rejectWB = rejectWB
+        preparedAudio = fixture.audio
         (stream, continuation) = AsyncStream.makeStream()
     }
     func discover() -> [ExplorationCameraDescription] { [] }
     func prepare(_ request: ExplorationPreparation) -> ExplorationPrepared {
-        ExplorationPrepared(capabilities: fixture.capabilities, applied: fixture.applied, audio: fixture.audio)
+        let applied = failReadback ? AppliedCaptureSettings(generation: fixture.context.generation,
+            operation: fixture.applied.operation, values: .unavailable(.notMeasured)) : fixture.applied
+        failReadback = false
+        return ExplorationPrepared(capabilities: fixture.capabilities, applied: applied, audio: preparedAudio)
     }
     func events() -> AsyncStream<CaptureIOEvent> { AsyncStream { $0.finish() } }
-    func explorationEvents() -> AsyncStream<ExplorationDeviceEvent> { stream }
+    func explorationEvents() -> AsyncStream<ExplorationDeviceEvent> {
+        (stream, continuation) = AsyncStream.makeStream()
+        return stream
+    }
+    func audioSnapshots() -> AsyncStream<ProductCaptureAudioSnapshot> {
+        let pair = AsyncStream<ProductCaptureAudioSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
+        audioContinuations.append(pair.continuation)
+        return pair.stream
+    }
+    func setPreparedAudio(_ audio: CaptureAudioState) { preparedAudio = audio }
+    func failNextReadback() { failReadback = true }
+    func emitAudio(_ audio: CaptureAudioState, sequence: UInt64, capture: CaptureID? = nil,
+                   generation: CaptureGeneration? = nil, subscription: Int? = nil) {
+        let index = subscription ?? (audioContinuations.count - 1)
+        guard audioContinuations.indices.contains(index) else { return }
+        audioContinuations[index].yield(.init(generation: generation ?? fixture.context.generation,
+            capture: capture, sequence: sequence, state: audio))
+    }
     func shutDown() { continuation.finish() }
     func emit(_ event: ExplorationDeviceEvent) { continuation.yield(event) }
     func submit(_ command: CaptureIOCommand) -> CaptureCommandAcceptance {
@@ -271,6 +410,7 @@ private actor TestExplorationStore: RecordingStorePort {
         continuation.resume(returning: .committed(.init(token: token, previousRevision: revision, committedRevision: revision + 1)))
     }
     func loadUnfinished() -> UnfinishedRecordingLoadResult { .loaded([]) }
+    func loadRecordings() -> RecordingStoreLoadResult { .loaded(.init(revision: 0, recordings: [])) }
 }
 
 private actor TestExplorationInspection: CaptureOriginalInspectionPort {

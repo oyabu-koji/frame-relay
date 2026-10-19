@@ -1,0 +1,10 @@
+2026-10-18 S43合意反映文書の限定read-onlyレビュー
+担当: document_author s43_policy_docs、doc_reviewer s43_policy_doc_review、main
+対象: docs/functional-design.md、docs/architecture.md の音声policy関連、docs/product-requirements.md のQ10音声行のみ。
+
+初回結果: P2 1件。
+functional-design.md U7が、復旧失敗時の保存結果提示・開き直し等の案内を「残る案」としたため、PRD AC-FR-09-03の既存P0を未合意へ戻したと読める。
+修正: document_authorが同U7行だけで復旧失敗時の案内を「既存確定要件」へ移し、残る案を具体UI・負荷削減へ限定。
+再確認結果: P2解消、追加指摘なし。
+2秒/1回/5秒、復旧中2秒判定、同policy注入、実機採用/品質未確認、他のP0/U7負荷・容量判断の保持を照合。
+レビューによるファイル変更・build/test・独立実装検証は未実施。実機音声品質とS42報告反映は検証対象外。
