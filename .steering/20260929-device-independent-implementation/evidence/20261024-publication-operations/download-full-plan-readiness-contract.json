@@ -1,0 +1,244 @@
+{
+  "schema": "fr-download-full-plan-readiness-contract-v1",
+  "created_UTC": "2026-10-24T22:55:04.205373+00:00",
+  "status": "read-only findings frozen on user pause; C未着手。実装契約の確定・実装許可・独立validationではない。未確認はpending。",
+  "scope": "known current rendition＋実RecordingIntent.capturedAtがある対象のnormal full-read plan/control-plane ticket、共有root owner、既存consumerへのjoinに限定。親の中断指示で追加調査終了。",
+  "baseline": {
+    "id": "DI-SOURCE-20261025-23",
+    "snapshot": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/download-ingress-candidate-01/source-snapshot",
+    "inputs": 515,
+    "source_manifest_sha256": "e7491f7c0d503437f94a207b7caf8be241a75736cc8063e1456c97cad70ac0f5",
+    "code_input_fingerprint": "ad82f8b3de6577c0e071d5e6e28cf987af079edeef48dcf6a4b98952b3a1808a"
+  },
+  "immutable_input_reports": {
+    "download-ingress-receipt-causality.json": "45682cd43230fe6d9c25b791245d3fb4e523f1d7c6a458cc22b0e4f85310cac9",
+    "download-ingress-unit-b-core-contract.json": "c92891d3525d9bd64e3dbc34f37781f29398a4c321cb01632d9b33021d3bafc9",
+    "download-ingress-original-independence-addendum.json": "5f56ab2a21fc265ca04671faa54df85db411333f016aa80d474a554dec96e98e"
+  },
+  "producer_inputs_observed": [
+    {
+      "path": "FrameRelay/Composition/ProductBackgroundMediaFactory.swift",
+      "sha256": "e0e878dbe7c54d3c8385468a411bb101499f7f1f0f29736795aef524405e2511",
+      "matches_DI23_at_freeze": true
+    },
+    {
+      "path": "FrameRelay/Composition/ProductRenditionFactory.swift",
+      "sha256": "20391e28fe41c15f253e52f5f699f853b9906585b197c54b62866f151c2275c5",
+      "matches_DI23_at_freeze": true
+    },
+    {
+      "path": "FrameRelay/Composition/ProductPhotoSaveBatch.swift",
+      "sha256": "b3086175fbde772c3f7450e3b643d4f7a117b9fd1840a3ff08bad19084a7f229",
+      "matches_DI23_at_freeze": true
+    },
+    {
+      "path": "FrameRelay/Composition/ProductComposition.swift",
+      "sha256": "1d05d48eb45e15bec827e49c8ab593700a9a07127762abe63769f68ae24d3c90",
+      "matches_DI23_at_freeze": true
+    },
+    {
+      "path": "FrameRelay/Platform/Network/PublicationHTTPBinding.swift",
+      "sha256": "98a6e6c028b4f79342eae62cc21b4751b4edbffd8a5c532745782f052aa01089",
+      "matches_DI23_at_freeze": true
+    },
+    {
+      "path": "FrameRelay/Platform/Remote/URLSessionPublicationRemote.swift",
+      "sha256": "0e73a37d797d15b9d97b0919b6bfb0fe81a993e36be3358beff694bdc406894a",
+      "matches_DI23_at_freeze": true
+    },
+    {
+      "path": "FrameRelay/Application/Library/LibraryMediaRequestCommands.swift",
+      "sha256": "8bc4da4ae6268d3b773b4f0dc5c4f1055af0e48beecc415fbd6fc7d0ebafc94a",
+      "matches_DI23_at_freeze": true
+    },
+    {
+      "path": "FrameRelay/Application/Library/LocalRenditionSelection.swift",
+      "sha256": "b25b83075f6a8aca6c022d6c2740375cc09f6e70d7786ddebb3a4ad36a7d4a77",
+      "matches_DI23_at_freeze": true
+    },
+    {
+      "path": "FrameRelay/Application/Library/LibraryPhotoSaveCommands.swift",
+      "sha256": "f6e570d055a2dfe3f59a58ed1566d30ec306f9942419ead21a262094ed9696e2",
+      "matches_DI23_at_freeze": true
+    },
+    {
+      "path": "FrameRelay/Application/Library/RenditionPlaybackLibraryCommands.swift",
+      "sha256": "8534ef53ccec92559f90ba17ca7f1fa7b42206116b5a765d24f0745c10a2f6a1",
+      "matches_DI23_at_freeze": true
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/MediaPersonControlStoreProjection.swift",
+      "sha256": "2d87477c9ae8900c754c3f5005dcd16a1323778e2d5edeb1d48397f9b06f4435",
+      "matches_DI23_at_freeze": false
+    },
+    {
+      "path": "FrameRelay/Features/Library/LibraryModel.swift",
+      "sha256": "25fda976c42f3688462dac559df0830301066f29d09b948c633bd1002d176783",
+      "matches_DI23_at_freeze": true
+    }
+  ],
+  "conclusion_ja": "標準変換資材/ISO/実機を一律前提にせず、current metadataからの純plan選択、既存publication read/full ticket発行の薄いproducer、既存ProductRenditionFactory owner共有、本人resumeIntentの限定修正は先行可能。ただし通常fresh downloadのbegin predicateが未成立であり、未取得動画の固定複数Photos意思も既存local PhotoSaveBatchでは表せない。native strict/resumeを閉じたまま、これらを別実装unitへ分割する。Cは未着手・未検証。",
+  "confirmed_findings": [
+    {
+      "finding": "既存server/wireはread/fullを扱い、新server grantは不要。PublicationHTTPBinding.openはsource/fullだけ、authorizeはrange必須のread/rangeだけでnormal read/full未接続。",
+      "refs": [
+        "FrameRelay/Platform/Network/PublicationHTTPBinding.swift:20-57",
+        "FrameRelay/Platform/Remote/PublicationWire.swift:51-65",
+        "FrameRelay/Platform/Remote/URLSessionPublicationRemote.swift:20-31",
+        ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/schemas/frame_relay_publication.py:133-153",
+        ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/repositories/frame_relay_publication.py:167-198"
+      ]
+    },
+    {
+      "finding": "実DistributionReceiptはGET前control-plane発行のreceipt。actual GET admissionは後段のfr_get_admissions。GET応答には新BackendCommitReceiptがない。Tは実read/full request/resultを保持し、callback後のactual response local観測とは区別する。",
+      "refs": [
+        "FrameRelay/Platform/Remote/URLSessionPublicationRemote.swift:26-31",
+        ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/frame_relay_distribution.py:50-67",
+        ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/frame_relay_distribution.py:97-125",
+        ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/repositories/frame_relay_publication.py:201-211",
+        "download-ingress-receipt-causality.json"
+      ]
+    },
+    {
+      "finding": "ProductRenditionFactoryは既存local完全媒体選択を入口にし、rootごとのowners/openingとscope/temporary/playerを共有する。ownerはcreateIfMissing:false。取得用に別ManagedTemporaryMediaを同namespaceへopenしてはいけない。既存selectorは未取得planには使えない。",
+      "refs": [
+        "FrameRelay/Composition/ProductRenditionFactory.swift:24-55",
+        "FrameRelay/Composition/ProductRenditionFactory.swift:58-86",
+        "FrameRelay/Composition/ProductRenditionFactory.swift:300-325",
+        "FrameRelay/Application/Library/LocalRenditionSelection.swift:15-60",
+        "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift:64-70"
+      ]
+    },
+    {
+      "finding": "同Root ProductLibraryFactoryは同store/servicesを保持する。ProductCompositionは同renditionFactoryを単数playerとPhotos batchへ渡し、同scopes/captureAdmissionを使う。background factoryへdownload owner providerを渡す接続は未実装。",
+      "refs": [
+        "FrameRelay/Composition/ProductLibraryFactory.swift:14-28",
+        "FrameRelay/Composition/ProductLibraryFactory.swift:43-58",
+        "FrameRelay/Composition/ProductComposition.swift:55-79",
+        "FrameRelay/Composition/ProductComposition.swift:88-107",
+        "FrameRelay/Composition/ProductBackgroundMediaFactory.swift:15-41",
+        "FrameRelay/Composition/ProductBackgroundMediaFactory.swift:217-233"
+      ]
+    },
+    {
+      "finding": "fresh .download requestの実受付は可能だが初期remote=.unknown/hasReconciled=falseでcanRun不可。beginAttemptはcanRunを要求する。productionにdownload用RemoteOperationResult/reconciled producerは見つからず、upload metadata producerだけをdownloadへ転用できない。manifest/ticket発行からnotExecutedを捏造して解除してはいけない。",
+      "refs": [
+        "FrameRelay/Domain/Operations/MediaRequest.swift:27-65",
+        "FrameRelay/Domain/Operations/MediaRequest.swift:123-128",
+        "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift:333-361",
+        "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift:488-512",
+        "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift:368-376 (DI23)"
+      ]
+    },
+    {
+      "finding": "既存PhotoSaveBatchは実tempID/fileIdentity/capturedAtを持つlocal PhotoSaveSourceを固定してから受付する。未取得sourceをfabricateできず、TransferBatchもupload/original専用。単数/固定複数の既存consumerはverified import後に再選択してjoinできるが、取得前から同一複数Photos意思を永続化する契約は別途必要。",
+      "refs": [
+        "FrameRelay/Domain/Media/PhotoSaveBatch.swift:3-38",
+        "FrameRelay/Domain/Media/PhotoSaveBatch.swift:56-81",
+        "FrameRelay/Application/MediaOperations/PhotoSaveBatchCoordinator.swift:39-70",
+        "FrameRelay/Composition/ProductPhotoSaveBatch.swift:14-45",
+        "FrameRelay/Domain/Operations/MediaRequest.swift:225-253",
+        "FrameRelay/Features/Library/LibraryModel.swift:274-310"
+      ]
+    },
+    {
+      "finding": "既存generic request fingerprintはquery/custom publication headersを拒否する。normal publication full GETの登録query/custom headersには別typed safe mappingが直接必要。旧generic fingerprintを一括緩和しない。",
+      "refs": [
+        "FrameRelay/Platform/Network/BackgroundMediaSession.swift:5-47 (DI23)",
+        "FrameRelay/Platform/Network/BackgroundMediaSession.swift:352-378 (DI23)",
+        "FrameRelay/Platform/Network/PublicationHTTPBinding.swift:59-84",
+        ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/api/frame_relay_publication.py:96-117"
+      ]
+    },
+    {
+      "finding": "capturedAtはRecordingIntentのoptional calendar時刻であり、acceptedAtとは別。記録load/resultCommit/bindingのexact joinを使い、原本本体presenceや過去removedを日時取得条件にしない。unknown日付からnow等を補完しない。",
+      "refs": [
+        "FrameRelay/Domain/Media/RecordingEvidence.swift:8-32",
+        "FrameRelay/Application/Ports/CapturePorts.swift:95-125",
+        "FrameRelay/Application/Ports/OriginalStorePort.swift:3-8",
+        "FrameRelay/Application/Library/LibraryStoreReader.swift:14-44",
+        "download-ingress-original-independence-addendum.json"
+      ]
+    }
+  ],
+  "minimal_units_and_API_drafts": [
+    {
+      "unit": "C1 metadata plan/ticket producer",
+      "ready": "純コードは直接ready。normal実行のbegin条件は別pending。",
+      "API_draft": "新readonly full-read selectionをbackend/originals/recordingsの同revisionから作る。PublicationHTTPBindingへauthorizeFull(readOperation:)等の明示メソッドを加え、既存PublicationDistributionRequest(purpose:.read,kind:.full,range:nil,source:sourceOperation)とremote.distribute/lookupDistributionだけを使う。返値はexact request/sourceReceipt/readReceipt/mediaType等の不変proposalで、SDK開始grantではない。名称/署名は未確定。",
+      "conditions": "current UUID/full committed registration/current rendition/invalidation generation/UTF8 exact/no unresolved removal-invalidation/finite recorded capturedAtとreal save provenance。destinationなしで複数候補なら選ばず拒否。network発行に使うsource/read operationは最初に固定し、unknown時は元request exact lookup、別operationで再作成しない。",
+      "files_candidate": [
+        "NEW FrameRelay/Application/MediaIO/BackgroundDownloadPlan.swift",
+        "NEW FrameRelay/Application/Ports/BackgroundDownloadPlanPorts.swift",
+        "FrameRelay/Platform/Network/PublicationHTTPBinding.swift",
+        "NEW FrameRelay/Platform/Network/PublicationFullDownloadRequest.swift",
+        "FrameRelay/Platform/Network/BackgroundMediaSession.swift (typed fingerprintだけ、A凍結後の別所有)"
+      ]
+    },
+    {
+      "unit": "C2 same-root owner provider",
+      "ready": "existing owner/maps/scope/temporary/photo useを共有する接続は直接ready。B API凍結後に署名照合が必要。",
+      "API_draft": "ProductRenditionFactoryにdownloadTemporary(for: exact selection)又は同等入口を追加し、同owners/opening/既存root(for:run:)/same scope epochで既存ownerを返す。新root作成は明示かつadmittedなdownloadだけでcreateIfMissing:trueを選ぶ。ProductBackgroundMediaFactoryへ同root providerを一度結び、ProductCompositionが既存renditionFactoryを渡す。provider不在/異root/異storeなら拒否・保持。名称/署名は未確定。",
+      "conditions": "App init/prepare/restore/relaunchではproviderから新root・lease・媒体を作らない。既存Photos consumer/useは奪取・解放せず、B workerが同ownerを強く保持する。空registry/新ownerを旧source採用の根拠にしない。",
+      "files_candidate": [
+        "FrameRelay/Composition/ProductRenditionFactory.swift",
+        "FrameRelay/Composition/ProductBackgroundMediaFactory.swift",
+        "FrameRelay/Composition/ProductComposition.swift",
+        "B frozen BackgroundDownloadImport/Coordinatorとの接続箇所 (mainが直列所有確定後だけ)"
+      ]
+    },
+    {
+      "unit": "C3 existing consumer join",
+      "ready": "verified import後の再選択→単数playback/既存固定複数PhotoSaveBatchは直接ready。未取得から一操作の固定Photos意思はpending。",
+      "API_draft": "import完了/lookup確定後に既存factory.selection/photoSource→prepare/preparePhoto→既存単数player/PhotoSaveBatchを使用する。予定tempID/expected dateだけからPhotoSaveSourceを生成しない。単数再生は既存MainActor予約を保ち、ネット取得を全量必須へ製品縮小しない。",
+      "files_candidate": [
+        "FrameRelay/Composition/ProductPhotoSaveBatch.swift",
+        "FrameRelay/Application/Library/LibraryPhotoSaveCommands.swift",
+        "FrameRelay/Application/Library/RenditionPlaybackLibraryCommands.swift",
+        "FrameRelay/Features/Library/LibraryModel.swift",
+        "FrameRelay/Application/Library/LibraryStoreReader.swift",
+        "FrameRelay/Application/Library/LibrarySnapshot.swift",
+        "該当Library UI fileは未調査/pending"
+      ]
+    }
+  ],
+  "begin_and_order_pending": {
+    "blocking_fact": "CoreB TprePはactual begin(A)とactual rendition transport lease(L)を要求するため、TをcanRun/beginの前提にすると循環する。通常fresh downloadの正当なlocal begin predicateと実producerは未完成。",
+    "must_not_do": "manifest/source ticket/read ticketの成功をRemoteOperationResult.notExecuted/inProgressへ仮変換しない。未存在server query/grantを発明しない。既存upload/chunk/legacy canRunを一括緩和しない。",
+    "future_order": "normal strict/default拒否→明示された正当なbegin predicateでactual A→actual rendition transport L→fixed planned intent→実source/full＋read/full結果をLOCAL Tへcommit→P→A known creation/attached→callback response→bounded import/drain。default拒否はA/L/SDKより前、metadata-only status同期とは別gate。",
+    "pending": "beginを既存transitionで安全に表せるか又は最小local専用factが必要かは中断により未確定。B actual freeze/実API・receipt参照は未確認。"
+  },
+  "resume_intent_narrow_candidate": {
+    "fact": "storeとUIがresumeIntentにphysical原本の過去removed条件を残す。resume自体はintentだけ変更し、Coordinatorのperson resumeはSDK停止/開始を呼ばない。",
+    "refs": [
+      "FrameRelay/Platform/LocalStore/MediaPersonControlStoreProjection.swift:69-94",
+      "FrameRelay/Application/Library/LibraryMediaRequestCommands.swift:144-169",
+      "FrameRelay/Domain/Operations/MediaRequest.swift:107-110",
+      "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift:544-550 (DI23)",
+      "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift:643-659 (DI23)"
+    ],
+    "minimal_candidate": "purpose==.downloadかつtarget==.renditionのresumeIntentだけはT前でも、same fixed request/start/current committed registration/exact logical original/current full rendition/非失効/no unresolved removal-invalidationを要求してpaused→running意思を記録可能にする。cancelled/playbackEnded/completed/remote success拒否を維持。物理原本presence/binding.saved/pastremovedをこの意思記録の前提にしない。storeとUIのpredicateを一致させる。upload/original等旧枝は維持。新mode/schemaは不要。",
+    "scope": "正のSDK開始許可ではない。active/stopRequested/未照合はそのまま残りcanRun/strict/P/T/final guardを通らない。B後のnative再開を自動実行しない。候補は未実装・未検証。"
+  },
+  "necessary_future_verification": [
+    "Unit: coherent metadata/date/token/reference/full rendition/UTF8 exact/ambiguity/remote date nil、original absent/pastremovedでもcurrent枝可、unresolved removal-invalidation/current reg/epoch変更拒否。",
+    "Wire/unit: full request purpose/kind/range/source exact、source ticketとread ticket混同拒否、unknown同request lookup保持、query/header typed fingerprint/credential値非保持、旧generic/chunk互換。",
+    "Root/provider: download/playback/Photos並行openが1 owner/1 scope epoch、既存photo use保持、missing rootをadmitted入口だけで作成、異store/root/provider不在/reopen旧owner拒否。",
+    "Begin: fresh downloadの正当なpredicateを決めてからboth-store/履歴再open/競合を検証。default strict拒否でbegin/lease/source copy/SDK factory/GET/temp verifiedが0、metadata-only同期は独立。",
+    "Consumer: synthetic/imported verified fixtureから単数playback・固定複数Photos exact集合へjoin、tempID/file/dateを事前捏造しない。取得前複数意思は別契約完了まで未確認。",
+    "通常UI: strict default拒否・理由・本人意思だけの停止解除/取消と再open、単数/複数cached consumer回帰、unknown日付/旧登録の個別不可、通常/最大文字・既存AX確認。未取得→actual media受信成功は実施不能として分離。"
+  ],
+  "unconfirmed_and_resume_conditions": [
+    "ユーザー中断により全API/filelistは調査候補のまま。C製品/test/docs/steering書込み0、build/test/SDK/Simulator/fixture/Keychain/network操作0。",
+    "Core16/App4 Bは別worker WIP。DI23 A baselineと混同せず、mainの別archive保全とB freeze後に再開する。B実装・受入結果をこの報告で検証/継承しない。",
+    "fresh download begin predicateと取得前固定複数Photos意思が直接不足。純plan/full-ticket producer/root provider/resumeIntentのready枝全体をこれだけで一律blockedにしない。",
+    "通常strict positive/native正resume/実SDK download callback成功/正式Rec.709 producer/全媒体停止/実機・品質・PRD受入は未成立。LUT/ISO/Q01はそれらに直接依存する枝だけへ適用。"
+  ],
+  "authorization": {
+    "only_new_write": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/download-full-plan-readiness-contract.json",
+    "create_only": true,
+    "prior_contracts_modified": false,
+    "product_test_docs_steering_writes": 0,
+    "independent_validation": false
+  }
+}

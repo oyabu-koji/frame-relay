@@ -1,0 +1,15 @@
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift:57:7: error: 'nonisolated' modifier cannot be applied to this declaration
+ 55 | }
+ 56 | 
+ 57 | actor PhotoSaveLibrary: PhotoLibraryPort {
+    |       `- error: 'nonisolated' modifier cannot be applied to this declaration
+ 58 |     var addAuthorization: PhotoLibraryAuthorization = .notDetermined
+ 59 |     var readAuthorization: PhotoLibraryAuthorization = .notDetermined
+
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift:57:7: warning: 'nonisolated' on an actor's synchronous initializer is invalid; this is an error in the Swift 6 language mode
+ 55 | }
+ 56 | 
+ 57 | actor PhotoSaveLibrary: PhotoLibraryPort {
+    |       `- warning: 'nonisolated' on an actor's synchronous initializer is invalid; this is an error in the Swift 6 language mode
+ 58 |     var addAuthorization: PhotoLibraryAuthorization = .notDetermined
+ 59 |     var readAuthorization: PhotoLibraryAuthorization = .notDetermined

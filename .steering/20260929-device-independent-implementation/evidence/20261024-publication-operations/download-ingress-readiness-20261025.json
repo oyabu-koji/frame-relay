@@ -1,0 +1,188 @@
+{
+  "kind": "read-only dependency exploration, not independent implementation validation",
+  "created_UTC": "2026-10-24T21:11:21.291025+00:00",
+  "scope": "known same-process background download artifact pin/ingress/import; strict/native feasibility not re-evaluated; no positive SDK download asserted",
+  "input_status": "live source observation; chunk/Photo workers may edit shared foundations; these hashes are not a frozen execution binding",
+  "inputs": {
+    "FrameRelay/Platform/Network/BackgroundMediaSession.swift": {
+      "sha256": "a9f7d4c3abd73ad9a21774fb592657fc3ee0f15746564197c503ef87e03f4ffd",
+      "bytes": 20585
+    },
+    "FrameRelay/Application/Ports/BackgroundMediaPorts.swift": {
+      "sha256": "9e36606de5bf6b1660846c1687451cdf0109707710ad9feafbe30bf2ec44398c",
+      "bytes": 3328
+    },
+    "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift": {
+      "sha256": "18e559569ed7ad526d1de0a598889ab066e632b543a9bcc3e567cfb5fe6b8395",
+      "bytes": 72800
+    },
+    "FrameRelay/Application/Recovery/BackgroundMediaRecovery.swift": {
+      "sha256": "cb489fb6b6f4f8ea9bd5c0142bc09c3e0b9dc8b705c5c5dd4f7f3ee3412f5661",
+      "bytes": 4072
+    },
+    "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift": {
+      "sha256": "1b5d0d3cbb98f287805ab2a6fbbb452cefd4294fd23a42b23e8e42eec1c047b2",
+      "bytes": 42692
+    },
+    "FrameRelay/Platform/LocalStore/TemporaryMediaStoreProjection.swift": {
+      "sha256": "440f5953fb892b690e4df3db26c63b3405d4b201452c0deca35f33fd5fb8a609",
+      "bytes": 6376
+    },
+    "FrameRelay/Application/MediaIO/RenditionTemporaryRetrieval.swift": {
+      "sha256": "63a239c1fc5e8cbfd211d0e3bbeec1fea29a8063b57275df52e2024b2288cfb4",
+      "bytes": 1755
+    },
+    "FrameRelay/Application/MediaIO/RenditionReadLeases.swift": {
+      "sha256": "244751794257667a98ed1580a9be89e4bac9898221bc4796684e5bed64c1cd92",
+      "bytes": 6792
+    },
+    "FrameRelay/Domain/Operations/BackgroundMediaTask.swift": {
+      "sha256": "36000d5e4b48f205827bcf782db1928e14329466ef7696879f40b5d72248dbe2",
+      "bytes": 9514
+    },
+    "FrameRelay/Domain/Media/TemporaryMediaReceipt.swift": {
+      "sha256": "86fbf25e91be4ab663edcd1c7e3d9649d52d7c22c8e1c1e17375c79d2794d8cd",
+      "bytes": 2447
+    },
+    "FrameRelay/Platform/Network/PublicationHTTPBinding.swift": {
+      "sha256": "98a6e6c028b4f79342eae62cc21b4751b4edbffd8a5c532745782f052aa01089",
+      "bytes": 9038
+    },
+    "FrameRelay/Platform/OriginalStore/ManagedOriginalReadHandle.swift": {
+      "sha256": "2ea7c2b39ea9037b8397fab71ea1350aa760cd9505e4ac19889c50a9e2e6bd45",
+      "bytes": 8036
+    },
+    "FrameRelayTests/Integration/Remote/BackgroundMediaSessionTests.swift": {
+      "sha256": "17abd3c016652aa323c8ecfbf9b8345f09120f70b6e2b7347444a889c5e76f0f",
+      "bytes": 19009
+    }
+  },
+  "conclusion": {
+    "direct_ready_to_implement_device_independent_branch": true,
+    "currently_connected": false,
+    "preferred_minimal_branch": "exact known callback -> own O_NOFOLLOW read-only FD pin and bounded metadata -> return immediately -> cancellation-aware bounded same-FD worker -> verified private copy -> actual SDK terminal + own FD closure -> exact writer guarded TemporaryMedia import/verification",
+    "native_positive_resume_remains_closed": true,
+    "no_new_source_write_authorized_by_this_report": true
+  },
+  "existing": [
+    {
+      "path": "FrameRelay/Platform/Network/BackgroundMediaSession.swift:270",
+      "fact": "didFinishDownloadingTo currently emits downloadArtifactUnavailable; never exports ephemeral URL"
+    },
+    {
+      "path": "FrameRelay/Platform/Network/BackgroundMediaSession.swift:111",
+      "fact": "same-process creations map retains exact intent/actual binding from suspended creation; old/recovered task does not enter that map by enumeration"
+    },
+    {
+      "path": "FrameRelay/Application/Recovery/BackgroundMediaRecovery.swift:20",
+      "fact": "enumeration remains observation only, no old source/task/lease adoption"
+    },
+    {
+      "path": "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift:78",
+      "fact": "existing async actor create/store/verify writes managed output with root/inode/no-follow checks and full rendition hash; cannot run from synchronous callback"
+    },
+    {
+      "path": "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift:701",
+      "fact": "full verification reads bounded65536 bytes and checks expected deliveryContent digest/size and stable source descriptor facts"
+    },
+    {
+      "path": "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift:1041",
+      "fact": "terminal/ownerClosed/current live resource release is implemented for upload only; new download live owner is missing"
+    },
+    {
+      "path": "FrameRelay/Application/MediaIO/RenditionTemporaryRetrieval.swift:28",
+      "fact": "existing retrieval verifies before reader.close at30; new import needs explicit terminal/own source closure before final verified publication"
+    }
+  ],
+  "callback_strategy_comparison": {
+    "full_copy_hash_in_callback": {
+      "feasible_integrity_primitive": true,
+      "cost": "O(media length) synchronous disk/hash on serial delegate queue; delays didComplete and stop callbacks; must not wait for didComplete inside this callback",
+      "REC_problem": "Task cancellation or queued requestStop cannot preempt synchronous work by themselves; requires independently set abort flag checked per bounded block",
+      "recommendation": "do not use as minimal capture-responsive ingress when short FD pin is available"
+    },
+    "pin_only_in_callback": {
+      "operations": [
+        "validate exact one same-process creation/taskDescription/taskIdentifier/session generation/source kind/rendition/lease and typed response policy",
+        "open read-only with O_NOFOLLOW and validate regular file, expected size, descriptor device/inode/mtime facts; do not persist/log URL or reopen by source path later",
+        "retain descriptor in one known owner capability; serialize pin vs cancel; if cancellation already won close actual opened FD and emit no success",
+        "return without media read/hash/copy; later worker uses same descriptor with bounded pread and cancellation checks"
+      ],
+      "lifetime": "Darwin open-descriptor lifetime permits read after name unlink; no actual SDK callback+unlink probe has been run, so availability is not claimed from static reasoning alone",
+      "fingerprint_caveat": "SDK unlink may produce st_nlink0 and ctime change. OriginalFileFingerprint requires st_nlink1 (ManagedOriginalReadHandle.swift19-24), so do not reuse it by weakening original-file rules. Define ephemeral-source-only facts accepting validated one-way link removal while requiring same device/inode/size/mtime and final expected full hash; unsupported transitions fail closed. Never treat absent pathname as content or closure proof."
+    }
+  },
+  "SDK_primary_local_header": {
+    "path": "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSURLSession.h",
+    "lines": [
+      "926 permits opening downloaded file for reading or moving it into sandbox",
+      "1857-1859 says callback URL is removed when message returns and didComplete still follows"
+    ],
+    "inference_limit": "FD pin vs later SDK file disposal needs native availability verification; bounded fullhash/current-writer checks prevent false verified success if source becomes unavailable or changes"
+  },
+  "direct_missing": [
+    "synchronous per-creation ingress sink/capability, actual pinned FD ownership and external abort flag; arbitrary URL API must not become a trusted producer",
+    "typed plan/known callback correlation for exact rendition including OriginalContent, target deliveryContent, full/range, actual per-GET distribution proof, contentType, trusted capturedAt, expected response URL/status/headers",
+    "request fingerprint safe mapping for real publication query/custom headers; old whole background fingerprint currently refuses these inputs",
+    "ordered artifact event with safe token/observed identities only, never ephemeral URL or fabricated terminal",
+    "download live resource branch joining actual terminal separately from own source/copy descriptors; no source adoption after restart; closure receipt and lease release tied to exact context",
+    "import workflow copying bounded bytes into existing managed temp writer, closing own ingress source, then final exact UUID/current registration/rendition/use-epoch/removal/invalidation fence and verified publication; preserve original mutation on unknown commit",
+    "samewriter provenance for matching artifact/terminal/owner closure/target output so an untrusted copy cannot manufacture successful cache",
+    "snapshot/drain of in-flight pin/copy/import for REC/person stop; queued callback cancellation alone is insufficient"
+  ],
+  "minimum_writable_units_after_ownership_release": [
+    {
+      "unit": "known callback FD-pin and local artifact owner",
+      "files": [
+        "new Application/Ports/BackgroundDownloadIngressPorts.swift",
+        "new Platform/TemporaryMedia/ManagedDownloadIngress.swift",
+        "FrameRelay/Platform/Network/BackgroundMediaSession.swift",
+        "FrameRelay/Application/Ports/BackgroundMediaPorts.swift",
+        "new storage/domain ingress tests; existing native nonresume SDK test extension"
+      ],
+      "boundary": "normal strict rejection stays before attempt/lease/sink/task; pin success is not TemporaryMedia/SDK success"
+    },
+    {
+      "unit": "same writer completed-download import",
+      "files": [
+        "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift",
+        "new Application/MediaIO/BackgroundDownloadImport.swift",
+        "FrameRelay/Application/Recovery/BackgroundMediaRecovery.swift (reject-side only if needed)",
+        "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift or narrow import adapter using its existing writing port",
+        "exact download plan/artifact/closure types and store predicate/provenance files coordinated after chunk owner freeze",
+        "new import/store/drain tests"
+      ],
+      "boundary": "first full-file import only, explicit partial-range unresolved/coverage handling retained; existing streaming consumer is not restricted to full download"
+    }
+  ],
+  "identity_and_date_rules": [
+    "Correlate exact OriginalContent inside full RenditionIdentity; downloaded bytes must hash against rendition.deliveryContent, not the different Log original bytes. Existing synthetic originals/sentinels retain before/after hash+inode checks. Do not add local-original existence as download prerequisite.",
+    "Background task download intent and PublicationDistribution do not contain capturedAt. Use a trusted existing recorded date/typed input for temporary publication; do not invent now or use filename/Photos dates. Unknown remote date blocks that import/Photo handoff branch, not basic safe FD pin.",
+    "Partial range bytes never count as complete verified rendition until all exact coverage exists and the assembled output fullhash matches deliveryContent."
+  ],
+  "stop_and_unknown": [
+    "stop flag is set independently before enqueuing SDK cancel; worker checks before and after each <=65536 byte read/write and before writer publication",
+    "REC/person stop of unimported artifact joins worker, actually closes pinned source FD and any own output writer/reader; no successful temp is produced. Retain partial private leaves as unresolved; do not overwrite/reseed/repair or delete existing sources.",
+    "actual SDK terminal is still required for durable SDK-owner closure/transport lease release. Source FD close or cancel acceptance alone is not terminal.",
+    "if actual terminal is delayed, keep the exact lease and wait; if old/unknown owner or close/commit cannot be proved return unknown, never infer from empty dictionary/path absence",
+    "no reopen adoption of non-durable pinned FD: process death loses this capability; existing old intents/leases remain unknown, no automatic re-download/import"
+  ],
+  "needed_tests": {
+    "negative_and_synthetic_component": [
+      "known task exact vs old/missing/duplicate/reused description/session/kind rejection",
+      "callback pin returns before any media read/hash; synthetic source unlink after return still reads same FD, replaced pathname never followed; source mutation/truncation/symlink/hardlink rejected or fullhash mismatch",
+      "range/size/hash/Content-Type/Content-Range/status/response identity/timestamp mismatch and hole coverage produce zero verified success",
+      "cancel before pin, during bounded copy, after copy before terminal, and before final writer commit; actual FD close/retained partial; no leaked leases or invented terminal",
+      "UUID/registration/publication/invalidation/removal/use-epoch changes after copy and before final commit; lost exact commit/reopen retains unknown; does not adopt old artifact",
+      "event stream ordering artifact -> actual terminal -> own close/import metadata -> later finishedEvents drain; SDK terminal and source descriptor close observed separately"
+    ],
+    "actual_SDK_nontransmission": [
+      "unique new background session known suspended download; enumerate actual task, bytes0; native resume remains notExecuted; cancel actual task; await actual didComplete and session invalidation",
+      "no didFinishDownloadingTo expected in this nonresume case, so ingress/TemporaryMedia verified count remains0; do not manufacture a payload to call this realSDK positive"
+    ],
+    "still_unverified": [
+      "positive real didFinishDownloadingTo/source unlink availability and real HTTP response correlation are not exercised by nonresume tests",
+      "normal strict download start, real background network continuation, formal producer and all-media/device acceptance remain incomplete; no injection success is promoted"
+    ]
+  }
+}

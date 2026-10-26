@@ -1,0 +1,2528 @@
+{
+  "id": "DI-SOURCE-20261025-06",
+  "created_UTC": "2026-10-24T17:49:50.619796+00:00",
+  "sourceRevision": "64fc455c0af071234a04486b058065a1d01704fc",
+  "dirty_worktree": true,
+  "source_manifest_sha256": "4dd5e1988ca40067ccea2154d0c05f32dd4ded152bc6e4cb73a6922b74c5b022",
+  "code_input_fingerprint": "cd822c759afd928343c00fb8a9283377771a066090c6ae775ca3af7b1066237e",
+  "hash_definition": "SHA256 compact sorted UTF8 JSON files; excludes tasklist/evidence to avoid self-reference",
+  "input_counts": {
+    "steering input": 2,
+    "server support": 97,
+    "stable document": 6,
+    "App/Unit/UI/project": 372,
+    "total": 477
+  },
+  "files": {
+    ".steering/20260929-device-independent-implementation/design.md": {
+      "sha256": "503fb3c4135d825c6c4519cfd5844fcf8a6e81164021fb00cdb4e2cb11bebb9e",
+      "size": 50753,
+      "group": "steering input"
+    },
+    ".steering/20260929-device-independent-implementation/requirements.md": {
+      "sha256": "5ee0dfd1d99fe51756846b6aac9be553f0bbe95ee3944b47b603b10712d30ad8",
+      "size": 14085,
+      "group": "steering input"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/README-conversion.md": {
+      "sha256": "ee9a1259a721262b5f4047edd3898ddc6ab4b31d586afc9c2b05bc75df5ad895",
+      "size": 7404,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/README-publication.md": {
+      "sha256": "71afbe88229a5353b9d75dede6cb9c528c0c67b4d07b9a3edcf609fe12ce527a",
+      "size": 8093,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/README-storage.md": {
+      "sha256": "1290481788b3eef99ea2fa0ebec0dee6e617eb65d23efdbf587466911a9f8b12",
+      "size": 11035,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/README.md": {
+      "sha256": "51943e93f205f4097b6e9db5e2c2b90c421a5017c1305052ea52230f9d976828",
+      "size": 7404,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-conversion-overlay.diff": {
+      "sha256": "c70165df57a89862cabfbf3335f5ee3178e38d2e7f987beacf081c907c794384",
+      "size": 54045,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay.diff": {
+      "sha256": "fb2efffea7927d1041b8e0f6263142bc1eef54fe39c16c15dd0a6d560cab37a1",
+      "size": 41837,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/api/frame_relay_publication.py": {
+      "sha256": "02886996a9fb134e797a0d5fcdcb0597b54bd4830dea35150f5379a8e588e514",
+      "size": 5802,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/api/frame_relay_storage.py": {
+      "sha256": "824a4fec598f0dd515823905a26756197e2438b1e299e057c99249220e56b221",
+      "size": 3888,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/api/registrations.py": {
+      "sha256": "97dac737ea0c9b2e170da2c65e711acf1363f3d633494149b6a189cd75d2ae63",
+      "size": 2792,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/db/frame_relay_migrations.py": {
+      "sha256": "34322766ed836a7a6d7b65fdb51db4136a0bdca43132aefc3fc5118c051592b8",
+      "size": 3312,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/db/frame_relay_schema/001_registrations.sql": {
+      "sha256": "4ebddf580bca5141d77631419002871b06a7eaf406de4559abd9a3bc24b20735",
+      "size": 1574,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/db/frame_relay_schema/002_storage.sql": {
+      "sha256": "d2daf36dbc5780bd25adbe589f21e32ec419e95f39a96cbdc26b8923081f2287",
+      "size": 2890,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/db/frame_relay_schema/003_conversion_candidates.sql": {
+      "sha256": "5ab91e78a977aac51666257624e5a5ddf23b4bb8571e61846e601842763be698",
+      "size": 2299,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/db/frame_relay_schema/004_publication.sql": {
+      "sha256": "35723b0fba32c443261634043ce8d0127d1f9cdea080fbe03da053290468ea98",
+      "size": 7063,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/main.py": {
+      "sha256": "0fda5cc5cc8a964fe4b4eb7c3e3dd095014c86a0b2a59d1619afca87847cc85a",
+      "size": 3368,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/repositories/frame_relay_conversion.py": {
+      "sha256": "1790850659596ff27c5ff461ad36ec42f5b5a14431dbc2db0bd255fcd2abf2f2",
+      "size": 9350,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/repositories/frame_relay_publication.py": {
+      "sha256": "474b1fcd72f68aca4d5aa4a46360f9ede4b2846d7513ac38ed30d32eb581270a",
+      "size": 15561,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/repositories/frame_relay_storage.py": {
+      "sha256": "a04ce2960cbde636e55ccbb02c422a64b62848601930d6a7d9ababe818a7fa60",
+      "size": 14383,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/repositories/jobs.py": {
+      "sha256": "cd978d713fddacde23e69225640e54b1ede6c3af0db8a2a825e23d5280359bef",
+      "size": 9530,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/repositories/processed_results.py": {
+      "sha256": "4db134354893dca4fbc90deb23cfda689512162631904c72d43dc7e28e33a80b",
+      "size": 13008,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/repositories/registrations.py": {
+      "sha256": "75709099be921948aa19af49e6a2faae7bf95b997feae2c7f4fbc0d9375c00cd",
+      "size": 6075,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/schemas/frame_relay_publication.py": {
+      "sha256": "20caedcc20a0f5f136eb685409626512d0ba604311198ccc0ef7db2ded3979ad",
+      "size": 4702,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/schemas/frame_relay_storage.py": {
+      "sha256": "35870a1a797388e30daad03d041c3659adbc850f12c5c0165e6108fb5a711d01",
+      "size": 2428,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/schemas/registrations.py": {
+      "sha256": "56e3e04528e343f2f737b483831a5a9daf70854dc8b76b203fd2d6e24ca92046",
+      "size": 1569,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/asset_read.py": {
+      "sha256": "d4c8367ebeca4a3b742eeed0199d3c4c98459484cbc90e71830f6a764619d011",
+      "size": 15554,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/formal_preview_finalizer.py": {
+      "sha256": "6608c9415d2fbc25bc7501db974c01a5101d6c8d68cd688aa68c9f515c3b0d5c",
+      "size": 15059,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/formal_preview_processing.py": {
+      "sha256": "f44005c49bd97847e00b8e20017acc3c47c7d36ecc514499f626fa3e9a66e5cf",
+      "size": 23618,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/frame_relay_conversion.py": {
+      "sha256": "36f680277fe765fd47f271e5dd029080157db9b38f5412095beca5b7487b8ec1",
+      "size": 10648,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/frame_relay_distribution.py": {
+      "sha256": "0bc72b02ff4d1c610f15c99c7aa50bbde68c5ec3b209678d74bc9a211767f41b",
+      "size": 6340,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/frame_relay_files.py": {
+      "sha256": "24dcf5c800a8bd7ff91b5209935985008e5ac3071459e50172cccf26e59e66ed",
+      "size": 6493,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/frame_relay_finalize.py": {
+      "sha256": "c02b941ccca15f09ebfb2d3ec4851dd3385b84bdf05a5f3802ce2f4375775540",
+      "size": 8755,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/frame_relay_publication.py": {
+      "sha256": "0047d7ffaec2997dcdf285c960f10dabcd40d291501c28971f4113540ade418b",
+      "size": 16451,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/frame_relay_storage.py": {
+      "sha256": "51b63a6355a6022f6a9479e1f95ba568e3c106d4b91fe8fae482606a6cfd655e",
+      "size": 15977,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/phase2b_migration.py": {
+      "sha256": "1f247429844d8658f4b1025f8085017678a8443f20f8a8662cffaf73341b08fe",
+      "size": 10031,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/preview.py": {
+      "sha256": "a9f8b5e16e27c79cce5b4b367390c2d4e76890e09b2017b369666d28544d28c7",
+      "size": 12161,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/preview_stream.py": {
+      "sha256": "34f5dcf36c98a8d43b69913a9d5ce0d5bf231423bdacf19454c724adae8d62c3",
+      "size": 4332,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/processed_result_backfill.py": {
+      "sha256": "fb4c1de3e1bbd88cbef1ce7de5f1303e481a3ce21e03e6369f79b3eeefae5ce6",
+      "size": 7450,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/processed_result_delivery.py": {
+      "sha256": "a040d667754936866b5dd177c0e42f63527c73ea2748b7a2a93f5d8909f012fc",
+      "size": 12122,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/processed_result_finalizer.py": {
+      "sha256": "149ca58f11040267e9d18f56d500490cce8fbd32880de180dae7a917ec355a42",
+      "size": 4688,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/processed_result_stream.py": {
+      "sha256": "1ea1d732907c5509abbd7090c79fba04c54ccbb5771308eb74bf96d560eed0ad",
+      "size": 5722,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/registrations.py": {
+      "sha256": "0fbf49480264f8d661299be7a1244aef3ff3e33444c88847fe144454f8cabe2f",
+      "size": 1289,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/rendition_creation.py": {
+      "sha256": "081297f874e1841a440fa5d1f90c8ff423bd9adb5b0e671bee46fd78f1b0ec8a",
+      "size": 9766,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/rendition_finalizer.py": {
+      "sha256": "3018f1e6b037acd31b7cbd262acff7aee66d77a98d9b7766b5fe2bb8af4fd53e",
+      "size": 7754,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/rendition_processing.py": {
+      "sha256": "4a20594158c1fb74686cdc98bcb0eb831895d9b49cdfb2003086f27d1b911701",
+      "size": 11426,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/upload_finalize.py": {
+      "sha256": "4907590f81fa1c09dec57bc92072300e81b4fa64990ce7a6124ab3de7030f394",
+      "size": 13863,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/upload_sessions.py": {
+      "sha256": "fc5d11402ed2fd9525188165d62a4f8be9e01e2fee7c64612ba0b61ba9e4786e",
+      "size": 16657,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/workers/worker.py": {
+      "sha256": "76cf7deb029ea7dbd8d9bf982a73187bd629d3010ab4ccf61e0fc3bd8df0eae4",
+      "size": 3519,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/tests/frame_relay_publication_fixture.py": {
+      "sha256": "53fcc18fa00d1d0b972f2ad90012437098b5c03b152866faca8516d61b6ac69f",
+      "size": 6290,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/tests/test_frame_relay_conversion.py": {
+      "sha256": "3789d575c7b2333221be07e3b14c5238b37907f1ab18be3926ba2be07be37939",
+      "size": 24655,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/tests/test_frame_relay_inventory.py": {
+      "sha256": "a39b99853059ccb4e4d70d5bd09fa3accf148d2bbcf2685699b6688a3d5a35ee",
+      "size": 19234,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/tests/test_frame_relay_publication.py": {
+      "sha256": "1abe9811ab970e39f63a7dd30cc81364797ad107eff34cd768316c0cee78a2e9",
+      "size": 42338,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/tests/test_frame_relay_registrations.py": {
+      "sha256": "fa0ce426c3b3b3ca684c846a62b466556b9e27af9a299d0c92a31a264f8a224a",
+      "size": 22936,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/tests/test_frame_relay_storage.py": {
+      "sha256": "a7cd9760a85bae25e1e87932eacbe6686d15955123b3a276a882a2166a3adb8c",
+      "size": 40776,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/tests/test_worker_jobs.py": {
+      "sha256": "ffa822c7aaa9ddf2a3158665f7af58f9a0cba130b4a525e513258fe34e35b384",
+      "size": 8342,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-publication-overlay.diff": {
+      "sha256": "41376904cfa47acc261a4ca3f2fcaaab99389683ac371db826f4fa5fb50d10bf",
+      "size": 119917,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-storage-overlay.diff": {
+      "sha256": "f68fe8ab4854f40bdac758ca891b33ee593c3337153115a321c562e072b9f80c",
+      "size": 106084,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/cases-conversion.json": {
+      "sha256": "634be8320a4e053f2da404274316b951a1c13f3a0b70adb3d3267a9dc10b9571",
+      "size": 14487,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/cases-inventory.json": {
+      "sha256": "1646537866858741b27039ce2d8609f114e0b1575b10aebf749554579c2b5a89",
+      "size": 20190,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/cases-publication.json": {
+      "sha256": "0350a0aac443d8051281bfa7a254496e9cd5031296115042ac00adbea0725a0c",
+      "size": 18303,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/cases-storage.json": {
+      "sha256": "0b532602d782d7defafda416b7d663af56a2ebf40671699aa0204d50c89955e8",
+      "size": 12282,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/cases.json": {
+      "sha256": "e78646a40eeb6ea315d095475c1fe3816bb5497fda5adaf187f2b2dec7cb7b1b",
+      "size": 4032,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/prepare_conversion_snapshot.py": {
+      "sha256": "12de360b83a9c73a8baf68f97d093d1bf9d04c0bf173db24b16bfb5620071c8c",
+      "size": 13923,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/prepare_inventory_snapshot.py": {
+      "sha256": "5c3e9671692d3341d10733ef971a3acfa76b730de248eade90fe024f68700fc5",
+      "size": 11079,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/prepare_publication_snapshot.py": {
+      "sha256": "0a8f910d7aa6a238bd5e6574f430f79bb0994967963722ad0282fb6fdbed5a7f",
+      "size": 15510,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/prepare_registration_snapshot.py": {
+      "sha256": "66e19e2c83b21266ce1ebae77e2c640e18c79d56907cbfd78dee21b3277b57f3",
+      "size": 7634,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/prepare_storage_snapshot.py": {
+      "sha256": "85b2546a463a5e89966304d9eab0b2a7e0fe285583ca818acfae7eab06d4eb11",
+      "size": 13682,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/s27-wire-contract.json": {
+      "sha256": "455868ebe8d057ad32471a169396333c03cd1bcf2b4a4986f3147935f2617e0a",
+      "size": 14594,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/README-publication.md": {
+      "sha256": "c7538cd810e3a774d9f8344297fe59e303f8b0eace0b8fca528c3ce91f059974",
+      "size": 19138,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/README-rendition.md": {
+      "sha256": "1b15b3123112cbc15a691dcc33867ed4f32dae0ced289def8e67e218475de13b",
+      "size": 9585,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/README.md": {
+      "sha256": "25af2df7e0a95c5a0e2cbf2aed8c85a4584eeefb7e85773d3a04a29feecfdf43",
+      "size": 22699,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/cases.json": {
+      "sha256": "5194fdda15897fd3e18e99b1497934cfac4b024d6f570b9c08d68b8c2d952949",
+      "size": 1216,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/check_storage_guard.py": {
+      "sha256": "6d2bc6eebd477609b4546f7f8e46ee19732cd89730222ee111085e41801da628",
+      "size": 6424,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/isolation_guard.py": {
+      "sha256": "74015efc998eb3dc8fe45387bc65b9e9bb2bbacd24ece43991ee644eff2e8265",
+      "size": 18949,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/listener_lifecycle.py": {
+      "sha256": "738a43ebf7a7b88bebf9d0bb129e0d0fa8ff22801ad90f63dbe370c3cd28b632",
+      "size": 12707,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/listener_probe.py": {
+      "sha256": "55f37c0f4d0cb61450bed69ff3a29c969ba777f5c076fc0257b26ec0be26e255",
+      "size": 10408,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/prepare_inventory_probe.py": {
+      "sha256": "477ef2ec754d0e9de95c3d66d4ac7e4cb0239195a9254139819ebb1130bdf4bf",
+      "size": 33925,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/prepare_publication_probe.py": {
+      "sha256": "e841e196a571df8cefdce36b1cb0b162d304bd86e8ea3f02768b41c98d2c038c",
+      "size": 45304,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/prepare_registration_listener.py": {
+      "sha256": "5d658d5f62344bfdc317df42098d23fbbd7151fe4599128c31eee7574e34fa70",
+      "size": 12498,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/prepare_rendition_fixture.py": {
+      "sha256": "621a3cd833595f5b0f8cd883ee91add5df00918d0f46b05b85d97610888cbc8f",
+      "size": 12930,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/prepare_snapshot.py": {
+      "sha256": "51d6dea96a3e4e5f910b9a5e2dec44b70d5bfa5ba6e20900d7a5978ba52f0f9b",
+      "size": 4877,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/prepare_storage_listener.py": {
+      "sha256": "f4280c5814d1f7f5b8ccfa6dd15c9b62ee877284aff1a63ecb02edf5139fe3e5",
+      "size": 5242,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/publication_fixture_listener.py": {
+      "sha256": "fe2c3a874be6eb780db2cfeb455a8945412e077cbf08973657ee8f1f38a72133",
+      "size": 31524,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/range_probe.py": {
+      "sha256": "545eb1ffacd3deaccfd7cbcfd7d3f8bd601e6434a01f922b68da70a2998cad6a",
+      "size": 13227,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/registration_listener.py": {
+      "sha256": "7f87dfd93804dbdf1e327a2a04df5275e2a5e5b5281cb1ee3745d04b9d38fd0d",
+      "size": 15348,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/rendition_fixture_listener.py": {
+      "sha256": "d52c669b3812e53a263bc7c3c192c0a9a8c2b965e89abf1a0531ea91e4a0aa67",
+      "size": 18577,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/request_listener_stop.py": {
+      "sha256": "5cd8ca271d0151af97730953e3cbd8c14ef0e6ba95f80450f91fd2155af5624d",
+      "size": 2531,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/run_publication_fixture.py": {
+      "sha256": "a826dde9f517375bd8f57d301a805ee7dc3e3a9e68985ad708ba2422cb07311e",
+      "size": 14943,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/run_publication_simulator_probe.py": {
+      "sha256": "b670a8bfefc644096c597508556ccbae195a2812e89574054d9d4f56f22afd65",
+      "size": 15780,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/run_pytest.py": {
+      "sha256": "2d787626748eb4960f6bf24f54d3cf4afd67765502b2802145b73fabc4ce0f3c",
+      "size": 17822,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/run_registration_integration.py": {
+      "sha256": "abb736ba6c172601923cd2c70c0bab3dd19c63e61325732c69aad22bed2b2e0d",
+      "size": 14682,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/run_registration_simulator_probe.py": {
+      "sha256": "df6e09e5d398154f78893c9fbbdade7142244dc059ec35d761ee0f3ac81ecce6",
+      "size": 15287,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/run_rendition_fixture.py": {
+      "sha256": "f8d933b23909867b966284d7d596b29c654d31187af17653626919e5f56e5146",
+      "size": 15892,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/run_rendition_simulator_probe.py": {
+      "sha256": "246492336092e91126f917be3bd20b3a8deb013e101d15689ec6df877552dab6",
+      "size": 14935,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/run_simulator_probe.py": {
+      "sha256": "d45f7e0c08dbec6c0a40108b4304fa5f2715ae7420541b55a5e9ac1ae3038c21",
+      "size": 8189,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/run_storage_integration.py": {
+      "sha256": "ffdfc8a5a6b43b66bcbc74c5d2147f7f85a0ed6a5e08e4ea928457b39c46817a",
+      "size": 13748,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/storage_http_probe.py": {
+      "sha256": "fda1bb072ec429cd52297636240cb11d16d47b257e7d049502ec101529155227",
+      "size": 16262,
+      "group": "server support"
+    },
+    ".steering/20260929-device-independent-implementation/support/server-isolation/storage_listener.py": {
+      "sha256": "361bc816be758e4b52332215407ad6fdc530382b2fb35f660645c4ac3b98e77f",
+      "size": 13074,
+      "group": "server support"
+    },
+    "docs/architecture.md": {
+      "sha256": "5aaf78a67bbae47f30c06ce6a893d042b35fbd6def53210997f4749b0ce722e1",
+      "size": 137802,
+      "group": "stable document"
+    },
+    "docs/development-guidelines.md": {
+      "sha256": "6f91eb8cd9129119fc71693dd3dc4e9ab159dd843ef65857592fa1457405a105",
+      "size": 51037,
+      "group": "stable document"
+    },
+    "docs/functional-design.md": {
+      "sha256": "c19868b8fa30e88ec786c6b00b1e6ed0802602964c229c16926a0e32205b8a0f",
+      "size": 138119,
+      "group": "stable document"
+    },
+    "docs/glossary.md": {
+      "sha256": "512044c2fc4c18450d158b6ed616f9af6c3edeb73a7225c2b645145352b95fed",
+      "size": 64458,
+      "group": "stable document"
+    },
+    "docs/product-requirements.md": {
+      "sha256": "612423f6607d06a101737487374611c5677bff81032cc531f5b29d73c448df42",
+      "size": 98343,
+      "group": "stable document"
+    },
+    "docs/repository-structure.md": {
+      "sha256": "86c8250afc4481f5d5b2eb952b2218330c0e48b306cdcfebbffe17507a7ed714",
+      "size": 64646,
+      "group": "stable document"
+    },
+    "FrameRelay/Application/Capture/CaptureLifecycle.swift": {
+      "sha256": "ca182c491a944de11bfe1e7d37f3d4636bf1f8191e46bce36e43868d13e3bc72",
+      "size": 12533,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Capture/ExplorationCoordinator.swift": {
+      "sha256": "fd4d6c4754c245c2d8eda58342526622e69f6d0fd2f80a0bc6033be0d51170a7",
+      "size": 18422,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Capture/ExplorationTicket.swift": {
+      "sha256": "1ab9a6e6f6be6ec6530528b1b267b2928b9e863d9d488135c0a4183f9fc3db9d",
+      "size": 7606,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Capture/ProductCaptureConfigurationMatcher.swift": {
+      "sha256": "dee4b1e3300db2267f8fc181a7b85f5ec5da6ebc3bb28a43d14f513d41d3a8a6",
+      "size": 3643,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Capture/ProductCaptureCoordinator.swift": {
+      "sha256": "839c781b69c40533c2909e25a8e39ab397c96eaaa11b40a729a2a5e7726461c3",
+      "size": 53669,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Capture/ProductCapturePostSave.swift": {
+      "sha256": "f189158ab78b037a45e828abb305bd6c1e55cce779ceb9176f2a964394dd7405",
+      "size": 1707,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Capture/RecordingSaveLifecycle.swift": {
+      "sha256": "1e1d440ca2b033d56d0622e3cd39c5ed056fa230a2ded30dfbd4583faaaec0c0",
+      "size": 10787,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Library/LibraryCommands.swift": {
+      "sha256": "5ad6dc39163db472f8a29f6e4ffe405739e308c605a27903611ad8cf4153c0ef",
+      "size": 5065,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Library/LibraryMediaRequestCommands.swift": {
+      "sha256": "915d70f3b28092e084c1f8d54fb89f3499600cb10dd10e0ff6ad82692a65b439",
+      "size": 12488,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Library/LibraryPhotoReconciliation.swift": {
+      "sha256": "61c5e5fc90b3cc3754140a299e87e4dfc4209b44884ffd51193efccb5ac2a0f6",
+      "size": 7919,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Library/LibraryPhotoSaveCommands.swift": {
+      "sha256": "f6e570d055a2dfe3f59a58ed1566d30ec306f9942419ead21a262094ed9696e2",
+      "size": 6474,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Library/LibraryRemovalCommands.swift": {
+      "sha256": "6c7144c24c4ef3b9f427c6ea80bc09f12430aa5fa55c438a3fb86db306a8525c",
+      "size": 9683,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Library/LibrarySnapshot.swift": {
+      "sha256": "11a02d991a52a5a07a2e312a3347bb038820b2579e6319f81d6f911d99d85ee8",
+      "size": 24437,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Library/LibraryStoreReader.swift": {
+      "sha256": "f155b7caac615101160054b52768d5ef604d667a0d28f8f8d93a634b69da3072",
+      "size": 16166,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Library/LibraryTransferCommands.swift": {
+      "sha256": "cd4b497d45d659f1d239e1d948ff98be71f8069a49b859441d52593539275143",
+      "size": 5785,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Library/LocalRenditionSelection.swift": {
+      "sha256": "b25b83075f6a8aca6c022d6c2740375cc09f6e70d7786ddebb3a4ad36a7d4a77",
+      "size": 5076,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Library/RenditionPlaybackLibraryCommands.swift": {
+      "sha256": "8534ef53ccec92559f90ba17ca7f1fa7b42206116b5a765d24f0745c10a2f6a1",
+      "size": 3611,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift": {
+      "sha256": "18e559569ed7ad526d1de0a598889ab066e632b543a9bcc3e567cfb5fe6b8395",
+      "size": 72800,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaIO/CaptureMediaAdmission.swift": {
+      "sha256": "371f58f8b2e8faf61bf9e9bd436bc8326877ffb8f02b9eeaf9471ac94f6e36a2",
+      "size": 4094,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaIO/RenditionMediaScope.swift": {
+      "sha256": "ac4a1261aa38fe424659ab457b8a88beb4b34e70f341342322446c8d27d30489",
+      "size": 7169,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaIO/RenditionReadLeases.swift": {
+      "sha256": "244751794257667a98ed1580a9be89e4bac9898221bc4796684e5bed64c1cd92",
+      "size": 6792,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaIO/RenditionScopeRegistry.swift": {
+      "sha256": "d72dc1b90f383675ac3b1a7ba4aaa8aea43c2946aa724132441b066f53659644",
+      "size": 8770,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaIO/RenditionTemporaryRetrieval.swift": {
+      "sha256": "63a239c1fc5e8cbfd211d0e3bbeec1fea29a8063b57275df52e2024b2288cfb4",
+      "size": 1755,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaOperations/BackendOutboxCoordinator.swift": {
+      "sha256": "8dbca4ef70b68ebba61c44bc26d738a018f4347ce2db76912ec70361a0d4ea05",
+      "size": 3135,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaOperations/BackendStatusSynchronizationCoordinator.swift": {
+      "sha256": "e5ad973e9d06ce2529d6e0728d76743983a70310db674af697351fc2cfb5dbaf",
+      "size": 22620,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaOperations/CleanupCoordinator.swift": {
+      "sha256": "451200755e5a672f3169697678bba3efd05683e2823713082168a8731d08d356",
+      "size": 6613,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaOperations/DiscardCoordinator.swift": {
+      "sha256": "ef213ecf75f35092115ac2ecc687b311f79d46bf2581fb62c75f0ec422fc3e42",
+      "size": 5055,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaOperations/MediaConfirmationCoordinator.swift": {
+      "sha256": "7b209bcff580bcdbf3c8647a2e9620368ba87e604d8f4b9b30a9466fa6ef3bcd",
+      "size": 3217,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaOperations/MediaInvalidationCoordinator.swift": {
+      "sha256": "3fc5277ff84b1c7c766c2fb8c91cf2b17fb6ebfa7a53ce2dc2c0a3b6d59dc2df",
+      "size": 4708,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaOperations/OriginalUploadAcceptanceCoordinator.swift": {
+      "sha256": "d91e5d0af692ccee79cb691cdcb8bef51e7806156a5ff3edda7f299cb7ab86c2",
+      "size": 14081,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaOperations/PhotoRegistrationReconciler.swift": {
+      "sha256": "abbe687dd84a3aa9b809863add0d996356ed52eb59b9935b9b06f281fadd203f",
+      "size": 6411,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaOperations/PhotoSaveBatchCoordinator.swift": {
+      "sha256": "4b06d2c59d5170eb62e2a9d807ea99b2c5ff97c103bc316c1461b87b298533e9",
+      "size": 19689,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaOperations/PhotoSaveCoordinator.swift": {
+      "sha256": "185b0c9cd1eafcafa18742f612dffec330e8596598c184e6b459dd0dd07216ab",
+      "size": 17903,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaOperations/RegistrationCoordinator.swift": {
+      "sha256": "b4d494eb8e8d407071292f942f0bafdfa61c3961289755d7f9a560917c92617d",
+      "size": 16324,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/MediaOperations/RemoteInventoryCoordinator.swift": {
+      "sha256": "c14499479b8d03e1bfe5816c115043ce371dad9f8a4edb0df37054f7200b4e8a",
+      "size": 6716,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/BackendMediaPorts.swift": {
+      "sha256": "1135b3d771aa35525e0c64f4a44700472e8826652ec7cf46dd41e0ffb8d6130f",
+      "size": 4140,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/BackgroundInvalidationPorts.swift": {
+      "sha256": "846b855d9dc59fcc781262a9f74fc733309600360f20e5d477f3262ab673e0e2",
+      "size": 3848,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/BackgroundMediaPorts.swift": {
+      "sha256": "9e36606de5bf6b1660846c1687451cdf0109707710ad9feafbe30bf2ec44398c",
+      "size": 3328,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/CaptureMediaBoundaryPort.swift": {
+      "sha256": "5d81da2248cbf3a3425df9bcada44f2e1499ee2bb80cff825140a9b89fa34f85",
+      "size": 831,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/CapturePorts.swift": {
+      "sha256": "ce467f193d34623eb2016997b543b5e70e8df751d741ac7943b77b10d306d822",
+      "size": 6195,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/ExplorationPorts.swift": {
+      "sha256": "ad37eade0b7e76fa34df64fe866cbe45226556142ac7c98b3acda9a935e01316",
+      "size": 3121,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/LibraryPhotoSavePort.swift": {
+      "sha256": "ab9c4e73872f11c8d15b937143e0b71f0b249e0054a2054c73ba36a09715e59a",
+      "size": 649,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/LibraryRenditionPorts.swift": {
+      "sha256": "286b961c71730fdcf58420a566432759ca18a2545ce42855488e83a47f54fe97",
+      "size": 672,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/MediaOperationStorePort.swift": {
+      "sha256": "9b1f15c4f5515a51d536c84df754b89b33646589ce84859b4a8bce45771e5d32",
+      "size": 9538,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/MediaRequestControlPort.swift": {
+      "sha256": "fe10410a1f6a6242a50fd06890f0becc3c509ccaf0e92662afb2432b1c3eaa58",
+      "size": 1062,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/OriginalOperationOrderingPort.swift": {
+      "sha256": "bd0376a25aaf0036a7c08161fbeef73bcb5115f863baa7689b143eadadd6a33a",
+      "size": 1550,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/OriginalPlaybackPort.swift": {
+      "sha256": "99dd54537f1c13852d8cabb890d206f641774545e88984e31b9e0f4964b008c3",
+      "size": 3544,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/OriginalRemovalPorts.swift": {
+      "sha256": "3871328bdc67f4660fc1559d220fc5dab6ce41946e9a2fb9794098bc22c100ca",
+      "size": 17288,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/OriginalStorePort.swift": {
+      "sha256": "5ccde5f6ba4ec5a5723b5081c297b52812dc3f013bfb0aaba78cee36e7f01881",
+      "size": 7768,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/OriginalUploadAcceptancePort.swift": {
+      "sha256": "3a8dbffb1d356a3aa82ba047f23cbe97420bc87f6f502081e45b6f26d2112f40",
+      "size": 890,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/PhotoLibraryPorts.swift": {
+      "sha256": "efda199e3ccde0110e026adc3b69910e18a607d9d4fcdff16869fa783fcb1960",
+      "size": 2424,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/PhotoSaveBatchPorts.swift": {
+      "sha256": "f04f011cc405668198956f14ca766f4320877fa468795fda557ab6916e634471",
+      "size": 2065,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/ProductCapturePorts.swift": {
+      "sha256": "61a9c87a0a6d133422b98f874ca224731eccf2739ee85bd24862b0d07a1757f5",
+      "size": 3553,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/PublicationPorts.swift": {
+      "sha256": "2980eef94f74d14f5f8ce26084d951604b840b04d655cce76906e493ba7378b7",
+      "size": 3534,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/RegistrationPorts.swift": {
+      "sha256": "73faa18e0c1ec260f073af2ea04f2ea04c3f9c8a9290c55fad0ad12107ae78dd",
+      "size": 6443,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/RemoteInventoryPorts.swift": {
+      "sha256": "b61a6a734a9f2725c35a3497fbac999de8b19ee5dea8ac70e47a188d09422cb9",
+      "size": 1353,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/RemoteStatusPort.swift": {
+      "sha256": "ea072f7dbfa35ecedd954efdeb8130f47103d5cac5d5eaf67d8422ce1edbd570",
+      "size": 1511,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/RenditionMediaPorts.swift": {
+      "sha256": "9a183a8f95b17469e6d98c1b9e7dda1d7f64819067caeb07e1257618a5e9cc22",
+      "size": 3281,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Ports/StatusSynchronizationPort.swift": {
+      "sha256": "9e74bfaddbfb22801b31e5f7a311e0add6130c89ab2b8b1388c84c7839a813d9",
+      "size": 2648,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Recovery/BackgroundMediaRecovery.swift": {
+      "sha256": "cb489fb6b6f4f8ea9bd5c0142bc09c3e0b9dc8b705c5c5dd4f7f3ee3412f5661",
+      "size": 4072,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Recovery/CaptureAudioRecovery.swift": {
+      "sha256": "f9b8e9d0dcb54f3425abd546458628f5267e244ba87d1d5a155eabe41d6a98f6",
+      "size": 2909,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Recovery/OriginalRecovery.swift": {
+      "sha256": "cf1409dbfba9bcfdfebb4e28e8b46b65f826e657d8cb8a2a8a3af7ea1e672592",
+      "size": 1769,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Application/Recovery/OriginalRemovalReconciler.swift": {
+      "sha256": "dc05a71059b326146fee0f1548147e2dd79a6755f84bb3be4e210acbb7ce3b20",
+      "size": 1120,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Assets.xcassets/AccentColor.colorset/Contents.json": {
+      "sha256": "9af65086fa30b49252fae1a1225731691de794f7775af74d71befeb507d12b7c",
+      "size": 123,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Assets.xcassets/AppIcon.appiconset/Contents.json": {
+      "sha256": "d776cfae1b33325f70befa1b0fc5e5420c660655603409e8588d94fd8fc6e112",
+      "size": 607,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Assets.xcassets/Contents.json": {
+      "sha256": "0fd49ba3c3585c709678e0046a821c3c60685ec7063720d30d3a3448be3a208b",
+      "size": 63,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Composition/ExplorationComposition.swift": {
+      "sha256": "b6ec90aac2c3b543540e1efff7bc341d3f2c8916b8c014bf5b3bb7b8cf87bbeb",
+      "size": 4648,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Composition/ProductBackgroundEventRouter.swift": {
+      "sha256": "30e260ef42d2928ab2b7b81cfd5768041fe4b941594e299927f9648e0a664a24",
+      "size": 2894,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Composition/ProductBackgroundMediaFactory.swift": {
+      "sha256": "00dc39665e9d2c00c864833187067e8611ee42be62dd087c328926b9118766cd",
+      "size": 14429,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Composition/ProductCaptureFactory.swift": {
+      "sha256": "f15f7e47a8457e7dcb5f7769530893e14f2d7b88c293e6ce99df39aa843437c4",
+      "size": 6124,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Composition/ProductCaptureMediaBoundary.swift": {
+      "sha256": "3b2fb2a06ede5453b3a4cf57524ea9791f7ef818c890c1455703bad76986f06f",
+      "size": 1367,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Composition/ProductComposition.swift": {
+      "sha256": "d9552c7a9ba7bb7cb190460e6e1f1cca45aefd4dce7f134909b0269b334eabae",
+      "size": 10066,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Composition/ProductLibraryFactory.swift": {
+      "sha256": "480f8cb55b9ee966e38ba45be9c7d0c0df84c30d500ec901683be53cd46e0b2f",
+      "size": 3019,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Composition/ProductMediaTermination.swift": {
+      "sha256": "294d7af1668b96b09e42ff8cb4e16b5542fdfd776f92f4dce9cba6050b9c10aa",
+      "size": 5988,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Composition/ProductOriginalUploadAcceptance.swift": {
+      "sha256": "7cf1b57a4fd7cc45bd6f0adcb785cc1be7f202ede6b568933efa3c4ca4b7f0d0",
+      "size": 583,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Composition/ProductPhotoSaveBatch.swift": {
+      "sha256": "3560a4bd788f48c843a08d7a95cac456995e32a4981f7560165b8b4c1315dfac",
+      "size": 7869,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Composition/ProductRemovalTermination.swift": {
+      "sha256": "7b4abc88855b82fc9cd8d76b2d1cdd2e06a55aa8fdf59b3b72e13510b0f9fd2e",
+      "size": 10228,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Composition/ProductRenditionFactory.swift": {
+      "sha256": "7575cf258c246bb324e19be30dd9b4f10f90c2917bca298c3a78ce288d372ecd",
+      "size": 12516,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Composition/ProductStatusSynchronization.swift": {
+      "sha256": "20bfc5a165513fc2a36f0609523ee3ce5444eb31b3c89ecbd130bf40f08d3582",
+      "size": 10418,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/ContentView.swift": {
+      "sha256": "cc8ace3bb02f26c382905b25406383aab327d4c9cc945c8ecdb164cecb6dca4e",
+      "size": 4140,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Capture/CaptureAudioState.swift": {
+      "sha256": "72e90174be677e17a01058ad76cc7415de21647f580f308a6fedc9f4c31aef27",
+      "size": 2914,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Capture/CaptureLens.swift": {
+      "sha256": "0046683077f1e83aa2ae012df633dd99295560b98e9723f092362b8c4d45a779",
+      "size": 2406,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Capture/CaptureNDAdvice.swift": {
+      "sha256": "6a8a49682dfdf11d9fe60d3b96d7e3577fce42854d249ffdc81e4d99c4c3db7a",
+      "size": 8273,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Capture/CaptureObservation.swift": {
+      "sha256": "a4083e300e3a0ccf351f97f0645f105eedc1f2d80a31b02c574c10b13a016921",
+      "size": 3809,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Capture/CaptureSettings.swift": {
+      "sha256": "8295fe7aac7894d024677ce702ec741a7726cee8af0e36fbd68351c79dd3a6dd",
+      "size": 7967,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Capture/CaptureStabilization.swift": {
+      "sha256": "a0fe356b8576ba7aca49fe45b97f236f6e3bca38227787cad4f6923a22a7b9c0",
+      "size": 4156,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Capture/CaptureSubjects.swift": {
+      "sha256": "5a85595cc6b3ac761d9a6b2f0d787232aaba52e99f2282eed5272067bd337778",
+      "size": 12891,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Capture/CaptureZoom.swift": {
+      "sha256": "bebff7b7ea3d9a7c522d2dbf2af02ee74f18ac4913264f4f720bdc5ad0d2a32e",
+      "size": 6135,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Capture/ProductCaptureAudio.swift": {
+      "sha256": "30fa981f9791d0beefa0a059ed9921fafc924949d5a793355ec9d946c0be4a3d",
+      "size": 1263,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Capture/ProductCapturePreferences.swift": {
+      "sha256": "f0fc6201030dfb23de4364d46e3b3610be796157f0e86fdfe7a500414654a44b",
+      "size": 1378,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Media/ConfirmationRecord.swift": {
+      "sha256": "b6a479431fce416237e33d17ecdd6a476740e9712be1a0d2bef4f9a293e2a2ce",
+      "size": 7085,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Media/OriginalDescriptor.swift": {
+      "sha256": "86680c344bbe976c3c0bad18d1e97960fa5b48c788258b12cc0e077bdafc4ede",
+      "size": 2579,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Media/OriginalReadAccess.swift": {
+      "sha256": "a68f1c05a4a41496d2df29d2f103d5b122ed3aa56f22fcd4e83c2847dd3ddf04",
+      "size": 3829,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Media/PhotoRegistration.swift": {
+      "sha256": "cfd794d081089197fa2a959aadddf3e26443bd425a7bb93353f035afb75d04b3",
+      "size": 16637,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Media/PhotoSaveBatch.swift": {
+      "sha256": "7828b9a2394b777584b7093607ff144374e6fe1028d3a32f3f0333722857b262",
+      "size": 7801,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Media/PublicationManifestObservation.swift": {
+      "sha256": "011845a01877dd556cc4e2c12a38841fe0b0dca52e0121bfbb9525398bb438bd",
+      "size": 3194,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Media/RecordingEvidence.swift": {
+      "sha256": "88b4315c38ce1ae8d12cdd22d6bf0bfb191713938ebc5481724a5b5190a36731",
+      "size": 4636,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Media/RemoteInventory.swift": {
+      "sha256": "6150c13f0712d18d6df6dd87651c963a97fbda5870345d56915d8ca0ca9c2c95",
+      "size": 6014,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Media/TemporaryMediaReceipt.swift": {
+      "sha256": "86fbf25e91be4ab663edcd1c7e3d9649d52d7c22c8e1c1e17375c79d2794d8cd",
+      "size": 2447,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Media/TemporaryMediaState.swift": {
+      "sha256": "316942eb07953c0be32f4582b841336cd043c051eefe30ef8eb7617263a44583",
+      "size": 4895,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Media/VerificationEvidence.swift": {
+      "sha256": "98c089f52d3ece1c82a3a31d6aba8e3084b664a7a85d19af0700e3996021dfcd",
+      "size": 2986,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Operations/BackendCommit.swift": {
+      "sha256": "67603c4b6ff97b7173e0013ab6880d9209ea9ad17244e9d88e5e414c5c2274c7",
+      "size": 6099,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Operations/BackendIdentity.swift": {
+      "sha256": "b97f3255f4a387945a2551a58f4b8f90f10f4e2df53e25fdf177603ec0eaf030",
+      "size": 4037,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Operations/BackgroundMediaTask.swift": {
+      "sha256": "36000d5e4b48f205827bcf782db1928e14329466ef7696879f40b5d72248dbe2",
+      "size": 9514,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Operations/CaptureIdentity.swift": {
+      "sha256": "6c88e0202c2c72ff93b712f0bd41946912bd368af9e589578706bfb74588e0bd",
+      "size": 1869,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Operations/MediaPersonControl.swift": {
+      "sha256": "7f4fa260339c8e844c82f969fc09cd11ae24478f16bd42a379decc0d22ec3347",
+      "size": 5737,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Operations/MediaRequest.swift": {
+      "sha256": "bed184dd8d8a3e8faa80e9772077a38395d9cefb7c4d302259e458e3fbec6bce",
+      "size": 10383,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Operations/MediaStoreCommands.swift": {
+      "sha256": "21133d79dbcb2eb8eee0a60626024682e6f5b34a7451ab6df96464cdd37da1ab",
+      "size": 4722,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Operations/OriginalOperationOrdering.swift": {
+      "sha256": "d76a6ca17dc0d0741818be54837f124ed335337b0f20577e177f4646357dc616",
+      "size": 4129,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Operations/OriginalRemovalBatch.swift": {
+      "sha256": "0ded31fd8fcbf13f3b14ae0f68be691547954e5a88114f3e93b8f36864437f63",
+      "size": 2773,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Operations/OriginalUploadAcceptance.swift": {
+      "sha256": "36ae81920adcb1c8712decf6a50f824fa54ab9cfd4850092b60865282709f71a",
+      "size": 7872,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Operations/PublicationLedger.swift": {
+      "sha256": "bfd1ea9d18399184a5646aa667032e77d6dc487a3959baffb036ecd3575252db",
+      "size": 4434,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Domain/Operations/RegistrationRecovery.swift": {
+      "sha256": "8a01bbebdc38646864985a2c43963c4f6b87719d1f12b4a9502bcbb38c16eea3",
+      "size": 4783,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Capture/ExplorationView.swift": {
+      "sha256": "b632478398cc85e23773b521e6e5261db05562c182c01c521fd0f38e15ec27ff",
+      "size": 10450,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Capture/ProductCaptureAudioView.swift": {
+      "sha256": "efc3a2d117b1594f4203ffd45897567f1a270e11d9b58e812bc6a43faf4a3e27",
+      "size": 4593,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Capture/ProductCaptureNDView.swift": {
+      "sha256": "84fc063c04446763a586d36576f2e906a939cd9994657fc5e084273a9acd2ad8",
+      "size": 3546,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Capture/ProductCapturePreview.swift": {
+      "sha256": "abb8b78ea8a2d18ce48b0c1b3bff453d22854f21a15efb106729f860ce1cf7ac",
+      "size": 5452,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Capture/ProductCaptureSettingsView.swift": {
+      "sha256": "2b06cbf082c4f76295d17053bea54dea75b0e3ab93c59495099cef429e52b028",
+      "size": 14640,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Capture/ProductCaptureSubjectsView.swift": {
+      "sha256": "6be2d5d2387cc76a1f5df542fa6ea797aec6629dffb2ab403c0331a2a96e4f29",
+      "size": 5435,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Capture/ProductCaptureView.swift": {
+      "sha256": "d22c65fab6b9e7120ff5e1f8ecc1b81f73da64dc1e88a4aeba7bc33dc7d170df",
+      "size": 14837,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Capture/ProductCaptureZoomView.swift": {
+      "sha256": "61882b25e823345b36897a8b4118ed002496c020772985cd50e77dd8c17d8d33",
+      "size": 9030,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Connection/ConnectionModel.swift": {
+      "sha256": "ea84f938b0bd35624efd0c33fbb229ad9ca62b3119fdfcc55a52911b116534c7",
+      "size": 8151,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Connection/ConnectionView.swift": {
+      "sha256": "0edcfe0ae604ed4188d8668ae774bc20da218850d06969df531e019ba9729663",
+      "size": 20326,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Library/LibraryModel.swift": {
+      "sha256": "789a63f7f50ecdfa7f58f63f9e5793682c6db1a7c0b5fae83056c157b55f2587",
+      "size": 34848,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Library/LibraryView.swift": {
+      "sha256": "a169bbafa90cb8aeecde2fdf074150953cb376869bf4342733c3e4e22410551e",
+      "size": 59771,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Playback/OriginalPlaybackModel.swift": {
+      "sha256": "a9438d64580260faf457d8fc01ce47c9b397a14d1e7bc34ae601ede24ac1e18d",
+      "size": 3329,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Playback/OriginalPlaybackView.swift": {
+      "sha256": "867419fd4566b8dc58c31e468fca05e54c1450090fbbd30602e54d937ed3c9b8",
+      "size": 6557,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Playback/RenditionPlaybackModel.swift": {
+      "sha256": "12d210b03f54f1d3398e867b9cfb01a951dd708b461ec8b10d83919b38b1b187",
+      "size": 7635,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Features/Playback/RenditionPlaybackView.swift": {
+      "sha256": "9d2ebcfa4257a002c3a9cf6d583d04f6b9bf9f009eb69d60155863338532a20b",
+      "size": 8413,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/FrameRelayApp.swift": {
+      "sha256": "8479efae3134a6c111b432012fae3db33e0d43cdc4603b9e0b356155df7b6237",
+      "size": 418,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/CaptureCreationMetadata.swift": {
+      "sha256": "c728c8f5674a5792c0ed5b23aba361a7373190600ff6efdd65b5c8d75f036edd",
+      "size": 854,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/ExplorationCaptureValues.swift": {
+      "sha256": "5658e12f30db38609596b5c9878e3a8c29b43d3477c70de42096cae7547cdd2e",
+      "size": 2112,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/ExplorationOriginalDestinationPort.swift": {
+      "sha256": "f8b5cbbea335c8d0434f489ea16863c1c1de99848ecfe0f90a2cbd443466dc51",
+      "size": 334,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/ExplorationWBCommandOrder.swift": {
+      "sha256": "b2e9394a29d7fb5e505513796d7b4010a64fc505150b42855d0a8e5440a2f9ad",
+      "size": 3336,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/NativeCaptureAudioObservation.swift": {
+      "sha256": "464bbf93fde87f5d6bc30bbf2addb1263e171a071e27c46f0f5ad077f89e2946",
+      "size": 7969,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/NativeCaptureLens.swift": {
+      "sha256": "98c2a1acd7dd0abf707d8944ea4063c1db9576c1e6434dc66d51460047f9f63c",
+      "size": 2375,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/NativeCaptureNDAnalysis.swift": {
+      "sha256": "527cefb0f7d40a1534e05ed2c212c78309437e89da179b9092ebde36a90778b2",
+      "size": 2117,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/NativeCaptureNDPixels.swift": {
+      "sha256": "24437dece0bccd9d139ee7ce46fc366a2d08ba27083a390b215b459d7368dcc9",
+      "size": 10517,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/NativeCaptureStabilization.swift": {
+      "sha256": "286f821189adef03d380a873c26b3794457aba5cedd0f8df783816f4ed75b8f2",
+      "size": 1554,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/NativeCaptureSubjectAnalysis.swift": {
+      "sha256": "2e4d4f89af1d7be689b706f564590b42df024a97c59a05430224eeaa7e4082b6",
+      "size": 19221,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/NativeCaptureSubjectFocus.swift": {
+      "sha256": "825cac0422721faa1907afb4f3935f41913c82a3ef67739879dfeac040c44bb7",
+      "size": 2698,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/NativeCaptureSubjectGeometry.swift": {
+      "sha256": "9ded6eff90d0902fb24ec2693b8c2f8538f3d36d78cbdee81af798592b6c8331",
+      "size": 3006,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/NativeCaptureZoom.swift": {
+      "sha256": "ebfe5f1db9430821afbb1f5ae8049b9b4ed93be7dcd65707bdce9a2427aa72df",
+      "size": 3050,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/NativeExplorationCapture.swift": {
+      "sha256": "8cfc67b14e07775286c0975b870fbf24417ed9190c201b07c85ab0905b1ee077",
+      "size": 106929,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/NativeRecordingStartAdmission.swift": {
+      "sha256": "4090f7e044256b9efb1c2bb992285a5c3ad21bd51afd7671b94897002f26fcb3",
+      "size": 1463,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/NativeRecordingTermination.swift": {
+      "sha256": "4339f60fbc2c09444bdcc65b6bc79ae467eebab71d6ff87350609ed4fb4146fb",
+      "size": 1887,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Capture/ProductReservedOriginalDestination.swift": {
+      "sha256": "e9af869131b4be6b9ecb6268751810ead661a36dea70ef2ede5dd58e2eae92ee",
+      "size": 873,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Credentials/KeychainRegistrationVault.swift": {
+      "sha256": "3515d3b0dd45ff1f64c567dada7de472f85b1f96c081d7b6f2d0fc8462d3e119",
+      "size": 15565,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Diagnostics/ExplorationDiagnosticsStore.swift": {
+      "sha256": "0462c987c7726b27fa880ffce91d96315c3cb1735367ce25ebe5836276db22f9",
+      "size": 6724,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/BackgroundMediaStoreProjection.swift": {
+      "sha256": "1589c8bdd26e4a338527d52e251d37c81e36ac91f5fbef3a9dd55e92cd8ea1ed",
+      "size": 4273,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/CapturePreferenceStore.swift": {
+      "sha256": "d75765a2db0b1d35c9eebca12d3caff689d31d8501babaf87d367431c6f43557",
+      "size": 1741,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift": {
+      "sha256": "74f41be39d26d8421f5a2383f87829f169345e8c83fc8a9d11f735b12c3573e5",
+      "size": 25937,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift": {
+      "sha256": "24ce0ea35d237755ce5b0233802f2975f7eee14aeef33d019df6a27e87e57df5",
+      "size": 32077,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/MediaPersonControlStoreProjection.swift": {
+      "sha256": "90fd40e3bcbd3f98550c73d393e1cfa89e17376a29c0cf0874c9571c01eed520",
+      "size": 6046,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift": {
+      "sha256": "0b4f9b2561e5230c0dcc0fbece06feec6bec174b2e091d3d4c96fdf2dc474702",
+      "size": 9844,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift": {
+      "sha256": "f556813287c28b47f04ddbf4eb936c23aaace8b39f3be9f13c0d52c3f131a12f",
+      "size": 9300,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/OriginalStoreDocument.swift": {
+      "sha256": "42cd56b9b566fc274c04094d69a79b314a7b01e67dd2a9a24e0ad415b86fc226",
+      "size": 13254,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/OriginalUploadAcceptanceStoreProjection.swift": {
+      "sha256": "075b37d1994c28c4f745a54b28be2e8a23f4bfaf98e1ec69c27efcdc12e68de9",
+      "size": 9660,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/PhotoSaveBatchStoreProjection.swift": {
+      "sha256": "0de3bca0a8275c959205e8b8066a9cb32dd7e196d76327521cb27a353baa67d8",
+      "size": 17408,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/PhotoStoreProjection.swift": {
+      "sha256": "cb08fe7eea05b5bae51cba4cef044ac36158b9ef36b049cdd866151b92a88715",
+      "size": 10744,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/PublicationManifestStoreProjection.swift": {
+      "sha256": "f58c80536fdcf2671d58f1c7a6815efc03ecdd650d3c97015d69f3f32581b91a",
+      "size": 3221,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/RecordingStoreDocument.swift": {
+      "sha256": "c928630a55775209bc65a5b10854998a4ee6eada58afc0d10ffb3ff090afab89",
+      "size": 16136,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/RemoteInventoryStoreProjection.swift": {
+      "sha256": "300b47847ce2501c6d75e2d9fbae50824dcc3135df6a0f362448e49ee3cd055e",
+      "size": 648,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/LocalStore/TemporaryMediaStoreProjection.swift": {
+      "sha256": "440f5953fb892b690e4df3db26c63b3405d4b201452c0deca35f33fd5fb8a609",
+      "size": 6376,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Network/BackgroundMediaSession.swift": {
+      "sha256": "a9f7d4c3abd73ad9a21774fb592657fc3ee0f15746564197c503ef87e03f4ffd",
+      "size": 20585,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Network/FixedRenditionHTTPClient.swift": {
+      "sha256": "ad72d2b4e879747743977dd052431d0e5a1f1080c1997e510d6355b24e117503",
+      "size": 8323,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Network/FixedRenditionRangeReader.swift": {
+      "sha256": "84ddf58aa4b1e9a149706c9feb05eabd243b15b717a645deafe733dc48806895",
+      "size": 13764,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Network/NativePhotoStartNetwork.swift": {
+      "sha256": "83709d1eab1e40683c7351df29482450430fecddaa4702321e6d956963c14108",
+      "size": 1699,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Network/NativeUploadStartNetwork.swift": {
+      "sha256": "c58755596716e20a052632c5bbb3fd1fa0e6836822c621dee12b555f90e2918c",
+      "size": 467,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Network/PublicationHTTPBinding.swift": {
+      "sha256": "98a6e6c028b4f79342eae62cc21b4751b4edbffd8a5c532745782f052aa01089",
+      "size": 9038,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/OriginalStore/AVOriginalInspectionAdapter.swift": {
+      "sha256": "9fc68ceb4a4fd088046101c9e187524287ee8ef9cfb44a99836c34781786cd3c",
+      "size": 7708,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/OriginalStore/ExplorationRunDirectory.swift": {
+      "sha256": "10e1e4cee591d36c8418fd5a88cac499f70c763c6bb117041ac82e0ad19ba089",
+      "size": 3844,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/OriginalStore/ManagedOriginalAccess.swift": {
+      "sha256": "3b3c4d977699413caea978e56351770ac5e7f0e1a7592a3a9b47fd08098d2f62",
+      "size": 29263,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/OriginalStore/ManagedOriginalReadHandle.swift": {
+      "sha256": "2ea7c2b39ea9037b8397fab71ea1350aa760cd9505e4ac19889c50a9e2e6bd45",
+      "size": 8036,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/OriginalStore/ManagedOriginalStore.swift": {
+      "sha256": "91cdf322cbf24cbba15b38574f6a98487a27f340e48dc25702f183cea434675e",
+      "size": 13475,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Photos/NativePhotoLibrary.swift": {
+      "sha256": "f7780da131f26f30bbe58ad203cd920335bfd975fb9c73a58a6a9050ccca6883",
+      "size": 7962,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Playback/AVOriginalPlayback.swift": {
+      "sha256": "b3aa5a7d6fd66816b68f89434fc455fbc0cfbe14891fb8dc3ffa7a0cb2f2b1ff",
+      "size": 29632,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Playback/AVRenditionPlayback.swift": {
+      "sha256": "0ce7d22c9bc1d3ed650868c7860e13d9bb0b72ed0832dad1c91f6c7b6d62b78c",
+      "size": 14547,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Playback/OriginalResourceLoader.swift": {
+      "sha256": "71ead2dd60f1bb0780d792647ff77b44f0f4288026ed20bbd9a1a96842de3ea6",
+      "size": 7939,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Playback/RenditionResourceLoader.swift": {
+      "sha256": "167b1ba7d47acd5b3bcc7ef7e2b49fb3b0cf9df154451ee5dc71e73c50251fce",
+      "size": 4512,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Remote/PublicationWire.swift": {
+      "sha256": "e2e5a5467dfedef21f067b452f55fe600af4cb8f75881ff5e69a90cbe68656a5",
+      "size": 20285,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Remote/RegistrationWire.swift": {
+      "sha256": "d8872b027f7f77afa5b2812a85badfe5e6b66aeea4753f2a55dd83eb55f8276f",
+      "size": 4721,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Remote/RemoteInventoryWire.swift": {
+      "sha256": "a90a9aee84b51bb38336c1c3bc000db3507017dc16fb739bfb24e4ca8401cc30",
+      "size": 3807,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Remote/URLSessionPublicationRemote.swift": {
+      "sha256": "0e73a37d797d15b9d97b0919b6bfb0fe81a993e36be3358beff694bdc406894a",
+      "size": 15169,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Remote/URLSessionRegistrationRemote.swift": {
+      "sha256": "8724d392f1815514c39600f2ae7db4d784e70fe2ffbb3885ac7ce9b9a2cdf34a",
+      "size": 13166,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Remote/URLSessionRemoteInventoryRemote.swift": {
+      "sha256": "799a23d1ec26f8ffef877f844a9de9da9ac65951beaaefce75c07f01be2aa05b",
+      "size": 3452,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Render/CaptureDisplayPipeline.swift": {
+      "sha256": "36f49faa31fd0392baeb228453dbda8ded0a23706b012aec013245eafa1fb0be",
+      "size": 4828,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Render/CaptureDisplayRenderer.swift": {
+      "sha256": "5f666ec1accbd380de439ac8e078cd15071d2aab53a7cfda9c4ed2f5d1eec2a8",
+      "size": 3427,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Render/CaptureDisplayTransform.swift": {
+      "sha256": "4f4bec7bad6ea8ba41e46b80a5f1c5428f0d302620c6d3cd8fb7bdb8caee4a93",
+      "size": 3162,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/Render/ExplorationDisplayBoundary.swift": {
+      "sha256": "4f966daa23bba10ad63a264c696ab51d868cb85712a27f45ab748733c0fde67d",
+      "size": 954,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift": {
+      "sha256": "ae5e51b5abb530f1c33289dc3b9ca1b5715185ae969e640fb2f78468603e353e",
+      "size": 42011,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/TemporaryMedia/ManagedUploadSource.swift": {
+      "sha256": "cb2ca69b165fc762f21684badc663160d4945e72b65448bb3d9fb45c6b553398",
+      "size": 20701,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay/Platform/TemporaryMedia/TemporaryRenditionReader.swift": {
+      "sha256": "8eddc47d5581df77f42ea268692aef0631d71b42de1215980af954c43e2cba13",
+      "size": 4051,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/BackendContractBoundaryTests.swift": {
+      "sha256": "42604fc3585ae10702121837f44050bde1a19671bad067d02c19c7b540aec28c",
+      "size": 13639,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/BackendStatusSynchronizationCoordinatorTests.swift": {
+      "sha256": "f4759df8b336f7813d8851ae9102b60079adb2c06db9604d30922647df897bc4",
+      "size": 23629,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/BackgroundInvalidationTests.swift": {
+      "sha256": "481562f453adff318fd4bc4496305fe7bb7090732aed7f4743d310dc9b035130",
+      "size": 32108,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/CaptureAudioRecoveryTests.swift": {
+      "sha256": "82aed08b2ce5317d74663b8c0b4342f943ee0c16a7b3378e6f22f3a8cebd256e",
+      "size": 2057,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/CaptureLifecycleTests.swift": {
+      "sha256": "89ac2ba8abc8cadf1a391f9aa6dfe2707745f187b739734a9b5234ca57a28f39",
+      "size": 10638,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/CaptureMediaResumeAuthorizationTests.swift": {
+      "sha256": "3aac17ef2ddc52bebbd3d487e002315420b347628aa436ba61cbeb4e5890fd15",
+      "size": 5505,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/ExplorationCoordinatorTests.swift": {
+      "sha256": "6db4e1b62bf259ef605939aaec2dc113eff16be720dab6deaa8e73eabdf20d6c",
+      "size": 23994,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/Library/LibraryModelTests.swift": {
+      "sha256": "686ff189448e7ccaf4a3aebe49e24d70673419b61a79b21b0abed62dcf7c6694",
+      "size": 12511,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/Library/LibraryProjectionTests.swift": {
+      "sha256": "200760eb86c6858a54e87679e678bd43c41651f0ad45af32fd0d8d93184c7ab6",
+      "size": 6737,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/LibraryMediaRequestControlTests.swift": {
+      "sha256": "5463e0bcea53e5aef02fcf24abb9f78d369f1630b6983eac329fdc8c601c34d8",
+      "size": 22342,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/LibraryPhotoProjectionTests.swift": {
+      "sha256": "30ad3544b5fa3d964a5a9bddc406311f57935da156088fe7ecda72c3e89a069b",
+      "size": 16923,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/LibraryPhotoSaveTests.swift": {
+      "sha256": "4b1fbda70160ec3af75a5d5ba9f643ca3f74b8b0cdfe23fbe77dddee7737b51c",
+      "size": 8013,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/LibraryPublicationProjectionTests.swift": {
+      "sha256": "d46a26670006b6809296ee81fca494ce8513b1eb21204b3e494620bd5fa6a886",
+      "size": 6680,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/LibraryTransferCommandsTests.swift": {
+      "sha256": "fece91fa855c9d1facde484f056cb2b49da158401a12e10e179aee1920140668",
+      "size": 11250,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/OriginalUploadAcceptanceCoordinatorTests.swift": {
+      "sha256": "7ffe5e834382c78252e37e3cfbb31108fc87f6b13d45046bf4c2582c3c5a25b9",
+      "size": 24728,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/PhotoSaveBatchCoordinatorTests.swift": {
+      "sha256": "ed1533b2b82236f38d063dc10c8ed4055d2a041d2d560421fe017aff5df421d1",
+      "size": 14377,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/ProductCaptureAudioCoordinatorTests.swift": {
+      "sha256": "dcbd50997e69319e4aef84271626d9c958c9ebdedfe4537488104480fae7c8f9",
+      "size": 10237,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/ProductCaptureAudioLifecycleTests.swift": {
+      "sha256": "4e30c327bb1f6424862d8ba97ed67a3d6ae61da0d81a335918cca2ec9b89e908",
+      "size": 3612,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift": {
+      "sha256": "5b08d98e7d0792c00127a608610df978a3c29f60eb10a984ad2b97bb0298d52f",
+      "size": 48921,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/ProductCaptureMediaBoundaryTests.swift": {
+      "sha256": "19dc222a70c38c4031de19eac1e81fb4ba7aaf854a8cb107dea8d3a8d3a0044f",
+      "size": 20671,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/ProductCaptureNDCoordinatorTests.swift": {
+      "sha256": "1e0054744671f79dee4a62df92fd189656039667fce0e113fdf6e9d8d866d2a3",
+      "size": 8332,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/ProductCapturePostSaveTests.swift": {
+      "sha256": "28cb6bd724c441ca034ac2ca2866e0ddfe3c9e30e6f7350a81f73cfb5c68b03c",
+      "size": 10224,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/ProductCaptureStabilizationCoordinatorTests.swift": {
+      "sha256": "51298292138954479d5ab75632baabddc24eab39bd45218146738fd070464150",
+      "size": 12203,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/ProductCaptureSubjectCoordinatorTests.swift": {
+      "sha256": "9aeaeff754afbd75331ee53e5f75b191237dc455de107964e50ff2beb9947b05",
+      "size": 11667,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/ProductCaptureZoomCoordinatorTests.swift": {
+      "sha256": "405304a5abb854cd9cc68213662c70e607dc88d08736a7685f0cbc1b5179b717",
+      "size": 17678,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/PublicationManifestSynchronizationTests.swift": {
+      "sha256": "ce28f2da77eb453506ec53101b16cd58811b45c17050b88b1180cf054d3c4d97",
+      "size": 19839,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/RecordingSaveLifecycleTests.swift": {
+      "sha256": "55caed655db3bfa28817671ed610d1acebf9b1921c661af654abeb6831df0774",
+      "size": 3788,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Application/RenditionPlaybackModelTests.swift": {
+      "sha256": "af5cffaa03648accb27ceab49f0d90a478797b6bad791c63517d18e581d687b8",
+      "size": 11935,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/BackendEvidenceRulesTests.swift": {
+      "sha256": "b5d0b74e714a30dea6bd66dae6d4ab10f0a4d19bef33bb02116314e4109aaa05",
+      "size": 8712,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/BackendOperationRulesTests.swift": {
+      "sha256": "64d088dd2f002e7280f00458493ae4d73695fcfa13216c5a2d4642df3104f42e",
+      "size": 24840,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/BackendPublicationRulesTests.swift": {
+      "sha256": "31e2248bd986aae7193d161982ca15296807ec29288d3973acb49fde4b6a165c",
+      "size": 14560,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/BackgroundMediaTaskTests.swift": {
+      "sha256": "0f419b48c5618cbe44a9e75b66707e7327d1dcbdece826f279dc910bb2b2e9fb",
+      "size": 9520,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/CaptureRationalTimeTests.swift": {
+      "sha256": "58cce3bd792f6531e9619e058650f02097c560fc0448fdebc27c15f0173d2f8a",
+      "size": 1754,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/CaptureReadinessTests.swift": {
+      "sha256": "004aac6bd97cecb32354782e8e0bb1c31c9f6c171106d7d80a25f636ff3d688a",
+      "size": 5416,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/CaptureStabilizationTests.swift": {
+      "sha256": "91152502c20f6cb959c422c57e11748e3e375b578d1a24aefeb8365bb4eaa6f7",
+      "size": 7596,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/CaptureSubjectSessionTests.swift": {
+      "sha256": "4269497f06d595ea4327c44153c7e0b09a9e2ecc67cac96373cfa6a215332f35",
+      "size": 12571,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/CaptureZoomTests.swift": {
+      "sha256": "c5cdb10e46bf6e4fb66e1024cd4a77ea4c7ffe19c925320e747a33902b92546a",
+      "size": 7075,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/MediaPersonControlTests.swift": {
+      "sha256": "fc624db13596ea5de1d53637c27ea6daa0228dc3491f71ea39b67d9da0b6bbda",
+      "size": 6211,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/OriginalUploadAcceptanceTests.swift": {
+      "sha256": "e6d0f2ef92bbd25f18edd428f62ddc8d250fd1797de34c17ed66276d77d5a0ee",
+      "size": 10864,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/PhotoRegistrationTests.swift": {
+      "sha256": "250b34c729f094afb39064c25147f73576a034c7f2d17ebcab9fccf66a358af2",
+      "size": 9567,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/PhotoSaveBatchTests.swift": {
+      "sha256": "bd03dd90c1d32faa5a2d9f350db35a0b6b6d28ff77023bf58a3c5477d9335534",
+      "size": 6555,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/PublicationWireTests.swift": {
+      "sha256": "89f0173a8671671e8885ef69bde96928d52a8b4918c78c9f0985e6d71b833fed",
+      "size": 5564,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Domain/RegistrationWireTests.swift": {
+      "sha256": "ff431d732f717e93d540037ef944e1a2a838c8edc212cb44e7d1761ed0c3191c",
+      "size": 5588,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Fixtures/Subjects/mae-jemison-1987.jpg": {
+      "sha256": "620342c6bc8c0988fb68f5d16dbbad7a6f5939de26d17c16f9585733db3ee904",
+      "size": 186717,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Fixtures/Subjects/provenance.json": {
+      "sha256": "c00b01485b2f38a4cb2474d5c69e600dd8b478c488978bf07825eaf162573d8d",
+      "size": 1212,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Fixtures/Subjects/sally-ride-1979.jpg": {
+      "sha256": "6fda465c0f6b11333888d03322229709ec49c9b51163b7d125b0553d914c7cc2",
+      "size": 198624,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/FrameRelayTests.swift": {
+      "sha256": "8efbc6912f732d07e5a6035e5b3ac422537335b3791bf488cf9a1731c4c4cd9f",
+      "size": 411,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductBackgroundCompositionTests.swift": {
+      "sha256": "48aa2010ecfd98326731640219864e9bddd7792219c4f11a82d421a25a372526",
+      "size": 13899,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductBackgroundInvalidationTests.swift": {
+      "sha256": "db3e5d1195e85d7033ad2f79193d5076ba99100cd26a7ef5e0dd2a265794b46b",
+      "size": 17178,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductCaptureAudioCompositionTests.swift": {
+      "sha256": "dd23757314f1b957a2646741612506241db8a86d1f9aeddd91743c71d41fea72",
+      "size": 3970,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductCaptureNDCompositionTests.swift": {
+      "sha256": "376e122f4b92a1b500dbc6cc19dd5f24d1d7b05c258cfd4a9bd241f9438f7f38",
+      "size": 9699,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductCaptureSavePlaybackTests.swift": {
+      "sha256": "0b1b0ec736b821903beecd7f298909fa33d78513b68d1aa859e05587bb806bff",
+      "size": 9583,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductCaptureZoomCompositionTests.swift": {
+      "sha256": "c9def7497c36ee70b86a7a0f728adb01e6e437efc1c08dd942c175236be22412",
+      "size": 1790,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductCleanupCompositionTests.swift": {
+      "sha256": "91e6b5cdb4ac3e92ad644085f3a96662e3fca94807e288082b50e3ee81ad30ec",
+      "size": 21311,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductCleanupSeedTests.swift": {
+      "sha256": "402435e61fca55ec6f30b560ae8ab71e6781c2a8ce27c7294921be05a94e4b5e",
+      "size": 7636,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductCompositionTests.swift": {
+      "sha256": "82ba1fed1b84fb4c987ffe381a0684513e7e1e64b35b8cde3fa17026049eb227",
+      "size": 7147,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductHistoricalRemovalTests.swift": {
+      "sha256": "6bb8097299fd0c3f6414ebf58bd0d09d3b07525ea551329a54e621fc88f4da62",
+      "size": 24926,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductLibrarySeedTests.swift": {
+      "sha256": "62afe3d129e867524717c78ef69d2c45e39c8fc75225619a6c844e566661b46c",
+      "size": 14814,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductLocalRenditionSeedTests.swift": {
+      "sha256": "179ae2ec304ad537bd203458b6a7cc2b8b55f5c5f872d793c771aeea73d4a94a",
+      "size": 18300,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductMediaRequestControlSeedTests.swift": {
+      "sha256": "c2b81d1b826ae3c20f0c05d2c1d1e3d9bfa5e53fb8244143e74d5632190147fe",
+      "size": 34099,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductMediaRequestControlTests.swift": {
+      "sha256": "115281d9d2c790794f23ddeab483c9492a9572fed7d1e899c7a0325770369ec8",
+      "size": 28147,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductNewRegistrationSeedTests.swift": {
+      "sha256": "ad0771f47145bcb312b11a452e4c3fd87121d798c3a057c613ad0abf06cbed0e",
+      "size": 11112,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductOriginalUploadAcceptanceSeedTests.swift": {
+      "sha256": "eace5ee0f08cca07395d55695b9e2ef64dc99b923df11f09d4a378d46dcada7f",
+      "size": 30528,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductOriginalUploadAcceptanceTests.swift": {
+      "sha256": "c976819a5083f9b5d485a727bc3fa3dccae7cb67d092641c1c5407a3666d5ebf",
+      "size": 13299,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductPhotoCompositionTests.swift": {
+      "sha256": "ea8d3eedd142d802ed8a34315e3a1049058e3aad50ac6ccf9eaac6be00f0b37a",
+      "size": 12901,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductPhotoSaveBatchSeedTests.swift": {
+      "sha256": "bf34e3a4b9334863495b7cb4b8de042731c0e7b6b67b45bdd5dfb720b65ca63f",
+      "size": 33151,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductPhotoSaveBatchTests.swift": {
+      "sha256": "178f54f93299298ebee6ce48a188ad00eb193a03deaeccdd9a2fabc576436e01",
+      "size": 22518,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductPublicationSeedTests.swift": {
+      "sha256": "8d246945737d8b3f22e6024c979b82ad8de670020f1ab2c495024dc04c572ffb",
+      "size": 15695,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductRemoteInventorySeedTests.swift": {
+      "sha256": "3c35c8fe94ae98b217180d60185e5fad241838c0a2fb7803dc0435496ba94d93",
+      "size": 11463,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductRemovalCompositionTests.swift": {
+      "sha256": "c477fdf73f1b630ce3098afc21dd2046da3f07e0dd861a08184886099063d336",
+      "size": 26737,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductRemovalSeedTests.swift": {
+      "sha256": "68bf90b48d6780e04f9c275a7b66034197def591002b701c462fada17592f1f4",
+      "size": 8348,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductRenditionCompositionTests.swift": {
+      "sha256": "7f816b1fdb7aba033f998ea801b1dcffe190c4e9336958c92038742e7a98bb96",
+      "size": 12692,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/ProductStatusSynchronizationTests.swift": {
+      "sha256": "16a45f06d2ea0196ac7f831eb3383197dc0e7ec12ebc4c09d855539b5e24c4b6",
+      "size": 30599,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Composition/RegistrationCompositionTests.swift": {
+      "sha256": "61e9f88d4e2479266fd05859f42afc5f25ed0c886f6b2606e208c7ccf10a5393",
+      "size": 3385,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/DiscardIntegrationTests.swift": {
+      "sha256": "c28d1edbb886f6561dccdf62f23bdf15d7a11c0aed3b4f1573d8624a8738ce6b",
+      "size": 21278,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/OriginalCleanupTransportFenceTests.swift": {
+      "sha256": "bd8ba572c7b8b74b84a43e3ee4f91a0cc1a1b231359ba77d1ce020df4c33e422",
+      "size": 10252,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/OriginalRemovalIntegrationTests.swift": {
+      "sha256": "ed8d24d3620f44c10cfd1096da8b3ee7ff4d4e3f707de429b8180b9332930805",
+      "size": 24526,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/OriginalRemovalTransportFenceTests.swift": {
+      "sha256": "9f8699fe5357c5bb25f56594961272a35ecb682df35653d10d4869db374f1ad9",
+      "size": 24831,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Photos/NativePhotoLibraryTests.swift": {
+      "sha256": "13753316bd689d5d2abf17e34e8fc6a7c5739aeae32dee70be31e6f25888f80f",
+      "size": 21566,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Photos/PhotoSaveCoordinatorTests.swift": {
+      "sha256": "d07a9580b8372221423ae8a6bb5726c10b07a7e478adfde9ea3873ca628299ff",
+      "size": 18740,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift": {
+      "sha256": "a626346ffc6137823e4212c9e8fa2881e82f6523cf2fd07fb95f83871c6e1f48",
+      "size": 11672,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Photos/PhotoTemporaryRecoveryTests.swift": {
+      "sha256": "aab7cf6eef3b134ad17a1e46fb15072beb6d2be090c4d4b6cf00192639ece9b4",
+      "size": 21899,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Photos/PhotoTerminalRecoveryTests.swift": {
+      "sha256": "2d79e12fcd99db9aa49645c6735cfed87cef331aabba12fbfebe58859f640cb3",
+      "size": 29308,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Playback/OriginalPlaybackTests.swift": {
+      "sha256": "11c6ba2699714ec9455b6f04fcabe57cbf0de61d655e054f95309e2a3480e972",
+      "size": 22015,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Playback/RenditionPlaybackTests.swift": {
+      "sha256": "0af29cc78ad45701f702c3a534022026ac9556163b85b8a687f344f986717e49",
+      "size": 6179,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Publication/PhotoInvalidationBoundaryTests.swift": {
+      "sha256": "7a96d594007b3f99eeb5111770a119a381e13dbf0511c4afc23caaf89821cd78",
+      "size": 22314,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Publication/PublicationCoordinatorTests.swift": {
+      "sha256": "ce2defdb8db16efdbd5d6c40df1bc429692dd929f36ef33b6650d581500ecf5e",
+      "size": 11232,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Registration/KeychainRegistrationTests.swift": {
+      "sha256": "408c15731a4f932cb46fd9092a14792b555ff6f501821f8494c7ebc1d910cfef",
+      "size": 10999,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Registration/NewStoreKeychainTests.swift": {
+      "sha256": "2ad8671501a8bef4475204afc96ace3d6b91db40bfdc5152da98ebad1681d18d",
+      "size": 12499,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Registration/NewStoreRegistrationTests.swift": {
+      "sha256": "910ae01b43b71533307b4b21e7bc785bc8fe12a35ed873cfe8e452dd56bf5110",
+      "size": 13100,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Registration/RegistrationCoordinatorTests.swift": {
+      "sha256": "a16a04be71d942a71810277912fc3a46089e42fbc9bfb6351b9646fcece6120c",
+      "size": 17851,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Registration/RegistrationServerProbeTests.swift": {
+      "sha256": "f5da36e851f48dc007821a1755fd97e04d898767ae34dfbf51861f993612ce24",
+      "size": 14533,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Registration/RegistrationTransportProbeTests.swift": {
+      "sha256": "6817221b7d96b811b0b2d982aa3a33700b25d149661ebbfc889ef007343c204f",
+      "size": 4338,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Remote/BackgroundCaptureResumeTests.swift": {
+      "sha256": "bf40b64ce6527c5dd56ea8a7c7bca7fa5da707887cc1bc8774e6a1c96231a6e9",
+      "size": 4561,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Remote/BackgroundEventDrainTests.swift": {
+      "sha256": "ab3679c8eef552076198a1881be648d6aade9e66717af1e4c4b100251ef4b6ac",
+      "size": 51134,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Remote/BackgroundInvalidationTerminalTests.swift": {
+      "sha256": "c34d10dc405fd3c974b032be7878bb5c906c5450d210a926a2a7f94cfe0935ea",
+      "size": 21536,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Remote/BackgroundMediaSessionTests.swift": {
+      "sha256": "17abd3c016652aa323c8ecfbf9b8345f09120f70b6e2b7347444a889c5e76f0f",
+      "size": 19009,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Remote/BackgroundRemovalTerminalTests.swift": {
+      "sha256": "b4b5d14ed28e7efc8d68d1c7b40ee5607559695e156dd3f7ebadc795f86b6467",
+      "size": 26831,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Remote/LegacyServerPlaybackProbeTests.swift": {
+      "sha256": "31111ad2ac014225eedcf238a48e386ecdd671f6c733c5cb1a6070c3ce4df625",
+      "size": 14729,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Remote/LegacyServerProbeSupport.swift": {
+      "sha256": "9de651760e84657ac71ed5440023350171a83f2d89064bd253a43a51bd42d301",
+      "size": 15679,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Remote/PublicationHTTPFixtureTests.swift": {
+      "sha256": "ff34dfbadf18423f92e4531c8a43f4bccfb84cb161fec1ab4e71219913ce18f2",
+      "size": 13943,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Remote/RemoteInventoryHTTPFixtureTests.swift": {
+      "sha256": "73398e43a473591e914a3ac8ff0101861dda0bb8cd7651ec14580607858d2308",
+      "size": 9779,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Remote/RemoteInventoryTests.swift": {
+      "sha256": "6ae72f7adacf4e26fc74b56ed7741691c829aa8818e3ea3687a9790693bf4947",
+      "size": 20438,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Remote/RenditionHTTPFixtureTests.swift": {
+      "sha256": "5b7a7e422bfbce858ff12001744cb92ec799149d9741733605b6b57cc5042850",
+      "size": 15937,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Remote/RenditionRangeCacheTests.swift": {
+      "sha256": "e80696303ca3abc21be43754b408923fd560bd8a79365e54c096972022fb60df",
+      "size": 11939,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/BackgroundMediaStoreTests.swift": {
+      "sha256": "b568e4df1c1230d683405fcf38ac9896a47216675d73aa9bb77cd9f74d76348b",
+      "size": 27825,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/LibraryStoreReaderTests.swift": {
+      "sha256": "ef319cf6937d6bca4a66b1d1df8ecd23579062f74b2d30519ab4593c329c0852",
+      "size": 14948,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/ManagedUploadSourceTests.swift": {
+      "sha256": "df114ad52f32b4cfa65d0ae6fdd5ca1e25063e20a65c9d9c976fa4aa07a91e28",
+      "size": 23900,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/MediaOperationStoreTests.swift": {
+      "sha256": "3d390f2e0d936ecab80b6e99f1bbdf218ddbb9de3c20a4329cd0c656a2ff3d1d",
+      "size": 41351,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/MediaPersonControlStoreTests.swift": {
+      "sha256": "053ae2e08207545fb9b0b3b206c94e032f4ae48a9e08288156b6292ca40735f7",
+      "size": 27601,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/MediaStoreLegacyMigrationTests.swift": {
+      "sha256": "e3f605b08c45a2719c3669ae1a6947b755b375411e91de4771beb8079bbdf90a",
+      "size": 17405,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/MediaStoreRequestPersistenceTests.swift": {
+      "sha256": "9e1961349b59dcb2891f07f7fd9a8617860779ff1ae78c5907d2a1d3fbf06fcf",
+      "size": 21977,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/OriginalBindingStoreTests.swift": {
+      "sha256": "873c59c7667124d4693e3bbe7b7bb1e9a500e2c4b90ca959327ef4dc661531e8",
+      "size": 8281,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/OriginalInspectionReaderTests.swift": {
+      "sha256": "3a53114f80812e623eb4b06c3f113adcd4970b24535c2aeee5db8cf97d0adf85",
+      "size": 2527,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/OriginalLeaseOrderingTests.swift": {
+      "sha256": "8e3e21c8566dd74b115d4425d8ba90e2c73bb7611c2b4114c51ba71d1c66a191",
+      "size": 24294,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/OriginalRemovalBatchTests.swift": {
+      "sha256": "9e0f769191938d51dcbae7ab318126b222070254e0235afcce41c40c68600ee9",
+      "size": 7752,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/OriginalSaveRecoveryTests.swift": {
+      "sha256": "2e4ce305946881e14cd8874ed143b9236a1e7af96ed8364ee2381fbe22078d65",
+      "size": 16481,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/OriginalUploadAcceptanceStoreTests.swift": {
+      "sha256": "0d0720d609044a06354da53c385e78b49dc342840cc4b630e4c5c82247ee02c2",
+      "size": 47258,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/PhotoRegistrationStoreTests.swift": {
+      "sha256": "d79124d1180840f3139b631d8dca99815897875ce306bc9a8e416a50244010c9",
+      "size": 27144,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/PhotoSaveBatchStoreTests.swift": {
+      "sha256": "1b4e00b39e7fda7d46f8a7caf4989c5af9e89beb2d5aa2ef0a853ce6c935962e",
+      "size": 37513,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/ProductCapturePostSaveStorageTests.swift": {
+      "sha256": "39fc321e96180a188bcc8bd46c7316b7bb53753791d5416979f6ff4ab0d032b5",
+      "size": 7605,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/ProductRecordingPersistenceTests.swift": {
+      "sha256": "94161859d84ba54c94440c49947501d55ddf8e504533d987382a7f63ff583532",
+      "size": 13934,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/PublicationManifestStoreTests.swift": {
+      "sha256": "7fff399ee8d3d41e1b4d8c3ccc3d47e79950b80da26a81eab5ab2f64730c57f9",
+      "size": 12026,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/RecordingStorePersistenceTests.swift": {
+      "sha256": "13d7e94bba2af721ab2a4185028009a67c567970f29648910c9bdcfa0e09777e",
+      "size": 6524,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/RecordingStoreTransactionBoundaryTests.swift": {
+      "sha256": "b567b0df4d38f1b4d63a8aafd9cf8f67ba87a373fd19ba5447c34b3e602712dd",
+      "size": 8913,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/RegistrationStoreIdentityTests.swift": {
+      "sha256": "da1b3d0d1828dbbb0638e630449b2199eb0a2b23c834a194f2cf282dadcf5e18",
+      "size": 10322,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/RemoteInventoryStoreTests.swift": {
+      "sha256": "a5d56e1bb0782e8344e54dfbd64fcaac8798ad97f87d3d6f929181c80408818b",
+      "size": 14918,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/StatusSynchronizationStoreTests.swift": {
+      "sha256": "191c4ee97d3505d44fbc93c8a4c4bc863d0f16e775d6bd127b763c47198a10d9",
+      "size": 10460,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/TemporaryMediaRecoveryTests.swift": {
+      "sha256": "c1392acc635bffaf238030cca7e6cc295f6171c508e57e3d8d73942d75174c10",
+      "size": 14775,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Integration/Storage/TemporaryMediaTests.swift": {
+      "sha256": "884ecda420785a6c2a595ec34ccb28c856319a1cd57131b0904bdad1bbb16e0b",
+      "size": 10725,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Capture/ExplorationWBCommandOrderTests.swift": {
+      "sha256": "6957faedcc12e05bf94c97759db38ba3e228e5ca30dc8a348b4f9f01928678ba",
+      "size": 5757,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Capture/NativeCaptureAudioObservationTests.swift": {
+      "sha256": "b760f2aced21d0467c062d9977cc12ed6567c0f15cefa302a862abf4ad904a00",
+      "size": 7890,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Capture/NativeCaptureLensTests.swift": {
+      "sha256": "4b3fd796c096bf7faf5471ae42cfab054b0159616b99e3a088259203a15371fc",
+      "size": 2386,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Capture/NativeCaptureNDTests.swift": {
+      "sha256": "ac89f7eb0b34416a6333d1c112863eb1e8310cafbe336ed791b57a2b31de27f4",
+      "size": 16881,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Capture/NativeCaptureStabilizationTests.swift": {
+      "sha256": "27437a5b5753b71f0bc2900ab5d0c2966705bdeffadb20b934c0c0c876628e4f",
+      "size": 1933,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Capture/NativeCaptureSubjectAnalysisTests.swift": {
+      "sha256": "12527651c6dd04b950b5c8434f0b611a91e0695e654ca2547e20624e92879902",
+      "size": 11488,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Capture/NativeCaptureSubjectFocusTests.swift": {
+      "sha256": "f2a910f2dcffaa1714d4b60170df4e583c2bd9b8f3e67af22d36360713fbfe4d",
+      "size": 1648,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Capture/NativeCaptureSubjectGeometryTests.swift": {
+      "sha256": "a4c3527813b98cc8b8117869a0f74d9f38ebf3098088cd6611025cee9bbadc2d",
+      "size": 2937,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Capture/NativeCaptureZoomTests.swift": {
+      "sha256": "f1292d5cf1d5fe7ec2cbd81f93a650960247cd12851fe34c9faa06921777d8d0",
+      "size": 1998,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Capture/NativeRecordingStartAdmissionTests.swift": {
+      "sha256": "46b84d8c055602904a86d94b3a7d8d344a4f3db7b21ad1112d447a86f47340f0",
+      "size": 3942,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Capture/NativeRecordingTerminationTests.swift": {
+      "sha256": "28d8a7ccbb2e970cf9ba503515c0aafbc475017202783d509cba8b0539903cd5",
+      "size": 11372,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Capture/ProductCaptureSettingsTests.swift": {
+      "sha256": "92bda9b565cefb7c9687ba7003c7fa88c655a27298cfe0f11089797fac22f30b",
+      "size": 5684,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Render/CaptureDisplayTests.swift": {
+      "sha256": "4acf659359932ee3bf5a1dd5cfb5dc749e9dbd597b9202915e77eec9dc0eeeea",
+      "size": 15346,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Storage/ExplorationDiagnosticsStoreTests.swift": {
+      "sha256": "6d0e7cbe6275579c9be6c19bdcab94ea21750e10560c6878cd13e3c85b43c52b",
+      "size": 5950,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Storage/ManagedOriginalStoreTests.swift": {
+      "sha256": "190598c4ac5b5b95bbbe28a9c6bd5608e8a8b4fef7aade80acfc2324c56f0dfc",
+      "size": 4425,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Storage/OriginalPresentationSpanTests.swift": {
+      "sha256": "e0f292e2c3393d6e35c1de506e2b3d415ad436c5a3e1420ee77faefe18d7b31d",
+      "size": 1766,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Platform/Storage/RecordingStoreDecodeTests.swift": {
+      "sha256": "5cf5fa3b8979f66c0ac106b3a6015214b5787957aaf2ad62cd288c5712a9c43f",
+      "size": 3962,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Support/BackendContractFakes.swift": {
+      "sha256": "e1ee68b3f06480e0c4d9ec4d9bcdc24e2b0210eb6f105e3371ee1aca193ae31d",
+      "size": 9154,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Support/BackendEvidenceFixture.swift": {
+      "sha256": "b460dbcc8e59767d0ab4cce14be5e20bff08e307a942454900282b73d173db8a",
+      "size": 5669,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Support/BackendOperationFixture.swift": {
+      "sha256": "db4d7646d32cb8dc373c943734ea73ec1b774bca79796d56787b57d70e4446a9",
+      "size": 8025,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Support/CaptureFixture.swift": {
+      "sha256": "e3ad5f9451b04e447d9e6bb122cd4049755c61af921975f8f99f44749064076a",
+      "size": 7117,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Support/OriginalRemovalFixture.swift": {
+      "sha256": "2382cbe9f391795623dc952e1bae26c2c86e361d61814ca72adace7a0fb92113",
+      "size": 14614,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Support/ProductPhotoSaveBatchFixture.swift": {
+      "sha256": "560fa7770993d241048597228e20d25432754400956a8d7e49908bd40e6ad1b9",
+      "size": 8428,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Support/ProductRenditionFixture.swift": {
+      "sha256": "e951893514cbb64848d0c01ed970b7c368ff9a2606b9478545f5c980648a22fe",
+      "size": 8056,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Support/ProductRenditionPresentationMovie.swift": {
+      "sha256": "30ef53d5fabd7b23fcbedf439c2c24f616d609601f005a64f3c3ed0f2332efa4",
+      "size": 4498,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Support/PublicationFixture.swift": {
+      "sha256": "08a0df2113ba51d93321287b5319921373d7b1c1ce256ef6799e6b1be6764dfd",
+      "size": 9360,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Support/RegistrationTestSupport.swift": {
+      "sha256": "05ecb226ea808878afa5ad08a2945bcdd4ae0df5e6bf04a750033201b6c2f31f",
+      "size": 5283,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Support/RenditionFixture.swift": {
+      "sha256": "eeedc9e4169c02dbf4cf604cf73f1e78ef03eca7d85121e2686995b584070fe4",
+      "size": 5588,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Support/Storage/StorageFixture.swift": {
+      "sha256": "fef44f10f1dd7a299f505eeee12142e8e68d3f6c87632ec9fa0818345c016e05",
+      "size": 2342,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Support/Storage/SyntheticMovieFixture.swift": {
+      "sha256": "31a6313c76712967f9815fbb982027c1f85ff9c5c9fa00957918d2dfbfc87e59",
+      "size": 6771,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayTests/Support/TemporaryMediaFaultStore.swift": {
+      "sha256": "6ca7acca5e3adc8c00d456c1c6006b77a2b59b70104abe92fa875f272fdfd2d5",
+      "size": 2467,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/CleanupFlowTests.swift": {
+      "sha256": "211054206f184253aca71f86e4a05e4ca4844b476ccde1253201a81af42fa855",
+      "size": 13777,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/ConnectionFlowTests.swift": {
+      "sha256": "3729987ab5df1c3899723befe4f74baadc2b994ddecc0cb0930623b9a7262333",
+      "size": 5207,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/ExplorationFlowTests.swift": {
+      "sha256": "f25ad201331738926de606feb7551f00303477f962d4630a4c920fa59355da84",
+      "size": 2252,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/LibraryFlowTests.swift": {
+      "sha256": "9c79a5304b830b56083dd4ed267b0eeac00a2322e407eb3314f9b2242b3c9804",
+      "size": 50245,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/LocalRenditionFlowTests.swift": {
+      "sha256": "fb09b8867536c7a975d5dc1232e7acceaeccdf89a07d394d44a54da220311e95",
+      "size": 33635,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift": {
+      "sha256": "184faf8c00af663ef74a9f65d07c56a5b3c3550cd1eeb2f89b54c6a68335f236",
+      "size": 37838,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/NewRegistrationFlowTests.swift": {
+      "sha256": "d07e51b2ea49047405db8e6759f970cf68865f2e55aba06514ef6c1880723dfc",
+      "size": 10391,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/OriginalUploadAcceptanceFlowTests.swift": {
+      "sha256": "6f99a94af8252c58e9cdfe2eda5c9db21e5ce5f2aad72549e60d7c743fc42c80",
+      "size": 37577,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/PhotoPermissionsFlowTests.swift": {
+      "sha256": "8cd7212a239aefc9dec545d197e658be125645730fdc8a482a3029f6a03202a9",
+      "size": 1731,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/PhotoSaveBatchFlowTests.swift": {
+      "sha256": "80e32ccccf71b69b5bafed057a3d7a00f6cd08d4ba616cdc9aeaaac4b41cb760",
+      "size": 40027,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/PlaybackTestCleanup.swift": {
+      "sha256": "250ecb87638cc8704b46bd5ba742f422fbdd63ac147f1a8c9bfddf3cb6c50d9d",
+      "size": 2446,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/ProductCaptureFlowTests.swift": {
+      "sha256": "48ee17496b562956e16873a29572cacfb22e9e5b5c66b3844b12bbeeb2b6d980",
+      "size": 8889,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/PublicationFlowTests.swift": {
+      "sha256": "c45576362643e808bcaa2c5a34c6013f104f0407e8974581056028e1ab166b7a",
+      "size": 12720,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/RemoteInventoryFlowTests.swift": {
+      "sha256": "7b460cdaa028ddf60e6a0652b3d9ac33b95be19dc879494db9492e47b358bcd8",
+      "size": 8639,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/Flows/RemovalFlowTests.swift": {
+      "sha256": "b0fa6c8eefd12fbde2cd5402a6a06035fef817a3ef5625db3210e15a3354fcd6",
+      "size": 19787,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelayUITests/FrameRelayUITests.swift": {
+      "sha256": "fc1a91aebc50087b00fdd9f71e33821151a3cb574a5d3aeab043f2e915c8c4fb",
+      "size": 1422,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay.xcodeproj/project.pbxproj": {
+      "sha256": "0ca7490404ea81bf128eda16a7d5d2095c9dfd9a8ca1784dbbb832110049aee4",
+      "size": 21872,
+      "group": "App/Unit/UI/project"
+    },
+    "FrameRelay.xcodeproj/project.xcworkspace/contents.xcworkspacedata": {
+      "sha256": "7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f",
+      "size": 135,
+      "group": "App/Unit/UI/project"
+    }
+  },
+  "previous_binding": {
+    "id": "DI-SOURCE-20261023-02",
+    "changed": [
+      ".steering/20260929-device-independent-implementation/design.md",
+      "FrameRelay/Application/Library/LibraryCommands.swift",
+      "FrameRelay/Application/Library/LibrarySnapshot.swift",
+      "FrameRelay/Application/Library/LibraryStoreReader.swift",
+      "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift",
+      "FrameRelay/Application/MediaIO/RenditionMediaScope.swift",
+      "FrameRelay/Application/MediaOperations/BackendStatusSynchronizationCoordinator.swift",
+      "FrameRelay/Application/MediaOperations/PhotoSaveCoordinator.swift",
+      "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+      "FrameRelay/Application/Ports/PublicationPorts.swift",
+      "FrameRelay/Composition/ProductBackgroundMediaFactory.swift",
+      "FrameRelay/Composition/ProductCaptureMediaBoundary.swift",
+      "FrameRelay/Composition/ProductComposition.swift",
+      "FrameRelay/Composition/ProductLibraryFactory.swift",
+      "FrameRelay/Composition/ProductStatusSynchronization.swift",
+      "FrameRelay/ContentView.swift",
+      "FrameRelay/Domain/Operations/BackendCommit.swift",
+      "FrameRelay/Domain/Operations/MediaRequest.swift",
+      "FrameRelay/Features/Library/LibraryModel.swift",
+      "FrameRelay/Features/Library/LibraryView.swift",
+      "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+      "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift",
+      "FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift",
+      "FrameRelay/Platform/LocalStore/PhotoStoreProjection.swift",
+      "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift",
+      "FrameRelayTests/Integration/Composition/ProductStatusSynchronizationTests.swift",
+      "FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift",
+      "FrameRelayUITests/Flows/LibraryFlowTests.swift",
+      "docs/architecture.md",
+      "docs/development-guidelines.md",
+      "docs/functional-design.md",
+      "docs/repository-structure.md"
+    ],
+    "added": [
+      "FrameRelay/Application/Library/LibraryMediaRequestCommands.swift",
+      "FrameRelay/Application/Library/LibraryPhotoSaveCommands.swift",
+      "FrameRelay/Application/Library/LibraryTransferCommands.swift",
+      "FrameRelay/Application/Library/LocalRenditionSelection.swift",
+      "FrameRelay/Application/Library/RenditionPlaybackLibraryCommands.swift",
+      "FrameRelay/Application/MediaOperations/OriginalUploadAcceptanceCoordinator.swift",
+      "FrameRelay/Application/MediaOperations/PhotoSaveBatchCoordinator.swift",
+      "FrameRelay/Application/Ports/BackgroundInvalidationPorts.swift",
+      "FrameRelay/Application/Ports/LibraryPhotoSavePort.swift",
+      "FrameRelay/Application/Ports/LibraryRenditionPorts.swift",
+      "FrameRelay/Application/Ports/MediaRequestControlPort.swift",
+      "FrameRelay/Application/Ports/OriginalUploadAcceptancePort.swift",
+      "FrameRelay/Application/Ports/PhotoSaveBatchPorts.swift",
+      "FrameRelay/Composition/ProductOriginalUploadAcceptance.swift",
+      "FrameRelay/Composition/ProductPhotoSaveBatch.swift",
+      "FrameRelay/Composition/ProductRenditionFactory.swift",
+      "FrameRelay/Domain/Media/PhotoSaveBatch.swift",
+      "FrameRelay/Domain/Media/PublicationManifestObservation.swift",
+      "FrameRelay/Domain/Operations/MediaPersonControl.swift",
+      "FrameRelay/Domain/Operations/OriginalUploadAcceptance.swift",
+      "FrameRelay/Features/Playback/RenditionPlaybackModel.swift",
+      "FrameRelay/Features/Playback/RenditionPlaybackView.swift",
+      "FrameRelay/Platform/LocalStore/MediaPersonControlStoreProjection.swift",
+      "FrameRelay/Platform/LocalStore/OriginalUploadAcceptanceStoreProjection.swift",
+      "FrameRelay/Platform/LocalStore/PhotoSaveBatchStoreProjection.swift",
+      "FrameRelay/Platform/LocalStore/PublicationManifestStoreProjection.swift",
+      "FrameRelay/Platform/Network/NativePhotoStartNetwork.swift",
+      "FrameRelay/Platform/Network/NativeUploadStartNetwork.swift",
+      "FrameRelayTests/Application/BackgroundInvalidationTests.swift",
+      "FrameRelayTests/Application/LibraryMediaRequestControlTests.swift",
+      "FrameRelayTests/Application/LibraryPhotoSaveTests.swift",
+      "FrameRelayTests/Application/LibraryPublicationProjectionTests.swift",
+      "FrameRelayTests/Application/LibraryTransferCommandsTests.swift",
+      "FrameRelayTests/Application/OriginalUploadAcceptanceCoordinatorTests.swift",
+      "FrameRelayTests/Application/PhotoSaveBatchCoordinatorTests.swift",
+      "FrameRelayTests/Application/PublicationManifestSynchronizationTests.swift",
+      "FrameRelayTests/Application/RenditionPlaybackModelTests.swift",
+      "FrameRelayTests/Domain/MediaPersonControlTests.swift",
+      "FrameRelayTests/Domain/OriginalUploadAcceptanceTests.swift",
+      "FrameRelayTests/Domain/PhotoSaveBatchTests.swift",
+      "FrameRelayTests/Integration/Composition/ProductBackgroundInvalidationTests.swift",
+      "FrameRelayTests/Integration/Composition/ProductLocalRenditionSeedTests.swift",
+      "FrameRelayTests/Integration/Composition/ProductMediaRequestControlSeedTests.swift",
+      "FrameRelayTests/Integration/Composition/ProductMediaRequestControlTests.swift",
+      "FrameRelayTests/Integration/Composition/ProductOriginalUploadAcceptanceSeedTests.swift",
+      "FrameRelayTests/Integration/Composition/ProductOriginalUploadAcceptanceTests.swift",
+      "FrameRelayTests/Integration/Composition/ProductPhotoSaveBatchSeedTests.swift",
+      "FrameRelayTests/Integration/Composition/ProductPhotoSaveBatchTests.swift",
+      "FrameRelayTests/Integration/Composition/ProductPublicationSeedTests.swift",
+      "FrameRelayTests/Integration/Composition/ProductRenditionCompositionTests.swift",
+      "FrameRelayTests/Integration/Remote/BackgroundInvalidationTerminalTests.swift",
+      "FrameRelayTests/Integration/Storage/MediaPersonControlStoreTests.swift",
+      "FrameRelayTests/Integration/Storage/OriginalUploadAcceptanceStoreTests.swift",
+      "FrameRelayTests/Integration/Storage/PhotoSaveBatchStoreTests.swift",
+      "FrameRelayTests/Integration/Storage/PublicationManifestStoreTests.swift",
+      "FrameRelayTests/Support/ProductPhotoSaveBatchFixture.swift",
+      "FrameRelayTests/Support/ProductRenditionFixture.swift",
+      "FrameRelayTests/Support/ProductRenditionPresentationMovie.swift",
+      "FrameRelayUITests/Flows/LocalRenditionFlowTests.swift",
+      "FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift",
+      "FrameRelayUITests/Flows/OriginalUploadAcceptanceFlowTests.swift",
+      "FrameRelayUITests/Flows/PhotoSaveBatchFlowTests.swift",
+      "FrameRelayUITests/Flows/PublicationFlowTests.swift"
+    ],
+    "missing": []
+  },
+  "governance": {
+    "AGENTS.md": "4f92fd8181b0c28c7cc07d07ab134a145b715b5a8b51693ce920da1987de76eb",
+    "PROJECT_CONTEXT.md": "0530cf2662558f38bf1978025a610c5af951272c378e8e91c0cbf7d44d32cd93"
+  },
+  "limitations": [
+    "partial non-device implementation; formal producer, all S28/S31/S34/S49, full steering, physical-device/quality/PRD acceptance incomplete",
+    "previous failures/skips preserved; execution per-run binding reported separately"
+  ],
+  "derivation": {
+    "parent_id": "DI-SOURCE-20261025-05",
+    "parent_stage": "original-upload-acceptance-candidate-02",
+    "parent_source_manifest_sha256": "b97dd1ade02164e79a52839cba376793ad005906568585588efe7a07ce0244fb",
+    "only_changed_files": [
+      "FrameRelay/Features/Library/LibraryView.swift"
+    ],
+    "reason": "Only original selection Toggle native multiline label and opaque root navigation background address actual strict AX141 findings; no metadata feature code added",
+    "overlay_sources": {
+      "FrameRelay/Features/Library/LibraryView.swift": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-141-fixed-LibraryView.swift"
+    },
+    "all_other_input_bytes_match_parent": true,
+    "current_workspace_other_changes_excluded": true
+  }
+}

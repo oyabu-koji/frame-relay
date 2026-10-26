@@ -1,0 +1,165 @@
+--- baseline/docs/architecture.md
++++ docs/architecture.md
+@@ -106,7 +106,7 @@
+ | FoundationファイルI/O＋CryptoKit SHA-256 | OS同梱。S13以降の実ファイル内容照合に使用 | 大きな原本を逐次読取り、ファイル全体の同一性をサイズとdigestで照合。S24は最終保存先を独立に全読戻し | ファイル名/日時/サイズだけでは不足。hashは認証・保存品質・端末耐障害性そのものを証明しない |
+ | URLSession＋Network | 固定版Rangeと背景資源adapterを実装。通常の厳格な通信開始は閉鎖 | 動画ゲート、cellular禁止設定、経路変化、停止/照合とOS task所有を共通化 | 監視だけでWi-Fi/VPN基礎回線・背景redirectを送信前に拘束できたとしない。同期許可の契約/配線と、正の実SDK resume・全媒体producer・実回線の成立を分ける |
+ | Photos / PhotoKit | OS同梱。通常addOnly・必要時readWriteはDI-06確定 | `NativePhotoLibrary`が軽量版追加と実SDK完了、保存済みidentifierの照合を担当 | 写真保存履歴と現在存在を分離。追加権限だけで全結果を照合できるとは仮定しない |
+-| Keychain / OSLog | OS標準を利用。S22/S22Cの初回登録・資格保管に加え、S28の別storeに対する明示新登録開始を部分接続 | HTTPS origin/接続先、store identity、登録意図に束縛したBearer/登録秘密をKeychainで照合し、新登録は現在store UUIDのnamespaceへcreate-onlyで追加。診断を操作証拠と分離 | 通常再起動と明示新登録を分け、資格情報の欠落/旧store不整合を自動採用や上書きで解決しない。remote-only履歴・通常媒体・秘密更新等の残件を保持し、独自分析サービスやログ送信を追加しない |
++| Keychain / OSLog | OS標準を利用。S22/S22Cの初回登録・資格保管に加え、S28の別storeに対する明示新登録開始を部分接続 | HTTPS origin/接続先、store identity、登録意図に束縛したBearer/登録秘密をKeychainで照合し、新登録は現在store UUIDのnamespaceへcreate-onlyで追加。診断を操作証拠と分離 | 通常再起動と明示新登録を分け、資格情報の欠落/旧store不整合を自動採用や上書きで解決しない。保存原本catalogの部分接続と正式版metadata・通常媒体・秘密更新等の残件を分け、独自分析サービスやログ送信を追加しない |
+ | Swift Testing / XCTest | 既存targetで使用 | 単体・統合はSwift Testing、UIはXCTest | 雛形は受入検証ではない。テスト依存・固定カバレッジ閾値を追加しない |
+ 
+ AVFoundationはファイルへの記録とsample bufferへのアクセスを区別して提供し、formatにはfps・色空間・補正等の対応情報がある。この情報を能力照会の入口とするが、標準LT＋Apple Log等の複合要求が成立する証拠にはしない。[音声・映像キャプチャ](https://developer.apple.com/documentation/avfoundation/audio-and-video-capture)、[AVCaptureDevice.Format](https://developer.apple.com/documentation/avfoundation/avcapturedevice/format)
+@@ -120,7 +120,7 @@
+ | 撮影原本・確定可能な部分原本 | Application Support配下の製品管理root `FrameRelayLibrary` | 不透明な原本参照と `.mov`。予約・内容対応・実FDを照合。拡張子だけで実形式/品質を保証しない | 本人の容量整理/破棄まで保持し、自動容量回収しない。原本をPhotosに保存しない |
+ | 記録中の出力 | 同じ管理領域の確定前領域 | 撮影IDと対応する一時名。キャッシュと区別 | 書込終端・媒体検査後に確定。中断したからといって自動で消さず、部分/不明/失敗を照合 |
+ | 撮影希望設定・記録方式候補 | 製品保存領域の `capture-preferences.json` | `CapturePreferenceStore`がschema付き設定文書をatomic置換。共通記録storeとは別の保存単位 | 現在の能力・実適用値を再確認して復元する。未知schema・破損を通常の設定保存で上書きしない |
+-| 撮影・操作・検証・版・確認/失効・削除・写真登録 | 同じ製品rootの `recordings.sqlite` | Core DataのDocument payloadにschema 7 `RecordingStoreDocument`を保存。固定対象集合と動画別操作/証拠/結果、原本/連携journalを同じwriterで更新 | 再起動後の正本。整理/破棄で本体を削除しても、撮影・内容対応・本人操作・検証/確認・写真・削除結果を保持 |
++| 撮影・操作・検証・版・確認/失効・削除・写真登録・catalog観測 | 同じ製品rootの `recordings.sqlite` | Core DataのDocument payloadにschema 7 `RecordingStoreDocument`を保存。固定対象集合と動画別操作/証拠/結果、原本/連携journalを同じwriterで更新 | 再起動後の正本。整理/破棄で本体を削除しても、撮影・内容対応・本人操作・検証/確認・写真・削除結果を保持。保存原本catalogの観測はローカル保存記録や削除証拠と区別 |
+ | サムネイル・表示索引 | 再生成可能なキャッシュ | 撮影/内容世代を付与 | 消失しても確認・容量整理判定を変えない。容量整理後に必要な撮影記録と区別 |
+ | streamingバッファ/取得中/再生/Photos受渡しの軽量版 | 使用メモリとアプリ管理の一時領域 | 原本/変換版/映像ID、取得範囲・検証結果、用途・所有者・使用権・使用量、断片の操作ID | 恒久保存にしない。再生用は使用終了後、登録用は登録成功かつ使用者なしで回収し、再取得可能な本体と復旧証拠を分離。方式・上限/期限はU2で合意/評価 |
+ | 主役候補・ND入力・フレーム | セッションのメモリ | boundedな最新入力とcontext | セッション終了時解放。人物識別台帳や未要求のクラウド解析を追加しない |
+@@ -317,6 +317,7 @@
+ | 原本受信/保存検証 | 原本同一性、冪等な操作ID、受領範囲と保存/全内容検証結果を分離 | S22/S24の登録/保存は隔離証拠あり。S23の厳格な通信開始と通常原本転送統合、実原本/実回線は残る |
+ | 軽量版生成/取得 | verified原本から実映像をRec.709変換。原本不変。版固定の内容・日時・向き/fps/音声 | S26J候補jobとS25/S27固定版取得の技術証拠を、資材未取得のS26正式変換・U8出力採用・品質と分ける |
+ | 版公開/失効 | 公開V1と候補V2、失効ID/世代、配布先登録、端末commit後の全必要ACK、公開確定を分離 | S27の登録別台帳/公開gateに隔離証拠あり。正式authority、全製品owner、通常UIと実機は未成立 |
++| 保存原本catalog | 現登録で同destinationのcompleted bindingと有効な保存evidenceの対応を照合し、原本identityだけを有界に列挙 | S28の明示取得→同writer観測→remote専用一覧を部分接続。現在の外部ファイル存在、端末の正式保存検証、正式版/媒体取得、旧確認/ACKの証拠にはしない。必要検証は現行tasklistで追跡 |
+ | 状態照会 | 操作/原本/版に対応する確定結果・不明・失敗を返し、媒体なしモバイル同期を別gateで許可 | 既存「削除候補」と新しい容量整理証拠を混同しない。S28の既存登録の明示ページ同期/同writer/表示は部分接続済みで、再登録全体・通常媒体操作等は残る |
+ 
+ クライアントの確認同期がまだ届いていなくても、旧版を配布した登録を必要失効対象にする。S27は配布台帳から登録別の必要ACKを保持し、差し替え待ち中の旧版配布受理も必要集合へ加え、最終公開transactionで全ACKを再照合する。端末は失効tombstone＋ACK outboxをcommitしてから応答し、古い/別登録・新登録のACKで旧登録の必要ACKを代用しない。timeoutや既存削除候補フラグによる省略はない。
+@@ -327,7 +328,13 @@
+ 
+ この経路のKeychain追加は`store.<UUID>.connection`と`store.<UUID>.initial.<destination>`へcreate-onlyで行い、旧globalのconnection/initialのbyte列を移動・上書き・削除しない。再openでは現在UUIDのconnectionを優先し、その記録が不正/読取不能なら旧globalへfallbackしない。現在UUIDのconnectionがなくても同UUIDのinitialが宛先を問わず残る場合は、secret値を取得しない属性照合で検出して新登録を保留する。別destinationの入力でその中断/不明を回避しない。v1 unbound・破損・対応不明を新登録許可へ変換せず、旧global initialが存在する場合は旧connectionとの束縛を確認する。旧global initialの確定した`SecItemNotFound`は既知のconnection-before-intent形として区別するが、remote未実行や旧登録不在の証明にはしない。旧secret・有効確認・失効ACKを新登録へ継承しない。
+ 
+-Connection画面は旧記録保持と確認/ACK非継承を説明し、接続先/認証情報の別入力と明示開始を受ける。同じMac miniと既存bootstrap情報を本人が再入力する場合も含み、別Macや新しいtoken発行を必須にしない。キャンセル・離脱や再照合で新登録入力を閉じるときはbearer入力を消す。この開始部分の実装・必要検証は現行tasklistで追跡し、通常HTTPSでの正の結合、新登録UIの操作検証、remote-only履歴の列挙/保存検証・版情報の取得、通常媒体操作・実機受入の成立を先取りしない。remote inventory producerの契約/実装中の成果を、登録開始だけで接続済みにしない。
++Connection画面は旧記録保持と確認/ACK非継承を説明し、接続先/認証情報の別入力と明示開始を受ける。同じMac miniと既存bootstrap情報を本人が再入力する場合も含み、別Macや新しいtoken発行を必須にしない。キャンセル・離脱や再照合で新登録入力を閉じるときはbearer入力を消す。新登録開始と以下の保存原本catalogは別の部分接続とし、通常HTTPSでの正の結合、新namespace資格情報の実SDK受渡し、専用UI等の必要検証を現行tasklistで追跡する。
++
++S28の保存原本catalogは、現登録のBearerと登録secretで認証した`GET /frame-relay/v1/uploads/inventory`から、同destinationの旧登録による保存完了原本も発見する。隔離serverはcompleted bindingと保存evidence/asset/job/claimの対応を検査する。1操作1ページ最大32件、JSON応答256KiB、cursor640ASCII、capture ID2048UTF8 bytesをこのmetadata列挙だけの上限とし、超過・completed/evidence不整合・不正cursorはページ全体を拒否する。既存保存APIのopaque identity契約を縮小せず、切詰めや行の黙示除外で成功にしない。元capture bytesと内容世代/byte数のcanonical UInt64値を保持し、cursorを不変session UUIDの順序と現destination/registration/generation/limitへ束縛する。
++
++`URLSessionRemoteInventoryRemote`は既存metadata SDKのredirect拒否・応答量制限・実completion後のsession invalidation待ちを再利用し、前後に現在store/登録とKeychain資格情報を照合する。`RemoteInventoryCoordinator`は元request cursorと応答を照合し、store UUID・現登録・command・pageの観測を同じschema 7 journalへ加算する。commit不明では元mutationのexact lookupが確定するまでcursorを進めず、別ページを取得しない。続きは明示操作とし、再open後も観測を保持して先頭から再照合する。空/重複ページを過去項目の削除根拠にしない。
++
++通常Connectionの「Macの保存記録を照合」/明示続行は同じCompositionのvault/writerへ接続し、結果後にLibraryを再読込みする。custom登録factoryへ製品Keychainを暗黙付与しない。Libraryの`remoteItems`はローカル項目と別の読取投影で、`RecordingStoreEntry`・原本参照・正常保存・自動bind・破棄履歴を生成しない。captureのUTF8 exactで同IDの別内容やlocal衝突を保持し、未提供の撮影日時は不明、現在のMacファイル存在は未照合とする。観測を正式保存検証・公開版・確認・ACKへ昇格せず、既存の状態同期は既知原本だけを扱う。正式版manifest・通常軽量版再生/確認・全媒体・再登録全体は残件で、catalogの接続を実HTTP/専用UI/全Unitの成功、全S28・実機/PRD受入や本番反映へ拡張しない。稼働DBは操作しない。
+ 
+ 2026-09-26の限定ソース確認では、`/Users/oyabu/dev/rep/latest_template` の以下を根拠とした。表のパスは同リポジトリの `backend/app/` からの相対パスで、行番号は上記HEADに対応する。実環境への適用や性能の証拠ではない。
+ 
+--- baseline/docs/functional-design.md
++++ docs/functional-design.md
+@@ -168,6 +168,8 @@
+ 
+ 原本本体と管理記録を分け、整理/破棄で本体を削除しても撮影ID・内容対応・本人操作・保存検証・確認・写真登録・削除結果を保持する。通常一覧/破棄履歴は同じ正本から導出し、容量整理成功は通常一覧、同じ破棄操作の実削除成功を照合したものだけ履歴とする。履歴用に原本を移動・改名・隠蔽せず、結果不明を成功履歴へ入れない。
+ 
++S28で取得したMacの保存原本catalogは、同じjournalの観測から`LibrarySnapshot.remoteItems`へ別投影する。ローカルの撮影保存記録・原本参照・正常保存・自動bind・破棄履歴を生成しない。capture IDのUTF8 bytesと内容世代/hash/byte数で同一性を区別し、同IDの別内容やlocal記録との衝突を要照合として保持する。撮影日時が提供されなければ「撮影日時不明」とし、保存記録あり・現在のMac原本存在は未照合・このiPhoneとの対応なし/要照合・軽量版未取得を分けて表示する。正式保存検証・公開版・確認・写真保存の成功に置き換えない。
++
+ ### D4 Mac mini保存検証・軽量版
+ 
+ | 型・フィールド | Swiftの型例 | 必須性・欠損の意味 | 許容値・初期値・制約 |
+@@ -313,6 +315,8 @@
+ 
+ S28は既存登録・既知原本について、本人の「状態を同期」から媒体なしの失効1pageとmanifestを取得し、続きを明示操作で進める経路を同writer・動画別表示へ接続した。未解決失効をcursorと独立に保持し、再openではnullから再照合する。元mutation・旧outboxのexact照合とawait後の登録/store一致を確認し、撮影日時と取得済みの保存・検証・版/失効の事実を分けて示す。同期から媒体開始・新しい明示確認を生成せず、背景履歴/未知ownerの終端を確認できない対象は失効ACKを保留する。既存登録のこの部分接続と、再登録全体・通常媒体操作・全S28/実機受入を区別する。
+ 
++保存原本catalogの発見は、この既知原本の状態同期とは別の本人操作とする。現登録のBearer/secretで同destinationの旧completed bindingと有効な保存evidenceに対応する原本identityを取得し、Connectionの「Macの保存記録を照合」から1操作1ページ・明示続行で進める。元request cursor・現登録/store UUID・command/pageを同writerへ観測として加算し、commit不明では元mutationのexact lookupが確定するまで続きを取得しない。空/重複ページで過去の記録を消さず、再open後は保持した観測を表示し、先頭から再照合する。結果後に同じLibraryを更新するが、動画取得・新確認・旧ACKの代用を生成しない。有界wire/SDK契約はarchitecture、実行版・必要検証の結果は現行tasklistを参照する。
++
+ ### S5 明示確認・失効と版の差し替え
+ 
+ 端末上の確認記録の確定を容量整理に使用する。サーバーへの確認同期が未完了でも、原本・公開版の証拠と端末の有効な確認が全て揃えば、同期通信そのものを容量整理の追加条件にしない。サーバーは確認通知の有無に頼って差し替え可否を判断せず、対象端末が保持し得る旧版の確認を失効させる契約を持つ。
+@@ -328,7 +332,7 @@
+ 
+ S28は登録意図・登録記録が空の現在storeと、別store UUIDへ結び付いた有効なv2接続情報を区別し、本人が別操作で新しい登録を始める部分を接続した。通常の再照合・登録・保存済み情報による続行・初回入力では以前のstoreの資格情報を採用しない。同storeで中断した処理は保存済み情報を照合して既存の続行経路を使う。現在storeのconnectionがなくても同UUIDにinitialが残る場合は、別destinationの入力で回避せず新登録を保留する。破損・読取不能・v1 unbound・対応不明を新登録の許可として扱わない。
+ 
+-画面は以前の登録情報を保持することと、以前の確認・失効ACKを引き継がないことを説明し、接続先/認証情報の別入力と明示開始を求める。同じMac miniの既存bootstrap情報を本人が再入力することもでき、別Macや新しいtoken発行を条件にしない。開始処理は現在store UUIDの永続確定後に接続先を検査し、そのUUIDに束縛した別の接続情報・intentだけを作る。処理途中も同UUIDと登録空を再照合し、旧記録やsecretを移行・上書き・削除しない。キャンセル/離脱や再照合で新登録入力を閉じる場合はbearer入力を消す。この開始部分の必要検証は現行tasklistで追跡し、通常HTTPSや新規UIの結合、remote-only履歴・保存検証/版情報の取得、通常媒体操作と実機DV-15を完成した扱いにしない。server側で準備中のinventory契約も、ここでは製品接続済みとしない。
++画面は以前の登録情報を保持することと、以前の確認・失効ACKを引き継がないことを説明し、接続先/認証情報の別入力と明示開始を求める。同じMac miniの既存bootstrap情報を本人が再入力することもでき、別Macや新しいtoken発行を条件にしない。開始処理は現在store UUIDの永続確定後に接続先を検査し、そのUUIDに束縛した別の接続情報・intentだけを作る。処理途中も同UUIDと登録空を再照合し、旧記録やsecretを移行・上書き・削除しない。キャンセル/離脱や再照合で新登録入力を閉じる場合はbearer入力を消す。新登録開始と保存原本catalogの部分接続は分けて必要検証を現行tasklistで追跡する。catalogの観測を正式保存検証/版manifestの取得や通常軽量版再生・確認・全媒体操作へ昇格せず、通常HTTPS/新namespace資格情報の実SDK受渡し・専用UI等の未確認範囲、全S28と実機DV-15の未完了を保持する。
+ 
+ ### S6 容量整理・破棄の排他と結果確定
+ 
+--- baseline/docs/development-guidelines.md
++++ docs/development-guidelines.md
+@@ -69,13 +69,15 @@
+ - streamingを含む全動画送受信はMediaIOGateを通す。原本転送・Photos保存の新規開始はWi-Fi時だけ受理し、不在時の開始予約を作らない。Wi-Fi、REC/保存、本人停止/キャンセルの抑止を独立して維持する。Wi-Fi復帰や録画・保存終了後は、本人が開始受理済み・未完了・未停止/未キャンセルの通信だけを、全抑止条件・操作意思・同一対象/版・既完了結果・認証/接続・操作寿命の再照合後に自動再開する。指示済み順番待ちも同じ条件とし、録画終了だけで再開しない。
+ - OSが許す既開始upload/downloadの背景/画面ロック継続、個別停止/再開/取消と全件媒体停止を維持する。全件停止は指示済み順番待ち/自動待機を含み、本人停止を回線復帰・REC/保存終了・再起動で解除しない。通信の自動再開を未実行削除・結果不明のPhotos追加・終了済み再生へ適用せず、再生終了時は専用通信を終了し使用権を解放する。
+ - 媒体を含まない保存/検証/変換結果・版・既存確認/失効の同期は別gateでモバイル回線でも許可し、媒体取得や新確認を生成しない。S28の既存登録向け明示1page/続きは未解決失効とcursorを分離し、元mutation/旧outbox、await後のexact登録/storeを照合する。背景履歴/未知ownerの終端を照合できない対象はACKを保留する。処理順/配置・寿命/期限・頻度等の未合意値と、通常strict開始/resume・全媒体producerの未接続を分ける。
++- 保存原本catalogは既知原本の状態同期と別のmetadata操作とし、現登録のBearer/secretと同destinationへ束縛する。1操作1ページ最大32件・JSON256KiB・cursor640ASCII・capture ID2048UTF8 bytesをこの列挙専用の上限とし、超過・不正cursor・completed/evidence不整合はページ全体を拒否する。切詰め/黙示除外や既存保存APIのopaque identity契約縮小で回避しない。元capture bytesとcanonical UInt64の内容世代/byte数を保持し、SDKのredirect拒否・実completion/invalidation待ちと、前後の現在Keychain/登録/store照合を維持する。
+ 
+ ### 永続化・復旧・削除
+ 
+ - 副作用の前に対象・目的・操作意図、後に結果を保存する。DB、原本ファイル、Photos、Mac miniの一括原子更新を仮定しない。commitは永続storeまでの成功であり、UI表示、子contextのsave、HTTP成功を代用にしない。
+ - 採用済みのCore Data/SQLiteとschema 7の同writer/journalへ原本・確認/失効・outbox・Photos・背景task・削除意図/結果を集約し、別storeへ複製しない。期待revision/対象/世代/元mutationを照合し、内容の違う再入力や応答欠落を新操作へ置き換えない。
+ - 明示新登録は、登録意図/登録記録が空の現在storeと、別store UUIDに束縛された有効なv2残存connectionを確認できた場合の独立APIからだけ開始する。通常restore/register/続行/初回入力ではforeign bindingを採用しない。remote接続先検査とKeychain追加より前に同writerの現在UUIDを永続確定し、await後も同UUID・登録空を照合する。同storeの中断は既存の照合/続行を維持し、別intentや新secretで回避しない。
+-- 新登録のKeychainは`store.<UUID>.connection`/`store.<UUID>.initial.<destination>`へcreate-onlyで追加する。現在UUIDのconnectionを優先し、不正/読取不能でも旧globalへfallbackしない。同UUIDのconnectionがなくてもinitialが宛先を問わず残る場合は新登録を保留し、別destinationで回避しない。旧global byte列の移動/上書き/削除と、旧secret・確認・ACKの継承をしない。v1 unbound・破損・不明を新登録許可にせず、旧global initialの確定した`SecItemNotFound`もremote未実行の証拠にしない。説明付きの別入力/明示開始とcancel/離脱/再照合による入力閉鎖時のbearer消去を保ち、登録開始の接続をremote-only履歴・通常媒体・UI/実機受入の完成へ昇格しない。
++- 新登録のKeychainは`store.<UUID>.connection`/`store.<UUID>.initial.<destination>`へcreate-onlyで追加する。現在UUIDのconnectionを優先し、不正/読取不能でも旧globalへfallbackしない。同UUIDのconnectionがなくてもinitialが宛先を問わず残る場合は新登録を保留し、別destinationで回避しない。旧global byte列の移動/上書き/削除と、旧secret・確認・ACKの継承をしない。v1 unbound・破損・不明を新登録許可にせず、旧global initialの確定した`SecItemNotFound`もremote未実行の証拠にしない。説明付きの別入力/明示開始とcancel/離脱/再照合による入力閉鎖時のbearer消去を保ち、新登録開始と保存原本catalogの部分接続を正式版metadata・通常媒体・UI/実機受入の完成へ昇格しない。
++- 保存原本catalogのpageは元request cursor・現登録/store UUID・commandとともに同じschema 7 journalへ観測加算する。unknown commitは元mutationのexact lookupまでcursorを進めず、別ページへ進まない。空/重複で旧観測を消さず、再open後は先頭から明示再照合する。Libraryは`remoteItems`へ別投影し、撮影保存記録/原本参照/正常保存/自動bind/破棄履歴を作らない。UTF8 exactの同capture別内容やlocal衝突、日時不明、現在の外部ファイル未照合を保持し、正式保存検証・公開・確認・ACKにしない。custom登録factoryへ製品Keychainを暗黙付与しない。接続と端末/実HTTP/専用UI等の検証結果は現行tasklistで分ける。
+ - 再起動時は未完了操作と実ファイル・外部結果を照合する。未実行の削除や結果不明の写真追加を自動再実行せず、アクセス不能を消失と断定しない。schema移行失敗・破損を空ストアへの初期化で成功扱いにしない。
+ - 容量整理と破棄は別の規則・command・本人確認を保つ。容量整理は同一原本のMac保存/全内容検証、軽量版、永続化済みの有効な明示確認から判定する。Wi-Fi再接続、再視聴、Photos保存、追加バックアップを削除条件に加えない。破棄は対象と消失リスクの本人確認に基づき、検証や確認を偽装しない。
+ - 表示済み候補や他の動画の成功を削除許可に流用せず、複数容量整理でも各削除の実行直前に対象・世代・最新の確認/失効・証拠と使用権・排他を再確認する。本人確認後の対象/リスク変化は再提示する。対象限定の削除実行・照合だけを共通化し、容量整理不可から破棄へ自動切替しない。
+--- baseline/docs/repository-structure.md
++++ docs/repository-structure.md
+@@ -77,7 +77,7 @@
+ └── README.md
+ ```
+ 
+-[FrameRelayApp.swift](../FrameRelay/FrameRelayApp.swift)が`@main`入口で、[ProductComposition.swift](../FrameRelay/Composition/ProductComposition.swift)を保持し、[ContentView.swift](../FrameRelay/ContentView.swift)からライブラリ、通常撮影、接続・登録、原本再生、別入口の探索画面を開く。起動時に製品storeを開くが、撮影権限要求・capture session準備は撮影入口まで遅らせる。Libraryは原本再生、既存の写真登録記録の表示と理由付き明示照合、本人リスク確認後の単数破棄/結果照合へ接続する。Connectionは既存登録の媒体なし明示状態同期と続きを持ち、別storeに束縛された有効v2接続情報が残る場合は、説明付きの別入力から明示新登録を開始する。条件付き複数容量整理を通常導線へ接続し、正式証拠producer・通常strict通信の未成立は残件として扱う。通常転送・写真の新規保存・軽量版再生/確認は未接続と表示し、起動・一覧再読込みでPhotos権限を要求しない。
++[FrameRelayApp.swift](../FrameRelay/FrameRelayApp.swift)が`@main`入口で、[ProductComposition.swift](../FrameRelay/Composition/ProductComposition.swift)を保持し、[ContentView.swift](../FrameRelay/ContentView.swift)からライブラリ、通常撮影、接続・登録、原本再生、別入口の探索画面を開く。起動時に製品storeを開くが、撮影権限要求・capture session準備は撮影入口まで遅らせる。Libraryは原本再生、既存の写真登録記録の表示と理由付き明示照合、本人リスク確認後の単数破棄/結果照合へ接続する。Connectionは既知原本の媒体なし明示状態同期と、別操作の保存原本catalog取得/続きを持ち、後者は同writer観測からLibraryのremote専用一覧へ接続する。別storeに束縛された有効v2接続情報が残る場合は、説明付きの別入力から明示新登録を開始する。条件付き複数容量整理を通常導線へ接続し、正式証拠producer・通常strict通信の未成立は残件として扱う。通常転送・写真の新規保存・軽量版再生/確認は未接続と表示し、起動・一覧再読込みでPhotos権限を要求しない。
+ 
+ [project.pbxproj](../FrameRelay.xcodeproj/project.pbxproj)では、3つのソースルートがそれぞれ`PBXFileSystemSynchronizedRootGroup`として同名targetへ対応する。独立したルートの`.xcworkspace`はなく、上記workspaceはproject内部の構成。共有`.xcscheme`・`.xctestplan`・独立した`Info.plist`・entitlements・`Package.swift`・外部依存設定は配置されていない。CLI照会では実行可能なscheme/test plan `FrameRelay`を確認済みで、その証跡とrepo内の共有ファイルの有無、個人用scheme管理plistを区別する。build/test時は実在構成を再確認する。
+ 
+@@ -89,10 +89,11 @@
+ | --- | --- | --- |
+ | 共通store・原本・組立 | `Composition/ProductLibraryFactory.swift`、`Platform/LocalStore/ExplorationRecordingStores.swift`、`RecordingStoreDocument.swift`、`Platform/OriginalStore/ManagedOriginalStore.swift`、`ManagedOriginalAccess.swift` | 製品rootのCore Data/SQLiteによる`SQLiteRecordingStore`、schema 7の同writer/journal、原本領域、内容対応・read leaseを共有。`Exploration`という既存名だけで探索専用と判断しない |
+ | 撮影・補助表示 | `Composition/ProductCaptureFactory.swift`、`Application/Capture/ProductCaptureCoordinator.swift`、`Platform/Capture/NativeExplorationCapture.swift`、`Features/Capture/ProductCaptureView.swift` | 通常の設定・REC/保存・WB・音声・補正・人物/ND・ズームへ接続。S49のREC/保存境界は下記の共通通信担当へ渡す。レンズISO policyの通常注入は保留。実方式・能力・品質は実機未確認 |
+-| 一覧・原本再生 | `Application/Library/LibraryStoreReader.swift`、`LibrarySnapshot.swift`、`Features/Library/LibraryModel.swift`、`Features/Playback/OriginalPlaybackModel.swift`、`Platform/Playback/AVOriginalPlayback.swift` | 単一storeから一覧/履歴を投影し、原本再生・既存写真記録の明示照合・単数破棄・条件付き複数容量整理を接続。整理候補の表示と削除直前の権限再判定を分け、状態同期後も同じ読取担当から動画別に表示する。新規写真保存・正式証拠producer等は未接続 |
++| 一覧・原本再生 | `Application/Library/LibraryStoreReader.swift`、`LibrarySnapshot.swift`、`Features/Library/LibraryModel.swift`、`Features/Playback/OriginalPlaybackModel.swift`、`Platform/Playback/AVOriginalPlayback.swift` | 単一storeから一覧/履歴を投影し、原本再生・既存写真記録の明示照合・単数破棄・条件付き複数容量整理を接続。整理候補の表示と削除直前の権限再判定を分け、状態同期後も同じ読取担当から動画別に表示する。保存原本catalogは`remoteItems`へ別投影し、ローカル保存記録/原本参照/履歴を作らない。新規写真保存・正式証拠producer等は未接続 |
+ | 写真登録・存在照合 | `Platform/Photos/NativePhotoLibrary.swift`、`Application/MediaOperations/PhotoSaveCoordinator.swift`、`PhotoRegistrationReconciler.swift`、`Application/Library/LibraryPhotoReconciliation.swift` | 実SDK追加・同writerへの意図/結果/終端証拠保存・完全取得媒体の受渡し、過去結果/現在存在の表示と明示照合。終端後は結果と独立して元photo useを解放し、復元/owner閉鎖を失効時の全reader解放へ接続する。正式Rec.709媒体の通常取得・複数保存producerは未接続 |
+-| 接続・登録 | `Application/MediaOperations/RegistrationCoordinator.swift`、`Platform/Remote/URLSessionRegistrationRemote.swift`、`Platform/Credentials/KeychainRegistrationVault.swift`、`Features/Connection/ConnectionModel.swift` | 製品store・資格保管・登録画面へ接続。有効な別storeのv2 connectionに対する明示新登録開始は、現在UUIDの永続確定→別namespaceのcreate-only追加→同writer登録意図へ渡す。通常の復元/続行ではforeign bindingを採用せず、同store中断を維持。既存登録の明示同期、remote-only履歴・通常HTTPS/媒体/UI検証、再登録全体・実機受入は別substatus |
++| 接続・登録 | `Application/MediaOperations/RegistrationCoordinator.swift`、`Platform/Remote/URLSessionRegistrationRemote.swift`、`Platform/Credentials/KeychainRegistrationVault.swift`、`Features/Connection/ConnectionModel.swift` | 製品store・資格保管・登録画面へ接続。有効な別storeのv2 connectionに対する明示新登録開始は、現在UUIDの永続確定→別namespaceのcreate-only追加→同writer登録意図へ渡す。通常の復元/続行ではforeign bindingを採用せず、同store中断を維持。既知原本の状態同期と保存原本catalogの部分接続、正式版metadata/通常媒体の残件、通常HTTPS/新namespace資格情報の実SDK受渡し・UI等の必要検証、再登録全体・実機受入を別substatusにする |
+ | 媒体なし状態同期 | `Application/MediaOperations/BackendStatusSynchronizationCoordinator.swift`、`Application/Ports/StatusSynchronizationPort.swift`、`Composition/ProductStatusSynchronization.swift` | S28の既存登録・既知原本に対する明示1page/manifest同期と続き、元mutation/旧outboxのexact照合→同writer→動画別表示を接続。未解決失効とcursorを分け、再openはnullから照合。新確認/媒体開始を生成せず、背景履歴/未知ownerの対象ACKは保留 |
++| 保存原本catalog | `Domain/Media/RemoteInventory.swift`、`Application/Ports/RemoteInventoryPorts.swift`、`Application/MediaOperations/RemoteInventoryCoordinator.swift`、`Platform/Remote/RemoteInventoryWire.swift`、`URLSessionRemoteInventoryRemote.swift`、`Platform/LocalStore/RemoteInventoryStoreProjection.swift` | 現登録で同destinationの保存完了/evidence対応identityを有界に取得し、元cursor/store UUID/登録/command/pageを同schema 7 journalへ観測加算。unknown commitはexact lookupまで続きを止める。通常Connection→同Composition vault/writer→Library refreshを接続し、custom登録factoryへ製品Keychainを暗黙付与しない。日時不明・同capture別内容/local衝突・現在存在未照合を保持し、保存検証/正式版/確認/ACK/媒体を生成しない。接続と必要検証は現行tasklistで分ける |
+ | 背景session・task・復帰 | `Application/MediaIO/BackgroundMediaCoordinator.swift`、`Application/Recovery/BackgroundMediaRecovery.swift`、`Composition/ProductBackgroundMediaFactory.swift`、`ProductBackgroundEventRouter.swift`、`Platform/Network/BackgroundMediaSession.swift` | S23のOS session/taskと固定contextの永続対応、直列delegateからのevent drain、App delegate配送を同じ製品writerへ接続。通常strict開始/resume・安全なdownload受入口・旧source所有採用・全媒体producerは未接続 |
+ | REC/保存と通信の境界 | `Application/MediaIO/CaptureMediaAdmission.swift`、`Application/Ports/CaptureMediaBoundaryPort.swift`、`Composition/ProductCaptureMediaBoundary.swift` | S49のowner別REC/save/recovery hold、token前の取消可能preflight、exact local stopと保存file実returnまでの待機を通常撮影へ接続。同ファイルの`CaptureMediaResumeAuthorization`は元admission/revisionに束縛した単回同期許可で、coordinatorからasync SDK portへ渡しactual action直前に消費する契約。nativeの正のresume・全媒体実停止の成立とは分ける |
+ | 容量整理・破棄 | `Application/MediaOperations/CleanupCoordinator.swift`、`DiscardCoordinator.swift`、`Application/Library/LibraryRemovalCommands.swift`、`Composition/ProductRemovalTermination.swift` | S32/S33の目的別coreとS34通常単数破棄・条件付き複数容量整理を同じCompositionへ接続。全historical uploadの実終端/自身source FD閉鎖/ownerClosed/exact lease解放を照合し、容量整理固有の保存検証/有効確認は別途再判定する。固定集合と動画別の成功/未実行/要照合を保持し、整理成功は通常一覧、破棄成功は履歴へ投影。正式証拠producer・新規Photos/複数保存・全S34/実機受入とは区別 |
+@@ -118,7 +119,7 @@
+ | `Features/Capture/` | V1/V2。撮影・設定・音声・ND・人物・ズームの表示とcommand発行 | 解析・記録処理を持たない。`ProductCapturePreview`のSDK表示橋渡しは後述の限定境界 | `FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift`等、`FrameRelayUITests/Flows/ProductCaptureFlowTests.swift` |
+ | `Features/Library/` | V3/V5。`LibraryModel`と`LibraryView`による一覧・履歴、複数/単数の選択・入力と理由表示、単数破棄のリスク確認と結果照合 | 選択状態を開始受理済み対象集合と分け、削除可否・重複防止を再実装しない。Libraryのsnapshotと目的別commandを利用 | `FrameRelayTests/Application/Library/`、`FrameRelayUITests/Flows/LibraryFlowTests.swift`、`RemovalFlowTests.swift` |
+ | `Features/Playback/` | V4。現在は`OriginalPlaybackModel`と`OriginalPlaybackView`による原本再生・停止・状態表示。軽量版の明示確認等は追加時もここ | 再生だけで確認を確定しない。写真保存は別操作・状態。独自の動画取得はしない | `FrameRelayTests/Integration/Playback/`、`FrameRelayUITests/Flows/LibraryFlowTests.swift` |
+-| `Features/Connection/` | V6。`ConnectionModel`と`ConnectionView`による接続先・登録・照合と、既存登録の明示状態同期/続き・動画別撮影日時と保存事実の表示 | 指示済み順番待ちと未指示を区別し、秘密情報の保管や通信再開条件を所有しない。起動/登録復元だけで同期を開始しない | `FrameRelayTests/Integration/Registration/`、`FrameRelayUITests/Flows/ConnectionFlowTests.swift` |
++| `Features/Connection/` | V6。`ConnectionModel`と`ConnectionView`による接続先・登録・照合と、既知原本の明示状態同期/続き・動画別撮影日時と保存事実の表示。保存原本catalogは別の明示ボタン/続きから取得しLibraryを更新 | 指示済み順番待ちと未指示を区別し、秘密情報の保管や通信再開条件を所有しない。起動/登録復元だけで同期やcatalog取得を開始しない | `FrameRelayTests/Integration/Registration/`、`Integration/Remote/RemoteInventoryTests.swift`、`FrameRelayUITests/Flows/ConnectionFlowTests.swift` |
+ | `Shared/Presentation/`（未作成） | 複数画面で実際に共有する表示部品、表示専用の値整形、アクセシビリティ表現 | 特定featureの内部型、共有セッション、汎用の巨大な状態オブジェクトは置かない。値とactionを受ける部品が入口 | 必要時に責務に対応する試験を配置 |
+ 
+ 撮影固有の音量表示や構図表示は、再利用箇所がない段階ではCapture内に置く。共有の製品規則は`Shared/`へ集めずDomainへ、共有のI/O契約はApplicationのPortsへ配置する。
+@@ -130,7 +131,7 @@
+ | 配置 | 責務・配置するもの | 公開入口・配置しないもの |
+ | --- | --- | --- |
+ | `Application/Capture/` | `ProductCaptureCoordinator`、`CaptureLifecycle`、`RecordingSaveLifecycle`、`ProductCapturePostSave`による設定・REC/STOP・WB/音声・解析採否・ズーム・保存後処理 | `prepare/apply/start/stop`等のcommandと型付きsnapshot/event。View・端末API実装は置かない |
+-| `Application/MediaOperations/` | 登録、確認/失効、outbox、`BackendStatusSynchronizationCoordinator`、`PhotoSaveCoordinator`・`PhotoRegistrationReconciler`、`CleanupCoordinator`・`DiscardCoordinator`。開始時の固定対象集合と動画別の操作/証拠/結果を調停 | 目的別commandと操作ID・理由付き結果/未処理。容量整理と破棄の入口を分ける。DB/HTTP/Photos/ファイルAPIは置かない |
++| `Application/MediaOperations/` | 登録、確認/失効、outbox、`BackendStatusSynchronizationCoordinator`、`RemoteInventoryCoordinator`、`PhotoSaveCoordinator`・`PhotoRegistrationReconciler`、`CleanupCoordinator`・`DiscardCoordinator`。開始時の固定対象集合と動画別の操作/証拠/結果を調停 | 目的別commandと操作ID・理由付き結果/未処理。容量整理と破棄の入口を分ける。DB/HTTP/Photos/ファイルAPIは置かない |
+ | `Application/Library/` | 撮影IDから動画別の状態・成否/未処理を統合した読取専用の一覧/詳細投影。`LibraryPhotoReconciliation`は既存写真記録の表示と明示照合、`LibraryRemovalCommands`は本人確認と破棄/結果照合の橋渡し | snapshotと読取契約、目的別担当へのcommand。保存結果・確認・失効を直接変更しない |
+ | `Application/Recovery/` | `OriginalRemovalReconciler`による削除結果の観測照合、`BackgroundMediaRecovery`によるOS session/task対応の照合と復旧要求 | 照合commandと結果。未知の旧source所有を採用せず、未実行削除・結果不明の写真追加を自動再実行せず、終了済み再生を自動再開しない |
+ | `Application/MediaIO/` | `RenditionReadLeases`、`RenditionMediaScope`、`RenditionScopeRegistry`、`RenditionTemporaryRetrieval`による軽量版の使用権・owner終端・一時取得。`BackgroundMediaCoordinator`は固定taskのevent drainと資源終端、`CaptureMediaAdmission`は同期的なowner別holdと同じlockで判定/消費する単回resume許可を所有 | ゲート契約と理由付き状態。Wi-Fi/REC/保存/本人停止を下位でも照合し、本人が開始した未完了通信だけ条件付き自動再開。内部許可の発行をSDK実行済みと扱わず、新しい本人操作を要求しない。OSが許す背景/ロック中の継続や媒体を含まない状態同期の確定要件を縮小しない。部分接続を全媒体gateの完成にしない |
+@@ -157,9 +158,9 @@
+ | --- | --- | --- |
+ | `Capture/` | カメラ/音声能力照会、セッション、記録出力、SDKのqueue/callback橋渡し | SwiftUI状態、容量整理判定。記録と表示/解析入力を分岐し、型付き事実を返す |
+ | `Capture/`内の解析、`Render/` | `NativeCaptureSubjectAnalysis`・`NativeCaptureNDAnalysis`等のフレーム解析、`CaptureDisplay…`の独立技術描画。`Analysis/`は未作成 | NDに基づく露出の無断変更、原本への表示変換/予告の焼込み。標準Rec.709変換と通常表示の接続は資材待ち |
+-| `LocalStore/` | 撮影/原本/操作/確認・失効等の単一writerとschema/migration、設定保存。`PhotoStoreProjection.swift`は同じschema7 journalから写真登録/終端/元use解放を投影し、登録結果によるコピー保持を判定。`BackgroundMediaStoreProjection.swift`・`OriginalRemovalStoreProjection.swift`も同journalから背景task/削除意図・結果を投影する。Core Data/SQLiteのmodelは`ExplorationRecordingStores.swift`内で組み立てる | 動画本体、表示状態の正本化、feature専用の重複DB。独立した`.xcdatamodeld`は使っていない |
++| `LocalStore/` | 撮影/原本/操作/確認・失効等の単一writerとschema/migration、設定保存。`PhotoStoreProjection.swift`は同じschema7 journalから写真登録/終端/元use解放を投影し、登録結果によるコピー保持を判定。`BackgroundMediaStoreProjection.swift`・`OriginalRemovalStoreProjection.swift`も同journalから背景task/削除意図・結果を投影する。`RemoteInventoryStoreProjection.swift`は現store/登録へ束縛したcatalog観測だけを加算する。Core Data/SQLiteのmodelは`ExplorationRecordingStores.swift`内で組み立てる | 動画本体、表示状態の正本化、feature専用の重複DB。独立した`.xcdatamodeld`は使っていない |
+ | `OriginalStore/`、`TemporaryMedia/` | 原本の予約・固定参照・同FD内容検査/read lease、同writerの最新条件照合→MOVのみ実unlink→結果最終照合。`ManagedUploadSource`は原本leaseから実copy/全hash/出力FD読戻しを行い、exact SDK終端後に自身の保持FDを閉鎖。`ManagedTemporaryMedia`は一時ファイル/使用量/解放を管理し、完全取得媒体は`TemporaryLocalMediaPort`から扱う。写真用はexact終端または旧成功証拠による元use解放と、登録成功かつ全使用権解放後の実unlinkを分ける | 独自の削除許可、外部パス/Photos/Mac miniの削除、原本の自動回収。自身のsource FD閉鎖をSDK所有全FDの閉鎖へ広げない。使用中の媒体や復旧証拠を無断回収せず、unknown/failed/notAttemptedの登録用コピーを保持。部分バッファをPhotos登録用の完全ファイルとしない |
+-| `Remote/`、`Network/` | 登録・publicationのwire/HTTP adapter、固定版Range通信、`BackgroundMediaSession`の直列delegate/型付きevent。原本/変換版/映像IDと配信内容の対応を固定し、OS sessionとMac側upload sessionを区別する | サーバー本体、撮影制御、旧削除候補フラグの直接利用。具体的な契約実装と、通常strict開始/resume・全媒体の製品接続・実機成立を区別する |
++| `Remote/`、`Network/` | 登録・publication・保存原本catalogのwire/HTTP adapter、固定版Range通信、`BackgroundMediaSession`の直列delegate/型付きevent。catalogは既存metadata SDKのredirect拒否/応答量制限/completion・invalidation待ちを使う。原本/変換版/映像IDと配信内容の対応を固定し、OS sessionとMac側upload sessionを区別する | サーバー本体、撮影制御、旧削除候補フラグの直接利用。具体的な契約実装と、通常strict開始/resume・全媒体の製品接続・実機成立を区別する |
+ | `Playback/`、`Photos/` | `AVOriginalPlayback`・`AVRenditionPlayback`とresource loaderによる実再生/停止。`Photos/NativePhotoLibrary.swift`は実PhotoKit追加/完了と保存済み識別情報だけの照合 | 確認の自動確定、独自の通信経路、写真削除。取得と一時参照は注入されたPortを利用し、streaming再生とPhotos登録を分離 |
+ | `Credentials/`、`Diagnostics/` | 認証保管adapter、最小限の診断出力 | 接続秘密や家族動画をソース/ログへ保存しない。診断ログを復旧証拠の代わりにしない |
+ 
+@@ -172,7 +173,8 @@
+ | `FrameRelayTests/Domain/`、`Application/` | `FrameRelayTests`、Swift Testing | 純粋規則、固定対象集合と動画別結果、条件付き自動再開、Portへの失敗/遅延/逆順注入、表示投影と入力。`@Test`を入口とし`@testable import FrameRelay`で参照。独立した`Presentation/`は未作成 |
+ | `FrameRelayTests/Platform/`、`Integration/` | 同上 | adapter契約、使い捨てのdiskストア/ファイルを用いた復旧・削除照合、制御可能な通信先との契約。実環境の実行条件は計画で区別 |
+ | `FrameRelayTests/Integration/Photos/` | 同上 | `PhotoSaveCoordinatorTests`、`PhotoTemporaryRecoveryTests`・`PhotoTerminalRecoveryTests`と`PhotoSaveFixture`。結果と終端の独立commit・元use解放・コピー保持を試験する。`NativePhotoLibraryTests`は明示opt-inの専用Simulator実Photos試験。値検証は`Domain/PhotoRegistrationTests.swift`、同writer再openは`Integration/Storage/PhotoRegistrationStoreTests.swift` |
+-| `FrameRelayTests/Integration/Registration/` | 同上 | `NewStoreKeychainTests`・`NewStoreRegistrationTests`は専用Keychain service/使い捨てstoreと制御したremote境界を用い、foreign採用拒否・明示新登録・現在UUID/namespace・旧global byte列保持・不明/中断を試験する。通常HTTPSや新規UI、remote-only履歴の製品結合・実機受入とは区別し、結果は現行tasklistへ記録する |
++| `FrameRelayTests/Integration/Registration/` | 同上 | `NewStoreKeychainTests`・`NewStoreRegistrationTests`は専用Keychain service/使い捨てstoreと制御したremote境界を用い、foreign採用拒否・明示新登録・現在UUID/namespace・旧global byte列保持・不明/中断を試験する。通常HTTPS/新規UIと、別試験の保存原本catalog結合・実機受入を区別し、結果は現行tasklistへ記録する |
++| `FrameRelayTests/Integration/Remote/RemoteInventoryTests.swift`、`RemoteInventoryHTTPFixtureTests.swift`、`Integration/Storage/RemoteInventoryStoreTests.swift` | 同上 | strict wire/opaque bytes/UInt64、明示page/循環cursor、unknown commitのexact lookup、登録/store置換、共通Composition/資格情報の注入境界、同writer再open・空/重複・同capture衝突と実原本保持を試験する。HTTP fixtureは明示opt-inの新登録namespace→実SDK metadata→再open用で、定義と実行成功を分ける。専用UI/AX・全Unit等を含む必要検証は現行tasklistへ記録する |
+ | `FrameRelayTests/Integration/Publication/PhotoInvalidationBoundaryTests.swift` | 同上 | 実MOV・実disk・実`ProductMediaTermination`を用い、Photos終端順序のfixtureと失効時の全reader解放を接続する境界試験。実PhotoKit completionや通常保存producer・実機品質の成立とは区別 |
+ | `FrameRelayTests/Integration/OriginalRemovalIntegrationTests.swift`、`DiscardIntegrationTests.swift`、`OriginalRemovalTransportFenceTests.swift`、`OriginalCleanupTransportFenceTests.swift` | 同上 | S32/S33の両store・同FD全hash/実MOV unlink・中断/再open・観測だけの復旧と、全task receipt/inventory最終照合の境界。容量整理固有の証拠とhash/最終writer間の変更も試験対象。`Support/OriginalRemovalFixture.swift`を用い、外部媒体/管理記録・旧CASを保持する |
+ | `FrameRelayTests/Integration/Remote/`、`Integration/Storage/` | 同上 | `BackgroundMediaSessionTests`・`BackgroundEventDrainTests`・`BackgroundMediaStoreTests`・`ManagedUploadSourceTests`がOS task対応/event drain/copyと自身のFD閉鎖を試験。`BackgroundCaptureResumeTests`はcoordinator最終許可発行後のhold/ABAとSDK側の注入action直前の同期消費を試験する。`BackgroundRemovalTerminalTests`は実suspended→resume拒否→cancel callback→exact lease/stopped→通常model破棄/再openを確認する。strict permit/Mac notExecutedやdispatch actionは注入で、正の実SDK resume・通常実通信/SDK全FDの証拠ではない |
+@@ -258,7 +260,7 @@
+ 
+ Workflowの開始条件、専門agentへの所有範囲の指定、review/validationの読み取り専用規則は[AGENTS.md](../AGENTS.md)に従う。本書の配置計画だけで別Workflowや実装を開始しない。
+ 
+-現行supportの`server-implementation/backend-overlay/`は登録/保存/候補job/publicationの隔離実装、`server-isolation/prepare_publication_probe.py`・`run_publication_simulator_probe.py`・`publication_fixture_listener.py`は試験用準備/起動/HTTP支援である。iOS側入口は`FrameRelayTests/Integration/Remote/PublicationHTTPFixtureTests.swift`。実行版と観測はtasklist E-S27-01/E-S28-01/E-S34-BG01と各evidenceを参照し、S27旧実証拠を後続metadata試験で置換しない。旧M04の`evidence/20261020-m04/`も配置確認の履歴として保持する。
++現行supportの`server-implementation/backend-overlay/`は登録/保存/候補job/publicationと保存原本inventoryの隔離実装、`server-isolation/prepare_publication_probe.py`・`run_publication_simulator_probe.py`・`publication_fixture_listener.py`は試験用準備/起動/HTTP支援である。iOS側入口は`FrameRelayTests/Integration/Remote/PublicationHTTPFixtureTests.swift`。保存原本inventoryは`server-implementation/prepare_inventory_snapshot.py`・`cases-inventory.json`で版/試験集合を固定し、`server-isolation/prepare_inventory_probe.py`と`RemoteInventoryHTTPFixtureTests.swift`を限定HTTP検証の入口にする。本番反映や稼働DB操作の許可にはしない。実行版と観測はtasklist S28/E-S27-01/E-S28-01/E-S34-BG01と各evidenceを参照し、S27旧実証拠を後続metadata試験で置換しない。旧M04の`evidence/20261020-m04/`も配置確認の履歴として保持する。
+ 
+ ## 移行上の注意
+ 

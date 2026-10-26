@@ -1,0 +1,28 @@
+{
+  "reviewer": "cleanup_doc_review",
+  "scope": [
+    "docs/architecture.md",
+    "docs/functional-design.md",
+    "docs/development-guidelines.md",
+    "docs/repository-structure.md"
+  ],
+  "initial": {
+    "findings": 1,
+    "severity": "P2",
+    "file": "docs/functional-design.md:335",
+    "issue": "loopbackで確認済みのnamespace資格情報の実SDK受渡しまで未確認と読める",
+    "resolution": "一文だけを修正し、隔離loopbackの部分証拠と通常HTTPS/専用UI等の必要検証を分離、件数はtasklist正本"
+  },
+  "final": {
+    "findings": 0,
+    "P2": "resolved",
+    "other_three_documents": "hash unchanged after one-sentence correction"
+  },
+  "checks": {
+    "local_links": 57,
+    "missing_links": 0,
+    "tables": "unchanged and valid",
+    "diff_check": "passed"
+  },
+  "limitations": "静的文書レビューのみ。実行結果の独立検証・build/test・実機/全S28判定は対象外。"
+}

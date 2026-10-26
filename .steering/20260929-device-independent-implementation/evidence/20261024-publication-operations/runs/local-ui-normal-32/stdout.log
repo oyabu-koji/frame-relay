@@ -1,0 +1,917 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination "platform=iOS Simulator,id=D4AFACDE-F4C0-4527-8A0A-1E64A8BB4F03" -derivedDataPath /private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData -resultBundlePath /private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/local-ui-normal-32/result.xcresult -disableAutomaticPackageResolution -parallel-testing-enabled NO -collect-test-diagnostics never "-only-testing:FrameRelayUITests/LocalRenditionFlowTests/testLocalAndRemoteCompleteCopiesPlayConfirmStopAndNeverAutoRestore" test
+
+2026-10-24 14:08:29.296 xcodebuild[9107:60241739] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+Writing result bundle at path:
+	/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/local-ui-normal-32/result.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (3 targets)
+    Target 'FrameRelayUITests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelayTests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelay' in project 'FrameRelay' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: b5289e4456af3246e9ed3db1eb13d58b
+Build description path: /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/XCBuildData/b5289e4456af3246e9ed3db1eb13d58b.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/oyabu/dev/rep/FrameRelay/FrameRelay.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist -producttype com.apple.product-type.application -genpkginfo /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/assetcatalog_generated_info.plist -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/ProductTypeInfoPlistAdditions.plist -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/FrameRelayUITests --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+2026-10-24 14:08:31.160300+0900 FrameRelayUITests-Runner[9126:60242038] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-24 14:08:33.184.
+Test Suite 'FrameRelayUITests.xctest' started at 2026-10-24 14:08:33.184.
+Test Suite 'LocalRenditionFlowTests' started at 2026-10-24 14:08:33.184.
+Test Case '-[FrameRelayUITests.LocalRenditionFlowTests testLocalAndRemoteCompleteCopiesPlayConfirmStopAndNeverAutoRestore]' started.
+    t =     0.00s Start Test at 2026-10-24 14:08:33.186
+    t =     0.02s Set Up
+    t =     0.03s Added attachment named 'local-rendition-independent-expected-identities'
+    t =     0.03s Open com.oyabu.FrameRelay
+    t =     0.03s     Launch com.oyabu.FrameRelay
+2026-10-24 14:08:33.256 xcodebuild[9107:60241739] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-24 14:08:33.256 xcodebuild[9107:60241739] [MT] IDELaunchParametersSnapshot: no debugger version
+objc[9126]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.NUrxb4/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x103364398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.NUrxb4/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x106980310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     2.32s         Setting up automation session
+    t =     4.81s         Wait for com.oyabu.FrameRelay to idle
+    t =     6.60s Waiting 15.0s for Button (First Match) to exist
+    t =     7.69s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     7.69s         Checking existence of `Button (First Match)`
+    t =     8.90s Find the Button (First Match)
+    t =     8.94s Checking existence of `Any (First Match)`
+    t =     8.98s Checking existence of `Any (First Match)`
+    t =     9.02s Checking existence of `Button (First Match)`
+    t =     9.04s Find the Button (First Match)
+    t =     9.09s Find the "product.capture" Button
+    t =     9.11s Find the NavigationBar (First Match)
+    t =     9.12s Checking existence of `Any (First Match)`
+    t =     9.15s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =     9.15s     Wait for com.oyabu.FrameRelay to idle
+    t =     9.15s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =     9.18s     Check for interrupting elements affecting "FrameRelay" Application
+    t =     9.20s     Synthesize event
+    t =     9.63s     Wait for com.oyabu.FrameRelay to idle
+    t =    11.73s Checking existence of `Any (First Match)`
+    t =    11.80s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    11.80s     Wait for com.oyabu.FrameRelay to idle
+    t =    11.80s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    11.83s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    11.85s     Synthesize event
+    t =    12.27s     Wait for com.oyabu.FrameRelay to idle
+    t =    14.40s Checking existence of `Any (First Match)`
+    t =    14.44s Find the NavigationBar (First Match)
+    t =    14.45s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    14.47s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    14.50s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    14.52s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    14.54s Find the Any (First Match)
+    t =    14.58s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =    14.61s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    14.61s     Wait for com.oyabu.FrameRelay to idle
+    t =    14.62s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    14.64s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    14.67s     Synthesize event
+    t =    15.09s     Wait for com.oyabu.FrameRelay to idle
+    t =    17.21s Checking existence of `"library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText`
+    t =    17.25s Find the NavigationBar (First Match)
+    t =    17.26s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.28s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.30s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.32s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.34s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =    17.37s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =    17.41s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =    17.44s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =    17.47s Checking existence of `Button (First Match)`
+    t =    17.50s Find the NavigationBar (First Match)
+    t =    17.50s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.52s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.54s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.56s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.58s Find the Button (First Match)
+    t =    17.62s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" Button
+    t =    17.65s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" Button
+    t =    17.68s Checking existence of `Any (First Match)`
+    t =    17.72s Find the NavigationBar (First Match)
+    t =    17.73s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.75s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.77s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.79s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.81s Find the Any (First Match)
+    t =    17.84s Find the "library.remote.playReason.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =    17.87s Find the "library.remote.playReason.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =    17.91s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    17.91s     Wait for com.oyabu.FrameRelay to idle
+    t =    17.91s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.93s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    17.95s     Synthesize event
+    t =    18.38s     Wait for com.oyabu.FrameRelay to idle
+    t =    19.11s Checking existence of `"library.remote.playReason.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText`
+    t =    19.16s Find the NavigationBar (First Match)
+    t =    19.17s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    19.19s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    19.21s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    19.23s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    19.25s Find the "library.remote.playReason.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =    19.28s Find the "library.remote.playReason.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =    19.31s Find the "library.remote.playReason.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =    19.34s Checking existence of `Button (First Match)`
+    t =    19.38s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =    19.38s     Wait for com.oyabu.FrameRelay to idle
+    t =    19.38s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    19.40s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    19.42s     Synthesize event
+    t =    19.85s     Wait for com.oyabu.FrameRelay to idle
+    t =    21.95s Checking existence of `Button (First Match)`
+    t =    22.01s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =    22.01s     Wait for com.oyabu.FrameRelay to idle
+    t =    22.01s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    22.04s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    22.07s     Synthesize event
+    t =    22.49s     Wait for com.oyabu.FrameRelay to idle
+    t =    24.60s Checking existence of `Button (First Match)`
+    t =    24.66s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =    24.66s     Wait for com.oyabu.FrameRelay to idle
+    t =    24.66s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    24.69s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    24.71s     Synthesize event
+    t =    25.14s     Wait for com.oyabu.FrameRelay to idle
+    t =    27.24s Checking existence of `Button (First Match)`
+    t =    27.28s Find the Button (First Match)
+    t =    27.31s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =    27.31s     Wait for com.oyabu.FrameRelay to idle
+    t =    27.31s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    27.33s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    27.36s     Synthesize event
+    t =    27.78s     Wait for com.oyabu.FrameRelay to idle
+    t =    28.58s Checking existence of `"product.capture" Button`
+    t =    28.62s Find the "product.capture" Button
+    t =    28.65s Find the "product.capture" Button
+    t =    28.67s Find the NavigationBar (First Match)
+    t =    28.68s Checking existence of `Any (First Match)`
+    t =    28.70s Find the Any (First Match)
+    t =    28.74s Checking existence of `"library.item.s28lr-f7a0aa4e-2b55-44c9-a426-04ff2b9ab22c-max-local" Button`
+    t =    28.76s Checking existence of `StaticText (First Match)`
+    t =    28.78s Find the StaticText (First Match)
+    t =    28.81s Tap "library.itemTitle.s28lr-f7a0aa4e-2b55-44c9-a426-04ff2b9ab22c-max-local" StaticText
+    t =    28.81s     Wait for com.oyabu.FrameRelay to idle
+    t =    28.81s     Find the "library.itemTitle.s28lr-f7a0aa4e-2b55-44c9-a426-04ff2b9ab22c-max-local" StaticText
+    t =    28.84s     Check for interrupting elements affecting "library.itemTitle.s28lr-f7a0aa4e-2b55-44c9-a426-04ff2b9ab22c-max-local" StaticText
+    t =    28.87s     Synthesize event
+    t =    29.16s     Wait for com.oyabu.FrameRelay to idle
+    t =    29.53s Waiting 10.0s for Any (First Match) to exist
+    t =    30.59s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =    30.60s         Checking existence of `Any (First Match)`
+    t =    30.64s Find the Any (First Match)
+    t =    30.65s Checking existence of `Any (First Match)`
+    t =    30.66s Find the NavigationBar (First Match)
+    t =    30.67s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    30.68s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    30.69s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    30.70s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    30.71s Find the Any (First Match)
+    t =    30.73s Find the "library.status.publication" Other
+    t =    30.75s Find the "library.status.publication" Other
+    t =    30.76s Find the "library.status.publication" Other
+    t =    30.77s Checking existence of `Any (First Match)`
+    t =    30.78s Find the NavigationBar (First Match)
+    t =    30.79s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    30.80s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    30.81s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    30.82s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    30.83s Find the Any (First Match)
+    t =    30.85s Find the "library.status.confirmation" Other
+    t =    30.87s Find the "library.status.confirmation" Other
+    t =    30.88s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    30.88s     Wait for com.oyabu.FrameRelay to idle
+    t =    30.88s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    30.90s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    30.91s     Synthesize event
+    t =    31.34s     Wait for com.oyabu.FrameRelay to idle
+    t =    33.46s Checking existence of `"library.status.confirmation" Other`
+    t =    33.49s Find the NavigationBar (First Match)
+    t =    33.49s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    33.51s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    33.52s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    33.53s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    33.54s Find the "library.status.confirmation" Other
+    t =    33.56s Find the "library.status.confirmation" Other
+    t =    33.58s Find the "library.status.confirmation" Other
+    t =    33.59s Checking existence of `Button (First Match)`
+    t =    33.60s Find the NavigationBar (First Match)
+    t =    33.61s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    33.62s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    33.63s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    33.64s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    33.65s Find the Button (First Match)
+    t =    33.67s Find the "library.action.playRendition" Button
+    t =    33.68s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    33.69s     Wait for com.oyabu.FrameRelay to idle
+    t =    33.69s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    33.70s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    33.71s     Synthesize event
+    t =    34.14s     Wait for com.oyabu.FrameRelay to idle
+    t =    34.85s Checking existence of `"library.action.playRendition" Button`
+    t =    34.88s Find the NavigationBar (First Match)
+    t =    34.88s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    34.90s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    34.91s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    34.92s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    34.93s Find the "library.action.playRendition" Button
+    t =    34.95s Find the "library.action.playRendition" Button
+    t =    34.97s Find the "library.action.playRendition" Button
+    t =    34.98s Find the "library.action.playRendition" Button
+    t =    35.00s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    35.08s Added attachment named 'max-local-detail-before-play-accessibility-before'
+    t =    35.08s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    35.14s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    35.16s Added attachment named 'max-local-detail-before-play-accessibility-before-tree'
+    t =    37.06s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    37.14s Added attachment named 'max-local-detail-before-play-accessibility-after'
+    t =    37.14s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    37.20s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    37.22s Added attachment named 'max-local-detail-before-play-accessibility-after-tree'
+    t =    37.22s Tap "library.action.playRendition" Button
+    t =    37.22s     Wait for com.oyabu.FrameRelay to idle
+    t =    37.23s     Find the "library.action.playRendition" Button
+    t =    37.24s     Check for interrupting elements affecting "library.action.playRendition" Button
+    t =    37.26s     Synthesize event
+    t =    37.55s     Wait for com.oyabu.FrameRelay to idle
+    t =    39.10s Find the Any (First Match)
+    t =    40.05s Find the Any (First Match)
+    t =    41.06s Find the Any (First Match)
+    t =    41.09s Checking existence of `Any (First Match)`
+    t =    41.13s Find the Any (First Match)
+    t =    41.16s Checking existence of `Any (First Match)`
+    t =    41.19s Find the Any (First Match)
+    t =    41.23s Find the Any (First Match)
+    t =    41.26s Checking existence of `Any (First Match)`
+    t =    41.30s Checking existence of `Any (First Match)`
+    t =    41.35s Find the Button (First Match)
+    t =    42.42s Find the Any (First Match)
+    t =    42.47s Checking existence of `Button (First Match)`
+    t =    42.48s Find the Button (First Match)
+    t =    42.50s Find the "renditionPlayback.stop" Button
+    t =    42.52s Find the "renditionPlayback.stop" Button
+    t =    42.54s Find the "renditionPlayback.stop" Button
+    t =    42.56s Find the Any (First Match)
+    t =    43.46s Find the Any (First Match)
+    t =    43.50s Checking existence of `Button (First Match)`
+    t =    43.52s Find the Button (First Match)
+    t =    43.54s Find the "renditionPlayback.stop" Button
+    t =    43.56s Find the "renditionPlayback.stop" Button
+    t =    43.58s Find the "renditionPlayback.stop" Button
+    t =    43.60s Find the Any (First Match)
+    t =    44.39s Find the Any (First Match)
+    t =    44.42s Checking existence of `Button (First Match)`
+    t =    44.44s Find the Button (First Match)
+    t =    44.46s Find the "renditionPlayback.stop" Button
+    t =    44.48s Find the "renditionPlayback.stop" Button
+    t =    44.50s Find the "renditionPlayback.stop" Button
+    t =    44.52s Find the Any (First Match)
+    t =    45.38s Find the Any (First Match)
+    t =    45.42s Checking existence of `Button (First Match)`
+    t =    45.43s Find the Button (First Match)
+    t =    45.45s Find the "renditionPlayback.stop" Button
+    t =    45.48s Find the "renditionPlayback.stop" Button
+    t =    45.50s Find the "renditionPlayback.stop" Button
+    t =    45.51s Find the Any (First Match)
+    t =    46.42s Find the Any (First Match)
+    t =    46.46s Checking existence of `Button (First Match)`
+    t =    46.47s Find the Button (First Match)
+    t =    46.49s Find the "renditionPlayback.stop" Button
+    t =    46.52s Find the "renditionPlayback.stop" Button
+    t =    46.54s Find the "renditionPlayback.stop" Button
+    t =    46.56s Find the Any (First Match)
+    t =    47.46s Find the Any (First Match)
+    t =    47.50s Checking existence of `Button (First Match)`
+    t =    47.52s Find the Button (First Match)
+    t =    47.54s Find the "renditionPlayback.stop" Button
+    t =    47.56s Find the "renditionPlayback.stop" Button
+    t =    47.58s Find the "renditionPlayback.stop" Button
+    t =    47.60s Find the Any (First Match)
+    t =    48.45s Find the Any (First Match)
+    t =    48.49s Checking existence of `Button (First Match)`
+    t =    48.50s Find the Button (First Match)
+    t =    48.52s Find the "renditionPlayback.stop" Button
+    t =    48.54s Find the "renditionPlayback.stop" Button
+    t =    48.56s Find the "renditionPlayback.stop" Button
+    t =    48.58s Find the Any (First Match)
+    t =    49.37s Find the Any (First Match)
+    t =    49.40s Checking existence of `Button (First Match)`
+    t =    49.42s Find the Button (First Match)
+    t =    49.44s Find the "renditionPlayback.stop" Button
+    t =    49.46s Find the "renditionPlayback.stop" Button
+    t =    49.48s Find the "renditionPlayback.stop" Button
+    t =    49.50s Find the Any (First Match)
+    t =    50.38s Find the Any (First Match)
+    t =    50.42s Checking existence of `Button (First Match)`
+    t =    50.43s Find the Button (First Match)
+    t =    50.45s Find the "renditionPlayback.stop" Button
+    t =    50.47s Find the "renditionPlayback.stop" Button
+    t =    50.49s Find the "renditionPlayback.stop" Button
+    t =    50.51s Find the Any (First Match)
+    t =    51.41s Find the Any (First Match)
+    t =    51.45s Checking existence of `Button (First Match)`
+    t =    51.47s Find the Button (First Match)
+    t =    51.49s Find the "renditionPlayback.stop" Button
+    t =    51.51s Find the "renditionPlayback.stop" Button
+    t =    51.53s Find the "renditionPlayback.stop" Button
+    t =    51.55s Find the Any (First Match)
+    t =    51.59s Added attachment named 'local-rendition-stop-position-during-real-progress'
+    t =    51.59s Find the Any (First Match)
+    t =    51.62s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    51.71s Added attachment named 'max-local-playing-stable-footer-accessibility-before'
+    t =    51.71s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    51.84s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    51.88s Added attachment named 'max-local-playing-stable-footer-accessibility-before-tree'
+    t =    53.65s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    53.73s Added attachment named 'max-local-playing-stable-footer-accessibility-after'
+    t =    53.73s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    53.85s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    53.89s Added attachment named 'max-local-playing-stable-footer-accessibility-after-tree'
+    t =    53.89s Waiting 5.0s for "renditionPlayback.content" ScrollView to exist
+    t =    54.97s     Checking `Expect predicate `existsNoRetry == 1` for object "renditionPlayback.content" ScrollView`
+    t =    54.97s         Checking existence of `"renditionPlayback.content" ScrollView`
+    t =    55.01s Waiting 5.0s for Any (First Match) to exist
+    t =    56.07s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =    56.08s         Checking existence of `Any (First Match)`
+    t =    56.11s Find the Button (First Match)
+    t =    56.13s Find the "renditionPlayback.content" ScrollView
+    t =    56.16s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    56.17s Find the Any (First Match)
+    t =    56.21s Checking existence of `Button (First Match)`
+    t =    56.23s Find the Button (First Match)
+    t =    56.24s Find the "renditionPlayback.stop" Button
+    t =    56.27s Find the "renditionPlayback.stop" Button
+    t =    56.29s Find the "renditionPlayback.stop" Button
+    t =    56.31s Find the "renditionPlayback.stop" Button
+    t =    56.34s Find the "renditionPlayback.explanation" StaticText
+    t =    56.37s Swipe up "renditionPlayback.content" ScrollView
+    t =    56.37s     Wait for com.oyabu.FrameRelay to idle
+    t =    56.37s     Find the "renditionPlayback.content" ScrollView
+    t =    56.41s     Check for interrupting elements affecting "renditionPlayback.content" ScrollView
+    t =    56.44s     Synthesize event
+    t =    56.89s     Wait for com.oyabu.FrameRelay to idle
+    t =    57.38s Find the "renditionPlayback.content" ScrollView
+    t =    57.42s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    57.44s Find the "renditionPlayback.explanation" StaticText
+    t =    57.48s Checking existence of `Button (First Match)`
+    t =    57.49s Find the Button (First Match)
+    t =    57.51s Find the "renditionPlayback.stop" Button
+    t =    57.54s Find the "renditionPlayback.stop" Button
+    t =    57.56s Find the "renditionPlayback.stop" Button
+    t =    57.58s Find the "renditionPlayback.stop" Button
+    t =    57.60s Find the "renditionPlayback.explanation" StaticText
+    t =    57.63s Added attachment named 'local-rendition-explanation-ordinary-scroll-and-fixed-footer'
+    t =    57.63s Find the "renditionPlayback.explanation" StaticText
+    t =    57.67s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    57.76s Added attachment named 'local-rendition-explanation-reached-footer-remains-visible'
+    t =    57.76s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    57.89s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    57.93s Added attachment named 'local-rendition-explanation-reached-footer-remains-visible-tree'
+    t =    57.93s Find the Button (First Match)
+    t =    57.94s Find the "renditionPlayback.stop" Button
+    t =    57.97s Tap "renditionPlayback.stop" Button
+    t =    57.97s     Wait for com.oyabu.FrameRelay to idle
+    t =    57.97s     Find the "renditionPlayback.stop" Button
+    t =    57.99s     Check for interrupting elements affecting "renditionPlayback.stop" Button
+    t =    58.01s     Synthesize event
+    t =    58.31s     Wait for com.oyabu.FrameRelay to idle
+    t =    59.34s Find the Any (First Match)
+    t =    59.38s Checking existence of `Any (First Match)`
+    t =    59.41s Checking existence of `Button (First Match)`
+    t =    59.45s Find the Any (First Match)
+    t =    59.48s Find the Any (First Match)
+    t =    59.52s Checking existence of `Any (First Match)`
+    t =    59.55s Find the Button (First Match)
+    t =    59.57s Find the "renditionPlayback.close" Button
+    t =    59.59s Checking existence of `Any (First Match)`
+    t =    59.63s Find the Button (First Match)
+    t =    59.64s Find the "renditionPlayback.confirm" Button
+    t =    59.67s Tap "renditionPlayback.confirm" Button
+    t =    59.67s     Wait for com.oyabu.FrameRelay to idle
+    t =    59.67s     Find the "renditionPlayback.confirm" Button
+    t =    59.69s     Check for interrupting elements affecting "renditionPlayback.confirm" Button
+    t =    59.71s     Synthesize event
+    t =    60.01s     Wait for com.oyabu.FrameRelay to idle
+    t =    61.06s Checking existence of `Any (First Match)`
+    t =    61.12s Find the Any (First Match)
+    t =    61.15s Find the Button (First Match)
+    t =    61.17s Find the Any (First Match)
+    t =    61.21s Checking existence of `Any (First Match)`
+    t =    61.25s Checking existence of `"renditionPlayback.confirmation" StaticText`
+    t =    61.28s Find the NavigationBar (First Match)
+    t =    61.29s Find the "renditionPlayback.content" ScrollView
+    t =    61.31s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    61.33s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    61.35s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    61.36s Find the "renditionPlayback.confirmation" StaticText
+    t =    61.40s Find the "renditionPlayback.confirmation" StaticText
+    t =    61.44s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    61.53s Added attachment named 'max-local-stopped-explicit-confirmation-accessibility-before'
+    t =    61.53s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    61.63s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    61.67s Added attachment named 'max-local-stopped-explicit-confirmation-accessibility-before-tree'
+    t =    63.43s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    63.51s Added attachment named 'max-local-stopped-explicit-confirmation-accessibility-after'
+    t =    63.51s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    63.62s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    63.65s Added attachment named 'max-local-stopped-explicit-confirmation-accessibility-after-tree'
+    t =    63.65s Find the Button (First Match)
+    t =    63.67s Find the "renditionPlayback.close" Button
+    t =    63.69s Tap "renditionPlayback.close" Button
+    t =    63.69s     Wait for com.oyabu.FrameRelay to idle
+    t =    63.70s     Find the "renditionPlayback.close" Button
+    t =    63.71s     Check for interrupting elements affecting "renditionPlayback.close" Button
+    t =    63.74s     Synthesize event
+    t =    64.03s     Wait for com.oyabu.FrameRelay to idle
+    t =    65.48s Checking existence of `Any (First Match)`
+    t =    65.53s Checking existence of `"renditionPlayback.close" Button`
+    t =    65.56s Checking existence of `"library.status.confirmation" Other`
+    t =    65.57s Find the NavigationBar (First Match)
+    t =    65.58s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    65.59s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    65.61s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    65.62s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    65.63s Find the "library.status.confirmation" Other
+    t =    65.64s Find the "library.status.confirmation" Other
+    t =    65.66s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =    65.66s     Wait for com.oyabu.FrameRelay to idle
+    t =    65.66s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    65.67s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    65.69s     Synthesize event
+    t =    66.11s     Wait for com.oyabu.FrameRelay to idle
+    t =    68.23s Checking existence of `"library.status.confirmation" Other`
+    t =    68.26s Find the NavigationBar (First Match)
+    t =    68.27s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    68.28s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    68.30s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    68.31s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    68.32s Find the "library.status.confirmation" Other
+    t =    68.34s Find the "library.status.confirmation" Other
+    t =    68.35s Find the "library.status.confirmation" Other
+    t =    68.37s Checking existence of `Button (First Match)`
+    t =    68.38s Find the NavigationBar (First Match)
+    t =    68.39s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    68.40s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    68.41s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    68.42s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    68.43s Find the Button (First Match)
+    t =    68.45s Find the "library.action.playRendition" Button
+    t =    68.47s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    68.47s     Wait for com.oyabu.FrameRelay to idle
+    t =    68.47s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    68.48s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    68.50s     Synthesize event
+    t =    68.92s     Wait for com.oyabu.FrameRelay to idle
+    t =    71.03s Checking existence of `"library.action.playRendition" Button`
+    t =    71.06s Find the NavigationBar (First Match)
+    t =    71.07s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    71.08s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    71.09s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    71.10s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    71.11s Find the "library.action.playRendition" Button
+    t =    71.13s Find the "library.action.playRendition" Button
+    t =    71.15s Find the "library.action.playRendition" Button
+    t =    71.17s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    71.17s     Wait for com.oyabu.FrameRelay to idle
+    t =    71.17s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    71.18s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    71.20s     Synthesize event
+    t =    71.62s     Wait for com.oyabu.FrameRelay to idle
+    t =    72.47s Checking existence of `"library.action.playRendition" Button`
+    t =    72.50s Find the NavigationBar (First Match)
+    t =    72.50s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    72.52s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    72.53s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    72.54s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    72.55s Find the "library.action.playRendition" Button
+    t =    72.57s Find the "library.action.playRendition" Button
+    t =    72.59s Find the "library.action.playRendition" Button
+    t =    72.60s Tap Button (Element at index 0)
+    t =    72.60s     Wait for com.oyabu.FrameRelay to idle
+    t =    72.60s     Find the Button (Element at index 0)
+    t =    72.62s     Check for interrupting elements affecting "BackButton" Button
+    t =    72.64s     Synthesize event
+    t =    72.93s     Wait for com.oyabu.FrameRelay to idle
+    t =    73.24s Waiting 15.0s for Button (First Match) to exist
+    t =    74.32s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    74.32s         Checking existence of `Button (First Match)`
+    t =    75.38s Find the Button (First Match)
+    t =    75.42s Checking existence of `Any (First Match)`
+    t =    75.46s Checking existence of `Any (First Match)`
+    t =    75.49s Checking existence of `Button (First Match)`
+    t =    75.51s Find the Button (First Match)
+    t =    75.54s Find the "product.capture" Button
+    t =    75.56s Find the NavigationBar (First Match)
+    t =    75.57s Checking existence of `Any (First Match)`
+    t =    75.59s Find the NavigationBar (First Match)
+    t =    75.60s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    75.62s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    75.64s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    75.66s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    75.68s Find the Any (First Match)
+    t =    75.71s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =    75.74s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    75.74s     Wait for com.oyabu.FrameRelay to idle
+    t =    75.74s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    75.77s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    75.79s     Synthesize event
+    t =    76.21s     Wait for com.oyabu.FrameRelay to idle
+    t =    78.33s Checking existence of `"library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText`
+    t =    78.38s Find the NavigationBar (First Match)
+    t =    78.39s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    78.41s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    78.43s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    78.45s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    78.47s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =    78.51s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =    78.54s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =    78.57s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =    78.60s Checking existence of `Any (First Match)`
+    t =    78.63s Find the NavigationBar (First Match)
+    t =    78.63s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    78.66s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    78.68s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    78.70s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    78.72s Find the Any (First Match)
+    t =    78.75s Find the "library.remote.publication.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =    78.79s Find the "library.remote.publication.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =    78.82s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    78.82s     Wait for com.oyabu.FrameRelay to idle
+    t =    78.82s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    78.85s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    78.87s     Synthesize event
+    t =    79.30s     Wait for com.oyabu.FrameRelay to idle
+    t =    81.42s Checking existence of `"library.remote.publication.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText`
+    t =    81.46s Find the NavigationBar (First Match)
+    t =    81.47s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    81.50s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    81.52s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    81.54s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    81.56s Find the "library.remote.publication.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =    81.60s Find the "library.remote.publication.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =    81.63s Find the "library.remote.publication.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =    81.66s Find the "library.remote.publication.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =    81.69s Checking existence of `Button (First Match)`
+    t =    81.72s Find the NavigationBar (First Match)
+    t =    81.73s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    81.75s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    81.77s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    81.79s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    81.82s Find the Button (First Match)
+    t =    81.85s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" Button
+    t =    81.88s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" Button
+    t =    81.91s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" Button
+    t =    81.95s Tap "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" Button
+    t =    81.95s     Wait for com.oyabu.FrameRelay to idle
+    t =    81.95s     Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" Button
+    t =    81.99s     Check for interrupting elements affecting "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" Button
+    t =    82.01s     Synthesize event
+    t =    82.31s     Wait for com.oyabu.FrameRelay to idle
+    t =    83.71s Find the Any (First Match)
+    t =    84.76s Find the Any (First Match)
+    t =    85.76s Find the Any (First Match)
+    t =    85.80s Checking existence of `Any (First Match)`
+    t =    85.83s Find the Any (First Match)
+    t =    85.86s Checking existence of `Any (First Match)`
+    t =    85.89s Find the Any (First Match)
+    t =    85.92s Find the Any (First Match)
+    t =    85.95s Checking existence of `Any (First Match)`
+    t =    86.01s Checking existence of `Any (First Match)`
+    t =    86.06s Find the Button (First Match)
+    t =    86.09s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    86.19s Added attachment named 'max-remote-playing-accessibility-before'
+    t =    86.19s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    86.34s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    86.39s Added attachment named 'max-remote-playing-accessibility-before-tree'
+    t =    88.19s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    88.29s Added attachment named 'max-remote-playing-accessibility-after'
+    t =    88.29s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    88.43s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    88.49s Added attachment named 'max-remote-playing-accessibility-after-tree'
+    t =    88.49s Find the Button (First Match)
+    t =    88.52s Find the "renditionPlayback.confirm" Button
+    t =    88.55s Tap "renditionPlayback.confirm" Button
+    t =    88.55s     Wait for com.oyabu.FrameRelay to idle
+    t =    88.55s     Find the "renditionPlayback.confirm" Button
+    t =    88.58s     Check for interrupting elements affecting "renditionPlayback.confirm" Button
+    t =    88.62s     Synthesize event
+    t =    88.91s     Wait for com.oyabu.FrameRelay to idle
+    t =    89.95s Checking existence of `Any (First Match)`
+    t =    89.99s Find the Any (First Match)
+    t =    90.02s Find the Button (First Match)
+    t =    90.05s Find the Any (First Match)
+    t =    90.08s Checking existence of `Any (First Match)`
+    t =    90.13s Pressing Home button
+    t =    91.64s Open com.oyabu.FrameRelay
+    t =    91.64s     Activate com.oyabu.FrameRelay
+    t =    91.69s         Wait for com.oyabu.FrameRelay to idle
+    t =    92.78s Find the Any (First Match)
+    t =    92.85s Checking existence of `Any (First Match)`
+    t =    92.90s Checking existence of `Button (First Match)`
+    t =    92.95s Find the Any (First Match)
+    t =    92.98s Find the Any (First Match)
+    t =    93.01s Checking existence of `Any (First Match)`
+    t =    93.06s Find the Button (First Match)
+    t =    93.08s Find the "renditionPlayback.close" Button
+    t =    94.15s Checking existence of `Any (First Match)`
+    t =    94.19s Find the Any (First Match)
+    t =    94.22s Find the Button (First Match)
+    t =    94.24s Find the Any (First Match)
+    t =    94.28s Checking existence of `Any (First Match)`
+    t =    94.33s Checking existence of `"renditionPlayback.confirmation" StaticText`
+    t =    94.36s Find the NavigationBar (First Match)
+    t =    94.37s Find the "renditionPlayback.content" ScrollView
+    t =    94.41s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    94.43s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    94.46s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    94.49s Find the "renditionPlayback.confirmation" StaticText
+    t =    94.52s Find the "renditionPlayback.confirmation" StaticText
+    t =    94.56s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    94.66s Added attachment named 'max-remote-background-terminal-accessibility-before'
+    t =    94.66s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    94.78s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    94.84s Added attachment named 'max-remote-background-terminal-accessibility-before-tree'
+    t =    96.60s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    96.70s Added attachment named 'max-remote-background-terminal-accessibility-after'
+    t =    96.71s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    96.83s Requesting snapshot of accessibility hierarchy for app with pid 9155
+    t =    96.88s Added attachment named 'max-remote-background-terminal-accessibility-after-tree'
+    t =    96.88s Find the Button (First Match)
+    t =    96.91s Find the "renditionPlayback.close" Button
+    t =    96.94s Tap "renditionPlayback.close" Button
+    t =    96.95s     Wait for com.oyabu.FrameRelay to idle
+    t =    96.95s     Find the "renditionPlayback.close" Button
+    t =    96.98s     Check for interrupting elements affecting "renditionPlayback.close" Button
+    t =    97.01s     Synthesize event
+    t =    97.30s     Wait for com.oyabu.FrameRelay to idle
+    t =    98.73s Checking existence of `Any (First Match)`
+    t =    98.81s Checking existence of `"renditionPlayback.close" Button`
+    t =    98.84s Waiting 15.0s for Button (First Match) to exist
+    t =    99.90s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    99.91s         Checking existence of `Button (First Match)`
+    t =   100.98s Find the Button (First Match)
+    t =   101.03s Checking existence of `Any (First Match)`
+    t =   101.07s Checking existence of `Any (First Match)`
+    t =   101.11s Checking existence of `Button (First Match)`
+    t =   101.14s Find the NavigationBar (First Match)
+    t =   101.15s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   101.17s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   101.19s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   101.21s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   101.23s Find the Button (First Match)
+    t =   101.27s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" Button
+    t =   101.30s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" Button
+    t =   101.33s Terminate com.oyabu.FrameRelay:9155
+    t =   102.42s Open com.oyabu.FrameRelay
+    t =   102.42s     Launch com.oyabu.FrameRelay
+2026-10-24 14:10:15.612 xcodebuild[9107:60241739] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-24 14:10:15.612 xcodebuild[9107:60241739] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =   102.64s         Setting up automation session
+    t =   104.97s         Wait for com.oyabu.FrameRelay to idle
+    t =   106.71s Waiting 15.0s for Button (First Match) to exist
+    t =   107.80s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   107.80s         Checking existence of `Button (First Match)`
+    t =   108.96s Find the Button (First Match)
+    t =   109.01s Checking existence of `Any (First Match)`
+    t =   109.05s Checking existence of `Any (First Match)`
+    t =   109.09s Checking existence of `Any (First Match)`
+    t =   109.12s Checking existence of `Any (First Match)`
+    t =   109.15s Checking existence of `Any (First Match)`
+    t =   109.18s Checking existence of `Any (First Match)`
+    t =   109.22s Checking existence of `Button (First Match)`
+    t =   109.24s Find the Button (First Match)
+    t =   109.29s Find the "product.capture" Button
+    t =   109.31s Find the NavigationBar (First Match)
+    t =   109.32s Checking existence of `Any (First Match)`
+    t =   109.35s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =   109.35s     Wait for com.oyabu.FrameRelay to idle
+    t =   109.35s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =   109.38s     Check for interrupting elements affecting "FrameRelay" Application
+    t =   109.40s     Synthesize event
+    t =   109.82s     Wait for com.oyabu.FrameRelay to idle
+    t =   111.92s Checking existence of `Any (First Match)`
+    t =   111.99s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =   111.99s     Wait for com.oyabu.FrameRelay to idle
+    t =   111.99s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =   112.02s     Check for interrupting elements affecting "FrameRelay" Application
+    t =   112.05s     Synthesize event
+    t =   112.47s     Wait for com.oyabu.FrameRelay to idle
+    t =   114.57s Checking existence of `Any (First Match)`
+    t =   114.61s Find the NavigationBar (First Match)
+    t =   114.62s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   114.64s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   114.66s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   114.68s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   114.70s Find the Any (First Match)
+    t =   114.74s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =   114.77s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =   114.77s     Wait for com.oyabu.FrameRelay to idle
+    t =   114.78s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =   114.80s     Check for interrupting elements affecting "FrameRelay" Application
+    t =   114.83s     Synthesize event
+    t =   115.25s     Wait for com.oyabu.FrameRelay to idle
+    t =   117.36s Checking existence of `"library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText`
+    t =   117.41s Find the NavigationBar (First Match)
+    t =   117.42s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   117.44s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   117.46s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   117.48s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   117.51s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =   117.55s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =   117.58s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =   117.61s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =   117.64s Checking existence of `Button (First Match)`
+    t =   117.67s Find the NavigationBar (First Match)
+    t =   117.68s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   117.70s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   117.73s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   117.75s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   117.77s Find the Button (First Match)
+    t =   117.80s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" Button
+    t =   117.83s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =   117.83s     Wait for com.oyabu.FrameRelay to idle
+    t =   117.84s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =   117.86s     Check for interrupting elements affecting "FrameRelay" Application
+    t =   117.88s     Synthesize event
+    t =   118.31s     Wait for com.oyabu.FrameRelay to idle
+    t =   119.22s Checking existence of `"library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" Button`
+    t =   119.26s Find the NavigationBar (First Match)
+    t =   119.27s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   119.29s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   119.31s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   119.33s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   119.35s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" Button
+    t =   119.38s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" Button
+    t =   119.42s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" Button
+    t =   119.45s Checking existence of `Any (First Match)`
+    t =   119.48s Find the NavigationBar (First Match)
+    t =   119.48s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   119.50s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   119.53s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   119.55s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   119.57s Find the Any (First Match)
+    t =   119.60s Find the "library.remote.playReason.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =   119.63s Find the "library.remote.playReason.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLXVuYWNxdWlyZWQ=.1.c2hhMjU2.ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZQ==.4096" StaticText
+    t =   119.66s Checking existence of `Button (First Match)`
+    t =   119.70s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =   119.70s     Wait for com.oyabu.FrameRelay to idle
+    t =   119.70s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =   119.72s     Check for interrupting elements affecting "FrameRelay" Application
+    t =   119.75s     Synthesize event
+    t =   120.17s     Wait for com.oyabu.FrameRelay to idle
+    t =   122.27s Checking existence of `Button (First Match)`
+    t =   122.34s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =   122.34s     Wait for com.oyabu.FrameRelay to idle
+    t =   122.34s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =   122.36s     Check for interrupting elements affecting "FrameRelay" Application
+    t =   122.39s     Synthesize event
+    t =   122.81s     Wait for com.oyabu.FrameRelay to idle
+    t =   124.92s Checking existence of `Button (First Match)`
+    t =   124.99s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =   124.99s     Wait for com.oyabu.FrameRelay to idle
+    t =   124.99s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =   125.01s     Check for interrupting elements affecting "FrameRelay" Application
+    t =   125.04s     Synthesize event
+    t =   125.46s     Wait for com.oyabu.FrameRelay to idle
+    t =   127.57s Checking existence of `Button (First Match)`
+    t =   127.62s Find the Button (First Match)
+    t =   127.64s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =   127.64s     Wait for com.oyabu.FrameRelay to idle
+    t =   127.65s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =   127.67s     Check for interrupting elements affecting "FrameRelay" Application
+    t =   127.70s     Synthesize event
+    t =   128.12s     Wait for com.oyabu.FrameRelay to idle
+    t =   129.00s Checking existence of `"product.capture" Button`
+    t =   129.03s Find the "product.capture" Button
+    t =   129.06s Find the "product.capture" Button
+    t =   129.08s Find the NavigationBar (First Match)
+    t =   129.09s Checking existence of `Any (First Match)`
+    t =   129.12s Find the NavigationBar (First Match)
+    t =   129.13s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   129.15s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   129.17s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   129.19s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   129.20s Find the Any (First Match)
+    t =   129.24s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =   129.27s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =   129.27s     Wait for com.oyabu.FrameRelay to idle
+    t =   129.27s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =   129.29s     Check for interrupting elements affecting "FrameRelay" Application
+    t =   129.31s     Synthesize event
+    t =   129.74s     Wait for com.oyabu.FrameRelay to idle
+    t =   131.85s Checking existence of `"library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText`
+    t =   131.90s Find the NavigationBar (First Match)
+    t =   131.91s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   131.93s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   131.95s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   131.97s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   131.99s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =   132.03s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =   132.06s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =   132.09s Find the "library.remote.title.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" StaticText
+    t =   132.12s Checking existence of `Button (First Match)`
+    t =   132.15s Find the NavigationBar (First Match)
+    t =   132.16s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   132.18s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   132.20s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   132.23s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   132.25s Find the Button (First Match)
+    t =   132.28s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" Button
+    t =   132.31s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =   132.31s     Wait for com.oyabu.FrameRelay to idle
+    t =   132.32s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =   132.34s     Check for interrupting elements affecting "FrameRelay" Application
+    t =   132.37s     Synthesize event
+    t =   132.79s     Wait for com.oyabu.FrameRelay to idle
+    t =   134.89s Checking existence of `"library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" Button`
+    t =   134.92s Find the NavigationBar (First Match)
+    t =   134.92s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   134.95s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   134.97s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   134.99s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   135.01s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" Button
+    t =   135.04s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" Button
+    t =   135.08s Find the "library.remote.play.OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.czI4bHItZjdhMGFhNGUtMmI1NS00NGM5LWE0MjYtMDRmZjJiOWFiMjJjLW1heC1yZW1vdGU=.1.c2hhMjU2.YzE5YTA4MmIyNjNiZDJhNDRlNWZjM2FjYzNhMjM0OTE0MzUwOTgzMDcwNDQ2ZDJlODIzZmI1ZTE2Zjg2OWM1OA==.485721" Button
+    t =   135.10s Find the Target Application 'com.oyabu.FrameRelay'
+    t =   135.20s Added attachment named 'max-relaunch-no-token-or-auto-playback'
+    t =   135.21s Requesting snapshot of accessibility hierarchy for app with pid 9824
+    t =   135.30s Requesting snapshot of accessibility hierarchy for app with pid 9824
+    t =   135.34s Added attachment named 'max-relaunch-no-token-or-auto-playback-tree'
+    t =   135.35s Tear Down
+    t =   135.35s     Checking existence of `Button (First Match)`
+Test Case '-[FrameRelayUITests.LocalRenditionFlowTests testLocalAndRemoteCompleteCopiesPlayConfirmStopAndNeverAutoRestore]' passed (136.135 seconds).
+Test Suite 'LocalRenditionFlowTests' passed at 2026-10-24 14:10:49.322.
+	 Executed 1 test, with 0 failures (0 unexpected) in 136.135 (136.138) seconds
+Test Suite 'FrameRelayUITests.xctest' passed at 2026-10-24 14:10:49.323.
+	 Executed 1 test, with 0 failures (0 unexpected) in 136.135 (136.139) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 14:10:49.324.
+	 Executed 1 test, with 0 failures (0 unexpected) in 136.135 (136.140) seconds
+2026-10-24 14:10:49.657 xcodebuild[9107:60241739] [MT] IDETestOperationsObserverDebug: 139.677 elapsed -- Testing started completed.
+2026-10-24 14:10:49.657 xcodebuild[9107:60241739] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-24 14:10:49.657 xcodebuild[9107:60241739] [MT] IDETestOperationsObserverDebug: 139.677 sec, +139.677 sec -- end
+
+Test session results, code coverage, and logs:
+	/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/local-ui-normal-32/result.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

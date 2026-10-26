@@ -1,0 +1,30 @@
+--- 54/FrameRelayUITests/Flows/NewRegistrationFlowTests.swift
++++ 58/FrameRelayUITests/Flows/NewRegistrationFlowTests.swift
+@@ -147,14 +147,23 @@
+     }
+ 
+     @MainActor private func reveal(_ value: XCUIElement, _ app: XCUIApplication, preferUp: Bool = true) throws {
++        let content = app.scrollViews["connection.content"]
++        guard content.waitForExistence(timeout: 5) else { throw NewRegistrationUIFailure.unexpectedState }
+         for _ in 0..<36 {
+             if value.exists {
+-                let top = app.navigationBars.firstMatch.frame.maxY
+-                if value.isHittable, value.frame.midY > top + 2, value.frame.midY < app.frame.maxY - 8 { return }
+-                if value.frame.midY <= top + 2 { app.swipeDown(); continue }
++                let top = max(app.navigationBars.firstMatch.frame.maxY, content.frame.minY)
++                let bottom = content.frame.maxY
++                if value.isHittable, value.frame.midY > top + 2, value.frame.midY < bottom - 2 { return }
++                if value.frame.midY <= top + 2 { content.swipeDown(); continue }
+             }
+-            if value.exists || preferUp { app.swipeUp() } else { app.swipeDown() }
++            if value.exists || preferUp { content.swipeUp() } else { content.swipeDown() }
+         }
++        attach(app, "new-registration-unreachable")
++        let targetGeometry = value.exists ? "\(value.identifier) frame=\(value.frame) hittable=\(value.isHittable)" : "target absent"
++        let keyboard = app.keyboards.firstMatch
++        let keyboardGeometry = keyboard.exists ? "\(keyboard.frame)" : "absent"
++        let diagnostic = XCTAttachment(string: "\(targetGeometry) content=\(content.frame) keyboard=\(keyboardGeometry)\n\(app.debugDescription)")
++        diagnostic.name = "new-registration-unreachable-geometry"; diagnostic.lifetime = .keepAlways; add(diagnostic)
+         throw NewRegistrationUIFailure.unreachable
+     }
+ 

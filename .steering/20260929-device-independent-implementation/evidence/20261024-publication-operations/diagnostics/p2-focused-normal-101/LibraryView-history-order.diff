@@ -1,0 +1,28 @@
+--- FrameRelay/Features/Library/LibraryView.swift@101
++++ FrameRelay/Features/Library/LibraryView.swift@102
+@@ -63,15 +63,22 @@
+                                         LibraryWrappingText(text: item.status(.original),
+                                             identifier: "library.itemOriginal.\(item.id.rawValue)")
+                                             .accessibilityIdentifier("library.itemOriginal.\(item.id.rawValue)")
++                                        if item.isDiscardHistory {
++                                            LibraryWrappingText(text: item.status(.removal),
++                                                identifier: "library.itemRemoval.\(item.id.rawValue)")
++                                                .accessibilityIdentifier("library.itemRemoval.\(item.id.rawValue)")
++                                        }
+                                         LibraryWrappingText(text: item.status(.publication),
+                                             identifier: "library.itemPublication.\(item.id.rawValue)")
+                                             .accessibilityIdentifier("library.itemPublication.\(item.id.rawValue)")
+                                         LibraryWrappingText(text: item.status(.retrieval),
+                                             identifier: "library.itemRetrieval.\(item.id.rawValue)")
+                                             .accessibilityIdentifier("library.itemRetrieval.\(item.id.rawValue)")
+-                                        LibraryWrappingText(text: item.status(.removal),
+-                                            identifier: "library.itemRemoval.\(item.id.rawValue)")
+-                                            .accessibilityIdentifier("library.itemRemoval.\(item.id.rawValue)")
++                                        if !item.isDiscardHistory {
++                                            LibraryWrappingText(text: item.status(.removal),
++                                                identifier: "library.itemRemoval.\(item.id.rawValue)")
++                                                .accessibilityIdentifier("library.itemRemoval.\(item.id.rawValue)")
++                                        }
+                                         LibraryWrappingText(text: item.status(.photos),
+                                             identifier: "library.itemPhotos.\(item.id.rawValue)")
+                                             .accessibilityIdentifier("library.itemPhotos.\(item.id.rawValue)")

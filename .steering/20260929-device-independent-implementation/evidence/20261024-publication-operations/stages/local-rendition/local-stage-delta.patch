@@ -1,0 +1,2387 @@
+--- FrameRelay/Application/Ports/LibraryRenditionPorts.swift@DI-SOURCE-20261024-01
++++ FrameRelay/Application/Ports/LibraryRenditionPorts.swift@current
+@@ -0,0 +1,15 @@
++import Foundation
++
++/// Remote catalog rows have no local recording reference. This exact target
++/// deliberately cannot be submitted to original-removal commands.
++nonisolated struct LibraryRenditionTarget: Equatable, Sendable {
++    let original: OriginalContent
++    let destination: DestinationIdentity?
++    var title: String { "動画 \(original.capture.rawValue)" }
++}
++
++nonisolated protocol LibraryRemoteRenditionPort: Sendable {
++    @MainActor func availability(_ item: LibraryRemoteItem) -> LibraryActionAvailability
++    func play(original: OriginalContent, destination: DestinationIdentity,
++              operation: MediaOperationID) async -> LibraryCommandResponse
++}
+--- FrameRelay/Application/Library/LocalRenditionSelection.swift@DI-SOURCE-20261024-01
++++ FrameRelay/Application/Library/LocalRenditionSelection.swift@current
+@@ -0,0 +1,73 @@
++import Foundation
++
++/// A read-only candidate, never permission to read a path. The consumer checks
++/// the actual root, inode and whole file before passing a live use to AVPlayer.
++nonisolated struct LocalRenditionSelection: Equatable, Sendable {
++    let identity: RegistrationStoreIdentity
++    let registration: RegistrationIdentity
++    let rendition: RenditionIdentity
++    let generation: InvalidationGeneration
++    let media: TemporaryMediaState
++    let distribution: DistributionReceipt
++
++    static let unavailableReason = "この登録・公開版に対応する完全取得済みの軽量版と配布記録を確認できません。必要な媒体の取得は、まだ利用できません。"
++
++    static func select(backend: BackendStoreSnapshot, originals: OriginalStoreSnapshot,
++                       target: LibraryRenditionTarget) throws -> Self {
++        guard backend.revision == originals.revision, let identity = backend.storeIdentity,
++              let logical = originals.logicalOriginals.first(where: { exact($0.original, target.original) }),
++              logical.removal == nil, logical.invalidation == nil,
++              !originals.logicalOriginals.contains(where: {
++                  $0.original.capture == target.original.capture && !exact($0.original, target.original)
++              }) else { throw BackendContractError.identityMismatch }
++        var candidates: [Self] = []
++        for registration in backend.registrations {
++            let reg = registration.server.registration
++            guard registration.isCommitted,
++                  target.destination.map({ exact($0, reg.destination) }) ?? true,
++                  backend.registrations.last(where: { exact($0.server.registration.destination, reg.destination) })
++                    .map({ exact($0, registration) }) == true,
++                  let current = backend.confirmationStates.first(where: {
++                      exact($0.registration, reg) && exact($0.current.original, target.original)
++                  }), !current.invalidatedRenditions.contains(current.current.rendition),
++                  backend.publications.contains(where: {
++                      exact($0.observation.registration, reg) && exact($0.observation.rendition, current.current)
++                          && $0.commit.matches(BackendStoreChange.publication($0.observation).key, revision: $0.commit.previousRevision)
++                          && exact($0.commit.key, BackendStoreChange.publication($0.observation).key)
++                  }) else { continue }
++            let proof = backend.distributionObservations.reversed().compactMap { row -> DistributionReceipt? in
++                let observation = row.observation
++                let key = BackendCommitKey.distributionObservation(observation.command, observation.lease.id, observation.observation)
++                guard row.commit.matches(key, revision: row.commit.previousRevision), exact(row.commit.key, key),
++                      exact(observation.lease.registration, reg), exact(observation.lease.target, MediaTarget.rendition(current.current)),
++                      case .succeeded(let receipt) = observation.result, receipt.isCommitted,
++                      exact(receipt.registration, reg), exact(receipt.rendition, current.current) else { return nil }
++                return receipt
++            }.first
++            guard let proof else { continue }
++            let media = backend.temporaryMedia.filter {
++                exact($0.registration, reg) && exact($0.rendition, current.current)
++                    && !$0.reclaiming && !$0.reclaimed && $0.complete && $0.fileIdentity != nil
++                    && exact($0.verifiedContent, current.current.deliveryContent)
++            }.sorted { $0.id.rawValue.utf8.lexicographicallyPrecedes($1.id.rawValue.utf8) }
++            if let first = media.first {
++                candidates.append(.init(identity: identity, registration: reg, rendition: current.current,
++                    generation: current.generation, media: first, distribution: proof))
++            }
++        }
++        // A local recording has no destination chooser. Do not silently choose
++        // between multiple current registrations with eligible copies.
++        guard candidates.count == 1, let value = candidates.first else { throw BackendContractError.ineligibleOriginal }
++        return value
++    }
++
++    func sameSource(as other: Self) -> Bool {
++        identity == other.identity && exact(registration, other.registration) && exact(rendition, other.rendition)
++            && generation == other.generation && exact(distribution, other.distribution)
++            && media.id == other.media.id && media.leaf == other.media.leaf
++            && media.directoryIdentity == other.media.directoryIdentity && media.fileIdentity == other.media.fileIdentity
++            && media.contentType == other.media.contentType
++    }
++    private static func exact<T: Encodable>(_ lhs: T, _ rhs: T) -> Bool { PublicationStoreBoundary.exact(lhs, rhs) }
++    private func exact<T: Encodable>(_ lhs: T, _ rhs: T) -> Bool { Self.exact(lhs, rhs) }
++}
+--- FrameRelay/Application/Library/RenditionPlaybackLibraryCommands.swift@DI-SOURCE-20261024-01
++++ FrameRelay/Application/Library/RenditionPlaybackLibraryCommands.swift@current
+@@ -0,0 +1,61 @@
++import Foundation
++
++/// Shared MainActor reservation spans async original handoff. Sheet state and
++/// separate model busy flags alone cannot protect the await gap.
++@MainActor final class RenditionPlaybackLibraryCommands: LibraryCommandPort, LibraryRemoteRenditionPort {
++    private let base: any LibraryCommandPort
++    private let original: OriginalPlaybackModel
++    private let rendition: RenditionPlaybackModel
++    private var reservation: (owner: String, nonce: UUID)?
++
++    init(base: any LibraryCommandPort, original: OriginalPlaybackModel, rendition: RenditionPlaybackModel) {
++        self.base = base; self.original = original; self.rendition = rendition
++    }
++    private var canPresent: Bool {
++        reservation == nil && original.target == nil && original.sessionID == nil
++            && original.canOpen && rendition.canOpen
++    }
++    private func reserve(_ owner: String) -> UUID? {
++        guard canPresent else { return nil }
++        let nonce = UUID(); reservation = (owner, nonce); return nonce
++    }
++    private func release(_ nonce: UUID) { if reservation?.nonce == nonce { reservation = nil } }
++    private var busyReason: String { "再生画面を閉じ、読み取り終了を確認してから選んでください。" }
++
++    func availability(_ action: LibraryAction, items: [LibraryItem]) -> LibraryActionAvailability {
++        if action == .confirmRendition {
++            return .unavailable("軽量版を1本ずつ実際に再生し、その再生画面の「この軽量版を確認」から操作してください。")
++        }
++        guard action.isPlayback else { return base.availability(action, items: items) }
++        guard canPresent else { return .unavailable(busyReason) }
++        if action == .playOriginal { return base.availability(action, items: items) }
++        guard items.count == 1, !items[0].isDiscardHistory, items[0].original != nil else {
++            return .unavailable(LocalRenditionSelection.unavailableReason)
++        }
++        return items[0].localRenditionUnavailableReason.map { .unavailable($0) } ?? .available
++    }
++
++    @MainActor func submit(_ request: LibraryCommandRequest) async -> LibraryCommandResponse {
++        guard request.action.isPlayback else { return await base.submit(request) }
++        guard let nonce = reserve(request.action.rawValue) else { return .rejected(busyReason) }
++        defer { release(nonce) }
++        guard request.targets.count == 1 else { return .rejected("この操作は1本ずつ行ってください。") }
++        if request.action == .playOriginal { return await base.submit(request) }
++        guard let original = request.targets[0].original,
++              original.capture.rawValue.utf8.elementsEqual(request.targets[0].capture.rawValue.utf8) else {
++            return .rejected(LocalRenditionSelection.unavailableReason)
++        }
++        return rendition.open(.init(original: original, destination: nil)) ? .accepted : .rejected(busyReason)
++    }
++
++    func availability(_ item: LibraryRemoteItem) -> LibraryActionAvailability {
++        guard canPresent else { return .unavailable(busyReason) }
++        return item.localRenditionUnavailableReason.map { .unavailable($0) } ?? .available
++    }
++    @MainActor func play(original: OriginalContent, destination: DestinationIdentity,
++              operation: MediaOperationID) async -> LibraryCommandResponse {
++        guard let nonce = reserve("remote-rendition") else { return .rejected(busyReason) }
++        defer { release(nonce) }
++        return rendition.open(.init(original: original, destination: destination)) ? .accepted : .rejected(busyReason)
++    }
++}
+--- FrameRelay/Composition/ProductRenditionFactory.swift@DI-SOURCE-20261024-01
++++ FrameRelay/Composition/ProductRenditionFactory.swift@current
+@@ -0,0 +1,125 @@
++import CryptoKit
++import Foundation
++
++nonisolated struct ProductRenditionOwner: Sendable {
++    let scope: RenditionMediaScope
++    let temporary: ManagedTemporaryMedia
++    let player: AVRenditionPlayback
++}
++
++nonisolated struct ProductRenditionSource: Sendable {
++    let selection: LocalRenditionSelection
++    let owner: ProductRenditionOwner
++    let receipt: TemporaryMediaReceipt
++    var usage: TemporaryMediaUsage { receipt.usage }
++}
++
++/// App-lifetime local consumer. It has no network factory, creates no cache
++/// directories or media, and uses the same registry as invalidation/removal.
++actor ProductRenditionFactory {
++    private let services: ProductLibraryServices
++    private let scopes: RenditionScopeRegistry
++    private let leases: RenditionReadLeases
++    private var owners: [String: ProductRenditionOwner] = [:]
++    private var opening: [String: Task<ProductRenditionOwner, Error>] = [:]
++    private var confirmations: [RegistrationStoreIdentity: MediaConfirmationCoordinator] = [:]
++    private(set) var openedOwners = 0
++
++    init(services: ProductLibraryServices, scopes: RenditionScopeRegistry) {
++        self.services = services; self.scopes = scopes
++        leases = RenditionReadLeases(store: services.store)
++    }
++
++    nonisolated static func root(for original: OriginalContent, run: ExplorationRunDirectory) throws -> URL {
++        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
++        let hash = SHA256.hash(data: try encoder.encode(original)).map { String(format: "%02x", $0) }.joined()
++        return run.url.appendingPathComponent("renditions-v1", isDirectory: true).appendingPathComponent(hash, isDirectory: true)
++    }
++
++    func selection(_ target: LibraryRenditionTarget) async throws -> LocalRenditionSelection {
++        for _ in 0..<3 {
++            guard case .loaded(let backend) = await services.store.load(),
++                  case .succeeded(let originals) = await services.store.loadOriginalState() else {
++                throw BackendContractError.unavailable
++            }
++            if backend.revision != originals.revision { continue }
++            return try LocalRenditionSelection.select(backend: backend, originals: originals, target: target)
++        }
++        throw BackendContractError.revisionConflict
++    }
++
++    /// Opening an owner starts no media use or SDK playback. It is separate
++    /// from acquiring a handoff and coalesces concurrent factory consumers.
++    func openOwner(_ target: LibraryRenditionTarget) async throws -> ProductRenditionOwner {
++        let selected = try await selection(target)
++        return try await owner(for: selected.rendition.original)
++    }
++
++    func prepare(_ target: LibraryRenditionTarget) async throws -> ProductRenditionSource {
++        let selected = try await selection(target)
++        let owner = try await owner(for: selected.rendition.original)
++        try Task.checkCancellation()
++        guard await owner.player.phase != .releaseNeedsReconciliation,
++              selected.sameSource(as: try await selection(target)) else { throw BackendContractError.staleGeneration }
++        guard case .succeeded(let usage) = await owner.temporary.acquireUsage(selected.media.id, purpose: .playback,
++            usageID: .init(rawValue: UUID().uuidString)) else { throw BackendContractError.ineligibleOriginal }
++        do {
++            // inspect performs the independent full hash and named/root/inode
++            // checks. A snapshot's verifiedContent is not physical file proof.
++            guard case .succeeded(let receipt) = await owner.temporary.inspect(selected.media.id),
++                  selected.sameSource(as: try await selection(target)) else { throw BackendContractError.identityMismatch }
++            try Task.checkCancellation()
++            let state = try await owner.temporary.stateFor(selected.media.id)
++            let actual = state.receipt(for: usage)
++            guard receipt.hasCompleteCoverage, actual.hasCompleteCoverage, !actual.isReleased,
++                  actual.verifiedContent == selected.rendition.deliveryContent else { throw BackendContractError.identityMismatch }
++            return .init(selection: selected, owner: owner, receipt: actual)
++        } catch {
++            _ = await owner.temporary.releaseUsage(usage)
++            throw error
++        }
++    }
++
++    func release(_ source: ProductRenditionSource) async -> Bool {
++        await source.owner.temporary.releaseUsage(source.usage) == .succeeded(source.receipt.id)
++    }
++
++    func confirm(_ token: PlaybackToken, action: MediaOperationID,
++                 identity: RegistrationStoreIdentity) async -> BackendOutcome<ConfirmationRecord> {
++        let coordinator: MediaConfirmationCoordinator
++        if let existing = confirmations[identity] { coordinator = existing }
++        else {
++            coordinator = MediaConfirmationCoordinator(store: services.store, identity: identity)
++            confirmations[identity] = coordinator
++        }
++        return await coordinator.confirm(token, action: action)
++    }
++
++    private func owner(for original: OriginalContent) async throws -> ProductRenditionOwner {
++        let root = try Self.root(for: original, run: services.run)
++        let key = root.lastPathComponent
++        if let value = owners[key] {
++            do { try await value.scope.checkAdmission(); return value }
++            catch { owners.removeValue(forKey: key) }
++        }
++        if let task = opening[key] { return try await task.value }
++        let task = Task { [scopes, leases] in
++            let scope = try await scopes.open(original: original)
++            let temporary = try await ManagedTemporaryMedia.open(root: root, leases: leases, scope: scope,
++                createIfMissing: false)
++            let player = try await AVRenditionPlayback.open(leases: leases, temporary: temporary, scope: scope) { _ in
++                // This factory consumes already acquired local bytes only.
++                throw BackendContractError.unavailable
++            }
++            try await scope.checkAdmission()
++            return ProductRenditionOwner(scope: scope, temporary: temporary, player: player)
++        }
++        opening[key] = task
++        do {
++            let value = try await task.value
++            opening.removeValue(forKey: key)
++            owners[key] = value; openedOwners += 1
++            return value
++        } catch { opening.removeValue(forKey: key); throw error }
++    }
++}
+--- FrameRelay/Features/Playback/RenditionPlaybackModel.swift@DI-SOURCE-20261024-01
++++ FrameRelay/Features/Playback/RenditionPlaybackModel.swift@current
+@@ -0,0 +1,142 @@
++import Foundation
++import Observation
++
++@MainActor @Observable final class RenditionPlaybackModel {
++    typealias Confirm = @Sendable (PlaybackToken, MediaOperationID, RegistrationStoreIdentity) async -> BackendOutcome<ConfirmationRecord>
++    private let factory: ProductRenditionFactory
++    @ObservationIgnored private let confirmAction: Confirm
++    @ObservationIgnored private let didChange: @MainActor @Sendable () async -> Void
++    @ObservationIgnored private let stopJoinBoundary: (@MainActor @Sendable () async -> Void)?
++    private(set) var target: LibraryRenditionTarget?
++    private(set) var playback: AVRenditionPlayback?
++    private(set) var session: PlaybackSessionID?
++    private(set) var token: PlaybackToken?
++    private(set) var isPreparing = false
++    private(set) var isClosing = false
++    private(set) var isConfirming = false
++    private(set) var confirmation: ConfirmationRecord?
++    private(set) var confirmationUnknown = false
++    private(set) var confirmationFailed = false
++    private(set) var message: String?
++    private(set) var issue: String?
++    private var presentation: UUID?
++    private var identity: RegistrationStoreIdentity?
++    private var action: MediaOperationID?
++    @ObservationIgnored private var startTask: Task<Void, Never>?
++    @ObservationIgnored private var confirmationTask: Task<BackendOutcome<ConfirmationRecord>, Never>?
++
++    init(factory: ProductRenditionFactory,
++         confirm: Confirm? = nil,
++         stopJoinBoundary: (@MainActor @Sendable () async -> Void)? = nil,
++         didChange: @escaping @MainActor @Sendable () async -> Void = {}) {
++        self.factory = factory; self.didChange = didChange; self.stopJoinBoundary = stopJoinBoundary
++        confirmAction = confirm ?? { token, action, identity in
++            await factory.confirm(token, action: action, identity: identity)
++        }
++    }
++    var canOpen: Bool { target == nil && !isClosing && startTask == nil }
++    var isBusy: Bool {
++        isPreparing || playback.map { [.preparing, .playing, .stopping].contains($0.phase) } == true
++    }
++    var canConfirm: Bool {
++        token != nil && target != nil && !isClosing && !isConfirming && confirmation == nil && !confirmationFailed
++    }
++
++    /// The caller reserves the common presentation entry before this method.
++    /// A handoff is not actual playback and never creates a confirmation.
++    func open(_ target: LibraryRenditionTarget) -> Bool {
++        guard canOpen else { return false }
++        let nonce = UUID(), session = PlaybackSessionID(rawValue: UUID().uuidString)
++        self.target = target; self.presentation = nonce; self.session = session
++        token = nil; action = nil; identity = nil; confirmation = nil
++        confirmationUnknown = false; confirmationFailed = false; message = nil; issue = nil; isPreparing = true
++        startTask = Task { @MainActor in
++            do {
++                let source = try await factory.prepare(target)
++                guard presentation == nonce else { _ = await factory.release(source); return }
++                playback = source.owner.player; identity = source.selection.identity
++                if Task.isCancelled {
++                    if !(await factory.release(source)) { issue = "軽量版の使用終了を照合できません。記録を保持しています。" }
++                    isPreparing = false
++                    return
++                }
++                let outcome = await source.owner.player.play(.init(source: .local(source.receipt, source.selection.distribution),
++                    session: session, invalidationGeneration: source.selection.generation))
++                let released = await factory.release(source)
++                guard presentation == nonce else { return }
++                isPreparing = false
++                if !released { issue = "軽量版の使用終了を照合できません。記録を保持しています。" }
++                if case .succeeded(let value) = outcome,
++                   PublicationStoreBoundary.exact(value.session, session),
++                   PublicationStoreBoundary.exact(value.distribution, source.selection.distribution) {
++                    token = value
++                } else if !Task.isCancelled { issue = "この軽量版を再生できませんでした。媒体と現在の版を確認してください。" }
++                await didChange()
++            } catch {
++                guard presentation == nonce else { return }
++                isPreparing = false
++                if !Task.isCancelled { issue = "完全取得済みの軽量版・現在の登録と版・実ファイルの対応を確認できません。媒体を作成せず記録を保持しています。" }
++            }
++        }
++        return true
++    }
++
++    func stop() async {
++        guard let nonce = presentation else { return }
++        let task = startTask, player = playback, id = session, boundary = stopJoinBoundary
++        task?.cancel()
++        if let player, let id { await player.end(id) }
++        // Optional instrumentation can delay this join, but it cannot replace
++        // the actual SDK end above or the captured task's completion below.
++        if let boundary { await boundary() }
++        await task?.value
++        guard presentation == nonce else { return }
++        isPreparing = false
++        await didChange()
++    }
++
++    func close(ifSession expected: PlaybackSessionID?) async {
++        guard let expected, let current = session, PublicationStoreBoundary.exact(expected, current) else { return }
++        await close()
++    }
++
++    func close() async {
++        guard !isClosing else { return }
++        isClosing = true
++        await stop()
++        _ = await confirmationTask?.value
++        target = nil; presentation = nil; session = nil; token = nil; identity = nil; action = nil
++        playback = nil; startTask = nil; confirmationTask = nil
++        confirmation = nil; confirmationUnknown = false; confirmationFailed = false; isConfirming = false
++        isClosing = false
++    }
++
++    /// Only the singular button in the current playback presentation calls this.
++    func confirm() async {
++        guard canConfirm, let token, let identity, let nonce = presentation else { return }
++        isConfirming = true
++        let action = self.action ?? .init(rawValue: UUID().uuidString)
++        self.action = action
++        let task = Task { await confirmAction(token, action, identity) }
++        confirmationTask = task
++        let result = await task.value
++        guard presentation == nonce else { return }
++        isConfirming = false; confirmationTask = nil
++        switch result {
++        case .succeeded(let record):
++            guard PublicationStoreBoundary.exact(record.intent.playback, token),
++                  PublicationStoreBoundary.exact(record.intent.operation, action) else {
++                confirmationUnknown = true; message = "確認記録の対応を確定できません。同じ操作を照合してください。"; return
++            }
++            confirmation = record; confirmationUnknown = false
++            message = "この再生版の明示確認を保存しました。Mac miniへの送達は別に照合します。"
++        case .unknown, .inProgress:
++            confirmationUnknown = true
++            message = "確認の保存結果は未確定です。同じ再生・同じ操作の記録を照合してください。"
++        case .failed, .notExecuted:
++            confirmationFailed = true
++            message = "現在の登録・版・失効状態で確認を保存できません。再読み込みして確認してください。"
++        }
++        await didChange()
++    }
++}
+--- FrameRelay/Features/Playback/RenditionPlaybackView.swift@DI-SOURCE-20261024-01
++++ FrameRelay/Features/Playback/RenditionPlaybackView.swift@current
+@@ -0,0 +1,149 @@
++import AVKit
++import SwiftUI
++import UIKit
++
++struct RenditionPlaybackView: View {
++    @Bindable var model: RenditionPlaybackModel
++    @State private var presentedSession: PlaybackSessionID?
++    @Environment(\.locale) private var locale
++
++    var body: some View {
++        NavigationStack {
++            VStack(spacing: 0) {
++                ScrollView {
++                    VStack(alignment: .leading, spacing: 16) {
++                        if let target = model.target {
++                            RenditionPlaybackText(text: target.title, identifier: "renditionPlayback.target")
++                        }
++                        if let player = model.playback?.player {
++                            VideoPlayer(player: player)
++                                .frame(minHeight: 240)
++                                .accessibilityLabel("端末内の軽量版の動画プレーヤー")
++                                .accessibilityIdentifier("renditionPlayback.player")
++                        }
++                        RenditionPlaybackText(text: status, identifier: "renditionPlayback.status")
++                        let elapsed = elapsedValue
++                        RenditionPlaybackText(text: "再生位置：\(elapsed)", identifier: "renditionPlayback.elapsed",
++                            accessibilityLabel: "再生位置", accessibilityValue: elapsed)
++                        if let token = model.token {
++                            RenditionPlaybackText(text: "再生版ID：\(token.distribution.rendition.rendition.rawValue)",
++                                identifier: "renditionPlayback.version")
++                        }
++                        RenditionPlaybackText(text: "完全取得済みの軽量版を端末内から再生します。Wi-FiやMac miniへの接続は不要です。実際に再生した同じ版を、本人の操作で1本ずつ確認できます。再生だけでは確認済みになりません。停止や終了後も、この画面の同じ再生版を確認できます。画面を閉じると、この再生に対する確認操作は終了します。使用を終えた一時媒体は既存の回収条件に従って解放され、次回は取得が必要になる場合があります。iPhone原本とMac mini、写真の動画は削除しません。",
++                            style: .footnote, identifier: "renditionPlayback.explanation")
++                        if let issue = model.issue { RenditionPlaybackText(text: issue, identifier: "renditionPlayback.issue") }
++                        if let message = model.message { RenditionPlaybackText(text: message, identifier: "renditionPlayback.confirmation") }
++                    }
++                    .fixedSize(horizontal: false, vertical: true)
++                    .padding()
++                    .padding(.bottom, 16)
++                }
++                .frame(maxWidth: .infinity, maxHeight: .infinity)
++                .accessibilityIdentifier("renditionPlayback.content")
++                VStack(spacing: 12) {
++                    if model.isBusy {
++                        Button("再生を停止") { Task { await model.stop() } }
++                            .disabled(model.playback?.phase == .stopping)
++                            .accessibilityIdentifier("renditionPlayback.stop")
++                    }
++                    Button(model.confirmationUnknown ? "同じ確認操作を照合" : "この軽量版を確認") {
++                        Task { await model.confirm() }
++                    }
++                    .disabled(!model.canConfirm)
++                    .accessibilityIdentifier("renditionPlayback.confirm")
++                    Button("閉じる") { Task { await model.close() } }
++                        .buttonStyle(.bordered)
++                        .disabled(model.isClosing)
++                        .accessibilityIdentifier("renditionPlayback.close")
++                }
++                .buttonStyle(RenditionPlaybackButtonStyle())
++                .tint(Color.primary)
++                .fixedSize(horizontal: false, vertical: true)
++                .padding()
++                .background(Color(uiColor: .systemBackground))
++            }
++            .frame(maxWidth: .infinity, maxHeight: .infinity)
++            .navigationTitle("軽量版の再生と確認")
++            .toolbarBackground(Color(uiColor: .systemBackground), for: .navigationBar)
++            .toolbarBackgroundVisibility(.visible, for: .navigationBar)
++        }
++        .interactiveDismissDisabled()
++        .onAppear { if presentedSession == nil { presentedSession = model.session } }
++        .onDisappear {
++            let session = presentedSession
++            Task { await model.close(ifSession: session) }
++        }
++    }
++
++    private var elapsedValue: String {
++        (model.playback?.elapsedSeconds ?? 0).formatted(.number.precision(.fractionLength(1)).locale(locale)) + "秒"
++    }
++
++    private var status: String {
++        if model.isPreparing { return "完全取得済みの軽量版を照合・準備中" }
++        switch model.playback?.phase {
++        case .playing: return "端末内の軽量版を再生中"
++        case .preparing: return "軽量版を読み込み中"
++        case .stopping: return "再生を停止し、軽量版の読み取り終了を確認しています"
++        case .stopped: return "軽量版の再生を停止しました"
++        case .ended: return "軽量版の再生が終了しました"
++        case .failed: return "軽量版を再生できませんでした"
++        case .releaseNeedsReconciliation: return "軽量版の読み取り終了の照合が必要です"
++        default: return model.issue == nil ? "軽量版を準備しています" : "軽量版を開始できませんでした"
++        }
++    }
++}
++
++private struct RenditionPlaybackButtonStyle: ButtonStyle {
++    func makeBody(configuration: Configuration) -> some View {
++        configuration.label.font(.body).fixedSize(horizontal: false, vertical: true)
++            .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
++            .foregroundStyle(Color.primary).opacity(configuration.isPressed ? 0.75 : 1)
++    }
++}
++
++private struct RenditionPlaybackText: UIViewRepresentable {
++    let text: String
++    var style: UIFont.TextStyle = .body
++    let identifier: String
++    var accessibilityLabel: String? = nil
++    var accessibilityValue: String? = nil
++    @Environment(\.sizeCategory) private var sizeCategory
++
++    func makeUIView(context: Context) -> UILabel {
++        let label = UILabel()
++        label.numberOfLines = 0; label.lineBreakMode = .byWordWrapping
++        label.adjustsFontForContentSizeCategory = true; label.textColor = .label
++        label.isAccessibilityElement = true
++        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
++        label.setContentCompressionResistancePriority(.required, for: .vertical)
++        return label
++    }
++    func updateUIView(_ label: UILabel, context: Context) {
++        label.text = text; label.accessibilityIdentifier = identifier
++        label.accessibilityLabel = accessibilityLabel; label.accessibilityValue = accessibilityValue
++        label.font = .preferredFont(forTextStyle: style, compatibleWith: UITraitCollection(preferredContentSizeCategory: category))
++    }
++    func sizeThatFits(_ proposal: ProposedViewSize, uiView label: UILabel, context: Context) -> CGSize? {
++        guard let proposedWidth = proposal.width, proposedWidth.isFinite else { return nil }
++        let width = max(0, proposedWidth); label.preferredMaxLayoutWidth = width
++        return CGSize(width: width, height: ceil(label.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height))
++    }
++    private var category: UIContentSizeCategory {
++        switch sizeCategory {
++        case .extraSmall: .extraSmall
++        case .small: .small
++        case .medium: .medium
++        case .large: .large
++        case .extraLarge: .extraLarge
++        case .extraExtraLarge: .extraExtraLarge
++        case .extraExtraExtraLarge: .extraExtraExtraLarge
++        case .accessibilityMedium: .accessibilityMedium
++        case .accessibilityLarge: .accessibilityLarge
++        case .accessibilityExtraLarge: .accessibilityExtraLarge
++        case .accessibilityExtraExtraLarge: .accessibilityExtraExtraLarge
++        case .accessibilityExtraExtraExtraLarge: .accessibilityExtraExtraExtraLarge
++        @unknown default: .large
++        }
++    }
++}
+--- FrameRelay/Application/Library/LibrarySnapshot.swift@DI-SOURCE-20261024-01
++++ FrameRelay/Application/Library/LibrarySnapshot.swift@current
+@@ -71,6 +71,8 @@
+     var removalReviewInformation: String? = nil
+     /// Presentation hint only; the single writer rechecks current authority.
+     var cleanupUnavailableReason: String? = nil
++    /// Candidate only; the consumer rechecks the current writer and real bytes.
++    var localRenditionUnavailableReason: String? = LocalRenditionSelection.unavailableReason
+ 
+     var id: CaptureID { recording.intent.context.capture }
+     var title: String { "動画 \(id.rawValue)" }
+@@ -100,6 +102,7 @@
+     let hasIdentityConflict: Bool
+     var publicationDescription: String = "公開版の保存記録なし（未照合を含む）"
+     var retrievalDescription: String = "端末内の軽量版の取得記録なし・オフライン再生不可"
++    var localRenditionUnavailableReason: String? = LocalRenditionSelection.unavailableReason
+     var id: RemoteInventoryOriginalID { .init(destination: destination, original: original) }
+     var title: String { "動画 \(original.capture.rawValue)" }
+     var captureDateDescription: String { "撮影日時不明" }
+@@ -108,12 +111,17 @@
+         hasIdentityConflict ? "同じ動画の識別情報に異なる内容があります。原本の対応は要照合です。"
+             : "このiPhoneの原本保存記録との対応はありません。"
+     }
+-    var mediaDescription: String { "軽量版の取得・再生はまだ利用できません。保存記録の取得だけでは確認済みになりません。" }
++    var mediaDescription: String {
++        localRenditionUnavailableReason == nil
++            ? "完全取得済みの軽量版を端末内から再生できます。開始時に実媒体を照合します。取得記録や再生だけでは明示確認済みになりません。"
++            : "軽量版の取得・再生はまだ利用できません。保存記録の取得だけでは確認済みになりません。"
++    }
+ 
+     static func == (lhs: Self, rhs: Self) -> Bool {
+         lhs.id == rhs.id && lhs.hasIdentityConflict == rhs.hasIdentityConflict
+             && lhs.publicationDescription == rhs.publicationDescription
+             && lhs.retrievalDescription == rhs.retrievalDescription
++            && lhs.localRenditionUnavailableReason == rhs.localRenditionUnavailableReason
+     }
+ }
+ 
+--- FrameRelay/Application/Library/LibraryStoreReader.swift@DI-SOURCE-20261024-01
++++ FrameRelay/Application/Library/LibraryStoreReader.swift@current
+@@ -48,6 +48,11 @@
+                     $0.registration.intent.key.capture == recording.intent.context.capture
+                 }
+                 var item = LibraryProjection.item(recording, file: file, state: state, photoRegistrations: photos, backend: backend)
++                if let original = item.original,
++                   (try? LocalRenditionSelection.select(backend: backend, originals: originals,
++                    target: .init(original: original, destination: nil))) != nil {
++                    item.localRenditionUnavailableReason = nil
++                }
+                 let operations = originals.removalBatches.flatMap { batch in
+                     batch.targets.filter { $0.target.original.capture == item.id }.map { row in
+                         LibraryRemovalOperation(batch: batch.batch.operation, purpose: batch.batch.purpose,
+@@ -117,12 +122,12 @@
+             guard case .loaded(let latest) = after else { return .unavailable(failure(after)) }
+             guard latest.revision == saved.revision else { continue }
+             return .loaded(.init(revision: saved.revision, items: items.sorted { $0.id.rawValue < $1.id.rawValue },
+-                remoteItems: remoteItems(backend: backend, local: items)))
++                remoteItems: remoteItems(backend: backend, originals: originals, local: items)))
+         }
+         return .unavailable(.changing)
+     }
+ 
+-    private func remoteItems(backend: BackendStoreSnapshot, local: [LibraryItem]) -> [LibraryRemoteItem] {
++    private func remoteItems(backend: BackendStoreSnapshot, originals: OriginalStoreSnapshot, local: [LibraryItem]) -> [LibraryRemoteItem] {
+         var known: [(DestinationIdentity, OriginalContent)] = []
+         var keys = Set<RemoteInventoryOriginalID>()
+         for page in backend.remoteInventory where page.isCommitted {
+@@ -151,7 +156,9 @@
+                 registration: $0, backend: backend) }
+             return .init(destination: destination, original: original, hasIdentityConflict: remoteConflict || localConflict,
+                 publicationDescription: media?.publication ?? "公開版の保存記録なし（未照合を含む）",
+-                retrievalDescription: media?.retrieval ?? "端末内の軽量版の取得記録なし・オフライン再生不可")
++                retrievalDescription: media?.retrieval ?? "端末内の軽量版の取得記録なし・オフライン再生不可",
++                localRenditionUnavailableReason: (try? LocalRenditionSelection.select(backend: backend, originals: originals,
++                    target: .init(original: original, destination: destination))) == nil ? LocalRenditionSelection.unavailableReason : nil)
+         }.sorted { $0.id.accessibilityToken.utf8.lexicographicallyPrecedes($1.id.accessibilityToken.utf8) }
+     }
+ 
+--- FrameRelay/Features/Library/LibraryModel.swift@DI-SOURCE-20261024-01
++++ FrameRelay/Features/Library/LibraryModel.swift@current
+@@ -7,6 +7,9 @@
+     private let commands: any LibraryCommandPort
+     private let photos: (any LibraryPhotoReconciliationPort)?
+     private let removals: (any LibraryRemovalReconciliationPort)?
++    private let remoteRenditions: (any LibraryRemoteRenditionPort)?
++    private(set) var remotePlaybackMessages: [RemoteInventoryOriginalID: String] = [:]
++    private var remotePlaybackPending: Set<RemoteInventoryOriginalID> = []
+     private(set) var snapshot: LibrarySnapshot?
+     private(set) var failure: LibraryReadFailure?
+     private(set) var isLoading = false
+@@ -24,11 +27,13 @@
+ 
+     init(reader: any LibraryReadPort, commands: any LibraryCommandPort = UnconnectedLibraryCommands(),
+          photos: (any LibraryPhotoReconciliationPort)? = nil,
+-         removals: (any LibraryRemovalReconciliationPort)? = nil) {
++         removals: (any LibraryRemovalReconciliationPort)? = nil,
++         remoteRenditions: (any LibraryRemoteRenditionPort)? = nil) {
+         self.reader = reader
+         self.commands = commands
+         self.photos = photos
+         self.removals = removals
++        self.remoteRenditions = remoteRenditions
+     }
+ 
+     func refresh() async {
+@@ -54,6 +59,28 @@
+         let waiters = refreshWaiters
+         refreshWaiters.removeAll()
+         for waiter in waiters { waiter.resume() }
++    }
++
++    func remotePlaybackAvailability(_ item: LibraryRemoteItem) -> LibraryActionAvailability {
++        guard !isLoading, failure == nil, snapshot?.remoteItems.contains(item) == true,
++              !remotePlaybackPending.contains(item.id), let remoteRenditions else {
++            return .unavailable("現在の保存記録を読み込んでから操作してください。")
++        }
++        return remoteRenditions.availability(item)
++    }
++
++    func playRemoteRendition(_ item: LibraryRemoteItem) async {
++        guard remotePlaybackAvailability(item) == .available, let remoteRenditions else { return }
++        remotePlaybackPending.insert(item.id)
++        let result = await remoteRenditions.play(original: item.original, destination: item.destination,
++            operation: .init(rawValue: UUID().uuidString))
++        remotePlaybackPending.remove(item.id)
++        switch result {
++        case .accepted: remotePlaybackMessages[item.id] = "再生機能に引き渡しました。再生状態はプレーヤーで確認してください。"
++        case .rejected(let why): remotePlaybackMessages[item.id] = why
++        case .unknown: remotePlaybackMessages[item.id] = "再生の受付結果を確認できません。"
++        }
++        await refresh()
+     }
+ 
+     func select(_ capture: CaptureID, selected shouldSelect: Bool) {
+--- FrameRelay/Features/Library/LibraryView.swift@DI-SOURCE-20261024-01
++++ FrameRelay/Features/Library/LibraryView.swift@current
+@@ -99,7 +99,7 @@
+                         }
+                         if !showsHistory, !snapshot.remoteItems.isEmpty {
+                             ForEach(snapshot.remoteItems) { item in
+-                                LibraryRemoteInventoryRow(item: item)
++                                LibraryRemoteInventoryRow(item: item, model: model)
+                             }
+                         }
+                         if !showsHistory {
+@@ -139,6 +139,7 @@
+ 
+ private struct LibraryRemoteInventoryRow: View {
+     let item: LibraryRemoteItem
++    let model: LibraryModel
+     var body: some View {
+         LibrarySection {
+             VStack(alignment: .leading, spacing: 8) {
+@@ -164,6 +165,21 @@
+                     identifier: "library.remote.media.\(item.id.accessibilityToken)")
+                     .accessibilityIdentifier("library.remote.media.\(item.id.accessibilityToken)")
+                 if item.hasIdentityConflict { Text("要照合").bold() }
++                let availability = model.remotePlaybackAvailability(item)
++                Button("端末内の軽量版を再生") { Task { await model.playRemoteRendition(item) } }
++                    .buttonStyle(LibraryActionButtonStyle())
++                    .disabled(availability != .available)
++                    .accessibilityIdentifier("library.remote.play.\(item.id.accessibilityToken)")
++                if let reason = availability.reason {
++                    LibraryWrappingText(text: reason,
++                        identifier: "library.remote.playReason.\(item.id.accessibilityToken)")
++                        .accessibilityIdentifier("library.remote.playReason.\(item.id.accessibilityToken)")
++                }
++                if let feedback = model.remotePlaybackMessages[item.id] {
++                    LibraryWrappingText(text: feedback,
++                        identifier: "library.remote.playFeedback.\(item.id.accessibilityToken)")
++                        .accessibilityIdentifier("library.remote.playFeedback.\(item.id.accessibilityToken)")
++                }
+             }
+             .fixedSize(horizontal: false, vertical: true)
+             .accessibilityElement(children: .contain)
+@@ -217,7 +233,8 @@
+                                 .fixedSize(horizontal: false, vertical: true)
+                                 .accessibilityIdentifier("library.detailReconciliationExplanation")
+                         } header: {
+-                            Text("確認が必要です").foregroundStyle(Color.primary)
++                            LibraryWrappingText(text: "確認が必要です", style: .headline,
++                                identifier: "library.detailReconciliationHeading")
+                                 .accessibilityIdentifier("library.detailReconciliationHeading")
+                         }
+                     }
+@@ -233,7 +250,7 @@
+                                 LibraryActionButton(model: model, action: action, captures: [capture])
+                             }
+                         } header: {
+-                            Text("この動画の操作").foregroundStyle(Color.primary)
++                            LibraryWrappingText(text: "この動画の操作", style: .headline)
+                         }
+                     }
+                     if !item.operationResults.isEmpty {
+@@ -402,13 +419,21 @@
+     var body: some View {
+         let availability = model.availability(action, captures: captures)
+         VStack(alignment: .leading, spacing: 6) {
+-            Button(action.title, role: action == .discard ? .destructive : nil) {
+-                if action == .discard || action == .cleanup { removalReview = model.prepareRemovalReview(action, captures: captures) }
+-                else { Task { await model.submit(action, captures: captures) } }
+-            }
+-            .buttonStyle(LibraryActionButtonStyle())
+-            .disabled(availability != .available)
+-            .accessibilityIdentifier("library.action.\(action.rawValue)")
++            if action == .playRendition {
++                LibraryRenditionPlaybackButton(title: action.title, isEnabled: availability == .available,
++                    identifier: "library.action.\(action.rawValue)") {
++                    Task { await model.submit(action, captures: captures) }
++                }
++                .disabled(availability != .available)
++            } else {
++                Button(action.title, role: action == .discard ? .destructive : nil) {
++                    if action == .discard || action == .cleanup { removalReview = model.prepareRemovalReview(action, captures: captures) }
++                    else { Task { await model.submit(action, captures: captures) } }
++                }
++                .buttonStyle(LibraryActionButtonStyle())
++                .disabled(availability != .available)
++                .accessibilityIdentifier("library.action.\(action.rawValue)")
++            }
+             if let reason = availability.reason {
+                 Text(reason).font(.footnote)
+                     .fixedSize(horizontal: false, vertical: true)
+@@ -431,6 +456,78 @@
+                     : "\n最後に取得した保存検証と軽量版の有効な明示確認に基づき、削除直前に動画別に照合します。条件を満たさない原本は削除しません。オフラインではMac mini原本の現在の存在を確認していません。iPhone内の原本だけを削除し、Mac miniと写真の動画は削除しません。"))
+             }
+         }
++    }
++}
++
++/// The native control owns the title's rendering, hit area and accessibility
++/// state together, including multiline Dynamic Type measurement.
++private struct LibraryRenditionPlaybackButton: UIViewRepresentable {
++    let title: String
++    let isEnabled: Bool
++    let identifier: String
++    let action: @MainActor @Sendable () -> Void
++    @Environment(\.sizeCategory) private var sizeCategory
++    @Environment(\.isEnabled) private var environmentIsEnabled
++
++    func makeCoordinator() -> Coordinator {
++        Coordinator(action: { @MainActor @Sendable in action() })
++    }
++
++    func makeUIView(context: Context) -> UIButton {
++        let button = UIButton(type: .custom)
++        button.contentHorizontalAlignment = .leading
++        button.titleLabel?.numberOfLines = 0
++        button.titleLabel?.lineBreakMode = .byWordWrapping
++        button.titleLabel?.adjustsFontForContentSizeCategory = true
++        button.setTitleColor(.label, for: .normal)
++        button.setTitleColor(.label, for: .disabled)
++        button.setTitleColor(.label, for: .highlighted)
++        button.isAccessibilityElement = true
++        button.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
++        button.setContentCompressionResistancePriority(.required, for: .vertical)
++        button.addTarget(context.coordinator, action: #selector(Coordinator.activate), for: .touchUpInside)
++        return button
++    }
++
++    func updateUIView(_ button: UIButton, context: Context) {
++        context.coordinator.action = { @MainActor @Sendable in action() }
++        button.setTitle(title, for: .normal)
++        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .body, compatibleWith:
++            UITraitCollection(preferredContentSizeCategory: contentSizeCategory))
++        button.isEnabled = isEnabled && environmentIsEnabled
++        button.accessibilityIdentifier = identifier
++        button.accessibilityLabel = title
++    }
++
++    func sizeThatFits(_ proposal: ProposedViewSize, uiView button: UIButton, context: Context) -> CGSize? {
++        guard let proposedWidth = proposal.width, proposedWidth.isFinite else { return nil }
++        let width = max(0, proposedWidth)
++        let measured = button.titleLabel?.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)) ?? .zero
++        return CGSize(width: width, height: max(44, ceil(measured.height)))
++    }
++
++    private var contentSizeCategory: UIContentSizeCategory {
++        switch sizeCategory {
++        case .extraSmall: .extraSmall
++        case .small: .small
++        case .medium: .medium
++        case .large: .large
++        case .extraLarge: .extraLarge
++        case .extraExtraLarge: .extraExtraLarge
++        case .extraExtraExtraLarge: .extraExtraExtraLarge
++        case .accessibilityMedium: .accessibilityMedium
++        case .accessibilityLarge: .accessibilityLarge
++        case .accessibilityExtraLarge: .accessibilityExtraLarge
++        case .accessibilityExtraExtraLarge: .accessibilityExtraExtraLarge
++        case .accessibilityExtraExtraExtraLarge: .accessibilityExtraExtraExtraLarge
++        @unknown default: .large
++        }
++    }
++
++    @MainActor final class Coordinator: NSObject {
++        var action: @MainActor @Sendable () -> Void
++        init(action: @escaping @MainActor @Sendable () -> Void) { self.action = action }
++        @objc func activate() { action() }
+     }
+ }
+ 
+--- FrameRelay/Composition/ProductComposition.swift@DI-SOURCE-20261024-01
++++ FrameRelay/Composition/ProductComposition.swift@current
+@@ -9,6 +9,8 @@
+     private let remoteInventoryFactory: (@Sendable (ProductLibraryServices) -> any RemoteInventoryPort)?
+     private(set) var library: LibraryModel?
+     private(set) var playback: OriginalPlaybackModel?
++    private(set) var renditionPlayback: RenditionPlaybackModel?
++    private(set) var renditionFactory: ProductRenditionFactory?
+     private(set) var connection: ConnectionModel?
+     private(set) var capture: ProductCaptureCoordinator?
+     private(set) var mediaTermination: ProductMediaTermination?
+@@ -43,6 +45,14 @@
+             let media = ProductMediaTermination(store: services.store, access: services.access, player: adapter)
+             mediaTermination = media
+             playback = player
++            let renditionFactory = ProductRenditionFactory(services: services, scopes: media.scopes)
++            self.renditionFactory = renditionFactory
++            let rendition = RenditionPlaybackModel(factory: renditionFactory, didChange: { [weak self] in
++                await self?.library?.refresh()
++            })
++            renditionPlayback = rendition
++            let playbackCommands = RenditionPlaybackLibraryCommands(base: OriginalPlaybackLibraryCommands(model: player),
++                original: player, rendition: rendition)
+             let capture = ProductCaptureFactory.make(services: services,
+                 mediaBoundary: ProductCaptureMediaBoundary(background: backgroundFactory), didSave: { [weak self] in
+                 await self?.library?.refresh()
+@@ -56,12 +66,12 @@
+             let termination = ProductRemovalTermination(store: services.store, access: services.access, player: adapter,
+                 scopes: media.scopes, admission: admission, background: backgroundFactory)
+             let execution = ProductRemovalExecution(access: services.access, admission: admission)
+-            let commands = LibraryRemovalCommands(base: PhotoAwareLibraryCommands(base: OriginalPlaybackLibraryCommands(model: player)),
++            let commands = LibraryRemovalCommands(base: PhotoAwareLibraryCommands(base: playbackCommands),
+                 reader: services.reader, store: services.store,
+                 discard: DiscardCoordinator(store: services.store, termination: termination, execution: execution),
+                 cleanup: CleanupCoordinator(store: services.store, termination: termination, execution: execution),
+                 execution: execution, termination: termination, admission: admission)
+-            library = LibraryModel(reader: services.reader, commands: commands, photos: services.photoReconciliation, removals: commands)
++            library = LibraryModel(reader: services.reader, commands: commands, photos: services.photoReconciliation, removals: commands, remoteRenditions: playbackCommands)
+             let registration: RegistrationCoordinator
+             if let registrationFactory {
+                 registration = registrationFactory(services.store)
+@@ -102,6 +112,7 @@
+     func enteredBackground() async {
+         await capture?.leaveCapture()
+         await playback?.stop()
++        await renditionPlayback?.stop()
+         await exploration.stop()
+     }
+ 
+--- FrameRelay/ContentView.swift@DI-SOURCE-20261024-01
++++ FrameRelay/ContentView.swift@current
+@@ -72,10 +72,12 @@
+                     }
+                     .interactiveDismissDisabled()
+             }
+-            .sheet(isPresented: Binding(get: { composition.playback?.target != nil }, set: { _ in }),
++            .sheet(isPresented: Binding(get: { composition.playback?.target != nil || composition.renditionPlayback?.target != nil }, set: { _ in }),
+                    onDismiss: { Task { await composition.presentationEnded() } }) {
+-                if let playback = composition.playback {
++                if let playback = composition.playback, playback.target != nil {
+                     OriginalPlaybackView(model: playback, dismiss: {})
++                } else if let rendition = composition.renditionPlayback, rendition.target != nil {
++                    RenditionPlaybackView(model: rendition)
+                 }
+             }
+             .onChange(of: scenePhase) { _, phase in
+--- FrameRelay/Application/MediaIO/RenditionMediaScope.swift@DI-SOURCE-20261024-01
++++ FrameRelay/Application/MediaIO/RenditionMediaScope.swift@current
+@@ -28,6 +28,11 @@
+             guard let self else { throw BackendContractError.unavailable }
+             try await self.admit(id)
+         }
++    }
++
++    /// Consumer factories must not reuse a cached owner after sealing/closure.
++    func checkAdmission() throws {
++        guard accepting else { throw BackendContractError.wrongStage }
+     }
+ 
+     fileprivate func admit(_ id: UUID) throws {
+--- FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift@DI-SOURCE-20261024-01
++++ FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift@current
+@@ -31,7 +31,7 @@
+     private var photoRecoveryMutations: [MediaOperationID: BackendStoreMutation] = [:]
+     private var photoRecoveries: [MediaOperationID: PhotoRecovery] = [:]
+ 
+-    private init(root: URL, leases: RenditionReadLeases, original: OriginalContent, epoch: ReaderReconciliationEpoch) throws {
++    private init(root: URL, leases: RenditionReadLeases, original: OriginalContent, epoch: ReaderReconciliationEpoch, createIfMissing: Bool) throws {
+         let normalized = root.standardizedFileURL
+         // Resolving an absent directory may remove its URL's trailing slash.
+         // Compare filesystem paths while still rejecting symlink redirection.
+@@ -39,6 +39,7 @@
+             throw BackendContractError.invalidValue
+         }
+         if !FileManager.default.fileExists(atPath: normalized.path) {
++            guard createIfMissing else { throw BackendContractError.unavailable }
+             try FileManager.default.createDirectory(at: normalized, withIntermediateDirectories: false)
+         }
+         let descriptor = Darwin.open(normalized.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+@@ -47,7 +48,7 @@
+         var info = stat()
+         guard fstat(descriptor, &info) == 0 else { throw BackendContractError.unavailable }
+         directoryIdentity = .init(device: Int64(info.st_dev), inode: UInt64(info.st_ino))
+-        let lock = openat(descriptor, "owner.lock", O_RDWR | O_CREAT | O_NOFOLLOW, S_IRUSR | S_IWUSR)
++        let lock = openat(descriptor, "owner.lock", O_RDWR | O_NOFOLLOW | (createIfMissing ? O_CREAT : 0), S_IRUSR | S_IWUSR)
+         guard lock >= 0 else { throw BackendContractError.unavailable }
+         let lockHandle = FileHandle(fileDescriptor: lock, closeOnDealloc: true)
+         _ = try OriginalFileFingerprint(descriptor: lock)
+@@ -59,8 +60,10 @@
+         self.original = original; self.epoch = epoch
+     }
+ 
+-    static func open(root: URL, leases: RenditionReadLeases, scope: RenditionMediaScope) async throws -> ManagedTemporaryMedia {
+-        let value = try ManagedTemporaryMedia(root: root, leases: leases, original: scope.original, epoch: scope.epoch)
++    static func open(root: URL, leases: RenditionReadLeases, scope: RenditionMediaScope,
++                     createIfMissing: Bool = true) async throws -> ManagedTemporaryMedia {
++        let value = try ManagedTemporaryMedia(root: root, leases: leases, original: scope.original, epoch: scope.epoch,
++            createIfMissing: createIfMissing)
+         let permit = try await scope.register(owner: .temporaryMedia) { try await value.closeOwner() }
+         await value.activate(permit)
+         return value
+--- FrameRelayTests/Support/ProductRenditionFixture.swift@DI-SOURCE-20261024-01
++++ FrameRelayTests/Support/ProductRenditionFixture.swift@current
+@@ -0,0 +1,114 @@
++import Darwin
++import Foundation
++import Testing
++@testable import FrameRelay
++
++/// A new dedicated root with a real movie/full hash/inodes and a positive
++/// distribution observation committed through the actual common writer.
++/// The remote receipt is explicitly synthetic, not a formal producer proof.
++@MainActor struct ProductRenditionFixture {
++    let libraryFactory: ProductLibraryFactory
++    let services: ProductLibraryServices
++    let identity: RegistrationStoreIdentity
++    let registration: RegistrationIdentity
++    let original: OriginalContent
++    let rendition: RenditionIdentity
++    let distribution: DistributionReceipt
++    let media: TemporaryMediaID
++    let root: URL
++    let mediaURL: URL
++    let sourceURL: URL
++    let localReference: CaptureOriginalReference?
++    let bytes: Data
++
++    static func make(local: Bool = false, duration: Double = 4) async throws -> Self {
++        let support = FileManager.default.temporaryDirectory.appendingPathComponent("FrameRelay-local-rendition-" + UUID().uuidString)
++        try FileManager.default.createDirectory(at: support, withIntermediateDirectories: false)
++        let library = ProductLibraryFactory(supportDirectory: support)
++        let services = try await library.open()
++        return try await seed(services: services, libraryFactory: library,
++            capture: "local-rendition-" + UUID().uuidString.lowercased(), local: local, duration: duration)
++    }
++
++    static func seed(services: ProductLibraryServices, libraryFactory: ProductLibraryFactory = .shared,
++                     capture: String, local: Bool, duration: Double = 4) async throws -> Self {
++        let source = services.run.url.appendingPathComponent("source-" + capture + ".mov")
++        try #require(!FileManager.default.fileExists(atPath: source.path))
++        if duration > 60 {
++            guard duration == ProductRenditionPresentationMovie.durationSeconds else { throw CaptureContractError.invalidValue }
++            try await ProductRenditionPresentationMovie.write(to: source)
++        } else {
++            try await SyntheticMovieFixture.write(to: source, withAudio: true, durationSeconds: duration)
++        }
++        let bytes = try Data(contentsOf: source), content = try renditionContent(bytes)
++        let snapshot = try await mediaSnapshot(services.store)
++        let registration: RegistrationIdentity
++        if let current = snapshot.registrations.last { registration = current.server.registration }
++        else { registration = try await inventoryRegister(services.store).server.registration }
++        let identity = try #require(try await mediaSnapshot(services.store).storeIdentity)
++        let original = OriginalContent(capture: .init(rawValue: capture), generation: .init(rawValue: 1), content: content)
++        var localReference: CaptureOriginalReference?
++        if local {
++            let binding = try await statusKnownOriginal(original, store: services.store)
++            let originalURL = try await services.originals.reserve(original: binding.reference)
++            try bytes.write(to: originalURL, options: .withoutOverwriting)
++            let digest = try await services.originals.digest(for: binding.reference)
++            let observation = await services.originals.observeFile(binding.reference)
++            try #require(digest.byteCount == content.byteCount && digest.sha256 == content.digest)
++            try #require(observation == .present(byteCount: content.byteCount))
++            localReference = binding.reference
++        }
++        let rendition = RenditionIdentity(original: original, inputLogIdentity: "synthetic-not-log",
++            transformAssetIdentity: "no-formal-proof", transformAssetVersion: "fixture-only-v1",
++            outputConfigurationIdentity: "synthetic-local-movie", conversionVersion: "fixture-only",
++            rendition: .init(rawValue: UUID().uuidString.lowercased()), deliveryContent: content,
++            publicationGeneration: .init(rawValue: 1))
++        _ = try await mediaCommit(services.store, .publication(mediaPublication(rendition, registration: registration)))
++        let committedRegistration = try #require(try await mediaSnapshot(services.store).registrations.last)
++        _ = try await inventoryCommit(services.store, inventoryObservation(identity, committedRegistration, originals: [original]))
++        let leases = RenditionReadLeases(store: services.store)
++        let lease = try await leases.acquire(rendition: rendition, registration: registration,
++            operation: .init(rawValue: UUID().uuidString), context: .transport(.init(rawValue: UUID().uuidString)))
++        let operation = MediaOperationID(rawValue: UUID().uuidString)
++        let distribution = DistributionReceipt(operation: operation, rendition: rendition, registration: registration,
++            commit: .init(key: .distribution(operation, rendition, registration), previousRevision: 0, committedRevision: 1))
++        _ = try await mediaCommit(services.store, .distribution(.init(command: .init(rawValue: UUID().uuidString), lease: lease,
++            observation: .init(rawValue: 1), result: .succeeded(distribution))))
++        try await leases.release(lease) // No SDK/reader was ever started by this fixture producer.
++        let root = try ProductRenditionFactory.root(for: original, run: services.run)
++        if !FileManager.default.fileExists(atPath: root.deletingLastPathComponent().path) {
++            try FileManager.default.createDirectory(at: root.deletingLastPathComponent(), withIntermediateDirectories: false)
++        }
++        try #require(!FileManager.default.fileExists(atPath: root.path))
++        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
++        try Data().write(to: root.appendingPathComponent("owner.lock"), options: .withoutOverwriting)
++        let id = TemporaryMediaID(rawValue: UUID().uuidString)
++        let leaf = try TemporaryMediaLeaf.make(contentType: "video/quicktime")
++        let state = TemporaryMediaState(id: id, rendition: rendition, registration: registration,
++            capturedAt: RenditionFixture.capturedAt, leaf: leaf, contentType: "video/quicktime",
++            directoryIdentity: try fileIdentity(root))
++        _ = try await mediaCommit(services.store, .temporary(command: .init(rawValue: UUID().uuidString), value: .create(state)))
++        let mediaURL = root.appendingPathComponent(leaf)
++        try bytes.write(to: mediaURL, options: .withoutOverwriting)
++        _ = try await mediaCommit(services.store, .temporary(command: .init(rawValue: UUID().uuidString),
++            value: .fileCreated(id, try fileIdentity(mediaURL))))
++        _ = try await mediaCommit(services.store, .temporary(command: .init(rawValue: UUID().uuidString),
++            value: .stored(id, try .init(lowerBound: 0, upperBound: content.byteCount))))
++        let physical = try renditionContent(Data(contentsOf: mediaURL))
++        try #require(physical == content)
++        _ = try await mediaCommit(services.store, .temporary(command: .init(rawValue: UUID().uuidString), value: .verified(id, content)))
++        return .init(libraryFactory: libraryFactory, services: services, identity: identity, registration: registration,
++            original: original, rendition: rendition, distribution: distribution, media: id, root: root,
++            mediaURL: mediaURL, sourceURL: source, localReference: localReference, bytes: bytes)
++    }
++
++    nonisolated static func fileIdentity(_ url: URL) throws -> TemporaryFileIdentity {
++        var value = stat()
++        guard lstat(url.path, &value) == 0, value.st_mode & S_IFMT != S_IFLNK else { throw BackendContractError.unavailable }
++        return .init(device: Int64(value.st_dev), inode: UInt64(value.st_ino))
++    }
++    func factory(scopes: RenditionScopeRegistry? = nil) -> ProductRenditionFactory {
++        ProductRenditionFactory(services: services, scopes: scopes ?? RenditionScopeRegistry(leases: .init(store: services.store)))
++    }
++    var target: LibraryRenditionTarget { .init(original: original, destination: registration.destination) }
++}
+--- FrameRelayTests/Integration/Composition/ProductRenditionCompositionTests.swift@DI-SOURCE-20261024-01
++++ FrameRelayTests/Integration/Composition/ProductRenditionCompositionTests.swift@current
+@@ -0,0 +1,184 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@Suite(.serialized) @MainActor struct ProductRenditionCompositionTests {
++    @Test func ordinaryRemoteRowPlaysRealLocalMovieStopsReclaimsThenExplicitlyConfirmsAndReopens() async throws {
++        let f = try await ProductRenditionFixture.make()
++        let composition = ProductComposition(factory: f.libraryFactory)
++        await composition.open()
++        let library = try #require(composition.library), model = try #require(composition.renditionPlayback)
++        let row = try #require(library.snapshot?.remoteItems.first)
++        #expect(library.remotePlaybackAvailability(row) == .available)
++        #expect(try await mediaSnapshot(f.services.store).confirmations.isEmpty)
++        await library.playRemoteRendition(row)
++        #expect(await renditionEventually { model.token != nil && (model.playback?.decodedFrames ?? 0) > 0 })
++        let token = try #require(model.token), player = try #require(model.playback)
++        #expect(token.distribution == f.distribution && player.audioTracks == 1)
++        #expect(try await mediaSnapshot(f.services.store).confirmations.isEmpty)
++        await model.stop()
++        #expect(player.phase == .stopped && player.sdkDetached && player.player == nil)
++        #expect(player.startedMonitors == player.completedMonitors && model.token == token)
++        let stopped = try await mediaSnapshot(f.services.store)
++        #expect(stopped.temporaryMedia.first?.reclaimed == true && !FileManager.default.fileExists(atPath: f.mediaURL.path))
++        #expect(try Data(contentsOf: f.sourceURL) == f.bytes)
++        #expect(try await mediaOriginalSnapshot(f.services.store).logicalOriginals.first?.mediaReaders.isEmpty == true)
++        await model.confirm()
++        let confirmed = try await mediaSnapshot(f.services.store)
++        #expect(confirmed.confirmations.count == 1 && confirmed.outbox == [.confirmation(confirmed.confirmations[0])])
++        #expect(confirmed.confirmations[0].intent.playback == token)
++        await model.close()
++        #expect(model.target == nil && model.token == nil && model.session == nil)
++        let reopened = try SQLiteRecordingStore(run: f.services.run, mode: .openExisting)
++        let durable = try await mediaSnapshot(reopened)
++        #expect(durable.confirmations == confirmed.confirmations && durable.outbox == confirmed.outbox)
++        #expect(durable.confirmationStates.first?.validConfirmation == confirmed.confirmations[0])
++        #expect(try Data(contentsOf: f.sourceURL) == f.bytes)
++    }
++
++    @Test(arguments: ["missing-root", "missing-lock", "missing-file", "replaced-root", "replaced-file", "changed-bytes"])
++    func actualMissingOrChangedCacheIsRejectedWithoutCreatingOrRepairingIt(mode: String) async throws {
++        let f = try await ProductRenditionFixture.make()
++        switch mode {
++        case "missing-root": try FileManager.default.moveItem(at: f.root, to: f.root.appendingPathExtension("preserved"))
++        case "missing-lock": try FileManager.default.moveItem(at: f.root.appendingPathComponent("owner.lock"),
++            to: f.root.appendingPathComponent("preserved-lock"))
++        case "missing-file": try FileManager.default.moveItem(at: f.mediaURL, to: f.mediaURL.appendingPathExtension("preserved"))
++        case "replaced-root":
++            let preserved = f.root.appendingPathExtension("preserved")
++            try FileManager.default.moveItem(at: f.root, to: preserved)
++            try FileManager.default.copyItem(at: preserved, to: f.root)
++        case "replaced-file":
++            try FileManager.default.moveItem(at: f.mediaURL, to: f.mediaURL.appendingPathExtension("preserved"))
++            try f.bytes.write(to: f.mediaURL, options: .withoutOverwriting)
++        default:
++            var changed = f.bytes; changed[changed.startIndex] ^= 1
++            try changed.write(to: f.mediaURL)
++        }
++        let factory = f.factory()
++        do { _ = try await factory.prepare(f.target); Issue.record("Changed physical cache must not be admitted") }
++        catch {}
++        if mode == "missing-root" { #expect(!FileManager.default.fileExists(atPath: f.root.path)) }
++        if mode == "missing-lock" { #expect(!FileManager.default.fileExists(atPath: f.root.appendingPathComponent("owner.lock").path)) }
++        if mode == "missing-file" { #expect(!FileManager.default.fileExists(atPath: f.mediaURL.path)) }
++        let snapshot = try await mediaSnapshot(f.services.store)
++        #expect(snapshot.confirmations.isEmpty && snapshot.outbox.isEmpty)
++        #expect(try Data(contentsOf: f.sourceURL) == f.bytes)
++    }
++
++    @Test func missingLocalOriginalDoesNotPreventIndependentCompleteRenditionPlayback() async throws {
++        let f = try await ProductRenditionFixture.make(local: true)
++        let reference = try #require(f.localReference)
++        let originalURL = try await f.services.originals.existingURL(for: reference)
++        let digest = try await f.services.originals.digest(for: reference)
++        #expect(digest.byteCount == f.original.content.byteCount && digest.sha256 == f.original.content.digest)
++        #expect(await f.services.originals.observeFile(reference) == .present(byteCount: f.original.content.byteCount))
++        let preserved = originalURL.appendingPathExtension("preserved")
++        try #require(!FileManager.default.fileExists(atPath: preserved.path))
++        try FileManager.default.moveItem(at: originalURL, to: preserved)
++        #expect(await f.services.originals.observeFile(reference) == .absent)
++        let composition = ProductComposition(factory: f.libraryFactory)
++        await composition.open()
++        let library = try #require(composition.library), model = try #require(composition.renditionPlayback)
++        #expect(library.item(f.original.capture)?.status(.original) == "原本なし")
++        #expect(library.availability(.playRendition, captures: [f.original.capture]) == .available)
++        await library.submit(.playRendition, captures: [f.original.capture])
++        #expect(await renditionEventually { model.token != nil })
++        await model.close()
++        let preservedBytes = try Data(contentsOf: preserved), sourceBytes = try Data(contentsOf: f.sourceURL)
++        #expect(preservedBytes == f.bytes && sourceBytes == f.bytes)
++    }
++
++    @Test func invalidationAndLaterPublicationRejectTheOldCompleteCopyWithoutReusingIt() async throws {
++        let f = try await ProductRenditionFixture.make()
++        let termination = ProductMediaTermination(store: f.services.store, access: f.services.access,
++            player: AVOriginalPlayback(access: f.services.access))
++        let invalidations = await termination.invalidationCoordinator(identity: f.identity)
++        let record = statusInvalidation(f.rendition, registration: f.registration)
++        guard case .succeeded = await invalidations.invalidate(record) else { throw BackendContractError.notCommitted }
++        let scopes = await termination.scopes
++        let factory = f.factory(scopes: scopes)
++        do { _ = try await factory.prepare(f.target); Issue.record("Invalidated local copy must not play") } catch {}
++        let next = statusRendition(f.original, version: 2)
++        _ = try await mediaCommit(f.services.store, .publication(mediaPublication(next,
++            registration: f.registration, observation: 2, generation: 1)))
++        do { _ = try await factory.prepare(f.target); Issue.record("The old copy must not supply the new version") } catch {}
++        #expect(try Data(contentsOf: f.mediaURL) == f.bytes)
++        #expect(try await mediaSnapshot(f.services.store).confirmations.isEmpty)
++        #expect(await factory.openedOwners == 0)
++    }
++
++    @Test func selectionRequiresPositiveDurableProofCurrentRegistrationAndCompleteCoverage() async throws {
++        let f = try await ProductRenditionFixture.make()
++        let original = try await mediaOriginalSnapshot(f.services.store)
++        let before = try await mediaSnapshot(f.services.store)
++        var snapshot = before; snapshot.distributionObservations = []
++        #expect(throws: BackendContractError.self) { try LocalRenditionSelection.select(backend: snapshot, originals: original, target: f.target) }
++        snapshot = before; snapshot.temporaryMedia[0].ranges = []
++        #expect(throws: BackendContractError.self) { try LocalRenditionSelection.select(backend: snapshot, originals: original, target: f.target) }
++        _ = try await mediaRegister(f.services.store, registration: .init(destination: f.registration.destination,
++            id: .init(rawValue: UUID().uuidString.lowercased()), generation: .init(rawValue: 2)))
++        do { _ = try await f.factory().prepare(f.target); Issue.record("Old registration must not be reused") } catch {}
++        #expect(try Data(contentsOf: f.mediaURL) == f.bytes)
++        #expect(try await mediaSnapshot(f.services.store).confirmations.isEmpty)
++    }
++
++    @Test func concurrentOpenJoinsOneOwnerAndClosedScopeIsNeverReused() async throws {
++        let f = try await ProductRenditionFixture.make()
++        let factory = f.factory()
++        async let openingA = factory.openOwner(f.target)
++        async let openingB = factory.openOwner(f.target)
++        let (ownerA, ownerB) = try await (openingA, openingB)
++        #expect(ownerA.player === ownerB.player && ownerA.scope === ownerB.scope)
++        #expect(await factory.openedOwners == 1)
++        let a = try await factory.prepare(f.target)
++        // A controlled unknown Photos result retains this dedicated copy under
++        // the existing policy; it is not a PhotoKit or formal-producer success.
++        guard case .succeeded(let photoUse) = await a.owner.temporary.acquireUsage(f.media, purpose: .photoHandoff,
++            usageID: .init(rawValue: UUID().uuidString)) else { throw BackendContractError.unavailable }
++        let photo = try await a.owner.temporary.stateFor(f.media).receipt(for: photoUse)
++        let photos = PhotoSaveLibrary()
++        await photos.configure(add: .authorized, outcome: .unknown(localIdentifier: nil))
++        let save = PhotoSaveCoordinator(store: f.services.store, identity: f.identity,
++            temporaryMedia: a.owner.temporary, library: photos)
++        guard case .succeeded = await save.save(photo, action: .init(rawValue: UUID().uuidString)) else {
++            throw BackendContractError.notCommitted
++        }
++        #expect(await factory.release(a))
++        _ = try await a.owner.scope.close()
++        let c = try await factory.prepare(f.target)
++        #expect(c.owner.player !== a.owner.player && c.owner.scope !== a.owner.scope)
++        #expect(await factory.openedOwners == 2)
++        #expect(await factory.release(c))
++        #expect(try Data(contentsOf: f.mediaURL) == f.bytes)
++        #expect(try await mediaSnapshot(f.services.store).photoRegistrations.first?.outcome == .unknown(localIdentifier: nil))
++    }
++
++    @Test func oldUnknownUseIsPreservedWhileNewPlaybackUseStopsAndGlobalAckRemainsUnknown() async throws {
++        let f = try await ProductRenditionFixture.make()
++        let leases = RenditionReadLeases(store: f.services.store)
++        let state = try #require(try await mediaSnapshot(f.services.store).temporaryMedia.first)
++        let old = try await leases.acquireTemporary(state, purpose: .playback, usageID: .init(rawValue: "old-unknown-use"),
++            owner: "persisted-unknown-owner")
++        let termination = ProductMediaTermination(store: f.services.store, access: f.services.access,
++            player: AVOriginalPlayback(access: f.services.access))
++        let scopes = await termination.scopes
++        let factory = f.factory(scopes: scopes)
++        let model = RenditionPlaybackModel(factory: factory)
++        #expect(model.open(f.target))
++        #expect(await renditionEventually { model.token != nil })
++        await model.stop()
++        let after = try #require(try await mediaSnapshot(f.services.store).temporaryMedia.first)
++        #expect(after.usages == [old] && !after.reclaimed && !after.reclaiming)
++        #expect(try Data(contentsOf: f.mediaURL) == f.bytes)
++        let invalidations = await termination.invalidationCoordinator(identity: f.identity)
++        let record = statusInvalidation(f.rendition, registration: f.registration)
++        #expect(await invalidations.invalidate(record) == .unknown)
++        let retained = try await mediaSnapshot(f.services.store)
++        #expect(retained.invalidations.isEmpty && retained.outbox.isEmpty)
++        #expect(retained.temporaryMedia.first?.usages == [old])
++        #expect(try await mediaOriginalSnapshot(f.services.store).logicalOriginals.first?.mediaReaders == [old.lease])
++        await model.close()
++        #expect(try Data(contentsOf: f.sourceURL) == f.bytes)
++    }
++}
+--- FrameRelayTests/Application/RenditionPlaybackModelTests.swift@DI-SOURCE-20261024-01
++++ FrameRelayTests/Application/RenditionPlaybackModelTests.swift@current
+@@ -0,0 +1,218 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@Suite(.serialized) @MainActor struct RenditionPlaybackModelTests {
++    @Test func noProgressCannotConfirmAndNaturalEndRetainsOnlyTheCurrentPresentationToken() async throws {
++        let f = try await ProductRenditionFixture.make(duration: 1.2)
++        let model = RenditionPlaybackModel(factory: f.factory())
++        #expect(!model.canConfirm && model.token == nil)
++        await model.confirm()
++        #expect(try await mediaSnapshot(f.services.store).confirmations.isEmpty)
++        #expect(model.open(f.target))
++        #expect(await renditionEventually { model.playback?.phase == .ended && model.token != nil })
++        let token = try #require(model.token)
++        #expect(model.canConfirm && model.playback?.sdkDetached == true)
++        await model.confirm()
++        #expect(model.confirmation?.intent.playback == token && !model.canConfirm)
++        await model.close()
++        #expect(model.token == nil && model.target == nil && model.session == nil && !model.canConfirm)
++        #expect(try await mediaSnapshot(f.services.store).confirmations.count == 1)
++    }
++
++    @Test func oldPresentationClosureCannotCloseOrConfirmTheNewSession() async throws {
++        let f = try await ProductRenditionFixture.make()
++        let next = try await ProductRenditionFixture.seed(services: f.services, libraryFactory: f.libraryFactory,
++            capture: "next-session-" + UUID().uuidString.lowercased(), local: false)
++        let model = RenditionPlaybackModel(factory: f.factory())
++        #expect(model.open(f.target))
++        #expect(await renditionEventually { model.token != nil })
++        let oldSession = model.session
++        await model.close()
++        #expect(model.open(next.target))
++        #expect(model.token == nil && !model.canConfirm && model.session != oldSession)
++        await model.close(ifSession: oldSession)
++        #expect(model.target == next.target)
++        #expect(await renditionEventually { model.token != nil })
++        #expect(model.token?.distribution == next.distribution)
++        #expect(try await mediaSnapshot(f.services.store).confirmations.isEmpty)
++        await model.close()
++    }
++
++    @Test func delayedOldStopJoinsOnlyItsCapturedTaskAndCannotWaitForTheNewPresentation() async throws {
++        let f = try await ProductRenditionFixture.make()
++        let next = try await ProductRenditionFixture.seed(services: f.services, libraryFactory: f.libraryFactory,
++            capture: "stop-join-next-" + UUID().uuidString.lowercased(), local: false)
++        let probe = ProductStopJoinProbe()
++        let model = RenditionPlaybackModel(factory: f.factory(), stopJoinBoundary: { await probe.afterPlayerEnd() },
++            didChange: { await probe.changed() })
++        #expect(model.open(f.target))
++        #expect(await renditionEventually { model.token != nil })
++        let oldSession = model.session
++        let oldStop = Task { await model.stop(); probe.oldStopFinished = true }
++        defer { probe.releaseStop(); probe.releaseChanges() }
++        #expect(await renditionEventually { probe.stopArrived })
++        await model.close() // A second stop joins A while the first A.stop is held.
++        probe.holdChanges = true
++        #expect(model.open(next.target))
++        #expect(await renditionEventually { probe.changeArrived && model.token != nil })
++        // B's real start task is still suspended in its refresh notification.
++        // The old stop must return without joining B or publishing state to it.
++        probe.releaseStop()
++        #expect(await renditionEventually { probe.oldStopFinished })
++        #expect(model.session != oldSession && model.target == next.target)
++        #expect(model.token?.distribution == next.distribution)
++        probe.releaseChanges()
++        await oldStop.value
++        await model.close()
++        #expect(try await mediaSnapshot(f.services.store).confirmations.isEmpty)
++    }
++
++    @Test func uncertainConfirmationReusesTheExactPlayedTokenAndActionAfterStop() async throws {
++        let f = try await ProductRenditionFixture.make()
++        let factory = f.factory()
++        let boundary = ProductConfirmationLostReply(factory: factory)
++        let model = RenditionPlaybackModel(factory: factory, confirm: { token, action, identity in
++            await boundary.confirm(token, action: action, identity: identity)
++        })
++        #expect(model.open(f.target))
++        #expect(await renditionEventually { model.token != nil })
++        await model.stop()
++        let token = try #require(model.token)
++        await model.confirm()
++        #expect(model.confirmationUnknown && model.confirmation == nil && model.canConfirm)
++        let first = try #require(await boundary.calls.first)
++        await model.confirm()
++        let calls = await boundary.calls
++        #expect(calls.count == 2)
++        #expect(PublicationStoreBoundary.exact(calls[0].token, token)
++            && PublicationStoreBoundary.exact(calls[1].token, token)
++            && PublicationStoreBoundary.exact(calls[0].action, calls[1].action))
++        #expect(model.confirmation?.intent.operation == first.action && !model.confirmationUnknown)
++        #expect(try await mediaSnapshot(f.services.store).confirmations.count == 1)
++        await model.close()
++    }
++
++    @Test func registrationChangeAfterActualProgressRejectsConfirmationWithoutLosingTheOriginal() async throws {
++        let f = try await ProductRenditionFixture.make()
++        let model = RenditionPlaybackModel(factory: f.factory())
++        #expect(model.open(f.target))
++        #expect(await renditionEventually { model.token != nil })
++        await model.stop()
++        _ = try await mediaRegister(f.services.store, registration: .init(destination: f.registration.destination,
++            id: .init(rawValue: UUID().uuidString.lowercased()), generation: .init(rawValue: 2)))
++        await model.confirm()
++        #expect(model.confirmationFailed && model.confirmation == nil)
++        #expect(try await mediaSnapshot(f.services.store).confirmations.isEmpty)
++        #expect(try Data(contentsOf: f.sourceURL) == f.bytes)
++        await model.close()
++    }
++
++    @Test func delayedOriginalHandoffReservesAllLocalAndRemoteRenditionEntrancesBeforeAwait() async throws {
++        let f = try await ProductRenditionFixture.make(local: true)
++        let original = OriginalPlaybackModel(playback: AVOriginalPlayback(access: f.services.access))
++        let model = RenditionPlaybackModel(factory: f.factory())
++        let delayed = ProductDelayedOriginalCommands(base: OriginalPlaybackLibraryCommands(model: original))
++        let commands = RenditionPlaybackLibraryCommands(base: delayed, original: original, rendition: model)
++        let target = LibraryCommandTarget(capture: f.original.capture, reference: try #require(f.localReference), original: f.original)
++        func request(_ action: LibraryAction) -> LibraryCommandRequest {
++            .init(id: .init(rawValue: UUID().uuidString), action: action, targets: [target], displayedRevision: 0,
++                discardRiskAcknowledged: false)
++        }
++        let first = Task { await commands.submit(request(.playOriginal)) }
++        #expect(await renditionEventually { delayed.arrived })
++        guard case .rejected = await commands.submit(request(.playRendition)) else {
++            delayed.release(); _ = await first.value; Issue.record("Local rendition crossed original handoff reservation"); return
++        }
++        guard case .rejected = await commands.play(original: f.original, destination: f.registration.destination,
++            operation: .init(rawValue: UUID().uuidString)) else {
++            delayed.release(); _ = await first.value; Issue.record("Remote row crossed original handoff reservation"); return
++        }
++        guard case .rejected = await commands.submit(request(.playOriginal)) else {
++            delayed.release(); _ = await first.value; Issue.record("Second original crossed reservation"); return
++        }
++        #expect(model.target == nil && delayed.calls == 1)
++        delayed.release()
++        #expect(await first.value == .accepted)
++        #expect(original.target != nil)
++        await original.close()
++        #expect(await commands.submit(request(.playRendition)) == .accepted)
++        guard case .rejected = await commands.submit(request(.playOriginal)) else {
++            await model.close(); Issue.record("Original crossed live rendition target"); return
++        }
++        #expect(await renditionEventually { model.token != nil })
++        await model.close()
++        #expect(try await mediaOriginalSnapshot(f.services.store).logicalOriginals.first?.mediaReaders.isEmpty == true)
++        #expect(try Data(contentsOf: f.sourceURL) == f.bytes)
++    }
++
++    @Test func immediateCloseAndBackgroundStopJoinPreparationAndNeverConfirmAutomatically() async throws {
++        let f = try await ProductRenditionFixture.make()
++        let composition = ProductComposition(factory: f.libraryFactory)
++        await composition.open()
++        let library = try #require(composition.library), model = try #require(composition.renditionPlayback)
++        let row = try #require(library.snapshot?.remoteItems.first)
++        await library.playRemoteRendition(row)
++        await composition.enteredBackground()
++        #expect(!model.isBusy && model.playback?.player == nil)
++        #expect(model.playback?.startedMonitors == model.playback?.completedMonitors)
++        #expect(try await mediaSnapshot(f.services.store).confirmations.isEmpty)
++        await model.close()
++        #expect(model.token == nil && model.target == nil)
++        #expect(try Data(contentsOf: f.sourceURL) == f.bytes)
++    }
++}
++
++actor ProductConfirmationLostReply {
++    struct Call: Sendable { let token: PlaybackToken; let action: MediaOperationID }
++    let factory: ProductRenditionFactory
++    private(set) var calls: [Call] = []
++    init(factory: ProductRenditionFactory) { self.factory = factory }
++    func confirm(_ token: PlaybackToken, action: MediaOperationID,
++                 identity: RegistrationStoreIdentity) async -> BackendOutcome<ConfirmationRecord> {
++        calls.append(.init(token: token, action: action))
++        let result = await factory.confirm(token, action: action, identity: identity)
++        return calls.count == 1 ? .unknown : result
++    }
++}
++
++@MainActor final class ProductDelayedOriginalCommands {
++    let base: any LibraryCommandPort
++    private var continuation: CheckedContinuation<Void, Never>?
++    private(set) var arrived = false
++    private(set) var calls = 0
++    init(base: any LibraryCommandPort) { self.base = base }
++    func availability(_ action: LibraryAction, items: [LibraryItem]) -> LibraryActionAvailability { base.availability(action, items: items) }
++    func submit(_ request: LibraryCommandRequest) async -> LibraryCommandResponse {
++        calls += 1; arrived = true
++        await withCheckedContinuation { continuation = $0 }
++        return await base.submit(request)
++    }
++    func release() { continuation?.resume(); continuation = nil }
++}
++extension ProductDelayedOriginalCommands: LibraryCommandPort {}
++
++@MainActor final class ProductStopJoinProbe {
++    var holdChanges = false
++    var oldStopFinished = false
++    private(set) var stopArrived = false
++    private(set) var changeArrived = false
++    private var stops = 0
++    private var stopWaiter: CheckedContinuation<Void, Never>?
++    private var changeWaiter: CheckedContinuation<Void, Never>?
++    func afterPlayerEnd() async {
++        stops += 1
++        if stops == 1 {
++            stopArrived = true
++            await withCheckedContinuation { stopWaiter = $0 }
++        }
++    }
++    func changed() async {
++        if holdChanges {
++            changeArrived = true
++            await withCheckedContinuation { changeWaiter = $0 }
++        }
++    }
++    func releaseStop() { stopWaiter?.resume(); stopWaiter = nil }
++    func releaseChanges() { holdChanges = false; changeWaiter?.resume(); changeWaiter = nil }
++}
+--- FrameRelayTests/Support/ProductRenditionPresentationMovie.swift@DI-SOURCE-20261024-01
++++ FrameRelayTests/Support/ProductRenditionPresentationMovie.swift@current
+@@ -0,0 +1,76 @@
++import AVFoundation
++import Darwin
++import Foundation
++import Testing
++@testable import FrameRelay
++
++/// A longer presentation-only movie in a new dedicated fixture root. The
++/// bounded generator stays unchanged; this concatenates its black/silent
++/// 60-second movie without claiming camera, conversion or quality evidence.
++nonisolated enum ProductRenditionPresentationMovie {
++    static let durationSeconds: Double = 180
++    private static let maximumOutputBytes = 4 * 1024 * 1024
++
++    static func write(to url: URL) async throws {
++        try Task.checkCancellation()
++        guard url.isFileURL, !FileManager.default.fileExists(atPath: url.path) else {
++            throw CaptureContractError.invalidValue
++        }
++        let work = url.deletingLastPathComponent().appendingPathComponent(
++            "presentation-" + UUID().uuidString, isDirectory: true)
++        // mkdir reserves this new leaf atomically. Even a failed export keeps
++        // its base/partial output; no existing leaf is repaired or removed.
++        guard mkdir(work.path, 0o700) == 0 else { throw BackendContractError.unavailable }
++        let baseURL = work.appendingPathComponent("base-60.mov")
++        let exportURL = work.appendingPathComponent("export-180.mov")
++        try await SyntheticMovieFixture.write(to: baseURL, withAudio: true, durationSeconds: 60)
++        let base = AVURLAsset(url: baseURL)
++        let tracks = try await checkedTracks(base, expectedSeconds: 60)
++        // Preload formats before the synchronous track-edit API can need them.
++        _ = try await tracks.video.load(.formatDescriptions)
++        _ = try await tracks.audio.load(.formatDescriptions)
++        let composition = AVMutableComposition()
++        let video = try #require(composition.addMutableTrack(withMediaType: .video,
++            preferredTrackID: kCMPersistentTrackID_Invalid))
++        let audio = try #require(composition.addMutableTrack(withMediaType: .audio,
++            preferredTrackID: kCMPersistentTrackID_Invalid))
++        let segment = CMTimeRange(start: .zero, duration: CMTime(value: 60, timescale: 1))
++        for index in 0..<3 {
++            try Task.checkCancellation()
++            let start = CMTime(value: Int64(index * 60), timescale: 1)
++            try video.insertTimeRange(segment, of: tracks.video, at: start)
++            try audio.insertTimeRange(segment, of: tracks.audio, at: start)
++        }
++        let exporter = try #require(AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetPassthrough))
++        exporter.timeRange = CMTimeRange(start: .zero, duration: CMTime(value: 180, timescale: 1))
++        try await exporter.export(to: exportURL, as: .mov)
++        _ = try await checkedTracks(AVURLAsset(url: exportURL), expectedSeconds: durationSeconds)
++        let length = try #require(try exportURL.resourceValues(forKeys: [.fileSizeKey]).fileSize)
++        try #require(length > 0 && length <= maximumOutputBytes)
++        let bytes = try Data(contentsOf: exportURL)
++        try #require(bytes.count == length)
++        // The final caller-specified source also has an atomic no-overwrite
++        // boundary, independent of the exporter's output-path behavior.
++        try bytes.write(to: url, options: .withoutOverwriting)
++        _ = try await checkedTracks(AVURLAsset(url: url), expectedSeconds: durationSeconds)
++    }
++
++    private static func checkedTracks(_ asset: AVAsset, expectedSeconds: Double) async throws
++        -> (video: AVAssetTrack, audio: AVAssetTrack) {
++        let duration = try await asset.load(.duration)
++        let videos = try await asset.loadTracks(withMediaType: .video)
++        let audios = try await asset.loadTracks(withMediaType: .audio)
++        try #require(videos.count == 1 && audios.count == 1)
++        let video = try #require(videos.first), audio = try #require(audios.first)
++        // One PCM sample is the generator's duration precision. Check the
++        // actual video/audio timelines too, rather than an audio-only duration.
++        let tolerance = 1.0 / 8000.0 + 0.000000001
++        try #require(duration.seconds.isFinite && abs(duration.seconds - expectedSeconds) <= tolerance)
++        for track in [video, audio] {
++            let range = try await track.load(.timeRange)
++            try #require(range.start.seconds.isFinite && abs(range.start.seconds) <= tolerance)
++            try #require(range.duration.seconds.isFinite && abs(range.duration.seconds - expectedSeconds) <= tolerance)
++        }
++        return (video, audio)
++    }
++}
+--- FrameRelayTests/Integration/Composition/ProductLocalRenditionSeedTests.swift@DI-SOURCE-20261024-01
++++ FrameRelayTests/Integration/Composition/ProductLocalRenditionSeedTests.swift@current
+@@ -0,0 +1,278 @@
++import Foundation
++import Security
++import Testing
++@testable import FrameRelay
++
++/// Four independent new complete copies let normal and maximum-text UI runs
++/// consume their own bytes. A consumed copy is never repaired or re-seeded.
++@Suite(.serialized) @MainActor struct ProductLocalRenditionSeedTests {
++    @Test(.enabled(if: ProcessInfo.processInfo.environment["FR_S28_LOCAL_RENDITION_SEED"] == "1"))
++    func seedFreshNormalAndMaximumPairsOnce() async throws {
++        let context = try localRenditionSeedContext()
++        try #require(context.phase == "seed")
++        try #require(ProcessInfo.processInfo.environment["FR_S28_LOCAL_RENDITION_VERIFY"] != "1")
++        try #require(ProcessInfo.processInfo.environment["FR_S28_LOCAL_EXPECTED_CONSUMED"] == nil)
++        try #require(ProcessInfo.processInfo.environment["FR_S28_LOCAL_EXPECTED_CONFIRMED"] == nil)
++        let services = try await ProductLibraryFactory.shared.open()
++        let file = services.run.url.appendingPathComponent("s28-local-rendition-seed.json")
++        try #require(!FileManager.default.fileExists(atPath: file.path))
++        let initial = try await mediaSnapshot(services.store)
++        guard case .loaded(let library) = await services.reader.loadLibrary() else { throw BackendContractError.unavailable }
++        try #require(initial.revision == 0 && initial.storeIdentity == nil && initial.registrations.isEmpty
++            && initial.registrationIntents.isEmpty && initial.temporaryMedia.isEmpty
++            && initial.publications.isEmpty && library.items.isEmpty && library.remoteItems.isEmpty)
++        try localRenditionRequireEmptyProductKeychain()
++        var copies: [LocalRenditionSeedCopy] = []
++        for phase in ["normal", "max"] {
++            for kind in ["local", "remote"] {
++                let capture = "s28lr-" + context.nonce + "-" + phase + "-" + kind
++                let fixture = try await ProductRenditionFixture.seed(services: services, capture: capture,
++                    local: kind == "local", duration: kind == "local" ? 180 : 30)
++                let snapshot = try await mediaSnapshot(services.store)
++                let state = try #require(snapshot.temporaryMedia.first { $0.id == fixture.media })
++                let binding = try await mediaOriginalSnapshot(services.store).originals.first {
++                    $0.binding.original == fixture.original
++                }?.binding
++                try #require((binding != nil) == (kind == "local"))
++                copies.append(.init(phase: phase, kind: kind, original: fixture.original,
++                    rendition: fixture.rendition, distribution: fixture.distribution,
++                    media: fixture.media, mediaState: state, binding: binding,
++                    sourceLeaf: fixture.sourceURL.lastPathComponent,
++                    content: try renditionContent(fixture.bytes),
++                    sourceIdentity: try ProductRenditionFixture.fileIdentity(fixture.sourceURL)))
++            }
++        }
++        let beforeNegative = try await mediaSnapshot(services.store)
++        let registration = try #require(beforeNegative.registrations.last)
++        let identity = try #require(beforeNegative.storeIdentity)
++        let negative = try inventoryOriginal("s28lr-" + context.nonce + "-unacquired", digit: "e")
++        let negativeRendition = RenditionIdentity(original: negative, inputLogIdentity: "synthetic-not-log",
++            transformAssetIdentity: "no-formal-proof", transformAssetVersion: "fixture-only-v1",
++            outputConfigurationIdentity: "unacquired-fixture", conversionVersion: "fixture-only",
++            rendition: .init(rawValue: UUID().uuidString.lowercased()), deliveryContent: negative.content,
++            publicationGeneration: .init(rawValue: 1))
++        _ = try await mediaCommit(services.store, .publication(mediaPublication(negativeRendition,
++            registration: registration.server.registration)))
++        _ = try await inventoryCommit(services.store, inventoryObservation(identity, registration, originals: [negative]))
++        let first = try #require(copies.first)
++        let sentinel = localRenditionSeedSentinel(services, nonce: context.nonce)
++        let bytes = try Data(contentsOf: services.run.url.appendingPathComponent(first.sourceLeaf))
++        try bytes.write(to: sentinel, options: .withoutOverwriting)
++        let final = try await mediaSnapshot(services.store)
++        let manifest = LocalRenditionSeedManifest(schema: "fr-s28-local-rendition-seed-v1",
++            nonce: context.nonce, simulator: context.simulator, identity: identity,
++            registration: registration, copies: copies, negative: negative, negativeRendition: negativeRendition,
++            sentinel: try renditionContent(bytes), seedRevision: final.revision)
++        let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
++        try encoder.encode(manifest).write(to: file, options: .withoutOverwriting)
++        try await localRenditionVerifySeed(services, manifest: manifest, phase: "seed")
++        print("S28_LOCAL_RENDITION_SEED nonce=\(context.nonce) copies=4 local=2 remote=2 unacquired=1 uses=0 confirmations=0 photos=0 keychainWrites=0 fixtureOnly=true")
++    }
++
++    @Test(.enabled(if: ProcessInfo.processInfo.environment["FR_S28_LOCAL_RENDITION_VERIFY"] == "1"))
++    func verifyConsumedCopiesAndRetainedOriginalsAfterUI() async throws {
++        let context = try localRenditionSeedContext()
++        try #require(ProcessInfo.processInfo.environment["FR_S28_LOCAL_RENDITION_SEED"] != "1")
++        let services = try await ProductLibraryFactory.shared.open()
++        let file = services.run.url.appendingPathComponent("s28-local-rendition-seed.json")
++        let bytes = try Data(contentsOf: file)
++        let manifest = try JSONDecoder().decode(LocalRenditionSeedManifest.self, from: bytes)
++        try #require(manifest.nonce == context.nonce && manifest.simulator == context.simulator)
++        try await localRenditionVerifySeed(services, manifest: manifest, phase: context.phase)
++        let reopened = try SQLiteRecordingStore(run: services.run, mode: .openExisting,
++            supportedVerificationSchemas: ["fr-final-read-v1"])
++        let current = try await mediaSnapshot(services.store)
++        let replay = try await mediaSnapshot(reopened)
++        try #require(current == replay)
++        let unchanged = try Data(contentsOf: file) == bytes
++        try #require(unchanged)
++        let consumedSet = try localRenditionExpectedConsumption(phase: context.phase)
++        let consumed = consumedSet.count
++        let confirmed = try localRenditionExpectedConfirmation(consumed: consumedSet).count
++        print("S28_LOCAL_RENDITION_VERIFY nonce=\(context.nonce) phase=\(context.phase) consumedAndReclaimed=\(consumed) unusedRetained=\(4 - consumed) sourceHashes=4 managedOriginalHashes=2 sentinel=match manifest=unchanged reopen=equal confirmations=\(confirmed) outbox=\(confirmed) logicalReaders=0 mediaReaders=0 keychainWrites=0")
++    }
++}
++
++nonisolated private struct LocalRenditionSeedCopy: Codable {
++    let phase: String
++    let kind: String
++    let original: OriginalContent
++    let rendition: RenditionIdentity
++    let distribution: DistributionReceipt
++    let media: TemporaryMediaID
++    let mediaState: TemporaryMediaState
++    let binding: OriginalBinding?
++    let sourceLeaf: String
++    let content: ContentIdentity
++    let sourceIdentity: TemporaryFileIdentity
++}
++
++nonisolated private struct LocalRenditionSeedManifest: Codable {
++    let schema: String
++    let nonce: String
++    let simulator: String
++    let identity: RegistrationStoreIdentity
++    let registration: DeviceRegistration
++    let copies: [LocalRenditionSeedCopy]
++    let negative: OriginalContent
++    let negativeRendition: RenditionIdentity
++    let sentinel: ContentIdentity
++    let seedRevision: UInt64
++}
++
++@MainActor private func localRenditionVerifySeed(_ services: ProductLibraryServices,
++    manifest: LocalRenditionSeedManifest, phase: String) async throws {
++    try #require(manifest.schema == "fr-s28-local-rendition-seed-v1" && ["seed", "normal", "max"].contains(phase))
++    let expectedConsumption = try localRenditionExpectedConsumption(phase: phase)
++    let expectedConfirmation = try localRenditionExpectedConfirmation(consumed: expectedConsumption)
++    let consumed = manifest.copies.filter { expectedConsumption.contains($0.phase + "." + $0.kind) }
++    let confirmed = manifest.copies.filter { expectedConfirmation.contains($0.phase + "." + $0.kind) }
++    let backend = try await mediaSnapshot(services.store)
++    let originals = try await mediaOriginalSnapshot(services.store)
++    try #require(manifest.copies.count == 4 && Set(manifest.copies.map(\.media)).count == 4)
++    try #require(consumed.count == expectedConsumption.count)
++    try #require(confirmed.count == expectedConfirmation.count)
++    try #require(backend.storeIdentity == manifest.identity && backend.registrations == [manifest.registration])
++    try #require(backend.registrationIntents.count == 1 && backend.remoteInventory.count == 5
++        && backend.publications.count == 5 && backend.distributionObservations.count == 4
++        && backend.temporaryMedia.count == 4)
++    try #require(backend.revision >= manifest.seedRevision)
++    if phase == "seed" { try #require(backend.revision == manifest.seedRevision) }
++    try #require(backend.confirmations.count == confirmed.count && backend.outbox.count == confirmed.count)
++    try #require(backend.invalidations.isEmpty && backend.deliveries.isEmpty && backend.requests.isEmpty
++        && backend.verifications.isEmpty && backend.photoRegistrations.isEmpty && backend.backgroundTasks.isEmpty)
++    try #require(originals.originals.count == 2 && originals.removalBatches.isEmpty)
++    try #require(originals.logicalOriginals.allSatisfy {
++        $0.readers.isEmpty && $0.mediaReaders.isEmpty && $0.removal == nil && $0.invalidation == nil
++    })
++    let expectedBindings = manifest.copies.compactMap(\.binding)
++    try #require(originals.originals.map(\.binding) == expectedBindings)
++    for copy in manifest.copies {
++        let state = try #require(backend.temporaryMedia.first { $0.id == copy.media })
++        try #require(PublicationStoreBoundary.exact(state.rendition, copy.rendition)
++            && PublicationStoreBoundary.exact(state.registration, manifest.registration.server.registration))
++        try #require(state.fileIdentity == copy.mediaState.fileIdentity
++            && state.directoryIdentity == copy.mediaState.directoryIdentity && state.leaf == copy.mediaState.leaf
++            && state.ranges == copy.mediaState.ranges && state.verifiedContent == copy.content && state.usages.isEmpty)
++        let root = try ProductRenditionFactory.root(for: copy.original, run: services.run)
++        let mediaURL = root.appendingPathComponent(state.leaf)
++        let expectedConsumed = expectedConsumption.contains(copy.phase + "." + copy.kind)
++        try #require(state.reclaimed == expectedConsumed)
++        if expectedConsumed {
++            try #require(!FileManager.default.fileExists(atPath: mediaURL.path))
++            try #require(state.releasedUsages.count == 2)
++        } else {
++            try #require(!state.reclaiming && state.releasedUsages.isEmpty)
++            let actual = try renditionContent(Data(contentsOf: mediaURL))
++            try #require(actual == copy.content)
++            let physical = try ProductRenditionFixture.fileIdentity(mediaURL)
++            try #require(physical == copy.mediaState.fileIdentity)
++        }
++        if expectedConfirmation.contains(copy.phase + "." + copy.kind) {
++            let record = try #require(backend.confirmations.first {
++                PublicationStoreBoundary.exact($0.intent.playback.distribution.rendition, copy.rendition)
++            })
++            try #require(record.commit.matches(record.intent.key, revision: record.commit.previousRevision)
++                && PublicationStoreBoundary.exact(record.commit.key, record.intent.key)
++                && PublicationStoreBoundary.exact(record.intent.playback.distribution, copy.distribution)
++                && record.intent.playback.invalidationGeneration.rawValue == 0
++                && UUID(uuidString: record.intent.playback.session.rawValue) != nil)
++            try #require(backend.outbox.contains(.confirmation(record)))
++            let confirmation = try #require(backend.confirmationStates.first {
++                PublicationStoreBoundary.exact($0.registration, manifest.registration.server.registration)
++                    && PublicationStoreBoundary.exact($0.current, copy.rendition)
++            })
++            try #require(confirmation.validConfirmation == record)
++        } else {
++            try #require(!backend.confirmations.contains {
++                PublicationStoreBoundary.exact($0.intent.playback.distribution.rendition, copy.rendition)
++            })
++            try #require(!backend.outbox.contains {
++                if case .confirmation(let record) = $0 {
++                    return PublicationStoreBoundary.exact(record.intent.playback.distribution.rendition, copy.rendition)
++                }
++                return false
++            })
++            try #require(backend.confirmationStates.filter {
++                PublicationStoreBoundary.exact($0.registration, manifest.registration.server.registration)
++                    && PublicationStoreBoundary.exact($0.current, copy.rendition)
++            }.allSatisfy { $0.validConfirmation == nil })
++        }
++        let source = services.run.url.appendingPathComponent(copy.sourceLeaf)
++        let sourceContent = try renditionContent(Data(contentsOf: source))
++        let sourceIdentity = try ProductRenditionFixture.fileIdentity(source)
++        try #require(sourceContent == copy.content && sourceIdentity == copy.sourceIdentity)
++        if let binding = copy.binding {
++            let digest = try await services.originals.digest(for: binding.reference)
++            try #require(digest.sha256 == binding.original.content.digest && digest.byteCount == binding.original.content.byteCount)
++        }
++    }
++    let sentinel = try renditionContent(Data(contentsOf: localRenditionSeedSentinel(services, nonce: manifest.nonce)))
++    try #require(sentinel == manifest.sentinel)
++    try localRenditionRequireEmptyProductKeychain()
++    guard case .loaded(let library) = await services.reader.loadLibrary() else { throw BackendContractError.unavailable }
++    try #require(library.items.count == 2 && library.history.isEmpty && library.remoteItems.count == 3)
++    try #require(!backend.temporaryMedia.contains { $0.rendition.original == manifest.negative })
++    try #require(!backend.confirmations.contains { $0.intent.playback.distribution.rendition.original == manifest.negative })
++    let sessions = backend.confirmations.map { $0.intent.playback.session }
++    try #require(Set(sessions).count == sessions.count)
++}
++
++nonisolated private func localRenditionExpectedConsumption(phase: String) throws -> Set<String> {
++    let allowed: Set<String> = ["normal.local", "normal.remote", "max.local", "max.remote"]
++    guard let encoded = ProcessInfo.processInfo.environment["FR_S28_LOCAL_EXPECTED_CONSUMED"] else {
++        return phase == "max" ? allowed : phase == "normal" ? ["normal.local", "normal.remote"] : []
++    }
++    return try localRenditionExpectedCopySet(encoded)
++}
++
++nonisolated private func localRenditionExpectedConfirmation(consumed: Set<String>) throws -> Set<String> {
++    guard let encoded = ProcessInfo.processInfo.environment["FR_S28_LOCAL_EXPECTED_CONFIRMED"] else { return consumed }
++    let result = try localRenditionExpectedCopySet(encoded)
++    try #require(result.isSubset(of: consumed))
++    return result
++}
++
++nonisolated private func localRenditionExpectedCopySet(_ encoded: String) throws -> Set<String> {
++    let allowed: Set<String> = ["normal.local", "normal.remote", "max.local", "max.remote"]
++    try #require(encoded.utf8.count <= 512)
++    let values = try JSONDecoder().decode([String].self, from: Data(encoded.utf8))
++    let result = Set(values)
++    try #require(values.count <= 4 && result.count == values.count && result.isSubset(of: allowed))
++    return result
++}
++
++nonisolated private func localRenditionSeedContext() throws -> (nonce: String, simulator: String, phase: String) {
++    let environment = ProcessInfo.processInfo.environment
++    let nonce = try #require(environment["FR_S28_LOCAL_RENDITION_NONCE"])
++    let requested = try #require(environment["FR_S28_LOCAL_RENDITION_SIMULATOR_UDID"])
++    let actual = try #require(environment["SIMULATOR_UDID"])
++    let phase = try #require(environment["FR_S28_LOCAL_RENDITION_PHASE"])
++    try #require(RemoteInventoryValidation.canonicalID(nonce) && ["seed", "normal", "max"].contains(phase))
++    let requestedIdentity = try #require(UUID(uuidString: requested))
++    let actualIdentity = try #require(UUID(uuidString: actual))
++    let dedicated: Set<UUID> = [UUID(uuidString: "32123811-3702-4F30-A198-CEC7F743D711")!,
++        UUID(uuidString: "D4AFACDE-F4C0-4527-8A0A-1E64A8BB4F03")!,
++        UUID(uuidString: "FFAC5EB6-0006-4186-ABD8-503013CA4ECC")!,
++        UUID(uuidString: "19086AB5-0EC7-4CE2-ADDE-A7C2939E1675")!,
++        UUID(uuidString: "842A7F12-8232-4248-A78A-87757694B6D9")!,
++        UUID(uuidString: "76647BEF-D2F9-4883-B6BC-F34AA9F4DA4E")!]
++    try #require(requestedIdentity == actualIdentity && dedicated.contains(actualIdentity))
++    return (nonce, actualIdentity.uuidString, phase)
++}
++
++nonisolated private func localRenditionSeedSentinel(_ services: ProductLibraryServices, nonce: String) -> URL {
++    services.run.url.deletingLastPathComponent().appendingPathComponent("s28-local-rendition-external-" + nonce + ".mov")
++}
++
++nonisolated private func localRenditionRequireEmptyProductKeychain() throws {
++    let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
++        kSecAttrService as String: KeychainRegistrationVault.productService,
++        kSecAttrSynchronizable as String: false, kSecUseDataProtectionKeychain as String: true,
++        kSecReturnAttributes as String: true, kSecReturnData as String: false,
++        kSecMatchLimit as String: kSecMatchLimitAll]
++    var result: CFTypeRef?
++    guard SecItemCopyMatching(query as CFDictionary, &result) == errSecItemNotFound else {
++        throw RegistrationAccessError.credentialConflict
++    }
++}
+--- FrameRelayUITests/Flows/LocalRenditionFlowTests.swift@DI-SOURCE-20261024-01
++++ FrameRelayUITests/Flows/LocalRenditionFlowTests.swift@current
+@@ -0,0 +1,493 @@
++import UIKit
++import XCTest
++
++/// The App receives no fixture flags. The test runner alone receives bounded
++/// expected identities extracted from the immutable, one-time Unit seed.
++final class LocalRenditionFlowTests: XCTestCase {
++    override func setUpWithError() throws { continueAfterFailure = false }
++
++    @MainActor func testDiagnosticConsumedLocalAvailabilityWithoutStartingPlayer() throws {
++        guard ProcessInfo.processInfo.environment["FR_S28_LOCAL_RENDITION_DIAGNOSTIC"] == "1" else {
++            throw XCTSkip("Consumed local-copy availability diagnostic is not enabled")
++        }
++        let context = try localContext()
++        let target = try XCTUnwrap(context.value.targets.first { $0.kind == "local" })
++        let app = XCUIApplication(); app.launch()
++        try requireLibrary(app)
++        try top(app)
++        try itemTarget(target.capture, app).tap()
++        let detail = element("library.detailIdentity", app)
++        XCTAssertTrue(detail.waitForExistence(timeout: 10))
++        XCTAssertEqual(detail.label, "動画 " + target.capture)
++        let play = button("library.action.playRendition", app)
++        try revealVisible(play, app)
++        let reason = element("library.reason.playRendition", app)
++        if reason.exists { try revealVisible(reason, app) }
++        let expected = "この登録・公開版に対応する完全取得済みの軽量版と配布記録を確認できません。必要な媒体の取得は、まだ利用できません。"
++        let observed = XCTAttachment(string: context.encoded + "\n" + metadata(play)
++            + "\nreasonExists=\(reason.exists)\nrawReason=" + (reason.exists ? reason.label : "<absent>")
++            + "\nexpectedCompleteReason=" + expected)
++        observed.name = "consumed-local-copy-availability-diagnostic"; observed.lifetime = .keepAlways; add(observed)
++        attach(app, "consumed-local-copy-availability-without-sdk-start")
++        let oldPolicy = continueAfterFailure
++        continueAfterFailure = true
++        defer { continueAfterFailure = oldPolicy }
++        XCTAssertFalse(play.isEnabled, "A reclaimed copy must not remain enabled at the native product control")
++        XCTAssertTrue(reason.exists)
++        if reason.exists { XCTAssertEqual(reason.label, expected) }
++        XCTAssertFalse(element("renditionPlayback.target", app).exists)
++        XCTAssertFalse(element("renditionPlayback.player", app).exists)
++        app.terminate()
++    }
++
++    @MainActor func testLocalAndRemoteCompleteCopiesPlayConfirmStopAndNeverAutoRestore() throws {
++        guard ProcessInfo.processInfo.environment["FR_S28_LOCAL_RENDITION_UI"] == "1" else {
++            throw XCTSkip("Dedicated local-rendition normal root is not enabled")
++        }
++        let context = try localContext()
++        let app = XCUIApplication()
++        addTeardownBlock { @MainActor in
++            let close = self.button("renditionPlayback.close", app)
++            if close.exists && close.isHittable && close.isEnabled {
++                close.tap()
++                let closed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in !close.exists }, object: nil)
++                XCTAssertEqual(XCTWaiter.wait(for: [closed], timeout: 20), .completed,
++                    "Even a UI assertion failure must ask the live player to close")
++            }
++        }
++        let evidence = XCTAttachment(string: context.encoded + "\nrunnerContentSizeCategory="
++            + UIApplication.shared.preferredContentSizeCategory.rawValue
++            + "\nRunner UIKit metrics are references; product frames, complete AX labels and screenshots are actual layout evidence.")
++        evidence.name = "local-rendition-independent-expected-identities"; evidence.lifetime = .keepAlways; add(evidence)
++        let local = try XCTUnwrap(context.value.targets.first { $0.kind == "local" })
++        let remote = try XCTUnwrap(context.value.targets.first { $0.kind == "remote" })
++        app.launch()
++        try requireLibrary(app)
++        try assertUnacquired(context.value.negativeCapture, app)
++        try top(app)
++        try itemTarget(local.capture, app).tap()
++        let detail = element("library.detailIdentity", app)
++        XCTAssertTrue(detail.waitForExistence(timeout: 10))
++        XCTAssertEqual(detail.label, "動画 " + local.capture)
++        let publication = element("library.status.publication", app)
++        try revealVisible(publication, app)
++        XCTAssertTrue(publication.label.contains("公開版ID：" + local.rendition))
++        XCTAssertTrue(publication.label.contains("公開世代：\(local.publicationGeneration)"))
++        let before = element("library.status.confirmation", app)
++        try revealVisible(before, app)
++        XCTAssertTrue(before.label.contains("現在の記録版の明示確認なし"))
++        let open = button("library.action.playRendition", app)
++        try revealVisible(open, app)
++        XCTAssertTrue(open.isEnabled && open.isHittable)
++        try audit(app, context.value.phase + "-local-detail-before-play")
++        open.tap()
++        try requirePlaying(local, app)
++        try observeStableStopDuringActualElapsedUpdates(local, app)
++        try audit(app, context.value.phase + "-local-playing-stable-footer")
++        try revealFullPlaybackExplanationWhileStopRemainsFixed(app)
++        let stop = button("renditionPlayback.stop", app)
++        XCTAssertTrue(stop.isEnabled && stop.isHittable)
++        stop.tap()
++        try requireStopped(local, app)
++        XCTAssertFalse(element("renditionPlayback.confirmation", app).exists)
++        let confirm = button("renditionPlayback.confirm", app)
++        XCTAssertTrue(confirm.isEnabled && confirm.isHittable,
++            "An actual playback token remains confirmable in this same stopped presentation")
++        confirm.tap()
++        try requireConfirmed(local, app)
++        try audit(app, context.value.phase + "-local-stopped-explicit-confirmation")
++        try closePlayer(app)
++        try revealVisible(before, app)
++        XCTAssertTrue(before.label.contains("有効な明示確認の保存記録あり"))
++        let acquiredAgain = button("library.action.playRendition", app)
++        try revealVisible(acquiredAgain, app)
++        XCTAssertFalse(acquiredAgain.isEnabled, "The consumed copy is not restored to make another playback succeed")
++        app.navigationBars.buttons.element(boundBy: 0).tap()
++        try requireLibrary(app)
++
++        let remoteRowToken = try remoteToken(capture: remote.capture, app)
++        let remotePublication = element("library.remote.publication." + remoteRowToken, app)
++        try revealVisible(remotePublication, app)
++        XCTAssertTrue(remotePublication.label.contains("公開版ID：" + remote.rendition))
++        XCTAssertTrue(remotePublication.label.contains("公開世代：\(remote.publicationGeneration)"))
++        let remoteOpen = button("library.remote.play." + remoteRowToken, app)
++        try revealVisible(remoteOpen, app)
++        XCTAssertTrue(remoteOpen.isEnabled && remoteOpen.isHittable)
++        remoteOpen.tap()
++        try requirePlaying(remote, app)
++        try audit(app, context.value.phase + "-remote-playing")
++        let remoteConfirm = button("renditionPlayback.confirm", app)
++        XCTAssertTrue(remoteConfirm.isEnabled && remoteConfirm.isHittable)
++        remoteConfirm.tap()
++        try requireConfirmed(remote, app, revealFeedback: false)
++        XCUIDevice.shared.press(.home)
++        try wait("The ordinary App must enter the background", timeout: 10) {
++            app.state == .runningBackground || app.state == .runningBackgroundSuspended
++        }
++        app.activate()
++        try requireStopped(remote, app)
++        try requireConfirmed(remote, app)
++        try audit(app, context.value.phase + "-remote-background-terminal")
++        try closePlayer(app)
++        try requireLibrary(app)
++        let consumedRemote = button("library.remote.play." + remoteRowToken, app)
++        try revealVisible(consumedRemote, app)
++        XCTAssertFalse(consumedRemote.isEnabled)
++        app.terminate(); app.launch()
++        try requireLibrary(app)
++        XCTAssertFalse(element("renditionPlayback.target", app).exists)
++        XCTAssertFalse(element("renditionPlayback.player", app).exists)
++        XCTAssertFalse(element("renditionPlayback.version", app).exists)
++        XCTAssertFalse(element("renditionPlayback.confirmation", app).exists)
++        try assertUnacquired(context.value.negativeCapture, app)
++        let afterRelaunch = try remoteToken(capture: remote.capture, app)
++        let noRestart = button("library.remote.play." + afterRelaunch, app)
++        try revealVisible(noRestart, app)
++        XCTAssertFalse(noRestart.isEnabled)
++        attach(app, context.value.phase + "-relaunch-no-token-or-auto-playback")
++    }
++
++    @MainActor private func localContext() throws -> (value: LocalRenditionExpected, encoded: String) {
++        let environment = ProcessInfo.processInfo.environment
++        let encoded = try XCTUnwrap(environment["FR_S28_LOCAL_EXPECTED"])
++        guard encoded.utf8.count <= 8192 else { throw LocalRenditionUIFailure.wrongEnvironment }
++        let value = try JSONDecoder().decode(LocalRenditionExpected.self, from: Data(encoded.utf8))
++        let nonce = try XCTUnwrap(environment["FR_S28_LOCAL_RENDITION_NONCE"])
++        let phase = try XCTUnwrap(environment["FR_S28_LOCAL_RENDITION_PHASE"])
++        let requested = try XCTUnwrap(environment["FR_S28_LOCAL_RENDITION_SIMULATOR_UDID"].flatMap(UUID.init(uuidString:)))
++        let actual = try XCTUnwrap(environment["SIMULATOR_UDID"].flatMap(UUID.init(uuidString:)))
++        let dedicated: Set<UUID> = [UUID(uuidString: "32123811-3702-4F30-A198-CEC7F743D711")!,
++            UUID(uuidString: "D4AFACDE-F4C0-4527-8A0A-1E64A8BB4F03")!,
++            UUID(uuidString: "FFAC5EB6-0006-4186-ABD8-503013CA4ECC")!,
++            UUID(uuidString: "19086AB5-0EC7-4CE2-ADDE-A7C2939E1675")!,
++            UUID(uuidString: "842A7F12-8232-4248-A78A-87757694B6D9")!,
++            UUID(uuidString: "76647BEF-D2F9-4883-B6BC-F34AA9F4DA4E")!]
++        guard value.schema == "fr-s28-local-ui-v1", dedicated.contains(requested), actual == requested,
++              UUID(uuidString: value.simulator) == actual, UUID(uuidString: nonce)?.uuidString.lowercased() == nonce,
++              value.nonce == nonce, ["normal", "max"].contains(phase), value.phase == phase,
++              value.targets.count == 2, Set(value.targets.map(\.kind)) == ["local", "remote"],
++              value.negativeCapture == "s28lr-" + nonce + "-unacquired",
++              value.targets.allSatisfy({ target in
++                  target.capture == "s28lr-" + nonce + "-" + phase + "-" + target.kind
++                      && UUID(uuidString: target.rendition)?.uuidString.lowercased() == target.rendition
++                      && target.publicationGeneration == 1
++              }) else { throw LocalRenditionUIFailure.wrongEnvironment }
++        return (value, encoded)
++    }
++
++    @MainActor private func requirePlaying(_ target: LocalRenditionExpected.Target, _ app: XCUIApplication) throws {
++        try wait("The exact local movie must actually advance before confirmation", timeout: 20) {
++            self.element("renditionPlayback.status", app).label == "端末内の軽量版を再生中"
++                && self.element("renditionPlayback.player", app).exists
++                && self.elapsedSeconds(app) > 0.2
++                && self.element("renditionPlayback.version", app).exists
++        }
++        XCTAssertEqual(element("renditionPlayback.target", app).label, "動画 " + target.capture)
++        XCTAssertEqual(element("renditionPlayback.version", app).label, "再生版ID：" + target.rendition)
++        XCTAssertFalse(element("renditionPlayback.issue", app).exists)
++        XCTAssertFalse(element("renditionPlayback.confirmation", app).exists,
++            "Actual playback alone never creates an explicit confirmation")
++        XCTAssertTrue(button("renditionPlayback.confirm", app).isEnabled)
++    }
++
++    @MainActor private func requireStopped(_ target: LocalRenditionExpected.Target, _ app: XCUIApplication) throws {
++        try wait("Stop must finish SDK/reader teardown rather than only accept cancellation", timeout: 20) {
++            self.element("renditionPlayback.status", app).label == "軽量版の再生を停止しました"
++                && !self.element("renditionPlayback.player", app).exists
++                && !self.button("renditionPlayback.stop", app).exists
++        }
++        XCTAssertEqual(element("renditionPlayback.target", app).label, "動画 " + target.capture)
++        XCTAssertEqual(element("renditionPlayback.version", app).label, "再生版ID：" + target.rendition)
++        XCTAssertFalse(element("renditionPlayback.issue", app).exists)
++        let close = button("renditionPlayback.close", app)
++        XCTAssertTrue(close.isEnabled && close.isHittable)
++    }
++
++    @MainActor private func requireConfirmed(_ target: LocalRenditionExpected.Target, _ app: XCUIApplication,
++        revealFeedback: Bool = true) throws {
++        let feedback = element("renditionPlayback.confirmation", app)
++        try wait("The singular user action must obtain its exact durable confirmation", timeout: 15) {
++            feedback.exists && feedback.label == "この再生版の明示確認を保存しました。Mac miniへの送達は別に照合します。"
++                && !self.button("renditionPlayback.confirm", app).isEnabled
++        }
++        XCTAssertEqual(element("renditionPlayback.version", app).label, "再生版ID：" + target.rendition)
++        XCTAssertFalse(element("renditionPlayback.issue", app).exists)
++        if revealFeedback { try revealVisible(feedback, app, scroll: app.scrollViews["renditionPlayback.content"]) }
++    }
++
++    @MainActor private func closePlayer(_ app: XCUIApplication) throws {
++        let close = button("renditionPlayback.close", app)
++        XCTAssertTrue(close.isEnabled && close.isHittable)
++        close.tap()
++        try wait("Close must dismiss only after the live reader owner ends", timeout: 20) {
++            !self.element("renditionPlayback.target", app).exists && !close.exists
++        }
++    }
++
++    @MainActor private func observeStableStopDuringActualElapsedUpdates(_ target: LocalRenditionExpected.Target,
++        _ app: XCUIApplication) throws {
++        var seconds = Set<Double>(), frames: [CGRect] = [], observations: [String] = []
++        var reachable = true
++        let progress = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
++            let value = self.elapsedSeconds(app)
++            seconds.insert(value)
++            let stop = self.button("renditionPlayback.stop", app)
++            let exists = stop.exists
++            reachable = reachable && exists && stop.isEnabled && stop.isHittable
++            if exists { frames.append(stop.frame) }
++            observations.append("uptime=\(ProcessInfo.processInfo.systemUptime) seconds=\(value) stopExists=\(exists) "
++                + "stopFrame=\(exists ? stop.frame : .zero) version=\(self.element("renditionPlayback.version", app).label)")
++            return value >= 10.2
++        }, object: nil)
++        let result = XCTWaiter.wait(for: [progress], timeout: 17)
++        let movement = max((frames.map(\.minY).max() ?? 0) - (frames.map(\.minY).min() ?? 0),
++            (frames.map(\.maxY).max() ?? 0) - (frames.map(\.maxY).min() ?? 0))
++        observations.append("waitResult=\(result.rawValue) distinctSeconds=\(seconds.sorted()) verticalMovement=\(movement)")
++        let attachment = XCTAttachment(string: observations.joined(separator: "\n"))
++        attachment.name = "local-rendition-stop-position-during-real-progress"; attachment.lifetime = .keepAlways; add(attachment)
++        XCTAssertEqual(result, .completed)
++        XCTAssertTrue(seconds.contains { $0 < 10 } && seconds.contains { $0 >= 10 })
++        XCTAssertGreaterThanOrEqual(seconds.count, 3)
++        XCTAssertGreaterThanOrEqual(frames.count, 3)
++        XCTAssertTrue(reachable)
++        XCTAssertLessThanOrEqual(movement, 1)
++        XCTAssertGreaterThanOrEqual(frames.map(\.height).min() ?? 0, 44)
++        XCTAssertEqual(element("renditionPlayback.version", app).label, "再生版ID：" + target.rendition)
++    }
++
++    @MainActor private func revealFullPlaybackExplanationWhileStopRemainsFixed(_ app: XCUIApplication) throws {
++        let scroll = app.scrollViews["renditionPlayback.content"]
++        let explanation = element("renditionPlayback.explanation", app)
++        let navigation = app.navigationBars.matching(NSPredicate(format:
++            "identifier == %@", "軽量版の再生と確認")).firstMatch
++        let expected = "完全取得済みの軽量版を端末内から再生します。Wi-FiやMac miniへの接続は不要です。実際に再生した同じ版を、本人の操作で1本ずつ確認できます。再生だけでは確認済みになりません。停止や終了後も、この画面の同じ再生版を確認できます。画面を閉じると、この再生に対する確認操作は終了します。使用を終えた一時媒体は既存の回収条件に従って解放され、次回は取得が必要になる場合があります。iPhone原本とMac mini、写真の動画は削除しません。"
++        var observations: [String] = []
++        let ready = scroll.waitForExistence(timeout: 5) && explanation.waitForExistence(timeout: 5)
++            && navigation.waitForExistence(timeout: 5)
++        let initial = explanationGeometry(scroll: scroll, explanation: explanation, navigation: navigation, app: app)
++        recordExplanationGeometry(initial, stage: "initial ready=\(ready)", expected: expected, observations: &observations)
++        XCTAssertTrue(ready)
++        XCTAssertTrue(initial.stopExists && initial.stopEnabled && initial.stopHittable)
++        XCTAssertGreaterThanOrEqual(initial.stop.height, 44)
++        let originalStop = initial.stop
++        var reachedFirst = false, reachedLast = false
++        for attempt in 0..<28 {
++            let geometry = explanationGeometry(scroll: scroll, explanation: explanation, navigation: navigation, app: app)
++            let viewport = geometry.viewport, frame = geometry.explanation
++            if frame.minY >= viewport.minY - 2 && frame.minY < viewport.maxY { reachedFirst = true }
++            if frame.maxY <= viewport.maxY + 2 && frame.maxY > viewport.minY { reachedLast = true }
++            recordExplanationGeometry(geometry, stage: "attempt=\(attempt) first=\(reachedFirst) last=\(reachedLast)",
++                expected: expected, observations: &observations)
++            XCTAssertTrue(geometry.stopExists && geometry.stopEnabled && geometry.stopHittable)
++            XCTAssertEqual(geometry.stop, originalStop, "Scrolling the explanation must leave the footer in place")
++            XCTAssertGreaterThanOrEqual(geometry.stop.height, 44)
++            XCTAssertLessThanOrEqual(geometry.scroll.intersection(geometry.app).maxY, geometry.stop.minY)
++            XCTAssertGreaterThan(viewport.height, 0)
++            if reachedFirst && reachedLast { break }
++            // Position an actual endpoint instead of flicking past its narrow
++            // visibility window and reversing all the way to the previous page.
++            let delta = !reachedFirst ? frame.minY - viewport.minY - 4 : frame.maxY - viewport.maxY + 4
++            dragExplanationGutter(viewport: viewport, delta: delta, app: app)
++        }
++        let final = explanationGeometry(scroll: scroll, explanation: explanation, navigation: navigation, app: app)
++        if final.explanation.minY >= final.viewport.minY - 2 && final.explanation.minY < final.viewport.maxY { reachedFirst = true }
++        if final.explanation.maxY <= final.viewport.maxY + 2 && final.explanation.maxY > final.viewport.minY { reachedLast = true }
++        recordExplanationGeometry(final, stage: "final first=\(reachedFirst) last=\(reachedLast)",
++            expected: expected, observations: &observations)
++        XCTAssertTrue(final.stopExists && final.stopEnabled && final.stopHittable)
++        XCTAssertEqual(final.stop, originalStop, "Scrolling the explanation must leave the footer in place")
++        XCTAssertGreaterThanOrEqual(final.stop.height, 44)
++        XCTAssertLessThanOrEqual(final.scroll.intersection(final.app).maxY, final.stop.minY)
++        XCTAssertEqual(explanation.label, expected.replacingOccurrences(of: "\n", with: " "))
++        XCTAssertTrue(reachedFirst && reachedLast, "Reach both ends of the complete explanation through its ordinary scroll view")
++        attach(app, "local-rendition-explanation-reached-footer-remains-visible")
++    }
++
++    private struct ExplanationGeometry {
++        let scroll: CGRect
++        let navigation: CGRect
++        let app: CGRect
++        let explanation: CGRect
++        let stop: CGRect
++        let stopExists: Bool
++        let stopEnabled: Bool
++        let stopHittable: Bool
++        let label: String
++        var viewport: CGRect {
++            let area = scroll.intersection(app)
++            guard !area.isNull else { return .zero }
++            let upper = max(area.minY, navigation.maxY)
++            let lower = min(area.maxY, stop.minY)
++            return CGRect(x: area.minX, y: upper, width: area.width, height: max(0, lower - upper))
++        }
++    }
++
++    @MainActor private func explanationGeometry(scroll: XCUIElement, explanation: XCUIElement,
++        navigation: XCUIElement, app: XCUIApplication) -> ExplanationGeometry {
++        let stop = button("renditionPlayback.stop", app)
++        let exists = stop.exists
++        return .init(scroll: scroll.exists ? scroll.frame : .zero,
++            navigation: navigation.exists ? navigation.frame : .zero, app: app.frame,
++            explanation: explanation.exists ? explanation.frame : .zero,
++            stop: exists ? stop.frame : .zero, stopExists: exists,
++            stopEnabled: exists && stop.isEnabled, stopHittable: exists && stop.isHittable,
++            label: explanation.exists ? explanation.label : "<absent>")
++    }
++
++    @MainActor private func recordExplanationGeometry(_ geometry: ExplanationGeometry, stage: String,
++        expected: String, observations: inout [String]) {
++        observations.append("uptime=\(ProcessInfo.processInfo.systemUptime) stage=\(stage) scroll=\(geometry.scroll) "
++            + "playerNavigation=\(geometry.navigation) app=\(geometry.app) viewport=\(geometry.viewport) "
++            + "explanation=\(geometry.explanation) stopExists=\(geometry.stopExists) stop=\(geometry.stop) "
++            + "stopEnabled=\(geometry.stopEnabled) stopHittable=\(geometry.stopHittable) fullLabel=\(geometry.label)")
++        // Add before any potentially aborting XCTest assertion. A Swift defer
++        // is not sufficient when continueAfterFailure=false aborts a test case.
++        let evidence = XCTAttachment(string: observations.joined(separator: "\n") + "\nexpectedCompleteSourceText=" + expected)
++        evidence.name = "local-rendition-explanation-ordinary-scroll-and-fixed-footer"
++        evidence.lifetime = .keepAlways; add(evidence)
++    }
++
++    @MainActor private func dragExplanationGutter(viewport: CGRect, delta: CGFloat, app: XCUIApplication) {
++        // MAX52 moved about 144.3pt for a 154.4pt drag, then a final 10pt
++        // gesture moved nothing. Cross the pan recognition threshold with a
++        // finite gesture; endpoint assertions still use the actual viewport.
++        let distance = min(max(abs(delta), 32), viewport.height * 0.4)
++        let x = viewport.minX + min(8, viewport.width * 0.1)
++        let startY = viewport.minY + viewport.height * (delta > 0 ? 0.8 : 0.2)
++        let endY = startY + (delta > 0 ? -distance : distance)
++        let origin = app.coordinate(withNormalizedOffset: .zero)
++        let appFrame = app.frame
++        let start = origin.withOffset(CGVector(dx: x - appFrame.minX, dy: startY - appFrame.minY))
++        let end = origin.withOffset(CGVector(dx: x - appFrame.minX, dy: endY - appFrame.minY))
++        start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.2)
++    }
++
++    @MainActor private func elapsedSeconds(_ app: XCUIApplication) -> Double {
++        let value = element("renditionPlayback.elapsed", app).value as? String ?? ""
++        return value.components(separatedBy: CharacterSet(charactersIn: "0123456789.").inverted)
++            .compactMap(Double.init).first ?? 0
++    }
++
++    @MainActor private func assertUnacquired(_ capture: String, _ app: XCUIApplication) throws {
++        let token = try remoteToken(capture: capture, app)
++        let play = button("library.remote.play." + token, app)
++        try revealVisible(play, app)
++        XCTAssertFalse(play.isEnabled)
++        let reason = element("library.remote.playReason." + token, app)
++        try revealVisible(reason, app)
++        XCTAssertEqual(reason.label, "この登録・公開版に対応する完全取得済みの軽量版と配布記録を確認できません。必要な媒体の取得は、まだ利用できません。")
++    }
++
++    @MainActor private func remoteToken(capture: String, _ app: XCUIApplication) throws -> String {
++        try top(app)
++        let title = app.descendants(matching: .any).matching(NSPredicate(format:
++            "identifier BEGINSWITH %@ AND label == %@", "library.remote.title.", "動画 " + capture)).firstMatch
++        try revealVisible(title, app)
++        XCTAssertTrue(title.identifier.hasPrefix("library.remote.title."))
++        return String(title.identifier.dropFirst("library.remote.title.".count))
++    }
++
++    @MainActor private func requireLibrary(_ app: XCUIApplication) throws {
++        let refresh = button("library.refresh", app)
++        XCTAssertTrue(refresh.waitForExistence(timeout: 15))
++        try wait("The shared-writer library must finish loading", timeout: 15) {
++            refresh.isEnabled && !self.element("library.loadFailure", app).exists
++        }
++        XCTAssertFalse(element("library.empty", app).exists)
++    }
++
++    @MainActor private func itemTarget(_ capture: String, _ app: XCUIApplication) throws -> XCUIElement {
++        for _ in 0..<56 {
++            let item = element("library.item." + capture, app)
++            if item.exists && item.isHittable { return item }
++            let title = item.descendants(matching: .staticText).matching(NSPredicate(format:
++                "identifier == %@", "library.itemTitle." + capture)).firstMatch
++            if item.exists && title.exists && title.isHittable { return title }
++            app.swipeUp()
++        }
++        throw LocalRenditionUIFailure.unreachable
++    }
++
++    @MainActor private func top(_ app: XCUIApplication) throws {
++        let camera = button("product.capture", app)
++        for _ in 0..<64 {
++            if camera.exists && camera.isHittable && camera.frame.midY > app.navigationBars.firstMatch.frame.maxY + 2 { return }
++            app.swipeDown()
++        }
++        throw LocalRenditionUIFailure.unreachable
++    }
++
++    @MainActor private func revealVisible(_ value: XCUIElement, _ app: XCUIApplication,
++        scroll: XCUIElement? = nil) throws {
++        for _ in 0..<64 {
++            if value.exists {
++                let upper = app.navigationBars.firstMatch.frame.maxY + 2
++                let viewport = (scroll?.frame ?? app.frame).intersection(
++                    CGRect(x: app.frame.minX, y: upper, width: app.frame.width, height: max(0, app.frame.maxY - upper - 8)))
++                let visible = value.frame.intersection(viewport)
++                if !visible.isNull && visible.height >= min(44, value.frame.height) { return }
++                if value.frame.maxY <= upper { (scroll ?? app).swipeDown(); continue }
++            }
++            (scroll ?? app).swipeUp()
++        }
++        attach(app, "local-rendition-unreachable-element")
++        throw LocalRenditionUIFailure.unreachable
++    }
++
++    @MainActor private func wait(_ message: String, timeout: TimeInterval, predicate: @escaping () -> Bool) throws {
++        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in predicate() }, object: nil)
++        guard XCTWaiter.wait(for: [expectation], timeout: timeout) == .completed else {
++            XCTFail(message); throw LocalRenditionUIFailure.unexpectedState
++        }
++    }
++
++    @MainActor private func element(_ identifier: String, _ app: XCUIApplication) -> XCUIElement {
++        app.descendants(matching: .any).matching(NSPredicate(format: "identifier == %@", identifier)).firstMatch
++    }
++    @MainActor private func button(_ identifier: String, _ app: XCUIApplication) -> XCUIElement {
++        app.buttons.matching(NSPredicate(format: "identifier == %@", identifier)).firstMatch
++    }
++
++    @MainActor private func audit(_ app: XCUIApplication, _ name: String) throws {
++        let types: XCUIAccessibilityAuditType = [.dynamicType, .textClipped, .sufficientElementDescription,
++                                                .trait, .hitRegion, .elementDetection, .contrast]
++        attach(app, name + "-accessibility-before")
++        let oldPolicy = continueAfterFailure
++        continueAfterFailure = true
++        defer { attach(app, name + "-accessibility-after"); continueAfterFailure = oldPolicy }
++        try app.performAccessibilityAudit(for: types) { issue in
++            var lines = [issue.compactDescription, issue.detailedDescription, "auditType=\(issue.auditType.rawValue)",
++                         "uptime=\(ProcessInfo.processInfo.systemUptime)"]
++            if let associated = issue.element { lines += [self.metadata(associated), associated.debugDescription] }
++            let attachment = XCTAttachment(string: lines.joined(separator: "\n"))
++            attachment.name = name + "-unhandled-accessibility-issue"; attachment.lifetime = .keepAlways; self.add(attachment)
++            return false
++        }
++    }
++
++    @MainActor private func metadata(_ value: XCUIElement) -> String {
++        "identifier=\(value.identifier) type=\(value.elementType.rawValue) frame=\(value.frame) enabled=\(value.isEnabled) label=\(value.label)"
++    }
++    @MainActor private func attach(_ app: XCUIApplication, _ name: String) {
++        let screen = XCTAttachment(screenshot: app.screenshot()); screen.name = name
++        screen.lifetime = .keepAlways; add(screen)
++        let tree = XCTAttachment(string: app.debugDescription); tree.name = name + "-tree"
++        tree.lifetime = .keepAlways; add(tree)
++    }
++}
++
++private struct LocalRenditionExpected: Decodable {
++    let schema: String
++    let nonce: String
++    let simulator: String
++    let phase: String
++    let targets: [Target]
++    let negativeCapture: String
++    struct Target: Decodable {
++        let kind: String
++        let capture: String
++        let rendition: String
++        let publicationGeneration: UInt64
++    }
++}
++private enum LocalRenditionUIFailure: Error { case wrongEnvironment, unexpectedState, unreachable }

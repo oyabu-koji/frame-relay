@@ -1,0 +1,341 @@
+{
+  "schema": "fr-chunk-producer-unit-b-core-contract-v1",
+  "created_UTC": "2026-10-24T21:08:35.775746+00:00",
+  "status": "read-only Core design, not implemented; UnitA freeze and main ownership grant required",
+  "input": {
+    "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/chunk-producer-implementation-contract.json",
+    "sha256": "794a9c1a420fcab4c5c6adffbd54d600e8ab13f0781a56d0a6987a382cb405d9",
+    "base": "DI-SOURCE-20261025-18",
+    "snapshot": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/photo-final-candidate-02/source-snapshot",
+    "scope": "Only UnitB exact writer connection / exhaustive source switches / multi-chunk stop history. Foundational direct-ready investigation is not repeated."
+  },
+  "conclusion_ja": "新uploadChunkだけをindirectに追加し、compact selectionを実GET観測へ同writerでjoinする。現在snapshotのstopped値では履歴順序を証明できないため、Core7案にMediaOperationStoreAdapter.swiftを8件目として追加する。schema7イベント追加・snapshot field追加は不要。全て未実装。",
+  "unitA_frozen_api_dependency": {
+    "owner": "original_upload_app; UploadChunk.swift is never edited by CoreB",
+    "source": "Owner message received during this read-only task; implementation is still in progress, no UnitA hash is claimed",
+    "types": [
+      "UploadChunkRange(binding:index:) throws; binding,index,offset,length,upperBoundExclusive,totalByteCount,chunkCount",
+      "UploadChunkDescriptor(range:content:) throws",
+      "ManagedUploadChunkIdentity(source:descriptor:) throws",
+      "UploadChunkMetadataSelection.init(_ saved: StoredUploadMetadataObservation) throws; flat storeIdentity,observationCommand,queryID,observationFingerprint,observationGeneration,previousRevision,committedRevision; expectedKey,commit,validate(),matches(saved)",
+      "UploadChunkReceipt(descriptor:chunkIndex:byteCount:sha256:) throws"
+    ]
+  },
+  "proposed_api": {
+    "persisted_source": "BackgroundMediaTaskSource: indirect case uploadChunk(lease: OriginalReadLease, chunk: ManagedUploadChunkIdentity, metadata: UploadChunkMetadataSelection)",
+    "source_persistence": "Only lease + independent chunk descriptor/source identity + flat selection are encoded. No full metadata response, BackendStoreMutation, BackendStoreSnapshot, URL, credential, FD or request body is embedded.",
+    "ownership_projection": "nonisolated struct BackgroundUploadOwnership: Sendable { let macSession: UploadSessionID; let originalLease: OriginalReadLease; let source: ManagedUploadSourceIdentity; let descriptor: UploadChunkDescriptor?; let metadata: UploadChunkMetadataSelection? }; BackgroundMediaTaskSource.uploadOwnership: BackgroundUploadOwnership? maps upload/uploadChunk explicitly and download to nil. It is not Codable and grants no closure authority.",
+    "shared_view": "nonisolated final class BackgroundUploadChunkAdmissionView: Sendable (not Codable); init(revision: UInt64, storeIdentity: RegistrationStoreIdentity?, registrations: [DeviceRegistration], requests: [MediaRequest], originals: [LogicalOriginalState], queries: [CommittedUploadMetadataQuery], observations: [StoredUploadMetadataObservation], tasks: [BackgroundMediaTaskState], journal: [OriginalRemovalTransportJournalFact]). Immutable array references only; do not copy full snapshot/mutations into the source or flatten large associated values on a single frame.",
+    "shared_pre_attempt": "BackgroundUploadChunkAdmission.requireBeforeAttempt(context: BackgroundMediaRequestContext, range: UploadChunkRange, metadata: UploadChunkMetadataSelection, taskID: BackgroundMediaTaskID, sourceID: ManagedUploadSourceID, view: BackgroundUploadChunkAdmissionView) throws -> Void",
+    "shared_current_attempt": "BackgroundUploadChunkAdmission.requireCurrentAttempt(_ intent: BackgroundMediaTaskIntent, view: BackgroundUploadChunkAdmissionView) throws -> Void. Accepts only uploadChunk; active/current attempt path does not require hasReconciled=true after beginAttempt resets it.",
+    "same_writer_adapter": "RecordingStoreDocument.requireUploadChunkHistory(_ intent: BackgroundMediaTaskIntent, through revision: UInt64, projection: MediaStoreProjection) throws -> Void. Implement in BackgroundMediaStoreProjection.swift extension; adapter calls only for newchunk prepared/resumeRequested before applyBackgroundTask, passing entry.receipt.previousRevision and the already-replayed historical projection.",
+    "adapter_extraction": "Build the shared view from projection array references + backendJournal prefix with committedRevision<=through. Original journal release timing is additionally checked from originalJournal prefix. Every selected fact must have its real mutation/receipt; future entries must never satisfy a historical preparation.",
+    "no_other_changes": "Reuse actual backgroundTask command/key/event and existing beginAttempt. Do not add a new MediaRequest transition, BackendStoreChange/key, schema migration, persisted chunk receipt event or snapshot field."
+  },
+  "shared_guard": [
+    "actual view.storeIdentity equals context.storeIdentity. Select exactly one current upload request by UTF8-exact operation/target/registration and immutable start identity. Reject canonically equivalent but byte-distinct aliases, including ambiguous original logical rows.",
+    "The compact selection is not proof: join exactly one actual StoredUploadMetadataObservation via matches(saved), real observe key/fingerprint/receipt and isCommitted. Join its full CommittedUploadMetadataQuery and actual current DeviceRegistration (intent+commit included) from view; expected UUID must be current.",
+    "Require query.kind lookup(session), response.status(receiving), full ten-field binding and chunkSize/session equal range.binding, exact original/operation/registration, selected index absent. created POST/finalizing/completed/failed/cancelled cannot start a chunk.",
+    "Selected query is latest by all reservations for that operation; selected generation equals request.lastObservation, no uploadMetadataPending or uploadMetadataHold. Pending newer query shadows an older receiving response even when old hasReconciled was true.",
+    "Before attempt: request.canRun, no active/stopRequested/current owner or same-operation orphan original reader, no reused task/attempt/source ID. Strict/capture/removal process admission remains App responsibility before any begin/lease/copy/factory.",
+    "Current attempt: exact request.attempt/context, transport active, running intent, empty waits, no ended/completed/cancelled; original saved binding/current reg/no removal/invalidation/removed; exact new lease is current reader. No other same-operation reader/source may remain. Original lease epoch and store media reconciliation epoch remain separate axes.",
+    "For current attempt, exclude only the exact same already-prepared intent when validating resumeRequested. An arbitrary equal task ID or altered payload may not hide an older owner.",
+    "Every prior task for this operation must be accounted for, never only max/last. Require unique task/attempt/source IDs, exact original/reg/session/binding/source and actual terminal then ownerClosed. Refuse unbound prepared/create-attach gaps, unclosed/unknown sources, orphan leases and any mixed whole/chunk history in the minimal multi-attempt branch.",
+    "For each prior chunk find exactly matching real requestTransition.stopped receipt in prefix, after its ownerClosed; require selected GET observation commit strictly after every prior stopped. Require selected GET commit strictly before the exact current beginAttempt commit, which is before prepared/resumeRequested. No arrival timestamps or current mutable transport substitute for this sequence."
+  ],
+  "snapshot_vs_projection": {
+    "app_pre_attempt": "Load backend snapshot B1, original state O, and loadRemovalTransportInventory(original). Require B1.revision==O.revision/current UUID, exact inventory.matchesProjection(B1), and no conflicting operation-owned readers. Confirm referenced journal mutations through exact lookup; reload B2 and O2 and require same revision/UUID/identity/current registration/request/selection and exact original reader state before returning a preliminary success. A changed revision causes a fresh read-only evaluation, not rebasing unknown mutation.",
+    "same_writer": "Document uses its current/historical projection and actual prefixes only. The current prepared/resumeRequested event cannot use future stop/query/release facts. It additionally checks actual originalJournal.release(exact lease) after ownerClosed and before matching stopped. App preliminary view cannot establish that original-release ordering from transport inventory alone; writer is final authority.",
+    "races": "App reads are advisory: pause/cancel, new GET, registration rotation, removal, newer attempt or store identity change between awaits or copy and prepared is refused by final writer. Existing unknown mutation remains its original expectedRevision/payload lookup-only.",
+    "live_vs_replay": "No live file/recording/hash/network read is introduced into replay. Current lease/binding/reg at each historical event comes from ordered journal projection. Real native/source/file checks remain App/Native ownership."
+  },
+  "time_order": {
+    "positive": "prior prepared -> attached -> actual SDK terminal -> exact ownerClosed commit C -> actual original.release commit R -> exact stopped commit S -> new receiving GET observe G -> current beginAttempt commit A -> acquire current lease/copy -> new prepared P; require C<R<S<G<A<P. For first chunk, there is no prior C/R/S but G<A<P still required.",
+    "negative": [
+      "G<=S even if current request later says stopped",
+      "S<=C or stopped before release R",
+      "G after beginAttempt A (not a selected pre-attempt GET)",
+      "a later/new query reservation shadows G before P",
+      "a future S/G in the finished document used to validate an earlier P",
+      "one old task/lease omitted while only latest attempt is closed",
+      "reused task/source/attempt or normalized alias with otherwise equal Swift String",
+      "POST-created statusless observation used as receiving evidence"
+    ],
+    "resumeRequested": "Same selected G and same exact intent remain valid only while latest/current. It may occur after P but before any SDK resume; native positive resume remains unavailable."
+  },
+  "multi_chunk_stop_history": {
+    "existing_limitation": "OriginalRemovalTransportHistory.stoppedTasks currently requires matches.count==1 and compares all task attempt values to request.current attempt. This cannot represent serial chunk attempts.",
+    "minimal_new_branch": "Retain the whole-upload single-task branch byte/behavior semantics. Add a pure all-uploadChunk branch which emits one TransportStopReceipt per exact historical task/attempt, in stable backgroundTasks preparation order; current request must be stopped with attempt equal the last task, prior attempts are matched to their own contexts/journal, not current attempt. Download or mixed whole/chunk remains unknown.",
+    "fence": "Keep stops.count==tasks.count and existing fence per-task actual stopped-after-ownerClosed journal checks; duplicates/foreign/unmatched receipts refuse. Each historical terminal/closure event and actual stopped mutation must be exact-confirmed by the sealed producer; final fresh SDK enumeration, exact inventory and every lease absence remain required.",
+    "scope": "stoppedTasks is a presentation/candidate predicate, not all-media quiescence or deletion permission. Chunk SDK completed is not whole request completed; record stopped + hasReconciled=false until a new GET. No external result/verification/finalize/ACK/Photos/deletion is generated.",
+    "app_followups": "Coordinator invalidation/person/capture/removal/history loops must use uploadOwnership and handle older closed chunk attempts by historical own context; do not retain whole-only request.attempt==oldTask.attempt guard for the history branch, or weaken current live-task guard. No SDK/source adoption after reopen."
+  },
+  "core_ownership_candidate": [
+    {
+      "path": "FrameRelay/Domain/Operations/BackgroundMediaTask.swift",
+      "change": "new indirect source / ephemeral ownership and shared compact admission view+pure guard / exact new-case state joins"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/BackgroundMediaStoreProjection.swift",
+      "change": "chunk current state predicate and document historical-prefix serial/release check helpers"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift",
+      "change": "new-case exhaustive validation without equating chunk content and whole original"
+    },
+    {
+      "path": "FrameRelay/Application/Recovery/BackgroundMediaRecovery.swift",
+      "change": "uploadChunk expects SDK upload kind; preserve no adoption/recreation/release"
+    },
+    {
+      "path": "FrameRelay/Application/Ports/OriginalRemovalPorts.swift",
+      "change": "all-chunk multi-attempt stop candidates, preserve whole single-attempt and fence actual-journal authority"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+      "change": "necessary additional ownership: historical-prefix helper call on newchunk prepared/resumeRequested; exact newchunk mutation commit/lookup/replay"
+    },
+    {
+      "path": "FrameRelayTests/Domain/BackgroundUploadChunkTaskTests.swift",
+      "change": "new Domain/source/Codable/identity/admission tests"
+    },
+    {
+      "path": "FrameRelayTests/Integration/Storage/BackgroundUploadChunkStoreTests.swift",
+      "change": "new both-disk/historical-time-order/unknown/reopen tests"
+    }
+  ],
+  "read_only_expected_paths": [
+    {
+      "path": "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+      "reason": "existing backgroundTask case/key/snapshot arrays sufficient; no new field or event needed"
+    },
+    {
+      "path": "FrameRelay/Domain/Operations/BackendCommit.swift",
+      "reason": "existing backgroundTask key + selected uploadMetadataObservation key reused"
+    },
+    {
+      "path": "FrameRelay/Domain/Operations/MediaRequest.swift",
+      "reason": "existing canRun/beginAttempt resets hasReconciled; whole contract unchanged"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift",
+      "reason": "existing related backgroundTask event selects via intent.context.target; original and metadata facts already included in transport inventory. No new event means no new inventory switch case."
+    },
+    {
+      "path": "FrameRelay/Domain/Operations/UploadChunk.swift",
+      "reason": "UnitA sole owner; consume final API without edits"
+    }
+  ],
+  "switch_audit": [
+    {
+      "path": "FrameRelay/Domain/Operations/BackgroundMediaTask.swift",
+      "lines": [
+        71,
+        179
+      ],
+      "owner": "Core",
+      "change": "validate new boxed source and ownerClosed compare exact chunk.source, not whole digest; state.apply uses exact full intent for newcase including attached/terminal/closure"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift",
+      "lines": [
+        155
+      ],
+      "owner": "Core",
+      "change": "uploadChunk exact lease/range/descriptor/selection; no fallthrough"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/BackgroundMediaStoreProjection.swift",
+      "lines": [
+        52
+      ],
+      "owner": "Core",
+      "change": "chunk current scope and final document actual-history guard; preserve whole/download predicates"
+    },
+    {
+      "path": "FrameRelay/Application/Ports/OriginalRemovalPorts.swift",
+      "lines": [
+        118,
+        129
+      ],
+      "owner": "Core",
+      "change": "chunk-only all-attempt stop branch; existing fence iterates all tasks"
+    },
+    {
+      "path": "FrameRelay/Application/Recovery/BackgroundMediaRecovery.swift",
+      "lines": [
+        64
+      ],
+      "owner": "Core",
+      "change": "uploadChunk SDK kind upload, same exact event lookup and no source adoption"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+      "lines": [
+        156,
+        194,
+        275
+      ],
+      "owner": "Core additional candidate",
+      "change": "newcase-only document-history call on prepared/resumeRequested and requiresExactBackendMutation=true for uploadChunk; live+lookup exact UTF8 mutation and replay exact full intent. Existing download-only epoch branch stays download-only."
+    },
+    {
+      "path": "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift",
+      "lines": [
+        158,
+        429,
+        758,
+        803,
+        850,
+        883,
+        901,
+        1030,
+        1070
+      ],
+      "owner": "App (not this read-only ownership)",
+      "change": "whole replay check stays whole-only; new chunk replay explicit. All upload ownership / personstop / invalidation / capture / history / enum / terminal source finish use exact source projection; do not compare chunk content to full original."
+    },
+    {
+      "path": "FrameRelay/Platform/Network/BackgroundMediaSession.swift",
+      "lines": [
+        118,
+        148,
+        303
+      ],
+      "owner": "App/native (not this read-only ownership)",
+      "change": "separate chunk fingerprint / URLSession upload kind / exact fromFile descriptor; whole fingerprint untouched, native resume refusal retained"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift",
+      "lines": [
+        124
+      ],
+      "owner": "read-only",
+      "change": "target-original relation already covers newvariant"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+      "lines": [
+        161
+      ],
+      "owner": "read-only branch inside future owned file",
+      "change": "existing download-only lease epoch guard must not be applied to original upload lease"
+    }
+  ],
+  "compatibility_and_stack": [
+    "New indirect case uploadChunk only. Old upload and download Codable tag/payload encodings and whole-upload fingerprint vectors remain unchanged; schema7 no migration, old binary unknown case failclosed.",
+    "New source fits behind a box; never embed full mutation/snapshot/StoredUploadMetadataObservation into the source or descriptor. Selection matches actual full observation only through view.",
+    "Put historical-prefix extraction, metadata join, prior-stop checks and current-state check in separate @inline(never) helpers. View is immutable heap object with array references; avoid array.flatMap of huge enum payload values and multiple full snapshots in one frame. No test thread stack flags or guard removal.",
+    "requiresExactBackendMutation adds only backgroundTask whose source is uploadChunk; old whole mutations/replay equality behavior is retained. Prepared/attached/resume/stop/terminal/ownerClosed newcase all reject UTF8-normalized alias substitutions.",
+    "Existing three typed-plan namespaces still reserve parent/child/command IDs through existing backgroundTask command key; operation/query/observe IDs in chunk are references, not introductions. Do not reserve references as new commands.",
+    "OriginalReadLease private epoch differs from media reconciliation epoch. Preserve DI04/DI18 Photos and invalidation two-axis behavior, native strict/default refusal and every existing P2 assertion."
+  ],
+  "necessary_regressions": {
+    "domain": [
+      "new uploadChunk round-trip and decode rejection for mismatched binding/lease/chunk source/metadata scalar refs",
+      "old upload/download JSON vectors unchanged; whole digest invariant unchanged; equal full-length chunk still selects newvariant semantics",
+      "ownerClosed source exact; altered intent/UTF8 alias/receipt/selection cannot attach terminal or borrow prior mutation"
+    ],
+    "both_disks": [
+      "first missing receiving chunk G<A<P accepted; POST-created/nonreceiving/known-index/pending newerquery/forged compact refs rejected",
+      "actual selected query+observe full receipt/fingerprint/storeUUID/current DeviceRegistration/immutable request join; old registration/UUID/ambiguous exact original reject",
+      "two serial attempts accepted only C<R<S<G<A<P; boundary equality and each pair reversal reject",
+      "finished document containing future stop/GET/release cannot repair an earlier invalid prepared event; original valid historical replay not rechecked against later registration/removal/current request",
+      "all historical tasks checked; oldest open/create-attach-gap/unreleased same-operation lease/unmatched source/duplicate attempt-source IDs refuse",
+      "stopped proof for every chunk in stable order; single whole branch unchanged; mixed/download histories unknown; omitted/foreign/duplicate stop receipts reject",
+      "unknown before/after commit retains exact original envelope; altered expectedRevision/payload/UTF8 alias rejects; reopen has no SDK/source adoption",
+      "after first stopped/newGET, newattempt prepared; prior GET made before stopped remains unusable; receiving observation after current begin is unusable"
+    ],
+    "app_boundaries": [
+      "strict default refusal gives begin0/lease0/copy0/factory0; currentness rechecked after B1/O/inventory/B2 and every materialization await",
+      "same operation retained Task join vs conflicting plan; no simultaneous chunks; selected GET fixed before attempt and no auto next/relaunch",
+      "actual suspended SDK cancel terminal -> exact own chunk FD close -> ownerClosed -> releaseRead -> stopped; source original hash/inode preserved; native positive resume remains denied"
+    ],
+    "execution_owner": "main only after UnitA freeze, explicit UnitB ownership, immutable source binding; none written or run in this preparation"
+  },
+  "unconfirmed": [
+    "UnitA source final hash/compile/runtime pending; only exact API message is consumed",
+    "proposed Core/API/helper structure not implemented or compiled",
+    "new source switch compilation, both-disk replay and all positive/reversed-time tests unexecuted",
+    "native suspended create/cancel/FD/lease stop proof unexecuted; native strict positive resume/full upload/receipt adoption/finalize/whole verification out of scope"
+  ],
+  "authorization": {
+    "only_written_path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/chunk-producer-unit-b-core-contract.json",
+    "product_test_docs_steering_writes": 0,
+    "build_test_sdk_simulator_fixture_keychain_operations": 0,
+    "independent_validation": false,
+    "existing_files_overwritten": false
+  },
+  "observed_files": [
+    {
+      "path": "FrameRelay/Domain/Operations/BackgroundMediaTask.swift",
+      "sha256": "36000d5e4b48f205827bcf782db1928e14329466ef7696879f40b5d72248dbe2",
+      "matches_DI18": true
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/BackgroundMediaStoreProjection.swift",
+      "sha256": "1589c8bdd26e4a338527d52e251d37c81e36ac91f5fbef3a9dd55e92cd8ea1ed",
+      "matches_DI18": true
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift",
+      "sha256": "815ad16d3003d4d4365de62ea1583e3f0fb0dfb049d61686e7f6db37b45dace0",
+      "matches_DI18": true
+    },
+    {
+      "path": "FrameRelay/Application/Recovery/BackgroundMediaRecovery.swift",
+      "sha256": "cb489fb6b6f4f8ea9bd5c0142bc09c3e0b9dc8b705c5c5dd4f7f3ee3412f5661",
+      "matches_DI18": true
+    },
+    {
+      "path": "FrameRelay/Application/Ports/OriginalRemovalPorts.swift",
+      "sha256": "3871328bdc67f4660fc1559d220fc5dab6ce41946e9a2fb9794098bc22c100ca",
+      "matches_DI18": true
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+      "sha256": "ff602d9ba432eaafd624e758fb43d62e7cd9f90d2b836b2d7db14bf345515a57",
+      "matches_DI18": true
+    },
+    {
+      "path": "FrameRelay/Domain/Operations/UploadMetadata.swift",
+      "sha256": "14ba970dec326c4232ba4a465178bf0bcbc57f906b1f3f599351f0d0219be183",
+      "matches_DI18": true
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/UploadMetadataStoreProjection.swift",
+      "sha256": "9a42073906a9806375b806caf00d58dea0b26be1880bdb0313c486b8093da2f1",
+      "matches_DI18": true
+    },
+    {
+      "path": "FrameRelay/Domain/Operations/MediaRequest.swift",
+      "sha256": "3aa33f36498c3532005c3e635edc48f74ee76feffb9eaf2febda231bb809fc1b",
+      "matches_DI18": true
+    },
+    {
+      "path": "FrameRelay/Domain/Operations/MediaStoreCommands.swift",
+      "sha256": "21133d79dbcb2eb8eee0a60626024682e6f5b34a7451ab6df96464cdd37da1ab",
+      "matches_DI18": true
+    },
+    {
+      "path": "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+      "sha256": "dcb186b2133e49a1490ab717474c77361d77b7eef2f4de33e7da56eeb5bad26b",
+      "matches_DI18": true
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift",
+      "sha256": "0b58b65e97ab60e4dcb6855424044277a87dab90bb6fc69336b9eb4f892ca8c0",
+      "matches_DI18": true
+    },
+    {
+      "path": "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift",
+      "sha256": "18e559569ed7ad526d1de0a598889ab066e632b543a9bcc3e567cfb5fe6b8395",
+      "matches_DI18": true
+    },
+    {
+      "path": "FrameRelay/Platform/Network/BackgroundMediaSession.swift",
+      "sha256": "a9f7d4c3abd73ad9a21774fb592657fc3ee0f15746564197c503ef87e03f4ffd",
+      "matches_DI18": true
+    }
+  ]
+}

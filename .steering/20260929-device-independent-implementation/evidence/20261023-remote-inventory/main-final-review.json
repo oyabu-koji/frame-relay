@@ -1,0 +1,119 @@
+{
+  "created_UTC": "2026-10-23T16:16:30.109786+00:00",
+  "reviewer": "main",
+  "independent_implementation_validation": false,
+  "source_binding": {
+    "id": "DI-SOURCE-20261023-02",
+    "hash": "e74ef2a32f52fcf16b41395fb6aea4c65c01fa81f79804a34bf6e9e434d4be4a",
+    "inputs": {
+      "steering input": 2,
+      "server support": 97,
+      "App/Unit/UI/project": 309,
+      "stable document": 6,
+      "total": 414
+    }
+  },
+  "conclusion": "5部分の実装/必要非実機検証を引渡し。全steering/正式producer・全媒体/実機・品質・PRD受入は未完了。",
+  "partial_implementation": [
+    "S34 条件付き通常複数容量整理/同writer final guard/全transport fence/対象別結果・未実行非再開",
+    "S31 同exact回収の合流/実閉鎖後read-only解放照合/閉鎖FileHandle guard/unknownコピー保持",
+    "S49 origin/revision/hold/単回・throwを同NSLockで再照合する同期許可契約/配線。native正resumeはnotExecuted維持",
+    "S28 明示新登録/currentUUID空条件・別namespace create-only/旧global資格情報と旧確認・ACK非移植",
+    "S28 bounded原本metadata catalog/厳密wire/exact同writer観測/UTF8 identity・remote別一覧/内容衝突・現在存在未照合"
+  ],
+  "checks": {
+    "Unit62": {
+      "declarations": 638,
+      "passed": 602,
+      "skipped": 36,
+      "passed_expanded": 1020,
+      "meaningful_expanded": 1019,
+      "failed": 0
+    },
+    "server002": "279case success (new49+old230), no skips/guard/import/source/dependency drift",
+    "HTTP35": "native new registration/namespace auth/32+1/reopen33; zero media/old rows and originals unchanged/all recorded owners terminal",
+    "UI": "metadata49/50 each1+12strict audits; new registration58/59 each1; initial61 2; original library/playback63/64 each2; all skip0",
+    "post": "51 1pass/1seedskip;60 1pass/1seedskip;65 2pass/1seedskip;66 1pass/1seedskip",
+    "build67": "generic iOS Debug CODE_SIGNING_ALLOWED=NO success",
+    "compiler_analyzer_diagnostics_and_xcresult_runtimeWarnings": "0 for required final checks; console/platform negative-fixture logs retained",
+    "required_run_count": 13,
+    "recorded_runs": 67,
+    "retained_failed_runs": [
+      "capture-resume-unit-18",
+      "cleanup-unit-all-02",
+      "cleanup-unit-all-03",
+      "cleanup-unit-final-09",
+      "final-ui-regression-24",
+      "inventory-max-43",
+      "inventory-ui-38",
+      "inventory-ui-39",
+      "inventory-ui-40",
+      "inventory-ui-41",
+      "inventory-ui-42",
+      "inventory-ui-44",
+      "inventory-ui-45",
+      "inventory-ui-46",
+      "inventory-ui-47",
+      "inventory-unit-33",
+      "new-registration-max-56",
+      "new-registration-max-57",
+      "new-registration-ui-54",
+      "new-registration-unit-29",
+      "new-registration-unit-30",
+      "new-registration-unit-31",
+      "photo-owner-red-12"
+    ],
+    "zero_test_runs_not_success": [
+      "capture-resume-unit-18",
+      "cleanup-unit-all-02",
+      "inventory-unit-33",
+      "new-registration-unit-29",
+      "new-registration-unit-30",
+      "photo-owner-red-11"
+    ]
+  },
+  "main_diff_review": {
+    "all_owned_code_server_tests_and_stable_doc_deltas_reviewed": true,
+    "incremental_connection_layout_focus_and_new_UI_diffs_reviewed": true,
+    "LibraryFlowTests": "only first unavailable-reason expectation special-cased cleanup exact current message; remaining P2/assertions/helpers unchanged",
+    "OriginalPlaybackView": "byte identical to session baseline",
+    "new_source_count": 25,
+    "changed_existing": 39,
+    "session_delta_patch_sha256": "8324a23a8f45f071ddc90a20c405709410d8a297530ba28090cec0a0def5a9d3",
+    "added_line_trailing_whitespace": 0
+  },
+  "documentation": "document_author/doc_reviewer used for stable4; final findings0, prior sentence P2 resolved. Evidence phase documentation-review.json and each README.",
+  "preservation": {
+    "initial_files": 17341,
+    "missing": [],
+    "unexpected": [],
+    "ignored_file_changes": [],
+    "HEAD_unchanged": true,
+    "index_unchanged": true,
+    "owned_simulators_shutdown": 5,
+    "preexisting_simulator_state_changes": {},
+    "manifest_and_managed_movies": "all expected hashes/bytes retained: cleanup 3 surviving MOV (a/b removed earlier by authorized synthetic UI), regression1, inventory2, new registration0, initial0",
+    "shutdown_content_size": "unknown query is not a category measurement; last successful large restore before shutdown recorded",
+    "final_current_files": 19244,
+    "added_files": 1903,
+    "ignored_initial_files": 7,
+    "new_ignored_files": [],
+    "final_scope_audit": "final-scope-audit.json"
+  },
+  "static_handoff": {
+    "local_links": 164,
+    "missing": [],
+    "PRD_rows": 79,
+    "D_R_unchanged": true,
+    "D": "all D0"
+  },
+  "remaining": [
+    "S28 known-original publication manifest/version-state projection and product single/multiple operation connections are code gaps; metadata parts can resume without standard materials",
+    "normal strict dispatch/native positive resume/all media producer termination remain unimplemented/unconnected portions of S23/S49",
+    "formal standard conversion/proof, normal Photos/rendition/confirmation/multiple product flows and integration remain incomplete",
+    "ISO personal decision, real-device environment/signing/quality prior agreement only block their directly dependent branches",
+    "independent validation not run; explicit $validate-implementation is the next separate workflow"
+  ],
+  "raw_root": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo",
+  "commit_or_deployment": "none"
+}

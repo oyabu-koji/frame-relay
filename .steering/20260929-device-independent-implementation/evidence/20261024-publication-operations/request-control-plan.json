@@ -1,0 +1,37 @@
+{
+  "state": "ready after BG task, sequential only",
+  "agent": "operation_paths read-only",
+  "purpose": "normal single pause/cancel/resume intent + fixed all-started pause",
+  "requirementReferences": [
+    "requirements.md:50",
+    "design.md:74",
+    "docs/product-requirements.md:349-351",
+    "docs/functional-design.md:D8"
+  ],
+  "producerGuards": [
+    "UTF8 exact operation/registration/target/storeUUID at entry/CAS/after awaits; legacy journal replay preserved",
+    "unknown mutation uses same person command/input/payload/revision, no fresh command on retry",
+    "CAS conflict rechecks latest request/action including completed/cancelled/playbackEnded refusal",
+    "old-registration pause/cancel preserves original request registration; no reassignment to new registration",
+    "pauseAll fixed set and per-child IDs, independent per-child committed/unknown/unprocessed report; do not directly expose old early-return pauseAll"
+  ],
+  "UI": "all existing request by operation projection local/remote; person command retained in app owner; resume-intent wording not actual positive sending",
+  "untouched": "native strict positive resume refusal, capture separate axis, no new credentials/remote, request acceptance not actual terminal",
+  "tests": [
+    "holds preserved and cancel nonrevival/reopen",
+    "all queued/waiting requests included fixed targets no new insertion",
+    "mutation before/after loss exact",
+    "Unicode/store/registration/target/attempt alias guards",
+    "completion races under CAS",
+    "actual SDK cancel/FD stop proof separate",
+    "atomic plan +eligible/completed race children/reopen parent fixedset and reasons",
+    "unknown whole mutation exact before/after loss",
+    "commit before SDKstop crash not automatic redispatch",
+    "later request not inserted and per-child SDKunknown isolated"
+  ],
+  "updatedPlan": "Persistent parent/fixed-set plan required by D8/reopen; atomic samewriter journal1case, supersedes app-only fixed child retention",
+  "journal": "new personControl(plan) case stores parentID/single-or-all/action/fixedTargets/childIDs; writer evaluates each child at commit revision, atomically records person intent for eligible children and derived recorded/notProcessed reasons; replay evaluates at historical event position only",
+  "unknown": "entire plan commit unknown stays unknown/no partial committed claim; retain exact original mutation/revision, only lookup, definite CAS conflict allows reevaluation same immutable plan",
+  "SDK": "after commit, request-specific exact target/reg/attempt/binding stop independently; recorded intent != actual stop/FDrelease; no SDK auto replay from reopened plan",
+  "safety": "reject parent/child IDs reused/UTF8 alias/differentpayload; no post-click additions; old requestTransition/schema7 replay unchanged"
+}

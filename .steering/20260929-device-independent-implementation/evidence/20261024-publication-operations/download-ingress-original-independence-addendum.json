@@ -1,0 +1,153 @@
+{
+  "schema": "fr-download-ingress-original-independence-addendum-v1",
+  "created_UTC": "2026-10-24T22:40:47.293314+00:00",
+  "status": "read-only addendum; no new product implementation authorized or executed",
+  "base": "DI-SOURCE-20261025-22",
+  "original_contract": {
+    "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/download-ingress-unit-b-core-contract.json",
+    "sha256": "c92891d3525d9bd64e3dbc34f37781f29398a4c321cb01632d9b33021d3bafc9",
+    "modified": false
+  },
+  "purpose_ja": "新管理downloadは、exact logical OriginalContent/current rendition/記録済みcalendar日時が確定し未解決removal/invalidationが無いとき、local物理原本が無い又は過去removedというだけでは妨げない。旧legacy/whole/chunk条件を一括緩和しない。remote-only日時nilは当該import拒否を維持する。",
+  "direct_code_findings": [
+    {
+      "path": "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+      "lines": [
+        335,
+        351,
+        499,
+        505
+      ],
+      "finding": "download/playback rendition requestの新規受付はcurrent publicationとlogical removal/invalidationを確認し、physical original/binding.saved/removalResolution!=removedを要求しない。beginAttemptもcurrent registration/logical/noreservation/current renditionを確認するが過去removedを拒否しない。"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/OriginalStoreDocument.swift",
+      "lines": [
+        100,
+        113,
+        123,
+        126
+      ],
+      "finding": "original lease.acquireとMediaReadLease.target.originalはremovedを拒否する。一方 acquireMedia.target.rendition はcurrent registration/current rendition/非失効/no unresolved reservation/access generationを確認し、binding/物理file/pastremovedを要求しない。今回この分岐を変更する必要はない。"
+    },
+    {
+      "path": "FrameRelay/Application/MediaIO/RenditionReadLeases.swift",
+      "lines": [
+        46,
+        70,
+        87
+      ],
+      "finding": "rendition acquire/checkはlogical original/現media epoch/current rendition/actual leaseを使い、物理原本やremovedを要件にしない。original access.acquireReadへ置換してはいけない。"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/BackgroundMediaStoreProjection.swift",
+      "lines": [
+        48,
+        60,
+        78
+      ],
+      "finding": "P prepared/resumeRequestedが通る共通requireCurrentBackgroundRequestにoriginal.removalResolution!=removedがあり、downloadにも及ぶ直接阻害点。download固有lease/current renditionはその後で判定される。"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/TemporaryMediaStoreProjection.swift",
+      "lines": [
+        6,
+        44
+      ],
+      "finding": "create/acquireはcurrent rendition/registration/no unresolved reservation/own useを要件とし、物理原本/pastremovedは要求しない。新B final guardでも不要前提を追加しない。"
+    },
+    {
+      "path": "FrameRelay/Application/MediaIO/RenditionMediaScope.swift",
+      "lines": [
+        16,
+        76,
+        90
+      ],
+      "finding": "open/registerはprocess scope/epoch/factory admission。close/reconcileの全reader確認を新規開始のno active use条件へ流用しない。物理原本/removedを新規条件にしない。"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/PhotoSaveStartStoreBoundary.swift",
+      "lines": [
+        54,
+        60
+      ],
+      "finding": "既存PhotoFinalはlogical original/no unresolved reservation/current rendition/real FDを分離し、physical原本/binding/pastremovedを追加条件にしない。今回変更しない。"
+    }
+  ],
+  "circularity_ja": "元Core案のissuedTicketにactual preparedRefを必須にしたまま、P側がそのticketを新managed経路の根拠とすると P->T->P の循環になる。ticket段階だけをpre-Pの実begin/context/transportlease/不変planned intent fingerprintへjoinする。actual preparedRefはresponse/sourceClosed/finalで引き続き必須とする。",
+  "minimal_API_delta": {
+    "plan_ref": "new BackgroundDownloadPlannedIntentReference: Codable compact storeIdentity,taskID,context,intentFingerprint. init(_ planned: BackgroundMediaTaskIntent) throws validates full .download(range:nil) and hashes version+UUID+entire canonical planned intent (SDKsession generation/taskDescription/request fingerprint/full rendition/transport lease included). No snapshot, FD, URL, secret or full mutation is embedded.",
+    "actual_begin_ref": "BackgroundDownloadAttemptStartReference (or existing compact task-fact ref extended only for this kind): actual requestTransition.beginAttempt command/key/body fingerprint/previousRevision/committedRevision/store UUID; matches exact actual operation,target,registration,attempt and immutable request start identity.",
+    "actual_lease_ref": "BackgroundDownloadTransportLeaseReference: exact real originalJournal.acquireMedia mutation/OriginalStoreCommitReceipt reference plus full MediaReadLease. Source lease context is transport(attempt), target rendition, registration/current media epoch exact. Never borrow BackendCommitReceipt for this original-journal fact.",
+    "ticket_delta": "BackgroundDownloadReadTicketObservation before P replaces preparedRef with planRef + actualBeginRef + actualTransportLeaseRef. Retain full current DeviceRegistration, full-read request/source receipt/issued read receipt/expected URL fingerprint and date-origin metadata when known. Ticket is LOCAL recording of issued control-plane receipt only, not actual GET/media grant.",
+    "prepared_join": "BackgroundDownloadStoreProjection.requireManagedPrepared(_ intent: BackgroundMediaTaskIntent, receipt: BackendCommitReceipt, historical projection/journal view) throws. Select the actual earlier ticket by reserved taskID; require exact plan fingerprint(context+full planned intent), actual T receipt/key/body/UUID and current logical/current rendition/current active request/actual lease. No physical original/pastremoved predicate.",
+    "response_delta": "Response keeps actual preparedRef and attachedRef. They must match the same planned intent fingerprint and actual pre-P ticket ref; T<P<attached<response local commit. A.registerExpected remains based only on real P, unchanged.",
+    "final_delta": "Final uses shared independent-rendition scope + actual date provenance and all original Core ticket/response/closure/SDK/hash/temporary guards. No original path open/hash/presence check or blanket removalResolution!=removed check is introduced.",
+    "date_scope": "A capturedAt/captureRecord remain untrusted. Final requires finite actual RecordingIntent.capturedAt for the exact capture/reference and same logical OriginalContent association, with actual saved metadata/receipts rejoined; binding metadata, when used, must match exactly. Never fabricate a binding/save success or infer calendar time from acceptedAt/now. Missing provenance (including remote-only nil date) blocks only import. T may retain unknown date as pure ticket metadata, but cannot reserve/publish verified output from it."
+  },
+  "minimal_order": [
+    "Strict/default admission and fixed input before first await remain unchanged; no positive SDK/start permission is created by this addendum.",
+    "Actual current registered request + current logical/current rendition metadata; existing beginAttempt A actual commit.",
+    "Existing RenditionReadLeases.acquire -> actual acquireMedia L for target.rendition/context.transport(attempt), using current media epoch. Original physical file is not opened.",
+    "Build fixed planned full .download intent and fingerprint; record local issued ticket T against actual A/L/current request and full existing read-ticket result. Require A<L<T; no SDK task or artifact is created by T.",
+    "Commit backgroundTask.prepared P only after actual T exact lookup, with A<L<T<P. New managed predicate rechecks current scope and full planned fingerprint under same writer.",
+    "A.registerExpected now sees real P -> native actual known creation bind -> actual attached -> callback FD pin. T is not an A prerequisite and A pin still grants no media/import authority.",
+    "Response/worker/actualterminal/real A source closure/local sourceClosed/BgownerClosed/lease release/final guarded import follow original Core design. Current scope is rechecked at P/resume and final; no SDK positive resume or normal fullplan producer is added."
+  ],
+  "narrow_dispatch_and_history": [
+    "Keep existing requireCurrentBackgroundRequest unchanged for every legacy/whole/uploadChunk row. Add a separate new-managed branch only if an ACTUAL earlier issuedTicket reserves that taskID (normalization collisions included as conflicts). Do not move/remove the old common removed check globally.",
+    "At prepared/resumeRequested: if any new ticket claims the same taskID, require exact valid managed ticket+plan match. Any mismatch/oldUUID/reg/attempt/source-kind/payload/Unicode alias rejects; NEVER fall back to legacy on a failed new-mode check.",
+    "T admission requires no existing prepared task for this planned taskID or same operation/attempt. Do not retroactively label an old/reopened SDK task as managed. Duplicate plan/task ID or reused ticket with changed payload rejects; actual same-mutation lookup is the only replay.",
+    "Managed scope requires exactly one UTF8-exact logical OriginalContent, no alias collision, current full registration and current rendition/invalidation generation, no unresolved removal or invalidation, current active operation/attempt/running intent/empty waits and exact existing transport lease/current media epoch. Past resolvedRemoved and physical-original absence are not disqualifiers.",
+    "Historical replay uses actual A/L/T prefix before P; a future ticket cannot repair an earlier rejected legacy P. Later publication/registration/removal state may not re-evaluate a valid historical P/T/import. Live P/resume/final uses current epoch; old context closure may still be recorded without import permission.",
+    "Generic imported commit/default port refusal, reserved tempID generic-verified bypass guard, import latch and actual A closure requirements remain unchanged from original Core contract. No original fingerprint or resource ownership guard is weakened."
+  ],
+  "ownership": {
+    "mandatory_paths_already_in_Core15": [
+      "FrameRelay/Domain/Operations/BackgroundDownloadImport.swift",
+      "FrameRelay/Platform/LocalStore/BackgroundDownloadStoreProjection.swift",
+      "FrameRelay/Platform/LocalStore/BackgroundMediaStoreProjection.swift",
+      "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+      "FrameRelayTests/Domain/BackgroundDownloadImportTests.swift",
+      "FrameRelayTests/Integration/Storage/BackgroundDownloadImportStoreTests.swift"
+    ],
+    "additional_required_for_P_import_fix": [],
+    "read_only_preserved": [
+      "FrameRelay/Platform/LocalStore/OriginalStoreDocument.swift",
+      "FrameRelay/Application/MediaIO/RenditionReadLeases.swift",
+      "FrameRelay/Domain/Operations/MediaRequest.swift",
+      "FrameRelay/Application/MediaIO/RenditionMediaScope.swift",
+      "FrameRelay/Platform/LocalStore/PhotoSaveStartStoreBoundary.swift",
+      "A9 files"
+    ],
+    "extra_control_guard_observation": {
+      "path": "FrameRelay/Platform/LocalStore/MediaPersonControlStoreProjection.swift",
+      "line": 90,
+      "finding": "resumeIntent has its own blanket state.removalResolution!=removed, including rendition targets. It is not on the current UnitB running->begin->P/import path, but will block a paused managed download human-resume path. No change is authorized here.",
+      "smallest_optional_followup": "If main includes managed post-T resume intent in B, add ownership for this file and new tests. A narrowly qualified actual managed-ticket target may use independent-rendition predicate for resume intent only, preserving currentreg/currentrendition/noreservation and cancelled/ended/completed refusal; no SDK action. Old whole/chunk/legacy paths keep their conditions. Paused-before-T normal entry needs an explicit managed-plan/mode decision in future C, not a speculative global relaxation."
+    }
+  },
+  "required_regressions": [
+    "Both disks: preserved real saved recording with finite capturedAt + adopted current rendition; move only new dedicated fixture original to a new nonoverwriting .preserved location. observe original absence, retain bytes/hash/inode in escrow; request/begin/rendition lease/T/P and guarded injected positive import succeed with original date. No physical original read/rebind required.",
+    "Both disks: historical removed classification with binding/date metadata retained and logical current rendition, no unresolved reservation; perform only new dedicated fixture observations/commits, explicitly label synthetic removed classification unless actual remove producer executed. New managed T/P/final works; original escrow bytes/old fixtures untouched.",
+    "Old legacy .download pastremoved P remains rejected without qualifying T; whole upload/OriginalReadLease/uploadChunk original-read constraints remain unchanged. New managed flag cannot be faked by ticket-shaped proposal alone.",
+    "Future ticket, wrong taskID/context/planned fingerprint/server ticket purpose/range/source, altered request fingerprint/SDK session/taskDescription/lease/UTF8 alias must reject new P and may not fall through to legacy.",
+    "Actual begin/transport lease omitted, released, wrong operation/attempt/registration/target/epoch or unknown original lease acquisition ref rejects T/P. Unknown T preserves original mutation/expectedRevision and cannot trigger P/SDK/copy.",
+    "Unresolved removal/invalidation, reg or current rendition change between T and P/final refuses; old immutable closure stays recordable but verified0. Test only reachable writer states (removal can itself reject while readers active).",
+    "Remote-only/date nil or monotonic acceptedAt has no calendar fallback: A may pin untrusted input, but import/verified remains0. Wrong capture record/reference/date/provenance rejects even when media hash is correct.",
+    "After later registration/removed/date-unavailable UI state, old valid historical T/P/import still reopens; a future T or future release cannot legitimize earlier incomplete P. Generic temporary.verified bypass remains blocked.",
+    "A actual closure/DL-PIN-CLOSE-01 unknown-handle rejection, default native strict refusal, no artifact cancel proof and all historical stop attempts retain original Core test obligations. No SDK positive receive/formal rendition evidence is claimed."
+  ],
+  "unconfirmed": [
+    "All new B API/guard/order modifications remain proposals; no Core code changed or compiled",
+    "A9 still in progress and must freeze before any B ownership grant",
+    "normal full-read producer/paused-before-T managed mode/native positive resume/actual receive/formal producer remain outside this readiness scope"
+  ],
+  "authorization": {
+    "only_new_write": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/download-ingress-original-independence-addendum.json",
+    "original_contract_unchanged": true,
+    "product_test_docs_steering_writes": 0,
+    "build_test_sdk_simulator_fixture_keychain_operations": 0,
+    "independent_validation": false
+  }
+}

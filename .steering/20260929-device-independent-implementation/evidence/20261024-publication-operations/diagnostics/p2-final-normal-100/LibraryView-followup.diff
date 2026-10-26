@@ -1,0 +1,15 @@
+--- FrameRelay/Features/Library/LibraryView.swift@100
++++ FrameRelay/Features/Library/LibraryView.swift@101
+@@ -247,10 +247,8 @@
+                     }
+                     if item.requiresReconciliation {
+                         LibrarySection {
+-                            Text("保存記録、原本、写真の状態に未確定の部分があります。保存記録と原本は再読み込みで確認できます。写真側の存在は、対象ごとの説明を確認して照合してください。未完了の削除や写真への追加は自動実行しません。")
+-                                .font(.body)
+-                                .fixedSize(horizontal: false, vertical: true)
+-                                .accessibilityIdentifier("library.detailReconciliationExplanation")
++                            LibraryWrappingText(text: "保存記録、原本、写真の状態に未確定の部分があります。保存記録と原本は再読み込みで確認できます。写真側の存在は、対象ごとの説明を確認して照合してください。未完了の削除や写真への追加は自動実行しません。",
++                                identifier: "library.detailReconciliationExplanation")
+                         } header: {
+                             LibraryWrappingText(text: "確認が必要です", style: .headline,
+                                 identifier: "library.detailReconciliationHeading")

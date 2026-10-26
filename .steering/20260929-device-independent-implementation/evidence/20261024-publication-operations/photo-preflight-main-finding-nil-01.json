@@ -1,0 +1,10 @@
+{
+  "reviewer": "main",
+  "independentValidation": false,
+  "finding": "PHOTO-CAPTURE-NIL-01",
+  "input": "unfrozen Photo preflight implementation, excluded fromDI15 partialCore",
+  "problem": "ProductComposition always calls Photo factory localstop before first recording intent, but observePhotoLocalStop required storeUUID. Empty unregistered photo-free library thus unknown and blocks normalREC; BG.prepare does notestablishUUID.",
+  "resolution": "Coreowner implementingfreshnilUUID+noPhoto/noUnknownReader same revision/registry/currentowner proof withoutUUID generation; Appnewtests coveringnil3cases. Runtimepending.",
+  "preserved": "Core10 partialfrozen notchanged; no fixture/Keychain/Photos modification",
+  "createdUTC": "2026-10-24T20:06:22.544027+00:00"
+}

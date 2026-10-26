@@ -1,0 +1,92 @@
+/// Existing SDK candidate IDs. This catalog does not certify visual quality or device support.
+nonisolated enum CaptureStabilizationCatalog {
+    static let modes = ["off", "standard", "cinematic", "cinematicExtended", "previewOptimized", "cinematicExtendedEnhanced"]
+    static let initialCandidate = "standard"
+}
+
+nonisolated enum CaptureStabilizationAvailability: Equatable, Sendable {
+    case formatCandidate
+    case unconfirmed(String)
+    case unsupported(String)
+}
+
+/// Facts about the selected recording connection; preview connections are a separate surface.
+nonisolated enum CaptureStabilizationConnection: Equatable, Sendable {
+    case missing
+    case inactive
+    case unsupported
+    case ready
+}
+
+nonisolated struct CaptureStabilizationSnapshot: Equatable, Sendable {
+    let generation: CaptureGeneration
+    let sequence: UInt64
+    let output: ExplorationOutputCandidate
+    let requestedMode: String
+    let preferredMode: String?
+    let activeMode: CaptureObservation<String>
+    let connection: CaptureStabilizationConnection
+    let camera: String
+    let activePhysicalCamera: String?
+    let formatID: String
+    let width: Int
+    let height: Int
+    let zoom: Double
+    /// SDK format FOV only. It excludes the unknown stabilization crop; do not use as corrected FOV.
+    let uncorrectedFieldOfView: Double?
+
+    var matchesRequest: Bool {
+        connection == .ready && preferredMode == requestedMode && activeMode.value == requestedMode
+    }
+
+    /// Shared by coordinator admission and the SDK owner immediately before writer start.
+    /// A reserve await must not turn facts from a previous format/zoom into permission to REC.
+    func matchesRecordingRequest(_ desired: DesiredCaptureSettings, generation: CaptureGeneration,
+                                 output: ExplorationOutputCandidate, preparedFormatID: String?) -> Bool {
+        let configuration = desired.configuration
+        return self.generation == generation && self.output == output && matchesRequest
+            && requestedMode == configuration.stabilizationMode && camera == configuration.camera
+            && width == configuration.width && height == configuration.height && zoom == desired.zoom
+            && !formatID.isEmpty && preparedFormatID == formatID
+    }
+}
+
+/// S47 consumes the revision and source identity, never a guessed stabilization crop.
+/// Invalidating clears the prior facts so an obsolete preview cannot be reused.
+nonisolated struct CaptureFramingState: Equatable, Sendable {
+    private(set) var revision: UInt64 = 0
+    private(set) var snapshot: CaptureStabilizationSnapshot?
+    private(set) var invalidation: CaptureUnavailableReason = .notMeasured
+    private var observedGeneration: CaptureGeneration?
+    private var highestSequence: UInt64?
+
+    var correctedFieldOfView: CaptureObservation<Double> { .unavailable(.apiDoesNotExpose) }
+    var previewMatchesRecording: CaptureCapability<Bool> { .unqueried }
+
+    @discardableResult
+    mutating func receive(_ value: CaptureStabilizationSnapshot, generation: CaptureGeneration,
+                          desired: DesiredCaptureSettings? = nil, output: ExplorationOutputCandidate? = nil) -> Bool {
+        guard value.generation == generation,
+              observedGeneration != generation || (highestSequence.map({ value.sequence > $0 }) ?? true) else { return false }
+        observedGeneration = generation
+        highestSequence = value.sequence
+        revision += 1
+        if let desired, value.camera != desired.configuration.camera
+            || value.requestedMode != desired.configuration.stabilizationMode
+            || output.map({ value.output != $0 }) == true {
+            snapshot = nil
+            invalidation = .evidenceMismatch
+            return true
+        }
+        snapshot = value
+        invalidation = value.matchesRequest ? .apiDoesNotExpose : .evidenceMismatch
+        return true
+    }
+
+    mutating func invalidate(_ reason: CaptureUnavailableReason) {
+        revision += 1
+        snapshot = nil
+        invalidation = reason
+        // Keep the high-water mark: invalidation must not make delayed facts new again.
+    }
+}

@@ -1,0 +1,18 @@
+{
+  "review": "implementation main V-REVIEW during S28 partial task, not independent validation",
+  "status": "confirmed statically; fix pending UI09 freeze completion",
+  "introduced_surface": "catalog originals added to existing publication/invalidation synchronization known set",
+  "condition": "UTF8-distinct but Swift String canonically equivalent capture IDs, same content; nonnil manifests and increasing revision",
+  "effect": "old ensureOriginal and confirmationStates equality can adopt later alias into first logical original, permitting wrong-owner invalidation handoff",
+  "files": [
+    "FrameRelay/Application/MediaOperations/BackendStatusSynchronizationCoordinator.swift",
+    "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift"
+  ],
+  "minimal_fix": "coordinator checks latest logical original exact identity before authority adoption and final same-revision CAS, and exact logical existence/no canonical collision before invalidation; pure metadata remains byte-exact for both; old writer replay unchanged",
+  "regressions": [
+    "nonnil alias in both orders with distinct rendition IDs and revisions",
+    "nonadopted alias invalidation does not reserve/stop/ACK first original",
+    "preexisting merged history remains readable but new synchronization refuses ambiguous owner handoff"
+  ],
+  "preservation": "no old store/fixture repair or replay schema change; maximum UI runs frozen before edits"
+}

@@ -1,0 +1,1082 @@
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Application/MediaIO/CaptureMediaAdmission.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/MediaIO/CaptureMediaAdmission.swift
+index c7ecaa3..d00baac 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Application/MediaIO/CaptureMediaAdmission.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/MediaIO/CaptureMediaAdmission.swift
+@@ -2,7 +2,7 @@ import Foundation
+ 
+ /// Common process admission, independent of deletion/invalidation seals. Empty
+ /// memory after restart is not evidence that persisted capture waits ended.
+-nonisolated final class CaptureMediaAdmission: @unchecked Sendable {
++nonisolated final class CaptureMediaAdmission: PhotoSaveCaptureStartPort, @unchecked Sendable {
+     struct Snapshot: Equatable, Sendable {
+         let revision: UInt64
+         let owners: [CaptureMediaOwner: Set<CaptureMediaPhase>]
+@@ -20,6 +20,27 @@ nonisolated final class CaptureMediaAdmission: @unchecked Sendable {
+     private var owners: [CaptureMediaOwner: Set<CaptureMediaPhase>] = [:]
+     private var retired = Set<CaptureMediaOwner>()
+     private var exhausted = false
++    private var observers: [UUID: AsyncStream<Snapshot>.Continuation] = [:]
++
++    func changes() -> AsyncStream<Snapshot> {
++        let pair = AsyncStream<Snapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
++        let id = UUID()
++        pair.continuation.onTermination = { [weak self] _ in self?.removeObserver(id) }
++        lock.lock()
++        observers[id] = pair.continuation
++        let initial = Snapshot(revision: revision, owners: owners, exhausted: exhausted)
++        lock.unlock()
++        // Subscription is established before the initial wake. Notifications
++        // may coalesce; consumers always obtain a fresh authorization/state.
++        pair.continuation.yield(initial)
++        return pair.stream
++    }
++
++    private func removeObserver(_ id: UUID) { lock.lock(); observers.removeValue(forKey: id); lock.unlock() }
++
++    private func publish(_ value: Snapshot, to continuations: [AsyncStream<Snapshot>.Continuation]) {
++        for continuation in continuations { continuation.yield(value) }
++    }
+ 
+     func snapshot() -> Snapshot {
+         lock.lock(); defer { lock.unlock() }
+@@ -51,21 +72,37 @@ nonisolated final class CaptureMediaAdmission: @unchecked Sendable {
+     }
+ 
+     func begin(_ owner: CaptureMediaOwner, phases: Set<CaptureMediaPhase>) {
+-        lock.lock(); defer { lock.unlock() }
+-        guard !phases.isEmpty, owners[owner] == nil, !retired.contains(owner) else { return }
++        lock.lock()
++        guard !phases.isEmpty, owners[owner] == nil, !retired.contains(owner) else { lock.unlock(); return }
+         advance(); owners[owner] = phases
++        let value = Snapshot(revision: revision, owners: owners, exhausted: exhausted), targets = Array(observers.values)
++        lock.unlock(); publish(value, to: targets)
+     }
+ 
+     func update(_ owner: CaptureMediaOwner, phases: Set<CaptureMediaPhase>) {
+-        lock.lock(); defer { lock.unlock() }
+-        guard owners[owner] != nil, owners[owner] != phases, !phases.isEmpty else { return }
++        lock.lock()
++        guard owners[owner] != nil, owners[owner] != phases, !phases.isEmpty else { lock.unlock(); return }
+         advance(); owners[owner] = phases
++        let value = Snapshot(revision: revision, owners: owners, exhausted: exhausted), targets = Array(observers.values)
++        lock.unlock(); publish(value, to: targets)
+     }
+ 
+     func end(_ owner: CaptureMediaOwner) {
+-        lock.lock(); defer { lock.unlock() }
+-        guard owners.removeValue(forKey: owner) != nil else { return }
++        lock.lock()
++        guard owners.removeValue(forKey: owner) != nil else { lock.unlock(); return }
+         retired.insert(owner); advance()
++        let value = Snapshot(revision: revision, owners: owners, exhausted: exhausted), targets = Array(observers.values)
++        lock.unlock(); publish(value, to: targets)
++    }
++
++    fileprivate func performPhotoStart(_ authorization: CaptureMediaResumeAuthorization,
++                                       action: () -> Void) -> CapturePhotoStartAttempt {
++        lock.lock(); defer { lock.unlock() }
++        guard authorization.admission === self, !exhausted, !authorization.consumed else { return .refused }
++        guard owners.isEmpty, revision == authorization.revision else { return .held }
++        authorization.consumed = true
++        action()
++        return .performed
+     }
+ 
+     private func advance() {
+@@ -91,4 +128,10 @@ nonisolated final class CaptureMediaResumeAuthorization: @unchecked Sendable {
+     func performIfCurrent(_ action: () throws -> Void) rethrows -> Bool {
+         try admission.performIfCurrent(self, action: action)
+     }
++
++    func performPhotoStart(_ action: () -> Void) -> CapturePhotoStartAttempt {
++        admission.performPhotoStart(self, action: action)
++    }
+ }
++
++nonisolated enum CapturePhotoStartAttempt: Equatable, Sendable { case performed, held, refused }
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Application/Ports/MediaOperationStorePort.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/MediaOperationStorePort.swift
+index aa4f0af..347ffb7 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Application/Ports/MediaOperationStorePort.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/MediaOperationStorePort.swift
+@@ -131,9 +131,15 @@ nonisolated protocol MediaOperationStorePort: Sendable {
+     /// action must not await, redispatch, reenter the writer, or read media.
+     func performUploadMetadataIfCurrent(_ query: CommittedUploadMetadataQuery,
+         action: @Sendable () -> Void) async -> Bool
++    /// One fresh same-writer boundary for a short synchronous PhotoKit
++    /// registration. No await/redispatch/hash/reentry inside the action.
++    func performPhotoSaveIfCurrent(_ command: PhotoLibraryAddCommand,
++        action: @Sendable () -> Void) async -> Bool
+ }
+ 
+ nonisolated extension MediaOperationStorePort {
++    func performPhotoSaveIfCurrent(_ command: PhotoLibraryAddCommand,
++        action: @Sendable () -> Void) async -> Bool { false }
+     func performUploadMetadataIfCurrent(_ query: CommittedUploadMetadataQuery,
+         action: @Sendable () -> Void) async -> Bool { false }
+     func establishRegistrationIdentity(expectedRevision: UInt64,
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Application/Ports/PhotoLibraryPorts.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/PhotoLibraryPorts.swift
+index 66d9ff3..7249b73 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Application/Ports/PhotoLibraryPorts.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/PhotoLibraryPorts.swift
+@@ -32,11 +32,21 @@ nonisolated protocol PhotoLibraryPort: PhotoLibraryAuthorizationPort {
+     /// completion even if the caller task is cancelled, and never moves the file.
+     /// It preserves capturedAt and returns identifiers only for this add request.
+     func add(_ command: PhotoLibraryAddCommand) async -> PhotoRegistrationResult
++    /// Dynamic requirement. The default refuses and never calls legacy add.
++    /// A hold preserves the same live FD/use/intent; only actual completion or
++    /// a proven non-start allows the coordinator to close that access.
++    func add(_ command: PhotoLibraryAddCommand, start: PhotoSaveStartAuthorization) async -> PhotoLibraryAddAttempt
+     /// Fetches only this exact persisted identifier. No name/date matching and
+     /// no permission prompt; a missing asset is never permission to add again.
+     func lookup(_ identifier: PhotoAssetIdentifier) async -> PhotoLibraryLookupResult
+ }
+ 
++nonisolated extension PhotoLibraryPort {
++    func add(_ command: PhotoLibraryAddCommand, start: PhotoSaveStartAuthorization) async -> PhotoLibraryAddAttempt {
++        .completed(.init(intent: command.registration.intent, outcome: .notAttempted(.rejected)))
++    }
++}
++
+ /// Reclaims only an exact persisted successful or terminal photo usage, proving the
+ /// old SDK owner has terminated and the original temporary root is held. It must
+ /// never release unrelated usages or replay an unknown Photos addition.
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Application/Ports/RenditionMediaPorts.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/RenditionMediaPorts.swift
+index e1f87e9..ac8f1b2 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Application/Ports/RenditionMediaPorts.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/RenditionMediaPorts.swift
+@@ -34,6 +34,7 @@ nonisolated struct TemporaryLocalMedia: Equatable, Sendable {
+     let url: URL
+     let handoff: PhotoMediaHandoff
+     var contentType: String? = nil
++    var photoReadWitness: PhotoSaveLocalReadWitness? = nil
+ }
+ 
+ nonisolated protocol TemporaryLocalMediaPort: Sendable {
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift
+index bf16f4e..3aa1ae2 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift
+@@ -61,6 +61,10 @@ actor AtomicFileRecordingStore: RecordingStorePort, OriginalStorePort, MediaOper
+     func load() -> BackendStoreLoadResult { disk.loadBackend() }
+     func commit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.commitBackend(mutation) }
+     func lookupCommit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.lookupBackend(mutation) }
++    func performPhotoSaveIfCurrent(_ command: PhotoLibraryAddCommand,
++        action: @Sendable () -> Void) async -> Bool {
++        disk.performPhotoSaveIfCurrent(command, action: action)
++    }
+     func performUploadMetadataIfCurrent(_ query: CommittedUploadMetadataQuery,
+         action: @Sendable () -> Void) async -> Bool {
+         disk.performUploadMetadataIfCurrent(query, action: action)
+@@ -106,6 +110,10 @@ actor SQLiteRecordingStore: RecordingStorePort, OriginalStorePort, MediaOperatio
+     func load() -> BackendStoreLoadResult { disk.loadBackend() }
+     func commit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.commitBackend(mutation) }
+     func lookupCommit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.lookupBackend(mutation) }
++    func performPhotoSaveIfCurrent(_ command: PhotoLibraryAddCommand,
++        action: @Sendable () -> Void) async -> Bool {
++        disk.performPhotoSaveIfCurrent(command, action: action)
++    }
+     func performUploadMetadataIfCurrent(_ query: CommittedUploadMetadataQuery,
+         action: @Sendable () -> Void) async -> Bool {
+         disk.performUploadMetadataIfCurrent(query, action: action)
+@@ -442,6 +450,16 @@ nonisolated private final class ExplorationRecordingDisk {
+         catch { return .unavailable(.inaccessible) }
+     }
+ 
++    func performPhotoSaveIfCurrent(_ command: PhotoLibraryAddCommand, action: @Sendable () -> Void) -> Bool {
++        do {
++            return try transaction(write: false) { document in
++                try PhotoSaveStartStoreBoundary.require(command, document: document, epoch: reconciliationEpoch)
++                action()
++                return true
++            }
++        } catch { return false }
++    }
++
+     func performUploadMetadataIfCurrent(_ query: CommittedUploadMetadataQuery, action: @Sendable () -> Void) -> Bool {
+         do {
+             return try transaction(write: false) { document in
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Platform/Photos/NativePhotoLibrary.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/Photos/NativePhotoLibrary.swift
+index 87ed9da..c00bb40 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Platform/Photos/NativePhotoLibrary.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/Photos/NativePhotoLibrary.swift
+@@ -35,14 +35,21 @@ actor NativePhotoLibrary: PhotoLibraryPort {
+         }
+     }
+ 
++    /// No unguarded Native fallback exists, even for a historically committed
++    /// intent. Old fake-only callers cannot turn this method into SDK authority.
+     func add(_ command: PhotoLibraryAddCommand) async -> PhotoRegistrationResult {
++        .init(intent: command.registration.intent, outcome: .notAttempted(.rejected))
++    }
++
++    func add(_ command: PhotoLibraryAddCommand, start: PhotoSaveStartAuthorization) async -> PhotoLibraryAddAttempt {
+         let intent = command.registration.intent
+         guard command.registration.isCommitted, command.media.handoff == intent.handoff,
+               command.media.url.isFileURL else {
+-            return .init(intent: intent, outcome: .notAttempted(.invalidMedia))
++            return .completed(.init(intent: intent, outcome: .notAttempted(.invalidMedia)))
+         }
+-        // Status inspection must not trigger either privacy prompt. Saving uses
+-        // add-only even when read/write has already been granted separately.
++        // Actor hop and permission inspection occur before consuming the final
++        // permit. Only the synchronous performChanges registration is nested
++        // inside writer -> capture -> the shared per-operation claim.
+         let status = await authorizationStatus(for: .addOnly)
+         guard status == .authorized else {
+             let failure: PhotoLibraryFailure
+@@ -51,26 +58,19 @@ actor NativePhotoLibrary: PhotoLibraryPort {
+             case .denied, .notDetermined: failure = .authorizationRequired
+             case .limited, .unknown, .authorized: failure = .inaccessible
+             }
+-            return .init(intent: intent, outcome: .notAttempted(failure))
++            return .completed(.init(intent: intent, outcome: .notAttempted(failure)))
+         }
+         guard !Task.isCancelled else {
+-            return .init(intent: intent, outcome: .notAttempted(.rejected))
++            return .completed(.init(intent: intent, outcome: .notAttempted(.rejected)))
+         }
+-        let pending = PendingPhotoIdentifier()
+-        let url = command.media.url
+-        let capturedAt = intent.capturedAt
+-        let contentType = command.media.contentType
+-        let observeCompletion = self.observeCompletion
+-        // PhotoKit has no cancellation handle for performChanges. In particular,
+-        // cancellation of this task does not resume this continuation or close
+-        // the caller's media use. Only the SDK completion ends this call.
+-        return await withCheckedContinuation { continuation in
++        let identifier = PendingPhotoIdentifier(), completion = NativePhotoAddCompletion()
++        let library = self.library, observeCompletion = self.observeCompletion
++        let url = command.media.url, capturedAt = intent.capturedAt, contentType = command.media.contentType
++        let dispatched = await start.perform(command) {
+             library.performChanges {
+                 let request = PHAssetCreationRequest.forAsset()
+                 let options = PHAssetResourceCreationOptions()
+                 options.shouldMoveFile = false
+-                // Managed files have opaque UUID leaves. Describe their stored
+-                // MIME type without inventing a container or renaming/copying.
+                 let type = contentType.flatMap { UTType(mimeType: $0) }
+                 options.contentType = type
+                 if let fileExtension = type?.preferredFilenameExtension {
+@@ -78,28 +78,28 @@ actor NativePhotoLibrary: PhotoLibraryPort {
+                 }
+                 request.creationDate = capturedAt
+                 request.addResource(with: .video, fileURL: url, options: options)
+-                let identifier = request.placeholderForCreatedAsset?.localIdentifier
+-                pending.value.withLock { value in
+-                    value = identifier.flatMap { try? PhotoAssetIdentifier(rawValue: $0) }
+-                }
++                let value = request.placeholderForCreatedAsset?.localIdentifier
++                identifier.value.withLock { $0 = value.flatMap { try? PhotoAssetIdentifier(rawValue: $0) } }
+             } completionHandler: { succeeded, error in
+                 let nsError = error as NSError?
+-                let underlyingError = nsError?.userInfo[NSUnderlyingErrorKey] as? NSError
+-                observeCompletion?(.init(succeeded: succeeded,
+-                    errorDomain: nsError?.domain, errorCode: nsError?.code,
+-                    underlyingErrorDomain: underlyingError?.domain, underlyingErrorCode: underlyingError?.code))
+-                let identifier = pending.value.withLock { $0 }
+-                let outcome: PhotoRegistrationOutcome
+-                if succeeded {
+-                    // Success without a surviving identifier still records the
+-                    // addition. It must never authorize a duplicate retry.
+-                    outcome = .succeeded(localIdentifier: identifier)
+-                } else {
+-                    outcome = Self.failedAddition(error, identifier: identifier)
+-                }
+-                continuation.resume(returning: .init(intent: intent, outcome: outcome))
++                let underlying = nsError?.userInfo[NSUnderlyingErrorKey] as? NSError
++                observeCompletion?(.init(succeeded: succeeded, errorDomain: nsError?.domain, errorCode: nsError?.code,
++                    underlyingErrorDomain: underlying?.domain, underlyingErrorCode: underlying?.code))
++                let value = identifier.value.withLock { $0 }
++                let outcome: PhotoRegistrationOutcome = succeeded
++                    ? .succeeded(localIdentifier: value) : Self.failedAddition(error, identifier: value)
++                completion.complete(.init(intent: intent, outcome: outcome))
+             }
+         }
++        switch dispatched {
++        case .started:
++            // Cancellation never resumes this continuation or closes the FD.
++            // PhotoKit has no cancellation handle: only its actual callback ends it.
++            return .completed(await completion.wait())
++        case .heldBeforeStart: return .heldBeforeStart
++        case .cancelledBeforeStart, .refused:
++            return .completed(.init(intent: intent, outcome: .notAttempted(.rejected)))
++        }
+     }
+ 
+     func lookup(_ identifier: PhotoAssetIdentifier) async -> PhotoLibraryLookupResult {
+@@ -154,3 +154,33 @@ actor NativePhotoLibrary: PhotoLibraryPort {
+ private nonisolated final class PendingPhotoIdentifier: Sendable {
+     let value = Mutex<PhotoAssetIdentifier?>(nil)
+ }
++
++/// The actual SDK callback may precede or follow waiter installation. A task's
++/// cancellation cannot fabricate this completion. Resume occurs outside Mutex.
++private nonisolated final class NativePhotoAddCompletion: Sendable {
++    private struct State {
++        var result: PhotoRegistrationResult?
++        var continuation: CheckedContinuation<PhotoRegistrationResult, Never>?
++    }
++    private let state = Mutex(State())
++    func complete(_ result: PhotoRegistrationResult) {
++        let continuation = state.withLock { value -> CheckedContinuation<PhotoRegistrationResult, Never>? in
++            guard value.result == nil else { return nil }
++            value.result = result
++            let continuation = value.continuation
++            value.continuation = nil
++            return continuation
++        }
++        continuation?.resume(returning: result)
++    }
++    func wait() async -> PhotoRegistrationResult {
++        await withCheckedContinuation { continuation in
++            let ready = state.withLock { value -> PhotoRegistrationResult? in
++                if let result = value.result { return result }
++                value.continuation = continuation
++                return nil
++            }
++            if let ready { continuation.resume(returning: ready) }
++        }
++    }
++}
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift
+index 29d9358..b3fd423 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift
+@@ -22,6 +22,7 @@ actor ManagedTemporaryMedia: TemporaryMediaWritingPort, TemporaryLocalMediaPort,
+     private var busy: Set<TemporaryMediaID> = []
+     private var handles: [MediaUsageID: OpenUse] = [:]
+     private var photoConsumers: Set<MediaUsageID> = []
++    private var photoReadWitnesses: [MediaUsageID: PhotoSaveLocalReadWitness] = [:]
+     private var finishedPhotoUsages: Set<MediaUsageID> = []
+     private var photoLifetime: ManagedTemporaryMedia?
+     private var integrityFailures: Set<TemporaryMediaID> = []
+@@ -237,7 +238,12 @@ actor ManagedTemporaryMedia: TemporaryMediaWritingPort, TemporaryLocalMediaPort,
+         } catch { try closeHandle(handle); handles.removeValue(forKey: usage.id); throw error }
+         photoConsumers.insert(usage.id)
+         photoLifetime = self
+-        return .init(url: root.appendingPathComponent(state.leaf), handoff: handoff, contentType: state.contentType)
++        guard let opened = handles[usage.id] else { throw BackendContractError.identityMismatch }
++        let witness = PhotoSaveLocalReadWitness(fileDescriptor: opened.handle.fileDescriptor,
++            directoryDescriptor: directory.fileDescriptor, fingerprint: opened.fingerprint)
++        photoReadWitnesses[usage.id] = witness
++        return .init(url: root.appendingPathComponent(state.leaf), handoff: handoff, contentType: state.contentType,
++            photoReadWitness: witness)
+     }
+ 
+     /// Called after actual PhotoKit completion or definite SDK non-start, never
+@@ -245,6 +251,9 @@ actor ManagedTemporaryMedia: TemporaryMediaWritingPort, TemporaryLocalMediaPort,
+     func finishPhotoMedia(_ usage: TemporaryMediaUsage) async throws {
+         guard busy.insert(usage.media).inserted else { throw BackendContractError.readersActive }
+         defer { busy.remove(usage.media) }
++        // Revocation precedes every suspension/close. FD-number reuse cannot
++        // make a previously finished read witness authorize another SDK add.
++        photoReadWitnesses.removeValue(forKey: usage.id)?.invalidate()
+         let state = try await stateFor(usage.media)
+         _ = try await requireUse(usage, state: state, allowInvalidated: true)
+         guard photoConsumers.contains(usage.id), let opened = handles[usage.id] else {
+diff --git a/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/MediaOperations/PhotoSaveDispatchClaims.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/MediaOperations/PhotoSaveDispatchClaims.swift
+new file mode 100644
+index 0000000..e357d50
+--- /dev/null
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/MediaOperations/PhotoSaveDispatchClaims.swift
+@@ -0,0 +1,149 @@
++import Foundation
++
++/// Process lifetime exclusion, not durable evidence of SDK start or completion.
++/// A reopened intent still has no authority to add, even with an empty registry.
++nonisolated final class PhotoSaveDispatchClaims: @unchecked Sendable {
++    nonisolated static let shared = PhotoSaveDispatchClaims()
++    private struct Key: Hashable { let store: RegistrationStoreIdentity; let operation: Data }
++    private struct Entry { let owner: UUID; let input: Data; let claim: PhotoSaveDispatchClaim }
++    private let lock = NSLock()
++    private var entries: [Key: Entry] = [:]
++    private var generations: [RegistrationStoreIdentity: UInt64] = [:]
++    private var exhausted: Set<RegistrationStoreIdentity> = []
++
++    func generation(for identity: RegistrationStoreIdentity) -> UInt64? {
++        lock.lock(); defer { lock.unlock() }
++        return exhausted.contains(identity) ? nil : (generations[identity] ?? 0)
++    }
++
++    func reserve(identity: RegistrationStoreIdentity, intent: PhotoRegistrationIntent,
++                 receipt: TemporaryMediaReceipt?, owner: UUID) -> PhotoSaveDispatchClaim? {
++        guard let input = try? Self.input(identity: identity, intent: intent, receipt: receipt) else { return nil }
++        let key = Key(store: identity, operation: Data(intent.operation.rawValue.utf8))
++        lock.lock(); defer { lock.unlock() }
++        guard !exhausted.contains(identity) else { return nil }
++        if let existing = entries[key] {
++            guard existing.owner == owner, existing.input == input else { return nil }
++            guard advance(identity) else { return nil }
++            return existing.claim
++        }
++        guard advance(identity) else { return nil }
++        let claim = PhotoSaveDispatchClaim(requested: intent)
++        entries[key] = .init(owner: owner, input: input, claim: claim)
++        return claim
++    }
++
++    private func advance(_ identity: RegistrationStoreIdentity) -> Bool {
++        let previous = generations[identity] ?? 0
++        guard previous != UInt64.max else { exhausted.insert(identity); return false }
++        generations[identity] = previous + 1
++        return true
++    }
++
++    private struct Coverage: Encodable {
++        let id: TemporaryMediaID; let rendition: RenditionIdentity; let capturedAt: Date
++        let ranges: [MediaByteRange]; let verifiedContent: ContentIdentity?
++        let usage: TemporaryMediaUsage; let isReleased: Bool
++    }
++    private struct Input: Encodable {
++        let identity: RegistrationStoreIdentity; let intent: PhotoRegistrationIntent; let receipt: Coverage?
++    }
++    private static func input(identity: RegistrationStoreIdentity, intent: PhotoRegistrationIntent,
++                              receipt: TemporaryMediaReceipt?) throws -> Data {
++        try intent.validate()
++        let coverage = receipt.map { Coverage(id: $0.id, rendition: $0.rendition, capturedAt: $0.capturedAt,
++            ranges: $0.ranges, verifiedContent: $0.verifiedContent, usage: $0.usage, isReleased: $0.isReleased) }
++        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++        return try encoder.encode(Input(identity: identity, intent: intent, receipt: coverage))
++    }
++}
++
++/// Mutable state is protected by this one lock. Continuation/yield callbacks
++/// are always copied while locked and invoked after unlocking. The sole action
++/// under lock is the bounded synchronous SDK registration owned by the winner.
++nonisolated final class PhotoSaveDispatchClaim: @unchecked Sendable {
++    private enum State: Equatable { case pending, cancelled, dispatched, finished }
++    private let lock = NSLock()
++    private let requested: PhotoRegistrationIntent
++    private var boundBytes: Data?
++    private var state = State.pending
++    private var observers: [UUID: AsyncStream<Void>.Continuation] = [:]
++
++    fileprivate init(requested: PhotoRegistrationIntent) { self.requested = requested }
++
++    func bind(_ intent: PhotoRegistrationIntent) -> Bool {
++        guard PhotoSaveBatchValueValidation.exact(requested.operation, intent.operation),
++              PhotoSaveBatchValueValidation.exact(requested.rendition, intent.rendition),
++              PhotoSaveBatchValueValidation.exact(requested.media, intent.media),
++              requested.capturedAt == intent.capturedAt,
++              PhotoSaveBatchValueValidation.exact(requested.retryOf, intent.retryOf),
++              requested.retryOf != nil || PhotoSaveBatchValueValidation.exact(requested.usage, intent.usage),
++              let bytes = Self.bytes(intent) else { return false }
++        lock.lock(); defer { lock.unlock() }
++        if let boundBytes { return boundBytes == bytes }
++        boundBytes = bytes
++        return true
++    }
++
++    func matches(_ intent: PhotoRegistrationIntent) -> Bool {
++        dispatchInput(for: intent) != nil
++    }
++
++    func dispatchInput(for intent: PhotoRegistrationIntent) -> Data? {
++        guard let bytes = Self.bytes(intent) else { return nil }
++        lock.lock(); defer { lock.unlock() }
++        return boundBytes == bytes ? bytes : nil
++    }
++
++    var isCancelled: Bool { lock.lock(); defer { lock.unlock() }; return state == .cancelled }
++
++    @discardableResult func cancelBeforeStart() -> Bool {
++        lock.lock()
++        guard state == .pending else { lock.unlock(); return false }
++        state = .cancelled
++        let continuations = Array(observers.values)
++        lock.unlock()
++        for continuation in continuations { continuation.yield(()) }
++        return true
++    }
++
++    func finish() {
++        lock.lock()
++        state = .finished
++        let continuations = Array(observers.values)
++        observers.removeAll()
++        lock.unlock()
++        for continuation in continuations { continuation.finish() }
++    }
++
++    func performIfPending(input: Data, action: () -> Void) -> PhotoSaveStartDisposition {
++        lock.lock(); defer { lock.unlock() }
++        guard boundBytes == input else { return .refused }
++        if state == .cancelled { return .cancelledBeforeStart }
++        guard state == .pending else { return .refused }
++        state = .dispatched
++        action()
++        return .started
++    }
++
++    private static func bytes(_ intent: PhotoRegistrationIntent) -> Data? {
++        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++        return try? encoder.encode(intent)
++    }
++
++    func wakes() -> AsyncStream<Void> {
++        let pair = AsyncStream<Void>.makeStream(bufferingPolicy: .bufferingNewest(1))
++        let id = UUID()
++        pair.continuation.onTermination = { [weak self] _ in self?.removeObserver(id) }
++        lock.lock(); observers[id] = pair.continuation; lock.unlock()
++        pair.continuation.yield(())
++        return pair.stream
++    }
++
++    func wake() {
++        lock.lock(); let continuations = Array(observers.values); lock.unlock()
++        for continuation in continuations { continuation.yield(()) }
++    }
++
++    private func removeObserver(_ id: UUID) { lock.lock(); observers.removeValue(forKey: id); lock.unlock() }
++}
+diff --git a/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/PhotoSaveStartPorts.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/PhotoSaveStartPorts.swift
+new file mode 100644
+index 0000000..b3350da
+--- /dev/null
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/PhotoSaveStartPorts.swift
+@@ -0,0 +1,71 @@
++import Foundation
++import Synchronization
++
++/// Borrowed descriptors only. This does not own/close/reopen either FD. The
++/// existing temporary owner retains them until the actual Photos completion.
++nonisolated final class PhotoSaveLocalReadWitness: Equatable, Sendable {
++    let fileDescriptor: Int32
++    let directoryDescriptor: Int32
++    let fingerprint: OriginalFileFingerprint
++    private let active = Mutex(true)
++    init(fileDescriptor: Int32, directoryDescriptor: Int32, fingerprint: OriginalFileFingerprint) {
++        self.fileDescriptor = fileDescriptor; self.directoryDescriptor = directoryDescriptor; self.fingerprint = fingerprint
++    }
++    var isCurrent: Bool { active.withLock { $0 } }
++    /// Revokes only this borrowed observation, never closes any descriptor.
++    func invalidate() { active.withLock { $0 = false } }
++    static func == (left: PhotoSaveLocalReadWitness, right: PhotoSaveLocalReadWitness) -> Bool { left === right }
++}
++
++/// This is process-local capture admission, never Wi-Fi or a storage receipt.
++nonisolated protocol PhotoSaveCaptureStartPort: Sendable {
++    func authorizeResume() -> CaptureMediaResumeAuthorization?
++    /// Subscribe before inspecting admission. Values are wakeups; always read
++    /// fresh state/authorization rather than treating a buffered value as a grant.
++    func changes() -> AsyncStream<CaptureMediaAdmission.Snapshot>
++}
++
++nonisolated enum PhotoLibraryAddAttempt: Equatable, Sendable {
++    case heldBeforeStart
++    case completed(PhotoRegistrationResult)
++}
++
++nonisolated enum PhotoSaveStartDisposition: Equatable, Sendable {
++    case started, heldBeforeStart, cancelledBeforeStart, refused
++}
++
++/// Prepared outside the writer. The only nested locks are writer -> capture ->
++/// claim, followed by a short synchronous SDK registration. No task/await/hop,
++/// file reading, hashing, callback or writer reentry belongs in that action.
++nonisolated struct PhotoSaveStartAuthorization: Sendable {
++    let store: any MediaOperationStorePort
++    let capture: CaptureMediaResumeAuthorization?
++    let claim: PhotoSaveDispatchClaim
++
++    /// Old fake-only suites may explicitly implement a nil-capture witness.
++    /// Native and the protocol default always refuse that input. Product
++    /// composition supplies the shared capture port and never takes this path.
++    var isLegacyTestInput: Bool { capture == nil }
++
++    func perform(_ command: PhotoLibraryAddCommand,
++                 action: @escaping @Sendable () -> Void) async -> PhotoSaveStartDisposition {
++        guard let capture, let input = claim.dispatchInput(for: command.registration.intent) else { return .refused }
++        let observed = Mutex<PhotoSaveStartDisposition>(.refused)
++        let current = await store.performPhotoSaveIfCurrent(command) {
++            let captured = capture.performPhotoStart {
++                let value = claim.performIfPending(input: input, action: action)
++                observed.withLock { $0 = value }
++            }
++            if captured == .held { observed.withLock { $0 = .heldBeforeStart } }
++        }
++        guard current else { return .refused }
++        return observed.withLock { $0 }
++    }
++}
++
++/// Cancellation reaches only an exact live child. A started PhotoKit request
++/// has no cancellation handle and must retain its owner until completion.
++nonisolated protocol PhotoSavePendingCancellationPort: Sendable {
++    func cancelBeforeSDKStart() async
++    func stopForCapture() async -> Bool
++}
+diff --git a/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/PhotoSaveStartStoreBoundary.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/PhotoSaveStartStoreBoundary.swift
+new file mode 100644
+index 0000000..d73becf
+--- /dev/null
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/PhotoSaveStartStoreBoundary.swift
+@@ -0,0 +1,132 @@
++import Foundation
++import Darwin
++
++/// Read-only final validation under the normal document/writer lock. It grants
++/// no receipt, journal event or media ownership; the live resolver already
++/// owns the verified FD and the caller's action only registers PhotoKit work.
++nonisolated enum PhotoSaveStartStoreBoundary {
++    static func require(_ command: PhotoLibraryAddCommand, document: RecordingStoreDocument,
++                        epoch: ReaderReconciliationEpoch) throws {
++        let saved = command.registration, intent = saved.intent
++        try intent.validate()
++        guard saved.isCommitted, let identity = saved.expectedStoreIdentity, document.storeIdentity == identity,
++              case .committed(let actual) = document.lookupBackend(saved.mutation),
++              exact(actual, saved.commit), exact(command.media.handoff.usage, intent.usage),
++              exact(command.media.handoff.rendition, intent.rendition), exact(command.media.handoff.media, intent.media),
++              command.media.handoff.capturedAt == intent.capturedAt else { throw BackendContractError.notCommitted }
++        let projection = try document.replayStore()
++        guard let record = projection.photoRegistrations.last(where: { $0.registration.intent.key == intent.key }),
++              same(record.registration, saved), record.results.isEmpty,
++              record.usageTerminal == nil, record.usageRelease == nil, record.terminalUsageRelease == nil else {
++            throw BackendContractError.wrongStage
++        }
++        guard let media = projection.temporaryMedia.first(where: { $0.id == intent.media }),
++              exact(media.id, intent.media), exact(media.rendition, intent.rendition), media.capturedAt == intent.capturedAt,
++              media.capturedAt.timeIntervalSinceReferenceDate.isFinite,
++              media.complete, exact(media.verifiedContent, Optional(intent.rendition.deliveryContent)),
++              !media.reclaiming, !media.reclaimed,
++              media.directoryIdentity == saved.directoryIdentity, media.fileIdentity == saved.fileIdentity,
++              let file = media.fileIdentity,
++              exact(command.media.contentType, Optional(media.contentType)),
++              media.usages.contains(where: { exact($0, saved.mediaUse) }),
++              exact(saved.mediaUse.usage, intent.usage), saved.mediaUse.usage.purpose == .photoHandoff,
++              exact(saved.mediaUse.lease.context, MediaReadContext.temporary(intent.media, intent.usage.id)),
++              exact(saved.mediaUse.lease.target, MediaTarget.rendition(intent.rendition)),
++              exact(saved.mediaUse.lease.registration, media.registration),
++              saved.mediaUse.lease.epoch == epoch, intent.usage.epoch == epoch else {
++            throw BackendContractError.ineligibleOriginal
++        }
++        guard let original = projection.originals.first(where: { exact($0.original, intent.rendition.original) }),
++              !projection.originals.contains(where: { $0.original.capture == intent.rendition.original.capture
++                  && !exact($0.original, intent.rendition.original) }),
++              original.removal == nil, original.invalidation == nil,
++              original.mediaReaders.contains(where: { exact($0, saved.mediaUse.lease) }) else {
++            throw BackendContractError.ineligibleOriginal
++        }
++        // A valid independent cached rendition also works without a local
++        // binding or after the original was physically organized/removed.
++        guard let current = projection.registrations.last(where: {
++            $0.server.registration.destination == media.registration.destination
++        }), current.isCommitted, exact(current.server.registration, media.registration),
++              let publication = projection.confirmationState(original: intent.rendition.original, registration: media.registration),
++              exact(publication.registration, media.registration), exact(publication.current, intent.rendition),
++              !publication.invalidatedRenditions.contains(intent.rendition.rendition) else { throw BackendContractError.invalidated }
++        try projection.requireOriginalUploadRegistration(current)
++        try requireNamedFile(command.media, leaf: media.leaf, directory: media.directoryIdentity,
++                             file: file, bytes: intent.rendition.deliveryContent.byteCount)
++    }
++
++    private static func requireNamedFile(_ media: TemporaryLocalMedia, leaf: String, directory: TemporaryFileIdentity,
++                                        file: TemporaryFileIdentity, bytes: UInt64) throws {
++        let url = media.url
++        guard url.isFileURL, exact(url.lastPathComponent, leaf), let witness = media.photoReadWitness, witness.isCurrent else {
++            throw BackendContractError.identityMismatch
++        }
++        var root = stat(), value = stat(), openedRoot = stat(), opened = stat(), relative = stat()
++        guard lstat(url.deletingLastPathComponent().path, &root) == 0,
++              fstat(witness.directoryDescriptor, &openedRoot) == 0, openedRoot.st_mode & S_IFMT == S_IFDIR,
++              root.st_mode & S_IFMT == S_IFDIR,
++              Int64(root.st_dev) == directory.device, UInt64(root.st_ino) == directory.inode,
++              openedRoot.st_dev == root.st_dev, openedRoot.st_ino == root.st_ino,
++              lstat(url.path, &value) == 0, value.st_mode & S_IFMT == S_IFREG,
++              fstat(witness.fileDescriptor, &opened) == 0,
++              fstatat(witness.directoryDescriptor, leaf, &relative, AT_SYMLINK_NOFOLLOW) == 0,
++              try OriginalFileFingerprint(info: value) == witness.fingerprint,
++              try OriginalFileFingerprint(info: opened) == witness.fingerprint,
++              try OriginalFileFingerprint(info: relative) == witness.fingerprint,
++              Int64(value.st_dev) == file.device, UInt64(value.st_ino) == file.inode,
++              value.st_size >= 0, UInt64(value.st_size) == bytes else { throw BackendContractError.identityMismatch }
++    }
++
++    static func same(_ left: CommittedPhotoRegistrationIntent, _ right: CommittedPhotoRegistrationIntent) -> Bool {
++        exact(left.intent, right.intent) && exact(left.mediaUse, right.mediaUse) && exact(left.commit, right.commit)
++            && left.expectedStoreIdentity == right.expectedStoreIdentity
++            && left.directoryIdentity == right.directoryIdentity && left.fileIdentity == right.fileIdentity
++    }
++
++    /// Local termination authority only; the external addition may still be
++    /// unknown. Every returned mutation/receipt must be looked up exactly.
++    static func localStopProof(_ record: PhotoRegistrationRecord, identity: RegistrationStoreIdentity)
++        -> [(BackendStoreMutation, BackendCommitReceipt)]? {
++        let registration = record.registration
++        guard registration.isCommitted, registration.expectedStoreIdentity == identity else { return nil }
++        if let terminal = record.usageTerminal, let release = record.terminalUsageRelease,
++           terminal.expectedStoreIdentity == identity, release.expectedStoreIdentity == identity,
++           exact(terminal.terminal.intent, registration.intent), exact(terminal.terminal.mediaUse, registration.mediaUse),
++           terminal.terminal.directoryIdentity == registration.directoryIdentity,
++           terminal.terminal.fileIdentity == registration.fileIdentity,
++           exact(release.release.terminal, terminal.terminal),
++           exact(release.release.terminalCommand, terminal.command), exact(release.release.terminalCommit, terminal.commit) {
++            return [(registration.mutation, registration.commit), (terminal.mutation, terminal.commit), (release.mutation, release.commit)]
++        }
++        // Preserve the old successful-SDK release authority. It is neither a
++        // new fabricated terminal nor permission to release any other use.
++        if let release = record.usageRelease, let success = record.results.last,
++           case .succeeded = success.result.outcome,
++           release.expectedStoreIdentity == identity, success.expectedStoreIdentity == identity,
++           exact(release.release.intent, registration.intent), exact(release.release.mediaUse, registration.mediaUse),
++           release.release.directoryIdentity == registration.directoryIdentity,
++           release.release.fileIdentity == registration.fileIdentity,
++           exact(release.release.successCommand, success.command), exact(release.release.successCommit, success.commit) {
++            return [(registration.mutation, registration.commit), (success.mutation, success.commit), (release.mutation, release.commit)]
++        }
++        return nil
++    }
++
++    static func photoReadersStopped(backend: BackendStoreSnapshot, originals: OriginalStoreSnapshot) -> Bool {
++        guard backend.revision == originals.revision, let identity = backend.storeIdentity,
++              !backend.temporaryMedia.contains(where: { $0.usages.contains(where: { $0.usage.purpose == .photoHandoff }) }) else { return false }
++        for record in backend.photoRegistrations {
++            guard localStopProof(record, identity: identity) != nil,
++                  let media = backend.temporaryMedia.first(where: { exact($0.id, record.registration.intent.media) }),
++                  media.releasedUsages.contains(where: { exact($0, record.registration.mediaUse) }),
++                  let original = originals.logicalOriginals.first(where: { exact($0.original, record.registration.intent.rendition.original) }),
++                  !original.mediaReaders.contains(where: { exact($0, record.registration.mediaUse.lease) }) else { return false }
++        }
++        return true
++    }
++
++    private static func exact<T: Encodable>(_ left: T, _ right: T) -> Bool {
++        PhotoSaveBatchValueValidation.exact(left, right)
++    }
++}
+diff --git a/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Photos/PhotoSaveFinalStoreDriftTests.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Photos/PhotoSaveFinalStoreDriftTests.swift
+new file mode 100644
+index 0000000..e3a7eb0
+--- /dev/null
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Photos/PhotoSaveFinalStoreDriftTests.swift
+@@ -0,0 +1,330 @@
++import Darwin
++import Foundation
++import Synchronization
++import Testing
++@testable import FrameRelay
++
++/// Actual AtomicFile/SQLite final writer checks on new UUID-isolated roots.
++/// The synchronous callback is a technical guard observation only. These tests
++/// never call PhotoKit, an AV SDK, a native add, or a production media producer.
++@Suite(.serialized) @MainActor struct PhotoSaveFinalStoreDriftTests {
++    @Test(arguments: StorageCandidate.allCases)
++    func aCommittedInvalidationAfterResolveRefusesTheOldCommand(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let f = try await PhotoSaveFixture.make(run: run, candidate: candidate)
++            let command = try await photoDriftCommand(f), original = f.receipt.rendition.original
++            try await photoDriftRequireCurrent(command, f: f)
++            let record = statusInvalidation(f.receipt.rendition, registration: command.registration.mediaUse.lease.registration,
++                id: "photo-final-invalidation-" + UUID().uuidString)
++            _ = try await mediaOriginalCommit(f.rendition.store, .reserveInvalidation(.init(record)))
++            let logical = try #require(try await mediaOriginalSnapshot(f.rendition.store).logicalOriginals.first)
++            #expect(logical.invalidation?.record == record)
++            let beforeGate = try await mediaSnapshot(f.rendition.store), count = PhotoDriftCounter()
++            #expect(!(await f.rendition.store.performPhotoSaveIfCurrent(command) { count.increment() }))
++            #expect(count.value == 0)
++            #expect(try await mediaSnapshot(f.rendition.store) == beforeGate)
++            let saved = try await f.latest()
++            #expect(saved.results.isEmpty && saved.usageTerminal == nil && saved.terminalUsageRelease == nil)
++            let state = try #require(try await mediaOriginalSnapshot(f.rendition.store).logicalOriginals.first { $0.original == original })
++            #expect(state.mediaReaders.contains(command.registration.mediaUse.lease))
++            #expect(try await f.rendition.temporary.usageSnapshot(f.receipt.id).openHandles == 1)
++            let additions = await f.library.additions
++            #expect(additions.isEmpty)
++            try await photoDriftRetireNonStart(f, command: command)
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases, ["file", "directory", "symlink-leaf", "content-type"])
++    func namedPathAndContentTypeAreRecheckedAfterTheFullHash(candidate: StorageCandidate, change: String) async throws {
++        try await withStorageRun { run in
++            let f = try await PhotoSaveFixture.make(run: run, candidate: candidate)
++            let actual = try await photoDriftCommand(f)
++            try await photoDriftRequireCurrent(actual, f: f)
++            let bytes = try Data(contentsOf: actual.media.url), content = try renditionContent(bytes)
++            let witness = try #require(actual.media.photoReadWitness)
++            var local = actual.media
++            var retained: URL?
++            if change == "directory" {
++                let root = actual.media.url.deletingLastPathComponent()
++                let moved = root.deletingLastPathComponent().appendingPathComponent("retained-photo-directory-" + UUID().uuidString)
++                try FileManager.default.moveItem(at: root, to: moved)
++                retained = moved.appendingPathComponent(actual.media.url.lastPathComponent)
++                try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
++                try Data().write(to: root.appendingPathComponent("owner.lock"), options: .withoutOverwriting)
++                try bytes.write(to: actual.media.url, options: .withoutOverwriting)
++            } else if change == "content-type" {
++                local = .init(url: local.url, handoff: local.handoff, contentType: "video/mp4", photoReadWitness: local.photoReadWitness)
++            } else {
++                let moved = actual.media.url.deletingLastPathComponent().appendingPathComponent("retained-photo-file-" + UUID().uuidString)
++                try FileManager.default.moveItem(at: actual.media.url, to: moved); retained = moved
++                if change == "symlink-leaf" { try FileManager.default.createSymbolicLink(at: actual.media.url, withDestinationURL: moved) }
++                else { try bytes.write(to: actual.media.url, options: .withoutOverwriting) }
++            }
++            let command = try PhotoLibraryAddCommand(registration: actual.registration, media: local)
++            let before = try await mediaSnapshot(f.rendition.store), count = PhotoDriftCounter()
++            #expect(!(await f.rendition.store.performPhotoSaveIfCurrent(command) { count.increment() }))
++            #expect(count.value == 0 && command.media.photoReadWitness == actual.media.photoReadWitness)
++            #expect(try await mediaSnapshot(f.rendition.store) == before)
++            let opened = try OriginalFileFingerprint(descriptor: witness.fileDescriptor)
++            #expect(opened.device == witness.fingerprint.device && opened.inode == witness.fingerprint.inode
++                && opened.size == witness.fingerprint.size)
++            if let retained {
++                #expect(try renditionContent(Data(contentsOf: retained)) == content)
++                // The owner closes its original FD even when named integrity
++                // fails. Neither replacement nor retained leaf is repaired.
++                await #expect(throws: BackendContractError.identityMismatch) { try await f.media.finishPhotoMedia(f.receipt.usage) }
++                #expect(try renditionContent(Data(contentsOf: retained)) == content)
++                let record = try await f.latest()
++                #expect(record.results.isEmpty && record.usageTerminal == nil && record.terminalUsageRelease == nil)
++                #expect(try await mediaSnapshot(f.rendition.store).temporaryMedia[0].usages.count == 1)
++            } else { try await photoDriftRetireNonStart(f, command: actual) }
++            let additions = await f.library.additions
++            #expect(additions.isEmpty)
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases, ["operation", "usage", "registration"])
++    func normalizedEqualUTF8AliasesCannotJoinAnActualSavedIntentOrUse(candidate: StorageCandidate, field: String) async throws {
++        try await withStorageRun { run in
++            let f = try await photoDriftFixture(run, candidate: candidate, unicode: true)
++            let actual = try await photoDriftCommand(f, operation: "photo-op-caf\u{00e9}")
++            try await photoDriftRequireCurrent(actual, f: f)
++            let saved = actual.registration
++            var use = saved.mediaUse, usage = saved.intent.usage
++            var operation = saved.intent.operation
++            if field == "operation" { operation = .init(rawValue: operation.rawValue.decomposedStringWithCanonicalMapping) }
++            if field == "usage" {
++                usage = .init(id: .init(rawValue: usage.id.rawValue.decomposedStringWithCanonicalMapping),
++                    purpose: usage.purpose, media: usage.media, epoch: usage.epoch)
++            }
++            var registration = use.lease.registration
++            if field == "registration" {
++                registration = .init(destination: registration.destination,
++                    id: .init(rawValue: registration.id.rawValue.decomposedStringWithCanonicalMapping), generation: registration.generation)
++            }
++            use = .init(usage: usage, lease: photoDriftLease(use.lease, usage: usage, registration: registration), owner: use.owner)
++            let intent = try PhotoRegistrationIntent(operation: operation,
++                handoff: .init(media: saved.intent.media, rendition: saved.intent.rendition, capturedAt: saved.intent.capturedAt, usage: usage))
++            let proposed = photoDriftRegistration(saved, intent: intent, use: use)
++            let local = TemporaryLocalMedia(url: actual.media.url, handoff: intent.handoff,
++                contentType: actual.media.contentType, photoReadWitness: actual.media.photoReadWitness)
++            let alias = try PhotoLibraryAddCommand(registration: proposed, media: local)
++            // Swift's normalization equality alone accepts all three aliases.
++            // The final writer must compare the exact persisted UTF-8 input.
++            #expect(alias == actual && alias.registration.isCommitted)
++            let exactIntent = PhotoSaveBatchValueValidation.exact(alias.registration.intent, saved.intent)
++            let exactUse = PhotoSaveBatchValueValidation.exact(alias.registration.mediaUse, saved.mediaUse)
++            #expect(!exactIntent || !exactUse)
++            let before = try await mediaSnapshot(f.rendition.store), count = PhotoDriftCounter()
++            #expect(!(await f.rendition.store.performPhotoSaveIfCurrent(alias) { count.increment() }))
++            #expect(count.value == 0)
++            #expect(try await mediaSnapshot(f.rendition.store) == before)
++            try await photoDriftRequireCurrent(actual, f: f)
++            try await photoDriftRetireNonStart(f, command: actual)
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases)
++    func immutableCoverageContentDateAndFileMetadataCannotReplaceTheActualFinalInput(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let f = try await PhotoSaveFixture.make(run: run, candidate: candidate), command = try await photoDriftCommand(f)
++            let state = try await f.rendition.temporary.stateFor(f.receipt.id)
++            let before = try await mediaSnapshot(f.rendition.store)
++            let wrongContent = try renditionContent(Data(repeating: 0xee, count: 4096))
++            let replacement = TemporaryMediaState(id: state.id, rendition: state.rendition, registration: state.registration,
++                capturedAt: state.capturedAt.addingTimeInterval(1), leaf: state.leaf, contentType: state.contentType,
++                directoryIdentity: .init(device: state.directoryIdentity.device, inode: state.directoryIdentity.inode + 1))
++            // These immutable fields have no legal post-intent update API. Do
++            // not fabricate successful drift by rewriting a journal/document.
++            let changes: [TemporaryMediaChange] = [
++                .stored(state.id, try .init(lowerBound: 1, upperBound: 2)),
++                .verified(state.id, wrongContent),
++                .fileCreated(state.id, .init(device: state.directoryIdentity.device, inode: state.directoryIdentity.inode + 1)),
++                .create(replacement)]
++            for change in changes {
++                let mutation = BackendStoreMutation(expectedRevision: before.revision,
++                    change: .temporary(command: .init(rawValue: UUID().uuidString), value: change))
++                guard case .rejected = await f.rendition.store.commit(mutation) else {
++                    Issue.record("An immutable temporary input was replaced"); throw BackendContractError.invalidValue
++                }
++                #expect(try await mediaSnapshot(f.rendition.store) == before)
++            }
++            try await photoDriftRequireCurrent(command, f: f)
++            #expect(try await f.rendition.temporary.stateFor(f.receipt.id) == state)
++            try await photoDriftRetireNonStart(f, command: command)
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases, ["date", "delivery-content"])
++    func aDifferentHandoffCannotBorrowTheSamePhotoKeyAndActualReceipt(candidate: StorageCandidate, field: String) async throws {
++        try await withStorageRun { run in
++            let f = try await PhotoSaveFixture.make(run: run, candidate: candidate), actual = try await photoDriftCommand(f)
++            let saved = actual.registration
++            let rendition = field == "delivery-content"
++                ? photoDriftRendition(saved.intent.rendition, content: try renditionContent(Data(repeating: 0xcc, count: 4096))) : saved.intent.rendition
++            let intent = try PhotoRegistrationIntent(operation: saved.intent.operation,
++                handoff: .init(media: saved.intent.media, rendition: rendition,
++                    capturedAt: field == "date" ? saved.intent.capturedAt.addingTimeInterval(1) : saved.intent.capturedAt, usage: saved.intent.usage))
++            let use = TemporaryMediaUseRecord(usage: saved.mediaUse.usage,
++                lease: photoDriftLease(saved.mediaUse.lease, rendition: rendition), owner: saved.mediaUse.owner)
++            let local = TemporaryLocalMedia(url: actual.media.url, handoff: intent.handoff,
++                contentType: actual.media.contentType, photoReadWitness: actual.media.photoReadWitness)
++            let altered = try PhotoLibraryAddCommand(registration: photoDriftRegistration(saved, intent: intent, use: use), media: local)
++            #expect(altered.registration.isCommitted && altered.registration.intent.key == saved.intent.key)
++            let before = try await mediaSnapshot(f.rendition.store), count = PhotoDriftCounter()
++            #expect(!(await f.rendition.store.performPhotoSaveIfCurrent(altered) { count.increment() }))
++            #expect(count.value == 0)
++            #expect(try await mediaSnapshot(f.rendition.store) == before)
++            try await photoDriftRequireCurrent(actual, f: f)
++            try await photoDriftRetireNonStart(f, command: actual)
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases, [false, true])
++    func independentCachedMediaNeedsNeitherAPhysicalOriginalNorANotRemovedClassification(candidate: StorageCandidate, removed: Bool) async throws {
++        try await withStorageRun { run in
++            let f = try await photoDriftFixture(run, candidate: candidate, local: true, removed: removed)
++            let logical = try #require(try await mediaOriginalSnapshot(f.rendition.store).logicalOriginals.first)
++            let binding = try #require(logical.binding)
++            let url = run.url.appendingPathComponent(binding.reference.rawValue + ".mov")
++            try photoDriftAbsent(url)
++            #expect(logical.removal == nil && logical.invalidation == nil && (logical.removalResolution == .removed) == removed)
++            let command = try await photoDriftCommand(f)
++            try await photoDriftRequireCurrent(command, f: f)
++            try photoDriftAbsent(url)
++            try await photoDriftRetireNonStart(f, command: command)
++            let settled = try #require(try await mediaOriginalSnapshot(f.rendition.store).logicalOriginals.first)
++            #expect(settled.binding == binding && settled.removalResolution == logical.removalResolution)
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases, ["removal", "publication"])
++    func livePhotoOwnershipKeepsRemovalAndPublicationBehindTheirOrderingFences(candidate: StorageCandidate, boundary: String) async throws {
++        try await withStorageRun { run in
++            let f = try await photoDriftFixture(run, candidate: candidate, local: true), command = try await photoDriftCommand(f)
++            let state = try #require(try await mediaOriginalSnapshot(f.rendition.store).logicalOriginals.first)
++            let before = try await mediaSnapshot(f.rendition.store)
++            if boundary == "removal" {
++                let intent = RemovalIntent(operation: .init(rawValue: UUID().uuidString), original: state.original, purpose: .discard)
++                let mutation = OriginalStoreMutation(operation: intent.operation, expectedRevision: before.revision,
++                    change: .reserveRemoval(intent, expectedInvalidation: state.invalidationGeneration, expectedAccess: state.accessGeneration))
++                #expect(await f.rendition.store.commitOriginal(mutation) == .rejected(.readersActive))
++            } else {
++                let next = photoDriftRendition(f.receipt.rendition, version: 2)
++                let mutation = BackendStoreMutation(expectedRevision: before.revision, change: .publication(mediaPublication(next,
++                    registration: command.registration.mediaUse.lease.registration, observation: 2, generation: 1)))
++                #expect(await f.rendition.store.commit(mutation) == .rejected(.awaitingAcknowledgements))
++            }
++            #expect(try await mediaSnapshot(f.rendition.store) == before)
++            // The existing fences prohibit these standalone live drifts. Do
++            // not invent distribution/ACK facts to reach a later guard.
++            try await photoDriftRequireCurrent(command, f: f)
++            #expect(try await mediaOriginalSnapshot(f.rendition.store).logicalOriginals.first?.removal == nil)
++            #expect(try await mediaSnapshot(f.rendition.store).confirmationStates.first?.current == f.receipt.rendition)
++            try await photoDriftRetireNonStart(f, command: command)
++        }
++    }
++}
++
++private nonisolated final class PhotoDriftCounter: Sendable {
++    private let count = Mutex(0)
++    func increment() { count.withLock { $0 += 1 } }
++    var value: Int { count.withLock { $0 } }
++}
++private nonisolated func photoDriftCommand(_ f: PhotoSaveFixture, operation: String = UUID().uuidString) async throws -> PhotoLibraryAddCommand {
++    let saved = try await f.commitIntent(action: operation)
++    let local = try await f.media.resolvePhotoMedia(f.receipt.usage)
++    return try .init(registration: saved.registration, media: local)
++}
++private nonisolated func photoDriftRequireCurrent(_ command: PhotoLibraryAddCommand, f: PhotoSaveFixture) async throws {
++    let before = try await mediaSnapshot(f.rendition.store), count = PhotoDriftCounter()
++    let allowed = await f.rendition.store.performPhotoSaveIfCurrent(command) { count.increment() }
++    try #require(allowed && count.value == 1)
++    #expect(try await mediaSnapshot(f.rendition.store) == before)
++    let additions = await f.library.additions
++    #expect(additions.isEmpty)
++}
++private nonisolated func photoDriftRetireNonStart(_ f: PhotoSaveFixture, command: PhotoLibraryAddCommand) async throws {
++    try await f.media.finishPhotoMedia(f.receipt.usage)
++    _ = try await mediaCommit(f.rendition.store, .photo(command: .init(rawValue: UUID().uuidString),
++        value: .result(.init(intent: command.registration.intent, outcome: .notAttempted(.rejected)))))
++    let terminal = try await f.media.photoUsageTerminal(command.registration, termination: .notStarted)
++    _ = try await mediaCommit(f.rendition.store, .photo(command: .init(rawValue: UUID().uuidString), value: .terminal(terminal)))
++    #expect(await f.media.releaseUsage(f.receipt.usage) == .succeeded(f.receipt.id))
++    #expect(try await f.rendition.temporary.usageSnapshot(f.receipt.id).openHandles == 0)
++}
++private nonisolated func photoDriftRegistration(_ saved: CommittedPhotoRegistrationIntent, intent: PhotoRegistrationIntent,
++    use: TemporaryMediaUseRecord) -> CommittedPhotoRegistrationIntent {
++    .init(intent: intent, mediaUse: use, commit: saved.commit, expectedStoreIdentity: saved.expectedStoreIdentity,
++        directoryIdentity: saved.directoryIdentity, fileIdentity: saved.fileIdentity)
++}
++private nonisolated func photoDriftLease(_ value: MediaReadLease, usage: TemporaryMediaUsage? = nil,
++    registration: RegistrationIdentity? = nil, rendition: RenditionIdentity? = nil) -> MediaReadLease {
++    .init(id: value.id, target: rendition.map(MediaTarget.rendition) ?? value.target, operation: value.operation,
++        registration: registration ?? value.registration, context: usage.map { .temporary($0.media, $0.id) } ?? value.context,
++        epoch: value.epoch, accessGeneration: value.accessGeneration)
++}
++private nonisolated func photoDriftRendition(_ value: RenditionIdentity, content: ContentIdentity? = nil,
++    version: UInt64? = nil) -> RenditionIdentity {
++    .init(original: value.original, inputLogIdentity: value.inputLogIdentity, transformAssetIdentity: value.transformAssetIdentity,
++        transformAssetVersion: value.transformAssetVersion, outputConfigurationIdentity: value.outputConfigurationIdentity,
++        conversionVersion: value.conversionVersion, rendition: version.map { .init(rawValue: "photo-generation-\($0)") } ?? value.rendition,
++        deliveryContent: content ?? value.deliveryContent, publicationGeneration: version.map { .init(rawValue: $0) } ?? value.publicationGeneration)
++}
++private nonisolated func photoDriftAbsent(_ url: URL) throws {
++    var value = stat(); let result = lstat(url.path, &value), observed = errno
++    try #require(result != 0 && observed == ENOENT)
++}
++
++/// Custom inputs stay in this file/new run. Unicode registration/use identities
++/// exercise exact joins; historical removed is a synthetic persisted fixture
++/// classification through real writer receipts, not a physical deletion proof.
++@MainActor private func photoDriftFixture(_ run: ExplorationRunDirectory, candidate: StorageCandidate,
++    unicode: Bool = false, local: Bool = false, removed: Bool = false) async throws -> PhotoSaveFixture {
++    let bytes = Data((0..<4096).map { UInt8($0 % 251) }), content = try renditionContent(bytes)
++    let rendition: RenditionFixture
++    if unicode {
++        let store: any MediaDiskStore
++        switch candidate {
++        case .atomicFile: store = try AtomicFileRecordingStore(run: run, mode: .createNew)
++        case .sqlite: store = try SQLiteRecordingStore(run: run, mode: .createNew)
++        }
++        let registration = try await mediaRegister(store, registration: .init(destination: .init(rawValue: "photo-destination-caf\u{00e9}"),
++            id: .init(rawValue: "photo-registration-caf\u{00e9}"), generation: .init(rawValue: 1)))
++        let original = OriginalContent(capture: .init(rawValue: "photo-original-caf\u{00e9}"), generation: .init(rawValue: 1), content: content)
++        let identity = RenditionIdentity(original: original, inputLogIdentity: "synthetic-not-log", transformAssetIdentity: "no-quality-claim",
++            transformAssetVersion: "fixture-v1", outputConfigurationIdentity: "fixture-movie", conversionVersion: "synthetic-writer",
++            rendition: .init(rawValue: "photo-rendition-caf\u{00e9}"), deliveryContent: content, publicationGeneration: .init(rawValue: 1))
++        _ = try await mediaCommit(store, .publication(mediaPublication(identity, registration: registration)))
++        let operation = MediaOperationID(rawValue: UUID().uuidString)
++        let distribution = DistributionReceipt(operation: operation, rendition: identity, registration: registration,
++            commit: .init(key: .distribution(operation, identity, registration), previousRevision: 0, committedRevision: 1))
++        let retrieve = RetrieveMediaCommand(gate: .init(operation: .init(rawValue: UUID().uuidString), attempt: .init(rawValue: UUID().uuidString),
++            target: .rendition(identity), registration: registration, generation: 1), distribution: distribution, range: nil)
++        let leases = RenditionReadLeases(store: store), scope = try await RenditionMediaScope.open(original: original, leases: leases)
++        let temporary = try await ManagedTemporaryMedia.open(root: run.url.appendingPathComponent("photo-drift-temporary", isDirectory: true),
++            leases: leases, scope: scope)
++        rendition = .init(run: run, store: store, leases: leases, scope: scope, temporary: temporary, faults: nil, command: retrieve)
++    } else { rendition = try await RenditionFixture.make(run: run, content: content, candidate: candidate) }
++    if local {
++        let binding = try await statusKnownOriginal(rendition.command.distribution.rendition.original, store: rendition.store)
++        try photoDriftAbsent(run.url.appendingPathComponent(binding.reference.rawValue + ".mov"))
++        if removed {
++            try await mediaReconcile(rendition.store, original: binding.original)
++            let state = try #require(try await mediaOriginalSnapshot(rendition.store).logicalOriginals.first)
++            let intent = RemovalIntent(operation: .init(rawValue: UUID().uuidString), original: binding.original, purpose: .discard)
++            _ = try await mediaOriginalCommit(rendition.store, .reserveRemoval(intent,
++                expectedInvalidation: state.invalidationGeneration, expectedAccess: state.accessGeneration))
++            _ = try await mediaOriginalCommit(rendition.store, .resolveRemoval(intent, .removed))
++        }
++    }
++    let complete = try await rendition.complete(bytes), before = try await mediaSnapshot(rendition.store)
++    let identity = try await rendition.store.establishRegistrationIdentity(expectedRevision: before.revision, expectedIdentity: nil)
++    guard case .succeeded(let usage) = await rendition.temporary.acquireUsage(complete.id, purpose: .photoHandoff,
++        usageID: .init(rawValue: unicode ? "photo-use-caf\u{00e9}" : "photo-drift-use-" + UUID().uuidString)) else { throw BackendContractError.unavailable }
++    let receipt = try await rendition.temporary.stateFor(complete.id).receipt(for: usage)
++    guard await rendition.temporary.releaseUsage(complete.usage) == .succeeded(complete.id) else { throw BackendContractError.unavailable }
++    let faults = PhotoSaveFaultStore(base: rendition.store), library = PhotoSaveLibrary(), media = PhotoSaveMedia(base: rendition.temporary)
++    let coordinator = PhotoSaveCoordinator(store: faults, identity: identity, temporaryMedia: media, library: library)
++    return .init(rendition: rendition, faults: faults, identity: identity, receipt: receipt, library: library, media: media, coordinator: coordinator)
++}

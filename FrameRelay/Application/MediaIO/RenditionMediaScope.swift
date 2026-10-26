@@ -30,6 +30,11 @@ actor RenditionMediaScope {
         }
     }
 
+    /// Consumer factories must not reuse a cached owner after sealing/closure.
+    func checkAdmission() throws {
+        guard accepting else { throw BackendContractError.wrongStage }
+    }
+
     fileprivate func admit(_ id: UUID) throws {
         guard accepting, registrations.contains(where: { $0.id == id }) else { throw BackendContractError.wrongStage }
     }

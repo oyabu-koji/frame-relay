@@ -1,0 +1,11 @@
+{
+  "reviewer": "main",
+  "independentValidation": false,
+  "finding": "PHOTO-START-AFTER-01",
+  "sourceBinding": "DI-SOURCE-20261025-16/498",
+  "location": "PhotoSaveStartPorts.perform observed .started followed by guard current else refused; Native switches refused to notAttempted; disk transaction catch false can occur after action",
+  "problem": "SDK performChanges may already be invoked even when writer wrapper returns false afterward. Native must still await actual completion and keep FD/use, not fabricate a notStarted terminal. Completion box avoids double continuation, but early local release remains unsafe.",
+  "scope": "main explicitly reopened only PhotoSaveStartPorts.swift from Core10; other9 remain frozen. Coreowner adding fault-after-action test in own FinalStartTests. Runtimepending.",
+  "resolution": "Observed actual .started wins over false after-action result; false/noaction still refuses. This is actual invocation provenance, not SDK success/wholemedia completion.",
+  "createdUTC": "2026-10-24T20:13:15.388802+00:00"
+}

@@ -1,0 +1,105 @@
+{
+  "summary": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261024-iczx3nc8/validation-summary.json",
+  "reviews": {
+    "implementation": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261024-iczx3nc8/implementation-review.json",
+    "documentation": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261024-iczx3nc8/documentation-review.json"
+  },
+  "result": {
+    "decision": "合格（今回の5部分の実装と必要非実機検証の範囲限定）",
+    "new_findings_count": 0,
+    "implementation_reviewer": "implementation_validator /root/implementation_review",
+    "document_reviewer": "doc_reviewer /root/documentation_review",
+    "independent_validation_completed": true,
+    "whole_steering_complete": false,
+    "whole_S28_S31_S34_S49_complete": false,
+    "device_quality_PRD_acceptance_complete": false,
+    "explanation": "独立コード/文書レビュー、開始dirty→最終414入力、全67runの版/成否、必要13と継承6runの生xcresult再抽出、server証跡および保全を照合。必要な新規runtime再実行はないと判定。既知残件・過去失敗・skipを保持。"
+  },
+  "execution_version": {
+    "binding_id": "DI-SOURCE-20261023-02",
+    "manifest_sha256": "e74ef2a32f52fcf16b41395fb6aea4c65c01fa81f79804a34bf6e9e434d4be4a",
+    "git_head": "64fc455c0af071234a04486b058065a1d01704fc",
+    "dirty_worktree": true,
+    "input_counts": {
+      "steering input": 2,
+      "server support": 97,
+      "App/Unit/UI/project": 309,
+      "stable document": 6,
+      "total": 414
+    },
+    "code_input_fingerprint": "f161fcb7374340b18b81c3566f9b8436d931b4ca50918654889136a79541edb0",
+    "current_matches_final_binding": true,
+    "unexpected_or_missing_app_inputs": [],
+    "changed_existing_from_implementation_session_start": 39,
+    "new_non_evidence_files": 25,
+    "validation_started_with_file_count": 19251,
+    "raw_archives_note": "一時raw snapshot31個のコピーに一部欠落、raw baseline8ファイルが不在。各runの前後manifestとfingerprintを再計算し、現存source-snapshot/session-baselineの同path・SHA-256で全入力を照合できた。未解決0。コピー復元・証跡改変は行っていない。",
+    "audit": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261024-iczx3nc8/evidence-audit-resolved.json"
+  },
+  "limitations": [
+    {
+      "id": "S28",
+      "classification": "既知未実装・未接続",
+      "items": [
+        "既知原本publication manifestの同writer・版ID/利用可能状態への投影",
+        "通常媒体・確認・単数/複数操作・全producerの製品接続",
+        "通常HTTPSによる新登録/metadata UI成功の受入"
+      ],
+      "references": [
+        ".steering/20260929-device-independent-implementation/tasklist.md:642",
+        ".steering/20260929-device-independent-implementation/tasklist.md:644"
+      ]
+    },
+    {
+      "id": "S31",
+      "classification": "既知未実装・未接続・実機未確認",
+      "items": [
+        "通常Photos producer・正式Rec.709媒体・複数写真保存",
+        "unknown/失敗コピーの自動回収policy、旧extensionless再利用",
+        "実機Photos権限・限定アクセス・写真側削除後の受入"
+      ],
+      "references": [
+        ".steering/20260929-device-independent-implementation/tasklist.md:686"
+      ]
+    },
+    {
+      "id": "S34",
+      "classification": "既知未接続・全体未完了",
+      "items": [
+        "全正式証拠producer・通常Photos/複数保存の製品結合",
+        "活動中/未知transportの全停止、正式失効との製品結合",
+        "合成fixtureの条件付き整理成功を全S34受入へ昇格しない"
+      ],
+      "references": [
+        ".steering/20260929-device-independent-implementation/tasklist.md:753"
+      ]
+    },
+    {
+      "id": "S49",
+      "classification": "既知未実装・未接続",
+      "items": [
+        "通常strict dispatch・native正resumeでの許可消費",
+        "全媒体producerの実停止、実通信中REC/保存の統合検証"
+      ],
+      "references": [
+        ".steering/20260929-device-independent-implementation/tasklist.md:1004",
+        ".steering/20260929-device-independent-implementation/tasklist.md:1008"
+      ]
+    },
+    {
+      "id": "device_quality_PRD",
+      "classification": "実機・品質・PRD受入未完了",
+      "items": [
+        "Q01/A01〜A18・全D0/R部分証拠を維持",
+        "標準変換資材/実Log適合、ISO本人判断、実環境/署名・品質の直接依存のみ保留",
+        "全S28/S31/S34/S49・全steeringの完了判定は行わない"
+      ],
+      "references": [
+        ".steering/20260929-device-independent-implementation/tasklist.md:24",
+        ".steering/20260929-device-independent-implementation/tasklist.md:1821"
+      ]
+    }
+  ],
+  "baseline_scope": "all 414 prior binding inputs match current worktree; full repository and fixtures baseline outside repo",
+  "raw_session": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn"
+}

@@ -1,0 +1,106 @@
+{
+  "kind": "read-only dependency addendum、実装許可/compile検証/独立validationではない",
+  "created_UTC": "2026-10-24T21:53:17.312858+00:00",
+  "original_contract": {
+    "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/download-ingress-implementation-contract.json",
+    "sha256": "84ea512186b0eb4b2df8dbe0b1b09bc009f06beadc65f1c0b95396c456f01fe3",
+    "unchanged": true
+  },
+  "comparison_baseline": {
+    "id": "DI-SOURCE-20261025-21",
+    "source_manifest_sha256": "844ac0ec16f64f2416536c11f7f28b5073b23583f463fb73e11b1e79b2887e6f",
+    "binding": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-chunk-candidate-01/source-binding.json"
+  },
+  "correction": "先のA8file案は単独ではcompile自立しない。CommittedBackgroundDownloadMetadataとその登録key/producer/actual samewriter照合がB予定のため未定義依存がある。既存prepared .download receiptでfull metadata登録を代用できない。Core0を先に引き渡してからFD-pin A、最後にimport/drain Bへ進める。",
+  "existing_real_API_and_limit": [
+    {
+      "API": "MediaOperationStorePort.load/commit/lookupCommit",
+      "limit": "generic writer APIは実在するがdownload metadata専用case/key/recordはDI21に無い。新case追加後に本物のdurable receiptを得るための基盤としてのみ再利用する。"
+    },
+    {
+      "API": "BackendCommitKey.backgroundTask(command, taskID) と BackgroundMediaTaskChange.prepared(intent)",
+      "limit": "固定context/source .download(rendition,range,lease)と実prepared receiptは実在。日時/MIME/manifest+authority/per-GET proofを含まず、download metadata grantではない。"
+    },
+    {
+      "API": "StoredPublicationManifest / StoredPublication / StoredMediaDistributionObservation",
+      "limit": "各metadata/authority/distributionの実参照材料。pure manifest観測だけは取得権限でない。read purpose/full request producerが無い対象をsource ticketへ置換して登録しない。"
+    }
+  ],
+  "phase_order": [
+    "Core0: full metadata登録・authentic新receipt/ref型・actual samewriter grant/lookup・negative/store再open tests",
+    "A: Core0を入力とするknown creationへのFD-pin component・非送信SDK負側試験",
+    "B: pin観測/actualterminal/ownFDclosureと同writer guarded verified temporary import/drain",
+    "後続: normal full-read producer/通常download plan/strict native正受信・正式producerは別残件"
+  ],
+  "Core0_types": {
+    "BackgroundDownloadMetadata": "不変Codable payload。fresh registerCommand、store UUID、prepared taskID+OS session/description+prepared event/receipt参照、request operation/target+exact rendition/registration/transport lease epoch、元record日時参照+capturedAt、MIME、manifest/current authority/per-GET distributionのcompact実参照、kind.full、request fingerprint。URL/credential/FD/fullsnapshot/再帰mutationは保存しない。",
+    "BackgroundDownloadMetadataReference": "small Codable/Equatable/Sendable {storeIdentity, registerCommand, payloadFingerprint, previousRevision, committedRevision}。それ単体に権限はない。",
+    "CommittedBackgroundDownloadMetadata": "metadata+専用actualreceipt+expectedStoreIdentity。isCommittedは形の整合だけ。memberwise構築またはisCommitted trueをactual grantとして信用しない。",
+    "BackgroundDownloadMetadataGrantPhase": "beforeCreation | attached(BackgroundMediaTaskBinding)。既存binding型で定義可能、future FD/import型を参照しない。",
+    "BackendStoreSnapshot.backgroundDownloadMetadata": "[CommittedBackgroundDownloadMetadata] default []。現行snapshotと同writer projectionに加算。旧journal/encodingのcaseを置換しない。"
+  },
+  "actual_new_key_and_change": {
+    "BackendStoreChange": "indirect case backgroundDownloadMetadata(BackgroundDownloadMetadata)",
+    "BackendCommitKey": "case backgroundDownloadMetadata(MediaOperationID, String) // fresh registration command + SHA256 canonical full metadata payload",
+    "BackendCommitIdentity": "case backgroundDownloadMetadata(MediaOperationID)",
+    "commandText": "registerCommand.rawValue。referenced request operation/task/manifest/distributionのIDを新command導入として予約しない。",
+    "fingerprint": "payloadFingerprintフィールド自身やreceiptを含めず、全不変metadata payloadのcanonical sorted UTF8 encodingから計算。exact mutation/revision lookupも併用し、fingerprint一致だけでreceiptを貸さない。",
+    "receipt": "既存store.commit(BackendStoreMutation(expectedRevision: revision, change: .backgroundDownloadMetadata(metadata), expectedStoreIdentity: UUID))がdurable commitしたその新key receiptのみ。backgroundTask/temporary/publicationのreceiptへ付替えない。",
+    "namespace": "Core0の新projection helperをすべての新backend eventのintroduced commandへ適用し、新registerCommandと全既存parent/child/notProcessed/nested batch/person/photo/metadata commandの衝突を両方向で拒否。元operationへの参照は許可。旧履歴を修復しない。"
+  },
+  "Core0_actual_ports": [
+    "MediaOperationStorePort.lookupBackgroundDownloadMetadata(_ reference: BackgroundDownloadMetadataReference) async -> BackendOutcome<CommittedBackgroundDownloadMetadata> // actual disk/journalでexact key/payload/revision/UUIDをlookupする。default unknown/failclosed。",
+    "MediaOperationStorePort.performBackgroundDownloadMetadataIfCurrent(_ reference: BackgroundDownloadMetadataReference, phase: BackgroundDownloadMetadataGrantPhase, action: @Sendable (CommittedBackgroundDownloadMetadata) -> Void) async -> Bool // default false。actual fresh writer transactionで参照と現scopeを検査し短いregistry install actionだけ実行。",
+    "BackgroundDownloadMetadataRegistration.register(_ proposal: BackgroundDownloadMetadata) async -> BackendOutcome<BackgroundDownloadMetadataReference> //純local producer。generic load/commit/lookupを使用し、unknown元envelopeを保持。constructor/restoreはcommit/network/SDK/FDを開始しない。"
+  ],
+  "grant_implementation": [
+    "AtomicFileRecordingStore/SQLiteRecordingStore両actorがasync requirementを明示forwardし、ExplorationRecordingDiskのtransaction(write:false)内でfresh documentとsamewriter lockを使用する。",
+    "referenceからexact newkeyに対応する元metadata mutation/receiptを取得し、前後revision/full payload/fingerprint/expected UUIDを照合する。caller supplied Committed値のisCommittedだけで通さない。",
+    "現在のcommitted registration/intent、exact request/attempt/target、prepared .downloadの実journal全event、current rendition/失効/削除予約、lease存在とwriter現在epoch、record日時参照、manifest観測とcurrent authority、per-GET proofの完全bindingを再判定する。",
+    "beforeCreationは同prepared状態でまだbinding/resume/terminal/ownerClosure無し、attachedはexact supplied bindingがactual attached journalと一致しterminal等の矛盾無しを要求。用途別のguardを小helperへ分離する。",
+    "actionはregistry slotへ不変metadataと参照をinstallする短い同期処理だけ。await/hash/open/pread/SDK生成/SDKresume/redispatch/writer再入は無し。",
+    "このgrantは登録とlocal ingress準備の現scope観測でありnative strict送信許可ではない。有効性を未来へ持ち越さず、worker開始と最終verified importで再照合する。"
+  ],
+  "record_time_rule": "元日時はOriginalBindingのreference/saveRecord/saveCommitと同じRecordingStoreEntry.intent.capturedAtへlive documentでexact joinする。nil/unknown/別recordは登録拒否。replayは元event positionのsource/receipt関係を検証し、将来Recordingの状態を歴史への新条件にしない。local原本fileを今存在必須にしない。remote-only日時producerは現状未成立なので対象別拒否を保持。",
+  "minimal_Core0_ownership": {
+    "production_new": [
+      "FrameRelay/Domain/Operations/BackgroundDownloadMetadata.swift",
+      "FrameRelay/Application/Ports/BackgroundDownloadMetadataPorts.swift",
+      "FrameRelay/Application/MediaIO/BackgroundDownloadMetadataRegistration.swift",
+      "FrameRelay/Platform/LocalStore/BackgroundDownloadMetadataStoreProjection.swift"
+    ],
+    "production_existing": [
+      "FrameRelay/Domain/Operations/BackendCommit.swift",
+      "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+      "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+      "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift",
+      "FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift",
+      "FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift"
+    ],
+    "tests_new": [
+      "FrameRelayTests/Domain/BackgroundDownloadMetadataTests.swift",
+      "FrameRelayTests/Integration/Storage/BackgroundDownloadMetadataStoreTests.swift"
+    ],
+    "boundary": "新source FD/Session/Temporary/NativePhoto/Composition等はCore0所有外。docs/steering/main証跡はmain管理、必要文書は別author/reviewerの直列所有。ChunkB freeze解放前に共有fileを変更しない。"
+  },
+  "A_after_Core0": [
+    "AのManagedDownloadIngress.registerはraw Committed構造体を権限として受け取らない。refとstoreを入力にactual perform...IfCurrent(.beforeCreation)をawaitし、writer callbackでown registry slotをinstallした時だけPreparedDownloadSinkを返す。",
+    "Sessionのactual createSuspended直後にmetadata slotとexact bindingを同processでbindする。callbackではcreationsのexact known entryとslotを照合する。事前metadata receiptだけで旧taskをadoptしない。",
+    "small artifactRef eventとSDK ephemeral FD型/worker/closeはAだけで定義し、future imported receipt/keyを参照しない。Aの完成範囲はFD componentまででverified temporaryを生成しない。",
+    "Aのpositive component testは合成source/response/明示注入前提。実samewriter登録のCore0 testsと合成callback pin tests、実SDK非resume cancellationの負側を別結果にする。synthetic Committed値/SDK terminalを正式media authorityへ数えない。"
+  ],
+  "required_Core0_tests": [
+    "actual両writerのdurable専用key commit/reopen/exactlookupとunknown元mutation保持、同command異payload/alias/receipt borrowing拒否",
+    "store UUID/現登録/current rendition/lease epoch/日時/削除予約/失効/metadata又はdistribution refs mismatchでperform action0",
+    "旧prepared .download receiptしか無い場合、新key無し/形だけfake Committed/改変refを拒否。actual専用register後だけregistry install action1",
+    "新commandと既存固定parent/child/notProcessed/nested batch/person/photo/upload metadata IDs衝突を両方向拒否、合法operation参照は保持",
+    "beforeCreation/attached phaseとterminal/reused-binding/旧source/再open現epoch不一致の拒否、pure manifest/source-only ticket/unknown日時はgrant無し",
+    "通常strict unavailableのまま正SDK生成/resume権限を追加しない。Core0 testsにはSDK/Keychain/media byte読取を含めない。"
+  ],
+  "remaining_conditions": [
+    "新Core API/keysはここでの具体提案であり実在実装ではない。Core0作成/compile/必要検証完了とmainのfreeze引渡しがAの開始条件。",
+    "normal full-read request producerが欠ける対象はCore0/registerとA準備で個別拒否。テストが合成でその入力を満たしても通常producer成立ではない。",
+    "DI21はimmutableテスト中の比較入力。ChunkB最終版が別bindingになった場合、その最終diffの変更に適応してからmainが所有移管する。",
+    "本追加は元契約JSONを書き換えない。new raw1file以外の書込、compile/test/SDK/Simulator/fixture/Keychain操作はしない。"
+  ]
+}

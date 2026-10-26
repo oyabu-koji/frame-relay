@@ -1,0 +1,1116 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination "platform=iOS Simulator,id=64ADDF12-3B84-40E9-BC0A-922CEC02E77A" -derivedDataPath /private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData -resultBundlePath /private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/p2-focused-normal-101/result.xcresult -disableAutomaticPackageResolution -parallel-testing-enabled NO -collect-test-diagnostics never "-only-testing:FrameRelayUITests/LibraryFlowTests/testAccessibilityLibraryAndDetail" "-only-testing:FrameRelayUITests/LibraryFlowTests/testVoiceOverReadsHistoryAndPlaybackSubmission" test
+
+2026-10-24 20:50:27.804 xcodebuild[14591:61367791] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+Writing result bundle at path:
+	/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/p2-focused-normal-101/result.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (3 targets)
+    Target 'FrameRelayTests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelayUITests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelay' in project 'FrameRelay' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+Build description signature: fe90db31ad7a9258794c0e7ae1bdb251
+Build description path: /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/XCBuildData/fe90db31ad7a9258794c0e7ae1bdb251.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/oyabu/dev/rep/FrameRelay/FrameRelay.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+SwiftDriver FrameRelay normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelay -Onone @/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -F /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -sdk-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_const_extract_protocols.json -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-generated-files.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-own-target-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-all-target-headers.hmap -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-project-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources-normal/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+SwiftCompile normal arm64 Compiling\ LibraryView.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Features/Library/LibraryView.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Features/Library/LibraryView.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile LibraryView.swift
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ FrameRelay (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling LibraryView.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriver\ Compilation FrameRelay normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelay -Onone @/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -F /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -sdk-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_const_extract_protocols.json -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-generated-files.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-own-target-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-all-target-headers.hmap -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-project-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources-normal/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for FrameRelay (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriver\ Compilation\ Requirements FrameRelay normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelay -Onone @/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -F /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -sdk-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_const_extract_protocols.json -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-generated-files.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-own-target-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-all-target-headers.hmap -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-project-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources-normal/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+Copy /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.swiftmodule/arm64-apple-ios-simulator.abi.json /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.abi.json (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.abi.json /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftsourceinfo (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftsourceinfo /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Ld /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib normal (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios27.0-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -F/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -filelist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.LinkFileList -install_name @rpath/FrameRelay.debug.dylib -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftmodule -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -Xlinker -no_adhoc_codesign -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib
+
+ConstructStubExecutorLinkFileList /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-ExecutorLinkFileList-normal-arm64.txt (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    construct-stub-executor-link-file-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'FrameRelay' from project 'FrameRelay')
+
+Ld /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay normal (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios27.0-simulator -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -F/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-ExecutorLinkFileList-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __entitlements -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay.app-Simulated.xcent -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __ents_der -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay.app-Simulated.xcent.der /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib -Xlinker -no_adhoc_codesign -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay
+
+ExtractAppIntentsMetadata (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name FrameRelay --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 27.0 --bundle-identifier com.oyabu.FrameRelay --output /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app --target-triple arm64-apple-ios27.0-simulator --binary-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay --dependency-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_dependency_info.dat --stringsdata-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftFileList --metadata-file-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay.DependencyMetadataFileList --static-metadata-file-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay.DependencyStaticMetadataFileList --swift-const-vals-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-24 20:50:32.724 appintentsmetadataprocessor[14633:61368172] Starting appintentsmetadataprocessor export
+2026-10-24 20:50:32.729 appintentsmetadataprocessor[14633:61368172] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist -producttype com.apple.product-type.application -genpkginfo /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/assetcatalog_generated_info.plist -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist
+
+SwiftDriver FrameRelayUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelayUITests -Onone @/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests.SwiftFileList -DDEBUG -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -sdk-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests_const_extract_protocols.json -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests-generated-files.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests-own-target-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests-all-target-headers.hmap -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests-project-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/DerivedSources-normal/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/DerivedSources/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+Ld /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests normal (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios27.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -filelist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.LinkFileList -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -bundle_loader /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay -Xlinker -object_path_lto -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftmodule -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib -Xlinker -no_adhoc_codesign -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist
+
+SwiftCompile normal arm64 Compiling\ LibraryFlowTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift (in target 'FrameRelayUITests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile LibraryFlowTests.swift
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ FrameRelayUITests (in target 'FrameRelayUITests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for FrameRelayUITests (in target 'FrameRelayUITests' from project 'FrameRelay')
+
+SwiftDriver\ Compilation\ Requirements FrameRelayUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelayUITests -Onone @/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests.SwiftFileList -DDEBUG -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -sdk-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests_const_extract_protocols.json -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests-generated-files.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests-own-target-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests-all-target-headers.hmap -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests-project-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/DerivedSources-normal/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/DerivedSources/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+Copy /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests.swiftsourceinfo (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests.swiftsourceinfo /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Copy /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests.swiftmodule/arm64-apple-ios-simulator.abi.json /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests.abi.json (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests.abi.json /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ExtractAppIntentsMetadata (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name FrameRelayTests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 27.0 --bundle-identifier com.oyabu.FrameRelayTests --output /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest --target-triple arm64-apple-ios27.0-simulator --binary-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests --dependency-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_dependency_info.dat --stringsdata-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.SwiftFileList --metadata-file-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests.DependencyMetadataFileList --static-metadata-file-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests.DependencyStaticMetadataFileList --swift-const-vals-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-24 20:50:33.187 appintentsmetadataprocessor[14639:61368216] Starting appintentsmetadataprocessor export
+2026-10-24 20:50:33.188 appintentsmetadataprocessor[14639:61368216] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+CodeSign /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest
+
+CodeSign /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib
+
+CodeSign /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib
+/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib: replacing existing signature
+
+CodeSign /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app
+
+Validate /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-validationUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app -shallow-bundle -infoplist-subpath Info.plist
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/ProductTypeInfoPlistAdditions.plist -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist
+
+SwiftDriverJobDiscovery normal arm64 Compiling LibraryFlowTests.swift (in target 'FrameRelayUITests' from project 'FrameRelay')
+
+SwiftDriver\ Compilation FrameRelayUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelayUITests -Onone @/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests.SwiftFileList -DDEBUG -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -sdk-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests_const_extract_protocols.json -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests-generated-files.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests-own-target-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests-all-target-headers.hmap -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests-project-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/DerivedSources-normal/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/DerivedSources/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+Ld /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/FrameRelayUITests normal (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios27.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -filelist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests.LinkFileList -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests.swiftmodule -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __entitlements -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests.xctest-Simulated.xcent -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __ents_der -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests.xctest-Simulated.xcent.der -Xlinker -no_adhoc_codesign -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/FrameRelayUITests
+
+ExtractAppIntentsMetadata (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name FrameRelayUITests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 27.0 --bundle-identifier com.oyabu.FrameRelayUITests --output /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest --target-triple arm64-apple-ios27.0-simulator --binary-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/FrameRelayUITests --dependency-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests_dependency_info.dat --stringsdata-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests.SwiftFileList --metadata-file-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests.DependencyMetadataFileList --static-metadata-file-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/FrameRelayUITests.DependencyStaticMetadataFileList --swift-const-vals-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/Objects-normal/arm64/FrameRelayUITests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-24 20:50:33.694 appintentsmetadataprocessor[14648:61368266] Starting appintentsmetadataprocessor export
+2026-10-24 20:50:33.695 appintentsmetadataprocessor[14648:61368266] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/FrameRelayUITests --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+CodeSign /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest
+
+CodeSign /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app
+/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app: replacing existing signature
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+2026-10-24 20:50:34.966458+0900 FrameRelayUITests-Runner[14652:61368473] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-24 20:50:37.001.
+Test Suite 'FrameRelayUITests.xctest' started at 2026-10-24 20:50:37.001.
+Test Suite 'LibraryFlowTests' started at 2026-10-24 20:50:37.001.
+Test Case '-[FrameRelayUITests.LibraryFlowTests testAccessibilityLibraryAndDetail]' started.
+    t =     0.00s Start Test at 2026-10-24 20:50:37.003
+    t =     0.02s Set Up
+    t =     0.03s Open com.oyabu.FrameRelay
+    t =     0.03s     Launch com.oyabu.FrameRelay
+2026-10-24 20:50:37.070 xcodebuild[14591:61367791] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-24 20:50:37.070 xcodebuild[14591:61367791] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.48s         Setting up automation session
+objc[14652]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.NUrxb4/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x102a04398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.NUrxb4/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x105ae8310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     3.20s         Wait for com.oyabu.FrameRelay to idle
+    t =     5.15s Waiting 10.0s for "library.refresh" Button to exist
+    t =     6.20s     Checking `Expect predicate `existsNoRetry == 1` for object "library.refresh" Button`
+    t =     6.20s         Checking existence of `"library.refresh" Button`
+    t =     7.41s Find the "library.refresh" Button
+    t =     7.47s Checking existence of `"library.loadFailure" Any`
+    t =     7.55s Checking existence of `"library.item.s16v2-cleanup" Any`
+    t =     7.58s Find the "library.item.s16v2-cleanup" Any
+    t =     7.65s Find the "library.item.s16v2-cleanup" Button
+    t =     7.69s Checking existence of `"library.itemTitle.s16v2-cleanup" StaticText`
+    t =     7.73s Find the "library.itemTitle.s16v2-cleanup" StaticText
+    t =     7.77s Find the "library.itemTitle.s16v2-cleanup" StaticText
+    t =     7.80s Added attachment named 'library-item-target-s16v2-cleanup'
+    t =     7.80s Checking existence of `"library.item.s16v2-cleanup" Any`
+    t =     7.84s Find the "library.refresh" Button
+    t =     7.87s Checking existence of `"library.loadFailure" Any`
+    t =     7.94s Find the "library.scope" Any
+    t =     7.98s Find the Target Application 'com.oyabu.FrameRelay'
+    t =     8.07s Added attachment named 'accessibility-library-before'
+    t =     8.07s Requesting snapshot of accessibility hierarchy for app with pid 14664
+    t =     8.18s Requesting snapshot of accessibility hierarchy for app with pid 14664
+    t =     8.22s Added attachment named 'accessibility-library-before-tree'
+    t =     8.22s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.action." OR identifier BEGINSWITH "library.reason." OR identifier BEGINSWITH "library.status." OR identifier BEGINSWITH "library.detailReconciliation" OR identifier BEGINSWITH "library.historyExplanation" OR identifier BEGINSWITH "library.item.s16v2-discard" OR identifier BEGINSWITH "library.submission." OR identifier BEGINSWITH "originalPlayback." OR identifier BEGINSWITH "product.capture"'
+    t =     8.25s Find the Any (Element at index 0)
+    t =     8.28s Find the "product.capture" Button
+    t =     8.31s Find the "product.capture" Button
+    t =     8.34s Find the "product.capture" Button
+    t =     8.36s Find the "product.capture" Button
+    t =     8.39s Find the Any (Element at index 1)
+    t =     8.42s Find the "library.action.transfer" Button
+    t =     8.44s Find the "library.action.transfer" Button
+    t =     8.47s Find the "library.action.transfer" Button
+    t =     8.50s Find the "library.action.transfer" Button
+    t =     8.53s Find the Any (Element at index 2)
+    t =     8.56s Find the "library.reason.transfer" StaticText
+    t =     8.58s Find the "library.reason.transfer" StaticText
+    t =     8.61s Find the "library.reason.transfer" StaticText
+    t =     8.64s Find the "library.reason.transfer" StaticText
+    t =     8.67s Find the Any (Element at index 3)
+    t =     8.69s Find the "library.action.saveToPhotos" Button
+    t =     8.72s Find the "library.action.saveToPhotos" Button
+    t =     8.75s Find the "library.action.saveToPhotos" Button
+    t =     8.78s Find the "library.action.saveToPhotos" Button
+    t =     8.80s Find the Any (Element at index 4)
+    t =     8.83s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =     8.86s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =     8.89s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =     8.92s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =     8.94s Find the Any (Element at index 5)
+    t =     8.97s Find the "library.reason.saveToPhotos" StaticText
+    t =     9.00s Find the "library.reason.saveToPhotos" StaticText
+    t =     9.03s Find the "library.reason.saveToPhotos" StaticText
+    t =     9.06s Find the "library.reason.saveToPhotos" StaticText
+    t =     9.08s Find the Any (Element at index 6)
+    t =     9.11s Find the "library.action.cleanup" Button
+    t =     9.14s Find the "library.action.cleanup" Button
+    t =     9.17s Find the "library.action.cleanup" Button
+    t =     9.20s Find the "library.action.cleanup" Button
+    t =     9.23s Find the Any (Element at index 7)
+    t =     9.25s Find the "library.reason.cleanup" StaticText
+    t =     9.28s Find the "library.reason.cleanup" StaticText
+    t =     9.31s Find the "library.reason.cleanup" StaticText
+    t =     9.34s Find the "library.reason.cleanup" StaticText
+    t =     9.37s Get all elements bound by index for: Descendants matching type NavigationBar
+    t =     9.39s Find the NavigationBar (Element at index 0)
+    t =     9.41s Find the "ライブラリ" NavigationBar
+    t =     9.44s Find the "ライブラリ" NavigationBar
+    t =     9.47s Find the "ライブラリ" NavigationBar
+    t =     9.49s Find the "ライブラリ" NavigationBar
+    t =     9.51s Get all elements bound by index for: Descendants matching type CollectionView
+    t =     9.55s Get all elements bound by index for: Descendants matching type ScrollView
+    t =     9.58s Find the ScrollView (Element at index 0)
+    t =     9.60s Find the ScrollView
+    t =     9.63s Find the ScrollView
+    t =     9.66s Find the ScrollView at {{0.0, 0.0}, {402.0, 874.0}}
+    t =     9.68s Find the ScrollView
+    t =     9.71s Added attachment named 'accessibility-library-before-candidate-frames'
+    t =    11.66s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    11.75s Added attachment named 'accessibility-library-after'
+    t =    11.75s Requesting snapshot of accessibility hierarchy for app with pid 14664
+    t =    11.87s Requesting snapshot of accessibility hierarchy for app with pid 14664
+    t =    11.91s Added attachment named 'accessibility-library-after-tree'
+    t =    11.91s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.action." OR identifier BEGINSWITH "library.reason." OR identifier BEGINSWITH "library.status." OR identifier BEGINSWITH "library.detailReconciliation" OR identifier BEGINSWITH "library.historyExplanation" OR identifier BEGINSWITH "library.item.s16v2-discard" OR identifier BEGINSWITH "library.submission." OR identifier BEGINSWITH "originalPlayback." OR identifier BEGINSWITH "product.capture"'
+    t =    11.94s Find the Any (Element at index 0)
+    t =    11.97s Find the "product.capture" Button
+    t =    12.00s Find the "product.capture" Button
+    t =    12.03s Find the "product.capture" Button
+    t =    12.05s Find the "product.capture" Button
+    t =    12.08s Find the Any (Element at index 1)
+    t =    12.11s Find the "library.action.transfer" Button
+    t =    12.14s Find the "library.action.transfer" Button
+    t =    12.17s Find the "library.action.transfer" Button
+    t =    12.19s Find the "library.action.transfer" Button
+    t =    12.22s Find the Any (Element at index 2)
+    t =    12.25s Find the "library.reason.transfer" StaticText
+    t =    12.28s Find the "library.reason.transfer" StaticText
+    t =    12.31s Find the "library.reason.transfer" StaticText
+    t =    12.33s Find the "library.reason.transfer" StaticText
+    t =    12.36s Find the Any (Element at index 3)
+    t =    12.39s Find the "library.action.saveToPhotos" Button
+    t =    12.42s Find the "library.action.saveToPhotos" Button
+    t =    12.44s Find the "library.action.saveToPhotos" Button
+    t =    12.47s Find the "library.action.saveToPhotos" Button
+    t =    12.50s Find the Any (Element at index 4)
+    t =    12.53s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    12.55s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    12.58s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    12.61s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    12.64s Find the Any (Element at index 5)
+    t =    12.67s Find the "library.reason.saveToPhotos" StaticText
+    t =    12.69s Find the "library.reason.saveToPhotos" StaticText
+    t =    12.72s Find the "library.reason.saveToPhotos" StaticText
+    t =    12.75s Find the "library.reason.saveToPhotos" StaticText
+    t =    12.78s Find the Any (Element at index 6)
+    t =    12.81s Find the "library.action.cleanup" Button
+    t =    12.83s Find the "library.action.cleanup" Button
+    t =    12.86s Find the "library.action.cleanup" Button
+    t =    12.89s Find the "library.action.cleanup" Button
+    t =    12.92s Find the Any (Element at index 7)
+    t =    12.95s Find the "library.reason.cleanup" StaticText
+    t =    12.97s Find the "library.reason.cleanup" StaticText
+    t =    13.00s Find the "library.reason.cleanup" StaticText
+    t =    13.03s Find the "library.reason.cleanup" StaticText
+    t =    13.06s Get all elements bound by index for: Descendants matching type NavigationBar
+    t =    13.09s Find the NavigationBar (Element at index 0)
+    t =    13.11s Find the "ライブラリ" NavigationBar
+    t =    13.14s Find the "ライブラリ" NavigationBar
+    t =    13.16s Find the "ライブラリ" NavigationBar
+    t =    13.19s Find the "ライブラリ" NavigationBar
+    t =    13.21s Get all elements bound by index for: Descendants matching type CollectionView
+    t =    13.24s Get all elements bound by index for: Descendants matching type ScrollView
+    t =    13.26s Find the ScrollView (Element at index 0)
+    t =    13.29s Find the ScrollView
+    t =    13.32s Find the ScrollView
+    t =    13.34s Find the ScrollView at {{0.0, 0.0}, {402.0, 874.0}}
+    t =    13.37s Find the ScrollView
+    t =    13.40s Added attachment named 'accessibility-library-after-candidate-frames'
+    t =    13.40s Checking existence of `"library.item.s16v2-original" Any`
+    t =    13.43s Find the "library.item.s16v2-original" Any
+    t =    13.48s Find the "library.item.s16v2-original" Button
+    t =    13.51s Added attachment named 'library-item-target-s16v2-original'
+    t =    13.51s Tap "library.item.s16v2-original" Button
+    t =    13.51s     Wait for com.oyabu.FrameRelay to idle
+    t =    13.52s     Find the "library.item.s16v2-original" Button
+    t =    13.55s     Check for interrupting elements affecting "library.item.s16v2-original" Button
+    t =    13.59s     Synthesize event
+    t =    13.88s     Wait for com.oyabu.FrameRelay to idle
+    t =    14.26s Waiting 5.0s for "library.detailIdentity" Any to exist
+    t =    15.31s     Checking `Expect predicate `existsNoRetry == 1` for object "library.detailIdentity" Any`
+    t =    15.31s         Checking existence of `"library.detailIdentity" Any`
+    t =    15.36s Find the "library.detailIdentity" Any
+    t =    15.39s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    15.47s Added attachment named 'accessibility-detail-top-before'
+    t =    15.47s Requesting snapshot of accessibility hierarchy for app with pid 14664
+    t =    15.56s Requesting snapshot of accessibility hierarchy for app with pid 14664
+    t =    15.58s Added attachment named 'accessibility-detail-top-before-tree'
+    t =    15.58s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.action." OR identifier BEGINSWITH "library.reason." OR identifier BEGINSWITH "library.status." OR identifier BEGINSWITH "library.detailReconciliation" OR identifier BEGINSWITH "library.historyExplanation" OR identifier BEGINSWITH "library.item.s16v2-discard" OR identifier BEGINSWITH "library.submission." OR identifier BEGINSWITH "originalPlayback." OR identifier BEGINSWITH "product.capture"'
+    t =    15.60s Find the Any (Element at index 0)
+    t =    15.62s Find the "library.status.save" Other
+    t =    15.64s Find the "library.status.save" Other
+    t =    15.65s Find the "library.status.save" Other
+    t =    15.67s Find the "library.status.save" Other
+    t =    15.69s Find the Any (Element at index 1)
+    t =    15.70s Find the "library.status.original" Other
+    t =    15.72s Find the "library.status.original" Other
+    t =    15.74s Find the "library.status.original" Other
+    t =    15.76s Find the "library.status.original" Other
+    t =    15.77s Find the Any (Element at index 2)
+    t =    15.79s Find the "library.status.transfer" Other
+    t =    15.81s Find the "library.status.transfer" Other
+    t =    15.83s Find the "library.status.transfer" Other
+    t =    15.84s Find the "library.status.transfer" Other
+    t =    15.86s Find the Any (Element at index 3)
+    t =    15.88s Find the "library.status.verification" Other
+    t =    15.89s Find the "library.status.verification" Other
+    t =    15.91s Find the "library.status.verification" Other
+    t =    15.93s Find the "library.status.verification" Other
+    t =    15.95s Find the Any (Element at index 4)
+    t =    15.97s Find the "library.status.publication" Other
+    t =    15.98s Find the "library.status.publication" Other
+    t =    16.00s Find the "library.status.publication" Other
+    t =    16.02s Find the "library.status.publication" Other
+    t =    16.04s Find the Any (Element at index 5)
+    t =    16.05s Find the "library.status.retrieval" Other
+    t =    16.07s Find the "library.status.retrieval" Other
+    t =    16.09s Find the "library.status.retrieval" Other
+    t =    16.11s Find the "library.status.retrieval" Other
+    t =    16.12s Find the Any (Element at index 6)
+    t =    16.14s Find the "library.status.confirmation" Other
+    t =    16.16s Find the "library.status.confirmation" Other
+    t =    16.18s Find the "library.status.confirmation" Other
+    t =    16.19s Find the "library.status.confirmation" Other
+    t =    16.21s Find the Any (Element at index 7)
+    t =    16.23s Find the "library.status.invalidation" Other
+    t =    16.24s Find the "library.status.invalidation" Other
+    t =    16.26s Find the "library.status.invalidation" Other
+    t =    16.28s Find the "library.status.invalidation" Other
+    t =    16.29s Find the Any (Element at index 8)
+    t =    16.31s Find the "library.status.photos" Other
+    t =    16.33s Find the "library.status.photos" Other
+    t =    16.35s Find the "library.status.photos" Other
+    t =    16.37s Find the "library.status.photos" Other
+    t =    16.38s Find the Any (Element at index 9)
+    t =    16.40s Find the "library.status.photoPresence" Other
+    t =    16.42s Find the "library.status.photoPresence" Other
+    t =    16.43s Find the "library.status.photoPresence" Other
+    t =    16.45s Find the "library.status.photoPresence" Other
+    t =    16.47s Find the Any (Element at index 10)
+    t =    16.49s Find the "library.status.removal" Other
+    t =    16.50s Find the "library.status.removal" Other
+    t =    16.52s Find the "library.status.removal" Other
+    t =    16.54s Find the "library.status.removal" Other
+    t =    16.56s Find the Any (Element at index 11)
+    t =    16.57s Find the "library.detailReconciliationHeading" StaticText
+    t =    16.59s Find the "library.detailReconciliationHeading" StaticText
+    t =    16.61s Find the "library.detailReconciliationHeading" StaticText
+    t =    16.63s Find the "library.detailReconciliationHeading" StaticText
+    t =    16.64s Find the Any (Element at index 12)
+    t =    16.66s Find the "library.detailReconciliationExplanation" StaticText
+    t =    16.68s Find the "library.detailReconciliationExplanation" StaticText
+    t =    16.70s Find the "library.detailReconciliationExplanation" StaticText
+    t =    16.72s Find the "library.detailReconciliationExplanation" StaticText
+    t =    16.74s Find the Any (Element at index 13)
+    t =    16.76s Find the "library.action.saveToPhotos" Button
+    t =    16.80s Find the "library.action.saveToPhotos" Button
+    t =    16.83s Find the "library.action.saveToPhotos" Button
+    t =    16.84s Find the "library.action.saveToPhotos" Button
+    t =    16.86s Find the Any (Element at index 14)
+    t =    16.88s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    16.90s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    16.92s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    16.94s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    16.96s Find the Any (Element at index 15)
+    t =    16.97s Find the "library.reason.saveToPhotos" StaticText
+    t =    16.99s Find the "library.reason.saveToPhotos" StaticText
+    t =    17.01s Find the "library.reason.saveToPhotos" StaticText
+    t =    17.03s Find the "library.reason.saveToPhotos" StaticText
+    t =    17.05s Find the Any (Element at index 16)
+    t =    17.06s Find the "library.action.playOriginal" Button
+    t =    17.08s Find the "library.action.playOriginal" Button
+    t =    17.10s Find the "library.action.playOriginal" Button
+    t =    17.12s Find the "library.action.playOriginal" Button
+    t =    17.14s Find the Any (Element at index 17)
+    t =    17.16s Find the "library.action.playRendition" Button
+    t =    17.17s Find the "library.action.playRendition" Button
+    t =    17.19s Find the "library.action.playRendition" Button
+    t =    17.21s Find the "library.action.playRendition" Button
+    t =    17.23s Find the Any (Element at index 18)
+    t =    17.25s Find the "library.reason.playRendition" StaticText
+    t =    17.26s Find the "library.reason.playRendition" StaticText
+    t =    17.28s Find the "library.reason.playRendition" StaticText
+    t =    17.30s Find the "library.reason.playRendition" StaticText
+    t =    17.32s Find the Any (Element at index 19)
+    t =    17.34s Find the "library.action.confirmRendition" Button
+    t =    17.35s Find the "library.action.confirmRendition" Button
+    t =    17.37s Find the "library.action.confirmRendition" Button
+    t =    17.39s Find the "library.action.confirmRendition" Button
+    t =    17.41s Find the Any (Element at index 20)
+    t =    17.43s Find the "library.reason.confirmRendition" StaticText
+    t =    17.45s Find the "library.reason.confirmRendition" StaticText
+    t =    17.47s Find the "library.reason.confirmRendition" StaticText
+    t =    17.49s Find the "library.reason.confirmRendition" StaticText
+    t =    17.51s Find the Any (Element at index 21)
+    t =    17.52s Find the "library.action.discard" Button
+    t =    17.54s Find the "library.action.discard" Button
+    t =    17.56s Find the "library.action.discard" Button
+    t =    17.58s Find the "library.action.discard" Button
+    t =    17.60s Get all elements bound by index for: Descendants matching type NavigationBar
+    t =    17.61s Find the NavigationBar (Element at index 0)
+    t =    17.63s Find the "動画の詳細" NavigationBar
+    t =    17.64s Find the "動画の詳細" NavigationBar
+    t =    17.66s Find the "動画の詳細" NavigationBar
+    t =    17.67s Find the "動画の詳細" NavigationBar
+    t =    17.69s Get all elements bound by index for: Descendants matching type CollectionView
+    t =    17.70s Get all elements bound by index for: Descendants matching type ScrollView
+    t =    17.71s Find the ScrollView (Element at index 0)
+    t =    17.73s Find the ScrollView
+    t =    17.74s Find the ScrollView
+    t =    17.76s Find the ScrollView at {{0.0, 0.0}, {402.0, 874.0}}
+    t =    17.77s Find the ScrollView
+    t =    17.78s Added attachment named 'accessibility-detail-top-before-candidate-frames'
+    t =    19.59s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    19.67s Added attachment named 'accessibility-detail-top-after'
+    t =    19.67s Requesting snapshot of accessibility hierarchy for app with pid 14664
+    t =    19.76s Requesting snapshot of accessibility hierarchy for app with pid 14664
+    t =    19.79s Added attachment named 'accessibility-detail-top-after-tree'
+    t =    19.79s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.action." OR identifier BEGINSWITH "library.reason." OR identifier BEGINSWITH "library.status." OR identifier BEGINSWITH "library.detailReconciliation" OR identifier BEGINSWITH "library.historyExplanation" OR identifier BEGINSWITH "library.item.s16v2-discard" OR identifier BEGINSWITH "library.submission." OR identifier BEGINSWITH "originalPlayback." OR identifier BEGINSWITH "product.capture"'
+    t =    19.80s Find the Any (Element at index 0)
+    t =    19.82s Find the "library.status.save" Other
+    t =    19.84s Find the "library.status.save" Other
+    t =    19.86s Find the "library.status.save" Other
+    t =    19.87s Find the "library.status.save" Other
+    t =    19.89s Find the Any (Element at index 1)
+    t =    19.90s Find the "library.status.original" Other
+    t =    19.92s Find the "library.status.original" Other
+    t =    19.94s Find the "library.status.original" Other
+    t =    19.96s Find the "library.status.original" Other
+    t =    19.97s Find the Any (Element at index 2)
+    t =    19.99s Find the "library.status.transfer" Other
+    t =    20.00s Find the "library.status.transfer" Other
+    t =    20.02s Find the "library.status.transfer" Other
+    t =    20.04s Find the "library.status.transfer" Other
+    t =    20.06s Find the Any (Element at index 3)
+    t =    20.07s Find the "library.status.verification" Other
+    t =    20.09s Find the "library.status.verification" Other
+    t =    20.11s Find the "library.status.verification" Other
+    t =    20.12s Find the "library.status.verification" Other
+    t =    20.14s Find the Any (Element at index 4)
+    t =    20.16s Find the "library.status.publication" Other
+    t =    20.17s Find the "library.status.publication" Other
+    t =    20.19s Find the "library.status.publication" Other
+    t =    20.21s Find the "library.status.publication" Other
+    t =    20.22s Find the Any (Element at index 5)
+    t =    20.24s Find the "library.status.retrieval" Other
+    t =    20.26s Find the "library.status.retrieval" Other
+    t =    20.28s Find the "library.status.retrieval" Other
+    t =    20.29s Find the "library.status.retrieval" Other
+    t =    20.31s Find the Any (Element at index 6)
+    t =    20.33s Find the "library.status.confirmation" Other
+    t =    20.34s Find the "library.status.confirmation" Other
+    t =    20.36s Find the "library.status.confirmation" Other
+    t =    20.38s Find the "library.status.confirmation" Other
+    t =    20.40s Find the Any (Element at index 7)
+    t =    20.41s Find the "library.status.invalidation" Other
+    t =    20.43s Find the "library.status.invalidation" Other
+    t =    20.45s Find the "library.status.invalidation" Other
+    t =    20.47s Find the "library.status.invalidation" Other
+    t =    20.48s Find the Any (Element at index 8)
+    t =    20.50s Find the "library.status.photos" Other
+    t =    20.52s Find the "library.status.photos" Other
+    t =    20.54s Find the "library.status.photos" Other
+    t =    20.55s Find the "library.status.photos" Other
+    t =    20.57s Find the Any (Element at index 9)
+    t =    20.59s Find the "library.status.photoPresence" Other
+    t =    20.60s Find the "library.status.photoPresence" Other
+    t =    20.62s Find the "library.status.photoPresence" Other
+    t =    20.64s Find the "library.status.photoPresence" Other
+    t =    20.66s Find the Any (Element at index 10)
+    t =    20.67s Find the "library.status.removal" Other
+    t =    20.69s Find the "library.status.removal" Other
+    t =    20.71s Find the "library.status.removal" Other
+    t =    20.73s Find the "library.status.removal" Other
+    t =    20.74s Find the Any (Element at index 11)
+    t =    20.76s Find the "library.detailReconciliationHeading" StaticText
+    t =    20.78s Find the "library.detailReconciliationHeading" StaticText
+    t =    20.80s Find the "library.detailReconciliationHeading" StaticText
+    t =    20.82s Find the "library.detailReconciliationHeading" StaticText
+    t =    20.83s Find the Any (Element at index 12)
+    t =    20.85s Find the "library.detailReconciliationExplanation" StaticText
+    t =    20.87s Find the "library.detailReconciliationExplanation" StaticText
+    t =    20.89s Find the "library.detailReconciliationExplanation" StaticText
+    t =    20.90s Find the "library.detailReconciliationExplanation" StaticText
+    t =    20.92s Find the Any (Element at index 13)
+    t =    20.94s Find the "library.action.saveToPhotos" Button
+    t =    20.95s Find the "library.action.saveToPhotos" Button
+    t =    20.97s Find the "library.action.saveToPhotos" Button
+    t =    20.99s Find the "library.action.saveToPhotos" Button
+    t =    21.01s Find the Any (Element at index 14)
+    t =    21.03s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    21.04s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    21.06s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    21.08s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    21.10s Find the Any (Element at index 15)
+    t =    21.11s Find the "library.reason.saveToPhotos" StaticText
+    t =    21.13s Find the "library.reason.saveToPhotos" StaticText
+    t =    21.15s Find the "library.reason.saveToPhotos" StaticText
+    t =    21.18s Find the "library.reason.saveToPhotos" StaticText
+    t =    21.19s Find the Any (Element at index 16)
+    t =    21.21s Find the "library.action.playOriginal" Button
+    t =    21.23s Find the "library.action.playOriginal" Button
+    t =    21.25s Find the "library.action.playOriginal" Button
+    t =    21.27s Find the "library.action.playOriginal" Button
+    t =    21.28s Find the Any (Element at index 17)
+    t =    21.30s Find the "library.action.playRendition" Button
+    t =    21.32s Find the "library.action.playRendition" Button
+    t =    21.34s Find the "library.action.playRendition" Button
+    t =    21.36s Find the "library.action.playRendition" Button
+    t =    21.38s Find the Any (Element at index 18)
+    t =    21.39s Find the "library.reason.playRendition" StaticText
+    t =    21.41s Find the "library.reason.playRendition" StaticText
+    t =    21.43s Find the "library.reason.playRendition" StaticText
+    t =    21.45s Find the "library.reason.playRendition" StaticText
+    t =    21.47s Find the Any (Element at index 19)
+    t =    21.48s Find the "library.action.confirmRendition" Button
+    t =    21.50s Find the "library.action.confirmRendition" Button
+    t =    21.52s Find the "library.action.confirmRendition" Button
+    t =    21.54s Find the "library.action.confirmRendition" Button
+    t =    21.56s Find the Any (Element at index 20)
+    t =    21.58s Find the "library.reason.confirmRendition" StaticText
+    t =    21.59s Find the "library.reason.confirmRendition" StaticText
+    t =    21.61s Find the "library.reason.confirmRendition" StaticText
+    t =    21.63s Find the "library.reason.confirmRendition" StaticText
+    t =    21.65s Find the Any (Element at index 21)
+    t =    21.67s Find the "library.action.discard" Button
+    t =    21.69s Find the "library.action.discard" Button
+    t =    21.71s Find the "library.action.discard" Button
+    t =    21.73s Find the "library.action.discard" Button
+    t =    21.74s Get all elements bound by index for: Descendants matching type NavigationBar
+    t =    21.76s Find the NavigationBar (Element at index 0)
+    t =    21.77s Find the "動画の詳細" NavigationBar
+    t =    21.79s Find the "動画の詳細" NavigationBar
+    t =    21.80s Find the "動画の詳細" NavigationBar
+    t =    21.82s Find the "動画の詳細" NavigationBar
+    t =    21.83s Get all elements bound by index for: Descendants matching type CollectionView
+    t =    21.84s Get all elements bound by index for: Descendants matching type ScrollView
+    t =    21.86s Find the ScrollView (Element at index 0)
+    t =    21.87s Find the ScrollView
+    t =    21.89s Find the ScrollView
+    t =    21.90s Find the ScrollView at {{0.0, 0.0}, {402.0, 874.0}}
+    t =    21.92s Find the ScrollView
+    t =    21.93s Added attachment named 'accessibility-detail-top-after-candidate-frames'
+    t =    21.93s Checking existence of `"library.action.playOriginal" Button`
+    t =    21.95s Find the "library.action.playOriginal" Button
+    t =    21.97s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    21.97s     Wait for com.oyabu.FrameRelay to idle
+    t =    21.98s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    21.99s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    22.01s     Synthesize event
+    t =    22.43s     Wait for com.oyabu.FrameRelay to idle
+    t =    24.53s Checking existence of `"library.action.playOriginal" Button`
+    t =    24.58s Find the "library.action.playOriginal" Button
+    t =    24.62s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    24.62s     Wait for com.oyabu.FrameRelay to idle
+    t =    24.62s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    24.65s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    24.69s     Synthesize event
+    t =    25.13s     Wait for com.oyabu.FrameRelay to idle
+    t =    26.79s Checking existence of `"library.action.playOriginal" Button`
+    t =    26.82s Find the "library.action.playOriginal" Button
+    t =    26.85s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    26.94s Added attachment named 'accessibility-detail-actions-before'
+    t =    26.94s Requesting snapshot of accessibility hierarchy for app with pid 14664
+    t =    27.00s Requesting snapshot of accessibility hierarchy for app with pid 14664
+    t =    27.05s Added attachment named 'accessibility-detail-actions-before-tree'
+    t =    27.05s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.action." OR identifier BEGINSWITH "library.reason." OR identifier BEGINSWITH "library.status." OR identifier BEGINSWITH "library.detailReconciliation" OR identifier BEGINSWITH "library.historyExplanation" OR identifier BEGINSWITH "library.item.s16v2-discard" OR identifier BEGINSWITH "library.submission." OR identifier BEGINSWITH "originalPlayback." OR identifier BEGINSWITH "product.capture"'
+    t =    27.07s Find the Any (Element at index 0)
+    t =    27.09s Find the "library.status.save" Other
+    t =    27.11s Find the "library.status.save" Other
+    t =    27.12s Find the "library.status.save" Other
+    t =    27.14s Find the "library.status.save" Other
+    t =    27.16s Find the Any (Element at index 1)
+    t =    27.17s Find the "library.status.original" Other
+    t =    27.19s Find the "library.status.original" Other
+    t =    27.21s Find the "library.status.original" Other
+    t =    27.23s Find the "library.status.original" Other
+    t =    27.24s Find the Any (Element at index 2)
+    t =    27.26s Find the "library.status.transfer" Other
+    t =    27.28s Find the "library.status.transfer" Other
+    t =    27.30s Find the "library.status.transfer" Other
+    t =    27.31s Find the "library.status.transfer" Other
+    t =    27.33s Find the Any (Element at index 3)
+    t =    27.35s Find the "library.status.verification" Other
+    t =    27.37s Find the "library.status.verification" Other
+    t =    27.38s Find the "library.status.verification" Other
+    t =    27.40s Find the "library.status.verification" Other
+    t =    27.42s Find the Any (Element at index 4)
+    t =    27.44s Find the "library.status.publication" Other
+    t =    27.45s Find the "library.status.publication" Other
+    t =    27.47s Find the "library.status.publication" Other
+    t =    27.49s Find the "library.status.publication" Other
+    t =    27.51s Find the Any (Element at index 5)
+    t =    27.52s Find the "library.status.retrieval" Other
+    t =    27.54s Find the "library.status.retrieval" Other
+    t =    27.56s Find the "library.status.retrieval" Other
+    t =    27.58s Find the "library.status.retrieval" Other
+    t =    27.59s Find the Any (Element at index 6)
+    t =    27.61s Find the "library.status.confirmation" Other
+    t =    27.63s Find the "library.status.confirmation" Other
+    t =    27.65s Find the "library.status.confirmation" Other
+    t =    27.67s Find the "library.status.confirmation" Other
+    t =    27.68s Find the Any (Element at index 7)
+    t =    27.70s Find the "library.status.invalidation" Other
+    t =    27.72s Find the "library.status.invalidation" Other
+    t =    27.74s Find the "library.status.invalidation" Other
+    t =    27.75s Find the "library.status.invalidation" Other
+    t =    27.77s Find the Any (Element at index 8)
+    t =    27.79s Find the "library.status.photos" Other
+    t =    27.81s Find the "library.status.photos" Other
+    t =    27.83s Find the "library.status.photos" Other
+    t =    27.84s Find the "library.status.photos" Other
+    t =    27.86s Find the Any (Element at index 9)
+    t =    27.88s Find the "library.status.photoPresence" Other
+    t =    27.90s Find the "library.status.photoPresence" Other
+    t =    27.92s Find the "library.status.photoPresence" Other
+    t =    27.94s Find the "library.status.photoPresence" Other
+    t =    27.95s Find the Any (Element at index 10)
+    t =    27.97s Find the "library.status.removal" Other
+    t =    27.99s Find the "library.status.removal" Other
+    t =    28.01s Find the "library.status.removal" Other
+    t =    28.03s Find the "library.status.removal" Other
+    t =    28.05s Find the Any (Element at index 11)
+    t =    28.07s Find the "library.detailReconciliationHeading" StaticText
+    t =    28.08s Find the "library.detailReconciliationHeading" StaticText
+    t =    28.10s Find the "library.detailReconciliationHeading" StaticText
+    t =    28.12s Find the "library.detailReconciliationHeading" StaticText
+    t =    28.14s Find the Any (Element at index 12)
+    t =    28.16s Find the "library.detailReconciliationExplanation" StaticText
+    t =    28.17s Find the "library.detailReconciliationExplanation" StaticText
+    t =    28.19s Find the "library.detailReconciliationExplanation" StaticText
+    t =    28.21s Find the "library.detailReconciliationExplanation" StaticText
+    t =    28.23s Find the Any (Element at index 13)
+    t =    28.25s Find the "library.action.saveToPhotos" Button
+    t =    28.26s Find the "library.action.saveToPhotos" Button
+    t =    28.28s Find the "library.action.saveToPhotos" Button
+    t =    28.30s Find the "library.action.saveToPhotos" Button
+    t =    28.32s Find the Any (Element at index 14)
+    t =    28.34s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    28.36s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    28.38s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    28.39s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    28.41s Find the Any (Element at index 15)
+    t =    28.43s Find the "library.reason.saveToPhotos" StaticText
+    t =    28.45s Find the "library.reason.saveToPhotos" StaticText
+    t =    28.47s Find the "library.reason.saveToPhotos" StaticText
+    t =    28.49s Find the "library.reason.saveToPhotos" StaticText
+    t =    28.50s Find the Any (Element at index 16)
+    t =    28.52s Find the "library.action.playOriginal" Button
+    t =    28.54s Find the "library.action.playOriginal" Button
+    t =    28.56s Find the "library.action.playOriginal" Button
+    t =    28.58s Find the "library.action.playOriginal" Button
+    t =    28.60s Find the Any (Element at index 17)
+    t =    28.62s Find the "library.action.playRendition" Button
+    t =    28.63s Find the "library.action.playRendition" Button
+    t =    28.65s Find the "library.action.playRendition" Button
+    t =    28.67s Find the "library.action.playRendition" Button
+    t =    28.69s Find the Any (Element at index 18)
+    t =    28.71s Find the "library.reason.playRendition" StaticText
+    t =    28.73s Find the "library.reason.playRendition" StaticText
+    t =    28.75s Find the "library.reason.playRendition" StaticText
+    t =    28.77s Find the "library.reason.playRendition" StaticText
+    t =    28.78s Find the Any (Element at index 19)
+    t =    28.80s Find the "library.action.confirmRendition" Button
+    t =    28.82s Find the "library.action.confirmRendition" Button
+    t =    28.84s Find the "library.action.confirmRendition" Button
+    t =    28.86s Find the "library.action.confirmRendition" Button
+    t =    28.88s Find the Any (Element at index 20)
+    t =    28.91s Find the "library.reason.confirmRendition" StaticText
+    t =    28.93s Find the "library.reason.confirmRendition" StaticText
+    t =    28.95s Find the "library.reason.confirmRendition" StaticText
+    t =    28.98s Find the "library.reason.confirmRendition" StaticText
+    t =    29.00s Find the Any (Element at index 21)
+    t =    29.02s Find the "library.action.discard" Button
+    t =    29.04s Find the "library.action.discard" Button
+    t =    29.06s Find the "library.action.discard" Button
+    t =    29.08s Find the "library.action.discard" Button
+    t =    29.10s Get all elements bound by index for: Descendants matching type NavigationBar
+    t =    29.11s Find the NavigationBar (Element at index 0)
+    t =    29.13s Find the "動画の詳細" NavigationBar
+    t =    29.14s Find the "動画の詳細" NavigationBar
+    t =    29.16s Find the "動画の詳細" NavigationBar
+    t =    29.17s Find the "動画の詳細" NavigationBar
+    t =    29.19s Get all elements bound by index for: Descendants matching type CollectionView
+    t =    29.20s Get all elements bound by index for: Descendants matching type ScrollView
+    t =    29.22s Find the ScrollView (Element at index 0)
+    t =    29.24s Find the ScrollView
+    t =    29.25s Find the ScrollView
+    t =    29.27s Find the ScrollView at {{0.0, 0.0}, {402.0, 874.0}}
+    t =    29.29s Find the ScrollView
+    t =    29.30s Added attachment named 'accessibility-detail-actions-before-candidate-frames'
+    t =    31.17s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    31.25s Added attachment named 'accessibility-detail-actions-after'
+    t =    31.25s Requesting snapshot of accessibility hierarchy for app with pid 14664
+    t =    31.32s Requesting snapshot of accessibility hierarchy for app with pid 14664
+    t =    31.34s Added attachment named 'accessibility-detail-actions-after-tree'
+    t =    31.34s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.action." OR identifier BEGINSWITH "library.reason." OR identifier BEGINSWITH "library.status." OR identifier BEGINSWITH "library.detailReconciliation" OR identifier BEGINSWITH "library.historyExplanation" OR identifier BEGINSWITH "library.item.s16v2-discard" OR identifier BEGINSWITH "library.submission." OR identifier BEGINSWITH "originalPlayback." OR identifier BEGINSWITH "product.capture"'
+    t =    31.36s Find the Any (Element at index 0)
+    t =    31.40s Find the "library.status.save" Other
+    t =    31.42s Find the "library.status.save" Other
+    t =    31.44s Find the "library.status.save" Other
+    t =    31.46s Find the "library.status.save" Other
+    t =    31.47s Find the Any (Element at index 1)
+    t =    31.49s Find the "library.status.original" Other
+    t =    31.51s Find the "library.status.original" Other
+    t =    31.53s Find the "library.status.original" Other
+    t =    31.54s Find the "library.status.original" Other
+    t =    31.56s Find the Any (Element at index 2)
+    t =    31.58s Find the "library.status.transfer" Other
+    t =    31.60s Find the "library.status.transfer" Other
+    t =    31.61s Find the "library.status.transfer" Other
+    t =    31.63s Find the "library.status.transfer" Other
+    t =    31.65s Find the Any (Element at index 3)
+    t =    31.66s Find the "library.status.verification" Other
+    t =    31.68s Find the "library.status.verification" Other
+    t =    31.70s Find the "library.status.verification" Other
+    t =    31.72s Find the "library.status.verification" Other
+    t =    31.73s Find the Any (Element at index 4)
+    t =    31.75s Find the "library.status.publication" Other
+    t =    31.77s Find the "library.status.publication" Other
+    t =    31.79s Find the "library.status.publication" Other
+    t =    31.81s Find the "library.status.publication" Other
+    t =    31.82s Find the Any (Element at index 5)
+    t =    31.84s Find the "library.status.retrieval" Other
+    t =    31.86s Find the "library.status.retrieval" Other
+    t =    31.87s Find the "library.status.retrieval" Other
+    t =    31.89s Find the "library.status.retrieval" Other
+    t =    31.91s Find the Any (Element at index 6)
+    t =    31.93s Find the "library.status.confirmation" Other
+    t =    31.94s Find the "library.status.confirmation" Other
+    t =    31.96s Find the "library.status.confirmation" Other
+    t =    31.98s Find the "library.status.confirmation" Other
+    t =    32.00s Find the Any (Element at index 7)
+    t =    32.01s Find the "library.status.invalidation" Other
+    t =    32.03s Find the "library.status.invalidation" Other
+    t =    32.05s Find the "library.status.invalidation" Other
+    t =    32.07s Find the "library.status.invalidation" Other
+    t =    32.08s Find the Any (Element at index 8)
+    t =    32.10s Find the "library.status.photos" Other
+    t =    32.12s Find the "library.status.photos" Other
+    t =    32.14s Find the "library.status.photos" Other
+    t =    32.16s Find the "library.status.photos" Other
+    t =    32.17s Find the Any (Element at index 9)
+    t =    32.19s Find the "library.status.photoPresence" Other
+    t =    32.21s Find the "library.status.photoPresence" Other
+    t =    32.23s Find the "library.status.photoPresence" Other
+    t =    32.25s Find the "library.status.photoPresence" Other
+    t =    32.27s Find the Any (Element at index 10)
+    t =    32.28s Find the "library.status.removal" Other
+    t =    32.30s Find the "library.status.removal" Other
+    t =    32.32s Find the "library.status.removal" Other
+    t =    32.34s Find the "library.status.removal" Other
+    t =    32.36s Find the Any (Element at index 11)
+    t =    32.37s Find the "library.detailReconciliationHeading" StaticText
+    t =    32.39s Find the "library.detailReconciliationHeading" StaticText
+    t =    32.41s Find the "library.detailReconciliationHeading" StaticText
+    t =    32.43s Find the "library.detailReconciliationHeading" StaticText
+    t =    32.45s Find the Any (Element at index 12)
+    t =    32.47s Find the "library.detailReconciliationExplanation" StaticText
+    t =    32.48s Find the "library.detailReconciliationExplanation" StaticText
+    t =    32.51s Find the "library.detailReconciliationExplanation" StaticText
+    t =    32.52s Find the "library.detailReconciliationExplanation" StaticText
+    t =    32.54s Find the Any (Element at index 13)
+    t =    32.56s Find the "library.action.saveToPhotos" Button
+    t =    32.58s Find the "library.action.saveToPhotos" Button
+    t =    32.60s Find the "library.action.saveToPhotos" Button
+    t =    32.62s Find the "library.action.saveToPhotos" Button
+    t =    32.63s Find the Any (Element at index 14)
+    t =    32.65s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    32.67s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    32.69s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    32.71s Find the "library.action.saveToPhotos.explanation" StaticText
+    t =    32.73s Find the Any (Element at index 15)
+    t =    32.75s Find the "library.reason.saveToPhotos" StaticText
+    t =    32.76s Find the "library.reason.saveToPhotos" StaticText
+    t =    32.79s Find the "library.reason.saveToPhotos" StaticText
+    t =    32.80s Find the "library.reason.saveToPhotos" StaticText
+    t =    32.82s Find the Any (Element at index 16)
+    t =    32.84s Find the "library.action.playOriginal" Button
+    t =    32.86s Find the "library.action.playOriginal" Button
+    t =    32.88s Find the "library.action.playOriginal" Button
+    t =    32.90s Find the "library.action.playOriginal" Button
+    t =    32.91s Find the Any (Element at index 17)
+    t =    32.93s Find the "library.action.playRendition" Button
+    t =    32.95s Find the "library.action.playRendition" Button
+    t =    32.97s Find the "library.action.playRendition" Button
+    t =    32.99s Find the "library.action.playRendition" Button
+    t =    33.01s Find the Any (Element at index 18)
+    t =    33.03s Find the "library.reason.playRendition" StaticText
+    t =    33.05s Find the "library.reason.playRendition" StaticText
+    t =    33.07s Find the "library.reason.playRendition" StaticText
+    t =    33.09s Find the "library.reason.playRendition" StaticText
+    t =    33.11s Find the Any (Element at index 19)
+    t =    33.13s Find the "library.action.confirmRendition" Button
+    t =    33.14s Find the "library.action.confirmRendition" Button
+    t =    33.17s Find the "library.action.confirmRendition" Button
+    t =    33.19s Find the "library.action.confirmRendition" Button
+    t =    33.20s Find the Any (Element at index 20)
+    t =    33.22s Find the "library.reason.confirmRendition" StaticText
+    t =    33.24s Find the "library.reason.confirmRendition" StaticText
+    t =    33.26s Find the "library.reason.confirmRendition" StaticText
+    t =    33.28s Find the "library.reason.confirmRendition" StaticText
+    t =    33.31s Find the Any (Element at index 21)
+    t =    33.33s Find the "library.action.discard" Button
+    t =    33.35s Find the "library.action.discard" Button
+    t =    33.37s Find the "library.action.discard" Button
+    t =    33.39s Find the "library.action.discard" Button
+    t =    33.41s Get all elements bound by index for: Descendants matching type NavigationBar
+    t =    33.42s Find the NavigationBar (Element at index 0)
+    t =    33.43s Find the "動画の詳細" NavigationBar
+    t =    33.45s Find the "動画の詳細" NavigationBar
+    t =    33.47s Find the "動画の詳細" NavigationBar
+    t =    33.48s Find the "動画の詳細" NavigationBar
+    t =    33.50s Get all elements bound by index for: Descendants matching type CollectionView
+    t =    33.51s Get all elements bound by index for: Descendants matching type ScrollView
+    t =    33.52s Find the ScrollView (Element at index 0)
+    t =    33.54s Find the ScrollView
+    t =    33.55s Find the ScrollView
+    t =    33.57s Find the ScrollView at {{0.0, 0.0}, {402.0, 874.0}}
+    t =    33.59s Find the ScrollView
+    t =    33.60s Added attachment named 'accessibility-detail-actions-after-candidate-frames'
+    t =    33.61s Tear Down
+    t =    33.61s     Waiting 2.0s for "originalPlayback.close" Button to exist
+    t =    34.66s         Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.close" Button`
+    t =    34.66s             Checking existence of `"originalPlayback.close" Button`
+    t =    34.70s             Capturing element debug description
+    t =    35.62s         Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.close" Button`
+    t =    35.62s             Checking existence of `"originalPlayback.close" Button`
+    t =    35.65s             Capturing element debug description
+    t =    35.66s         Checking existence of `"originalPlayback.close" Button`
+    t =    35.68s     Collecting debug information to assist test failure triage
+    t =    35.68s         Requesting snapshot of accessibility hierarchy for app with pid 14664
+Test Case '-[FrameRelayUITests.LibraryFlowTests testAccessibilityLibraryAndDetail]' passed (36.004 seconds).
+Test Case '-[FrameRelayUITests.LibraryFlowTests testVoiceOverReadsHistoryAndPlaybackSubmission]' started.
+    t =     0.00s Start Test at 2026-10-24 20:51:13.009
+    t =     0.03s Set Up
+    t =     0.03s Open com.oyabu.FrameRelay
+    t =     0.03s     Launch com.oyabu.FrameRelay
+    t =     0.03s         Terminate com.oyabu.FrameRelay:14664
+2026-10-24 20:51:14.095 xcodebuild[14591:61367791] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-24 20:51:14.095 xcodebuild[14591:61367791] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.30s         Setting up automation session
+    t =     3.66s         Wait for com.oyabu.FrameRelay to idle
+    t =     5.41s Waiting 10.0s for "library.refresh" Button to exist
+    t =     6.43s     Checking `Expect predicate `existsNoRetry == 1` for object "library.refresh" Button`
+    t =     6.44s         Checking existence of `"library.refresh" Button`
+    t =     7.61s Find the "library.refresh" Button
+    t =     7.67s Checking existence of `"library.loadFailure" Any`
+    t =     7.75s Checking existence of `"library.item.s16v2-cleanup" Any`
+    t =     7.78s Find the "library.item.s16v2-cleanup" Any
+    t =     7.85s Find the "library.item.s16v2-cleanup" Button
+    t =     7.89s Checking existence of `"library.itemTitle.s16v2-cleanup" StaticText`
+    t =     7.93s Find the "library.itemTitle.s16v2-cleanup" StaticText
+    t =     7.97s Find the "library.itemTitle.s16v2-cleanup" StaticText
+    t =     8.01s Added attachment named 'library-item-target-s16v2-cleanup'
+    t =     8.01s Checking existence of `"library.item.s16v2-cleanup" Any`
+    t =     8.04s Find the "library.refresh" Button
+    t =     8.07s Checking existence of `"library.loadFailure" Any`
+    t =     8.14s Find the "library.scope" Any
+    t =     8.18s Added attachment named 'history-submission-semantic-text-environment'
+    t =     8.18s Checking existence of `"library.item.s16v2-original" Any`
+    t =     8.21s Find the "library.item.s16v2-original" Any
+    t =     8.25s Find the "library.item.s16v2-original" Button
+    t =     8.29s Added attachment named 'library-item-target-s16v2-original'
+    t =     8.29s Tap "library.item.s16v2-original" Button
+    t =     8.29s     Wait for com.oyabu.FrameRelay to idle
+    t =     8.29s     Find the "library.item.s16v2-original" Button
+    t =     8.32s     Check for interrupting elements affecting "library.item.s16v2-original" Button
+    t =     8.36s     Synthesize event
+    t =     8.65s     Wait for com.oyabu.FrameRelay to idle
+    t =     9.02s Waiting 5.0s for "library.detailIdentity" Any to exist
+    t =    10.05s     Checking `Expect predicate `existsNoRetry == 1` for object "library.detailIdentity" Any`
+    t =    10.05s         Checking existence of `"library.detailIdentity" Any`
+    t =    10.10s Find the "library.detailIdentity" Any
+    t =    10.12s Checking existence of `"library.action.playOriginal" Button`
+    t =    10.14s Find the "library.action.playOriginal" Button
+    t =    10.17s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    10.17s     Wait for com.oyabu.FrameRelay to idle
+    t =    10.17s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    10.18s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    10.20s     Synthesize event
+    t =    10.62s     Wait for com.oyabu.FrameRelay to idle
+    t =    12.75s Checking existence of `"library.action.playOriginal" Button`
+    t =    12.78s Find the "library.action.playOriginal" Button
+    t =    12.81s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    12.81s     Wait for com.oyabu.FrameRelay to idle
+    t =    12.82s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    12.83s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    12.85s     Synthesize event
+    t =    13.27s     Wait for com.oyabu.FrameRelay to idle
+    t =    14.68s Checking existence of `"library.action.playOriginal" Button`
+    t =    14.71s Find the "library.action.playOriginal" Button
+    t =    14.74s Find the "library.action.playOriginal" Button
+    t =    14.76s Added attachment named 'playback-timing-play-tap-begin'
+    t =    14.76s Tap "library.action.playOriginal" Button
+    t =    14.76s     Wait for com.oyabu.FrameRelay to idle
+    t =    14.77s     Find the "library.action.playOriginal" Button
+    t =    14.78s     Check for interrupting elements affecting "library.action.playOriginal" Button
+    t =    14.80s     Synthesize event
+    t =    15.09s     Wait for com.oyabu.FrameRelay to idle
+    t =    15.57s Added attachment named 'playback-timing-play-tap-returned'
+    t =    15.57s Waiting 10.0s for "originalPlayback.status" Any to exist
+    t =    16.58s     Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.status" Any`
+    t =    16.58s         Checking existence of `"originalPlayback.status" Any`
+    t =    16.70s Waiting 5.0s for "originalPlayback.close" Button to exist
+    t =    17.74s     Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.close" Button`
+    t =    17.74s         Checking existence of `"originalPlayback.close" Button`
+    t =    17.80s Tap "originalPlayback.close" Button
+    t =    17.80s     Wait for com.oyabu.FrameRelay to idle
+    t =    17.81s     Find the "originalPlayback.close" Button
+    t =    17.84s     Check for interrupting elements affecting "originalPlayback.close" Button
+    t =    17.86s     Synthesize event
+    t =    18.15s     Wait for com.oyabu.FrameRelay to idle
+    t =    19.59s Checking existence of `"originalPlayback.close" Button`
+    t =    19.61s Checking existence of `"originalPlayback.status" Any`
+    t =    19.67s Tap Button (Element at index 0)
+    t =    19.67s     Wait for com.oyabu.FrameRelay to idle
+    t =    19.68s     Find the Button (Element at index 0)
+    t =    19.69s     Check for interrupting elements affecting "BackButton" Button
+    t =    19.71s     Synthesize event
+    t =    20.01s     Wait for com.oyabu.FrameRelay to idle
+    t =    20.32s Find the "library.scope" Any
+    t =    20.39s Tap "library.scope" Any
+    t =    20.39s     Wait for com.oyabu.FrameRelay to idle
+    t =    20.39s     Find the "library.scope" Any
+    t =    20.43s     Check for interrupting elements affecting "library.scope" Button
+    t =    20.47s     Synthesize event
+    t =    20.76s     Wait for com.oyabu.FrameRelay to idle
+    t =    21.92s Tap "破棄の履歴" Button
+    t =    21.92s     Wait for com.oyabu.FrameRelay to idle
+    t =    21.93s     Find the "破棄の履歴" Button
+    t =    21.97s     Check for interrupting elements affecting "破棄の履歴" Button
+    t =    22.00s     Synthesize event
+    t =    22.29s     Wait for com.oyabu.FrameRelay to idle
+    t =    23.73s Checking existence of `Any (First Match)`
+    t =    23.76s Find the Any (First Match)
+    t =    23.80s Find the "library.submission.header.58B3B5BA-E72C-4584-BF2B-037D13B7B28E" StaticText
+    t =    23.82s Checking existence of `Any (First Match)`
+    t =    23.84s Find the Any (First Match)
+    t =    23.87s Checking existence of `Any (First Match)`
+    t =    23.90s Checking existence of `Any (First Match)`
+    t =    23.92s Find the Any (First Match)
+    t =    23.96s Find the "library.submission.title.s16v2-original.58B3B5BA-E72C-4584-BF2B-037D13B7B28E" StaticText
+    t =    23.98s Checking existence of `Any (First Match)`
+    t =    24.01s Checking existence of `Any (First Match)`
+    t =    24.04s Find the Any (First Match)
+    t =    24.07s Find the "library.submission.action.s16v2-original.58B3B5BA-E72C-4584-BF2B-037D13B7B28E" StaticText
+    t =    24.10s Checking existence of `Any (First Match)`
+    t =    24.12s Checking existence of `Any (First Match)`
+    t =    24.15s Find the Any (First Match)
+    t =    24.19s Find the "library.submission.phase.s16v2-original.58B3B5BA-E72C-4584-BF2B-037D13B7B28E" StaticText
+    t =    24.21s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    24.30s Added attachment named 'history-after-handoff-four-submission-texts'
+    t =    24.30s Requesting snapshot of accessibility hierarchy for app with pid 14834
+    t =    24.38s Requesting snapshot of accessibility hierarchy for app with pid 14834
+    t =    24.42s Added attachment named 'history-after-handoff-four-submission-texts-tree'
+    t =    24.42s Find the "library.scope" Any
+    t =    24.46s Checking existence of `"library.itemOriginal.s16v2-discard" Any`
+    t =    24.50s Find the "library.itemOriginal.s16v2-discard" Any
+    t =    24.55s Find the "library.itemOriginal.s16v2-discard" StaticText
+    t =    24.59s Checking existence of `"library.itemRemoval.s16v2-discard" Any`
+    t =    24.64s Find the "library.itemRemoval.s16v2-discard" Any
+    t =    24.68s Find the "library.itemRemoval.s16v2-discard" StaticText
+    t =    24.73s Find the "library.scope" Any
+    t =    24.76s Checking existence of `"library.historyExplanation" Any`
+    t =    24.80s Find the "library.historyExplanation" Any
+    t =   158.14s Added attachment named 'history-submission-VoiceOver-before-assertions'
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:318: error: -[FrameRelayUITests.LibraryFlowTests testVoiceOverReadsHistoryAndPlaybackSubmission] : XCTAssertTrue failed - VoiceOver must retain history removal
+    t =   158.24s Tear Down
+    t =   163.33s     Waiting 2.0s for "originalPlayback.close" Button to exist
+    t =   164.37s         Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.close" Button`
+    t =   164.37s             Checking existence of `"originalPlayback.close" Button`
+    t =   164.43s             Capturing element debug description
+    t =   165.33s         Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.close" Button`
+    t =   165.34s             Checking existence of `"originalPlayback.close" Button`
+    t =   165.38s             Capturing element debug description
+    t =   165.38s         Checking existence of `"originalPlayback.close" Button`
+    t =   165.42s     Collecting debug information to assist test failure triage
+    t =   165.42s         Requesting snapshot of accessibility hierarchy for app with pid 14834
+Test Case '-[FrameRelayUITests.LibraryFlowTests testVoiceOverReadsHistoryAndPlaybackSubmission]' failed (165.762 seconds).
+Test Suite 'LibraryFlowTests' failed at 2026-10-24 20:53:58.771.
+	 Executed 2 tests, with 1 failure (0 unexpected) in 201.765 (201.769) seconds
+Test Suite 'FrameRelayUITests.xctest' failed at 2026-10-24 20:53:58.771.
+	 Executed 2 tests, with 1 failure (0 unexpected) in 201.765 (201.770) seconds
+Test Suite 'Selected tests' failed at 2026-10-24 20:53:58.772.
+	 Executed 2 tests, with 1 failure (0 unexpected) in 201.765 (201.771) seconds
+2026-10-24 20:53:59.095 xcodebuild[14591:61367791] [MT] IDETestOperationsObserverDebug: 205.364 elapsed -- Testing started completed.
+2026-10-24 20:53:59.095 xcodebuild[14591:61367791] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-24 20:53:59.095 xcodebuild[14591:61367791] [MT] IDETestOperationsObserverDebug: 205.364 sec, +205.364 sec -- end
+
+Test session results, code coverage, and logs:
+	/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/p2-focused-normal-101/result.xcresult
+
+Failing tests:
+	LibraryFlowTests.testVoiceOverReadsHistoryAndPlaybackSubmission()
+
+** TEST FAILED **
+
+Testing started

@@ -1,0 +1,31 @@
+{
+  "state": "pending after Photos writing task",
+  "read_only_explorer": "strict_dispatch",
+  "exact_reservation": "OriginalStorePort OriginalInvalidationReservation.record from LogicalOriginalState.invalidation; epoch OriginalStoreSnapshot.reconciliationEpoch optional must equal requested epoch",
+  "wrapper_store": "same OriginalStorePort explicitly injected; StatusSynchronizationRegistrationBoundary.store only MediaOperationStorePort",
+  "port": "stopForInvalidation / observeInvalidation(record,epoch) -> outcome(record,storeIdentity,OriginalRemovalTransportInventory,stops)",
+  "helper": "extract no-seal observer from coordinator sealForRemoval; existing removal wraps unchanged result with existingFence",
+  "first_poll": "known live upload only -> existing stop/cancel; always inProgress/ACK0, actual consumer terminal->source.finish ownFD close->ownerClosed->lease release->stopped",
+  "next_poll": "next explicit poll fresh SDK enumeration/all historical tasks and exact journal/lease absence -> media stop/observe -> old tombstone/ACK",
+  "fail_closed": [
+    "starts/copy/prepared/attachgap",
+    "old source without live owner",
+    "download",
+    "unknown/reused SDKtask or wrong attempt/reg",
+    "unknown commit",
+    "terminal without ownerClosed/stopped"
+  ],
+  "test_support": [
+    "BackgroundEventDrainTests BackgroundCoordinatorFixture",
+    "BackendStatusSynchronizationCoordinatorTests StatusSynchronizationFixture/statusKnownOriginal/statusInvalidation",
+    "BackgroundRemovalTerminalTests private helpers require new small audit wrappers"
+  ],
+  "native_test_boundary": "new dedicated synthetic root; real suspended task and resume refusal/cancel callback/own FD EBADF/lease absence/stopped/normal status ACK; injected permit/Mac observation technical non-send, not ordinary positive resume/all media",
+  "source_read_hashes": {
+    "FrameRelay/Application/Ports/OriginalStorePort.swift": "5ccde5f6ba4ec5a5723b5081c297b52812dc3f013bfb0aaba78cee36e7f01881",
+    "FrameRelay/Composition/ProductStatusSynchronization.swift": "a913b7163b393047f54e9dd1e3fcb126413e6bbc0b8cf657e9d04a06a11e0017",
+    "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift": "6aae3af69d4724366e003f5de42031a76ae5a13bb2bf7dec8fb9f46e7d671b45",
+    "FrameRelay/Composition/ProductBackgroundMediaFactory.swift": "de9c3d366f0d98de480ae230c65b35c9023a581a346286a23906fa1ac70a77d9"
+  },
+  "edits_or_SDK_or_build_test_executed_by_explorer": false
+}

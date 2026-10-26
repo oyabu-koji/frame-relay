@@ -1,0 +1,2245 @@
+{
+  "backend_imported": false,
+  "base_archive_entry_count": 345,
+  "base_archive_manifest": {
+    "kind": "file",
+    "sha256": "ba9870b16789430f9d0b6372ede698a537628b9d5a65b1985bb261951f9d6c18",
+    "size": 110392
+  },
+  "base_archive_unchanged": true,
+  "base_identity": "Archived S26J snapshot-001: evidence/20261014-s26j-complete",
+  "base_unchanged": true,
+  "case_expansion": {
+    "tests/test_asset_read_api.py::test_asset_list_rejects_invalid_authentication": 3,
+    "tests/test_db.py::test_connection_sets_wal_and_busy_timeout": 1,
+    "tests/test_db.py::test_run_migrations_creates_expected_tables": 1,
+    "tests/test_db.py::test_run_migrations_rolls_back_failed_migration_schema_and_ledger": 1,
+    "tests/test_formal_preview_finalizer.py::test_finalizer_preserves_current_managed_authority": 1,
+    "tests/test_formal_preview_processing.py::test_terminal_attempt_converges_recovered_job_without_reprocessing": 1,
+    "tests/test_frame_relay_conversion.py::test_003_migration_preserves_001_002_and_rolls_back_candidate_schema": 1,
+    "tests/test_frame_relay_conversion.py::test_adapter_receipt_requires_exact_context_and_real_output": 4,
+    "tests/test_frame_relay_conversion.py::test_candidate_crash_boundaries_reopen_without_duplicate_version_or_publication": 5,
+    "tests/test_frame_relay_conversion.py::test_changed_original_is_rejected_before_adapter": 4,
+    "tests/test_frame_relay_conversion.py::test_current_claim_renewal_and_terminal_attempt_cleanup_keep_original_and_other_files": 1,
+    "tests/test_frame_relay_conversion.py::test_explicit_retry_replays_acceptance_after_claim_and_failure_without_new_job": 1,
+    "tests/test_frame_relay_conversion.py::test_fixture_worker_creates_one_unpublished_candidate_without_rec709_or_pointer": 1,
+    "tests/test_frame_relay_conversion.py::test_forged_source_payload_is_terminal_before_candidate_or_adapter": 5,
+    "tests/test_frame_relay_conversion.py::test_input_read_holds_no_sqlite_writer_and_old_read_claim_never_reaches_adapter": 1,
+    "tests/test_frame_relay_conversion.py::test_missing_storage_evidence_is_not_replaced_by_completed_or_is_log_flag": 1,
+    "tests/test_frame_relay_conversion.py::test_old_claim_delayed_success_failure_renew_and_cleanup_cannot_touch_current_candidate": 1,
+    "tests/test_frame_relay_conversion.py::test_original_change_during_adapter_is_not_a_ready_candidate": 1,
+    "tests/test_frame_relay_conversion.py::test_other_real_session_evidence_cannot_be_substituted": 1,
+    "tests/test_frame_relay_conversion.py::test_real_worker_missing_adapter_is_terminal_and_preserves_storage_evidence": 1,
+    "tests/test_frame_relay_conversion.py::test_retry_commit_boundary_reopens_and_replays_one_accepted_candidate": 2,
+    "tests/test_frame_relay_conversion.py::test_retry_success_reuses_original_bytes_without_receiving_chunks_again": 1,
+    "tests/test_frame_relay_conversion.py::test_sqlite_candidate_commit_failure_rolls_back_and_requires_explicit_retry": 1,
+    "tests/test_frame_relay_conversion.py::test_unfit_adapter_cannot_use_is_log_zero_as_input_classification": 1,
+    "tests/test_frame_relay_conversion.py::test_v1_fixture_pointer_bytes_and_confirmation_survive_candidate_failure_and_success": 1,
+    "tests/test_frame_relay_inventory.py::test_broken_schema_never_becomes_an_empty_inventory_success": 1,
+    "tests/test_frame_relay_inventory.py::test_corrupt_completed_or_evidence_rows_fail_the_entire_page_instead_of_disappearing": 9,
+    "tests/test_frame_relay_inventory.py::test_cursor_is_canonical_scoped_and_requires_an_existing_saved_boundary": 8,
+    "tests/test_frame_relay_inventory.py::test_default_page_limit_is_32_with_only_one_bounded_lookahead": 4,
+    "tests/test_frame_relay_inventory.py::test_duplicate_or_unknown_query_fields_are_rejected_without_reflecting_values": 1,
+    "tests/test_frame_relay_inventory.py::test_escaped_response_byte_limit_rejects_whole_page_without_partial_items": 1,
+    "tests/test_frame_relay_inventory.py::test_inventory_authenticates_current_exact_destination_registration_and_generation": 3,
+    "tests/test_frame_relay_inventory.py::test_inventory_request_rejects_aliases_unbounded_values_and_overflow": 11,
+    "tests/test_frame_relay_inventory.py::test_metadata_endpoint_precedes_session_route_and_returns_no_media_or_paths": 1,
+    "tests/test_frame_relay_inventory.py::test_new_registration_discovers_old_saved_identity_without_old_secret_or_adoption": 1,
+    "tests/test_frame_relay_inventory.py::test_old_or_invalid_secret_cannot_authorize_new_registration_inventory": 4,
+    "tests/test_frame_relay_inventory.py::test_only_completed_evidence_backed_rows_are_listed_without_conversion_or_publication": 1,
+    "tests/test_frame_relay_inventory.py::test_opaque_capture_duplicate_identity_and_conflicting_content_are_never_normalized_or_collapsed": 1,
+    "tests/test_frame_relay_inventory.py::test_oversized_capture_is_retained_by_upload_contract_but_fails_metadata_page": 1,
+    "tests/test_frame_relay_inventory.py::test_pages_are_bounded_keysets_with_replay_empty_tail_and_no_record_deletion": 1,
+    "tests/test_frame_relay_inventory.py::test_receiving_row_cannot_be_forged_into_a_saved_cursor_boundary": 1,
+    "tests/test_frame_relay_publication.py::test_accepted_old_response_keeps_its_inode_after_ack_and_publication": 1,
+    "tests/test_frame_relay_publication.py::test_boolean_rec709_forgery_does_not_enable_production_authority": 1,
+    "tests/test_frame_relay_publication.py::test_candidate_alias_write_after_hash_does_not_mutate_sealed_inode": 1,
+    "tests/test_frame_relay_publication.py::test_candidate_failure_after_invalidation_keeps_tombstone_and_old_pointer": 1,
+    "tests/test_frame_relay_publication.py::test_canonical_http_get_single_consumption_and_matching_quicktime_identity": 1,
+    "tests/test_frame_relay_publication.py::test_changed_artifact_after_hash_is_rejected_without_admission": 5,
+    "tests/test_frame_relay_publication.py::test_confirmation_and_ack_fault_reopen_never_restore_invalidated_confirmation": 2,
+    "tests/test_frame_relay_publication.py::test_container_identification_rejects_truncation_length_and_unknown_brand": 5,
+    "tests/test_frame_relay_publication.py::test_direct_legacy_read_confirmation_and_pointer_helpers_reject_managed_asset": 1,
+    "tests/test_frame_relay_publication.py::test_distribution_response_loss_reopen_returns_exact_request_and_receipt": 2,
+    "tests/test_frame_relay_publication.py::test_dynamic_required_recipients_preserve_old_registration_and_reject_old_ack_substitution": 1,
+    "tests/test_frame_relay_publication.py::test_external_inplace_write_after_admission_is_detected_without_claiming_retraction": 1,
+    "tests/test_frame_relay_publication.py::test_get_commit_loss_and_interrupted_body_require_new_acceptance": 2,
+    "tests/test_frame_relay_publication.py::test_get_whole_hash_is_outside_writer_and_rechecks_publication_before_bytes": 1,
+    "tests/test_frame_relay_publication.py::test_identical_operation_ids_in_two_registrations_have_independent_concurrent_admissions": 1,
+    "tests/test_frame_relay_publication.py::test_initial_publication_fault_reopen_and_exact_replay": 2,
+    "tests/test_frame_relay_publication.py::test_invalidation_pagination_is_bounded_progresses_and_repolls_lower_ids": 1,
+    "tests/test_frame_relay_publication.py::test_maximum_escaped_invalidation_fits_single_page_and_exact_bytes_are_retained": 1,
+    "tests/test_frame_relay_publication.py::test_new_004_migration_preserves_predecessor_and_rolls_back_all_new_tables": 1,
+    "tests/test_frame_relay_publication.py::test_normal_production_authority_rejects_fixture_database_after_reopen": 5,
+    "tests/test_frame_relay_publication.py::test_old_http_entries_without_version_header_never_deliver_or_confirm_fr_asset": 3,
+    "tests/test_frame_relay_publication.py::test_opaque_ids_are_losslessly_encoded_and_noncanonical_headers_rejected": 1,
+    "tests/test_frame_relay_publication.py::test_pinned_response_closes_fd_even_when_asgi_send_fails_before_body": 1,
+    "tests/test_frame_relay_publication.py::test_replacement_publication_fault_reopen_and_historical_ack_replay": 2,
+    "tests/test_frame_relay_publication.py::test_same_distribution_operation_requires_entire_payload": 5,
+    "tests/test_frame_relay_publication.py::test_same_registration_concurrent_ticket_consumption_has_one_winner": 1,
+    "tests/test_frame_relay_publication.py::test_sealed_artifact_cannot_be_written_aliased_or_removed_by_app_helpers": 1,
+    "tests/test_frame_relay_publication.py::test_sqlite_failure_rolls_back_entire_publication_mutation": 4,
+    "tests/test_frame_relay_publication.py::test_sqlite_get_admission_failure_closes_pinned_fd_and_leaves_ticket_unused": 1,
+    "tests/test_frame_relay_publication.py::test_unpublished_initial_commit_does_not_fabricate_previous_or_ack": 1,
+    "tests/test_frame_relay_publication.py::test_wire_exact_requests_reject_normalization_and_substitution": 6,
+    "tests/test_frame_relay_publication.py::test_wire_rejects_duplicate_non_utf8_nonfinite_and_nonobject_json": 4,
+    "tests/test_frame_relay_publication.py::test_wrong_or_reused_ack_payload_never_satisfies_required_registration": 4,
+    "tests/test_frame_relay_registrations.py::test_after_commit_fault_reopens_exact_receipt_without_reallocation": 1,
+    "tests/test_frame_relay_registrations.py::test_api_all_routes_require_bootstrap_authentication": 1,
+    "tests/test_frame_relay_registrations.py::test_api_existing_intent_cannot_be_claimed_with_new_secret": 1,
+    "tests/test_frame_relay_registrations.py::test_api_only_verified_absence_returns_bound_not_executed": 1,
+    "tests/test_frame_relay_registrations.py::test_api_payload_extra_fields_and_noncanonical_ids_rejected_without_reflection": 1,
+    "tests/test_frame_relay_registrations.py::test_api_replay_and_response_loss_recover_same_receipt_after_restart": 1,
+    "tests/test_frame_relay_registrations.py::test_api_secret_required_and_never_reflected": 1,
+    "tests/test_frame_relay_registrations.py::test_api_wrong_destination_is_not_absence_or_new_registration": 1,
+    "tests/test_frame_relay_registrations.py::test_applied_migration_never_recreates_missing_destination": 1,
+    "tests/test_frame_relay_registrations.py::test_before_commit_fault_rolls_back_and_reopen_proves_absence": 1,
+    "tests/test_frame_relay_registrations.py::test_capabilities_identity_is_persistent_and_does_not_advertise_future_work": 1,
+    "tests/test_frame_relay_registrations.py::test_corrupt_database_is_not_absence": 1,
+    "tests/test_frame_relay_registrations.py::test_corrupt_receipt_fields_and_digest_are_not_success": 1,
+    "tests/test_frame_relay_registrations.py::test_corrupted_counter_type_is_unavailable_not_absence": 1,
+    "tests/test_frame_relay_registrations.py::test_database_open_failure_is_not_absence": 1,
+    "tests/test_frame_relay_registrations.py::test_generation_upper_bound_allows_replay_but_refuses_new_allocation": 1,
+    "tests/test_frame_relay_registrations.py::test_legacy_schema_rows_ledger_and_triggers_unchanged_by_registration": 1,
+    "tests/test_frame_relay_registrations.py::test_migration_failure_rolls_back_new_tables_identity_and_ledger": 1,
+    "tests/test_frame_relay_registrations.py::test_new_registration_preserves_old_receipt_and_cannot_authenticate_as_old": 1,
+    "tests/test_frame_relay_registrations.py::test_parallel_distinct_intents_allocate_strictly_unique_generations": 1,
+    "tests/test_frame_relay_registrations.py::test_parallel_same_intent_creates_one_receipt_and_one_generation": 1,
+    "tests/test_frame_relay_registrations.py::test_real_busy_database_does_not_report_registration_success": 1,
+    "tests/test_frame_relay_registrations.py::test_registration_actor_rejects_bool_nonint_and_out_of_range_generation": 1,
+    "tests/test_frame_relay_registrations.py::test_sql_guards_preserve_receipt_destination_and_monotonic_counter": 1,
+    "tests/test_frame_relay_registrations.py::test_unknown_schema_is_not_absence_and_startup_refuses_it": 1,
+    "tests/test_frame_relay_registrations.py::test_wire_generation_rejects_numeric_negative_noncanonical_and_overflow": 1,
+    "tests/test_frame_relay_storage.py::test_actual_evidence_or_job_insert_failure_rolls_back_all_database_results": 1,
+    "tests/test_frame_relay_storage.py::test_api_bound_upload_query_and_finalization_use_exact_authentication": 1,
+    "tests/test_frame_relay_storage.py::test_broken_schema_and_missing_binding_never_fall_back_to_legacy": 1,
+    "tests/test_frame_relay_storage.py::test_cancel_during_real_stream_preserves_receiver_until_terminal_then_refuses_callback": 1,
+    "tests/test_frame_relay_storage.py::test_capture_id_is_not_used_as_a_file_path": 1,
+    "tests/test_frame_relay_storage.py::test_changed_finalization_job_or_claim_does_not_return_completed_evidence": 1,
+    "tests/test_frame_relay_storage.py::test_chunk_publish_interrupt_reopens_orphan_and_independently_reconciles": 1,
+    "tests/test_frame_relay_storage.py::test_chunk_wrong_digest_size_and_range_never_commit": 1,
+    "tests/test_frame_relay_storage.py::test_claim_allocates_unique_token_and_generation_in_same_transaction": 1,
+    "tests/test_frame_relay_storage.py::test_commit_response_loss_is_recovered_by_exact_query_without_second_job": 1,
+    "tests/test_frame_relay_storage.py::test_crash_boundaries_reopen_reclaim_and_commit_exactly_one_evidence_job": 1,
+    "tests/test_frame_relay_storage.py::test_create_replay_is_bound_to_exact_context_and_never_serializes_secret": 1,
+    "tests/test_frame_relay_storage.py::test_current_claim_renewal_and_cleanup_preserve_chunks_and_final": 1,
+    "tests/test_frame_relay_storage.py::test_dedup_key_with_changed_fr_payload_is_rejected": 1,
+    "tests/test_frame_relay_storage.py::test_duplicate_chunk_same_payload_is_idempotent_and_other_payload_preserved": 1,
+    "tests/test_frame_relay_storage.py::test_existing_final_still_requires_full_read_and_does_not_use_assembly_hash": 1,
+    "tests/test_frame_relay_storage.py::test_expired_attempt_cannot_publish_fail_renew_or_cleanup_new_attempt": 1,
+    "tests/test_frame_relay_storage.py::test_final_file_replacement_after_read_or_during_read_cannot_commit": 1,
+    "tests/test_frame_relay_storage.py::test_final_file_truncation_during_read_cannot_commit": 1,
+    "tests/test_frame_relay_storage.py::test_final_mismatch_short_file_and_symlink_never_replace_existing_bytes": 1,
+    "tests/test_frame_relay_storage.py::test_first_finalization_independently_reads_final_destination_and_atomic_evidence": 1,
+    "tests/test_frame_relay_storage.py::test_independent_hash_releases_writer_and_old_read_claim_cannot_commit": 1,
+    "tests/test_frame_relay_storage.py::test_invalid_job_binding_rolls_back_running_status_and_claim_allocation": 1,
+    "tests/test_frame_relay_storage.py::test_legacy_processors_early_returns_and_publication_reject_managed_asset": 1,
+    "tests/test_frame_relay_storage.py::test_legacy_session_get_put_finalize_cancel_cannot_touch_fr_session": 1,
+    "tests/test_frame_relay_storage.py::test_legacy_upload_worker_rejects_bound_session_before_failure_or_cleanup": 1,
+    "tests/test_frame_relay_storage.py::test_missing_chunks_cannot_start_finalize": 1,
+    "tests/test_frame_relay_storage.py::test_missing_committed_chunk_does_not_acknowledge_a_successful_retry": 1,
+    "tests/test_frame_relay_storage.py::test_missing_conversion_job_does_not_return_completed_evidence": 1,
+    "tests/test_frame_relay_storage.py::test_missing_or_changed_chunk_never_publishes_final": 1,
+    "tests/test_frame_relay_storage.py::test_missing_persistent_binding_refuses_legacy_session_and_asset_paths": 1,
+    "tests/test_frame_relay_storage.py::test_ordered_002_migration_keeps_001_digest_destination_and_rolls_back": 1,
+    "tests/test_frame_relay_storage.py::test_receive_stream_interruption_closes_own_file_without_committing_chunk": 1,
+    "tests/test_frame_relay_storage.py::test_same_binding_job_with_forged_claim_or_payload_cannot_write_failure": 1,
+    "tests/test_frame_relay_storage.py::test_uint64_generation_is_exact_and_oversize_bytes_rejected_without_truncation": 1,
+    "tests/test_frame_relay_storage.py::test_unproven_completed_or_legacy_verified_asset_never_becomes_evidence": 1,
+    "tests/test_frame_relay_storage.py::test_worker_routes_fr_finalize_then_marks_unimplemented_conversion_failed": 1,
+    "tests/test_frame_relay_storage.py::test_worker_standalone_checks_fr_schema_before_recovery_or_claim": 1,
+    "tests/test_frame_relay_storage.py::test_wrong_destination_registration_generation_or_secret_cannot_receive_or_lookup": 1,
+    "tests/test_job_dedup.py::test_insert_or_return_job_uses_dedup_key": 1,
+    "tests/test_job_dedup.py::test_retryable_finalize_job_can_be_requeued_but_other_jobs_cannot": 1,
+    "tests/test_preview_service.py::test_process_preview_job_existing_preview_file_marks_done_without_ffmpeg": 1,
+    "tests/test_processed_result_backfill.py::test_backfill_creates_one_active_result_and_is_idempotent": 1,
+    "tests/test_processed_result_finalizer.py::test_finalizer_commits_phase2a_preview_and_active_result_together": 1,
+    "tests/test_processed_result_streaming_api.py::test_processed_result_descriptor_keeps_requested_bytes_after_pointer_switch": 1,
+    "tests/test_processed_result_streaming_api.py::test_processed_result_download_full_range_headers_and_identity": 1,
+    "tests/test_processed_result_streaming_api.py::test_processed_result_download_rejects_invalid_or_multi_range": 4,
+    "tests/test_processed_result_streaming_api.py::test_processed_result_download_supports_single_ranges": 3,
+    "tests/test_processed_result_streaming_api.py::test_processed_result_pointer_switch_before_descriptor_open_returns_superseded": 1,
+    "tests/test_rendition_finalizer.py::test_finalizer_rejects_lost_eligibility_and_preserves_existing_pointer": 1,
+    "tests/test_rendition_processing.py::test_ready_terminal_lease_recovery_marks_job_done_without_render": 1,
+    "tests/test_storage.py::test_cleanup_session_temporary_files_does_not_remove_originals": 1,
+    "tests/test_storage.py::test_initialize_storage_creates_required_directories": 1,
+    "tests/test_storage.py::test_resolve_media_path_rejects_path_traversal": 1,
+    "tests/test_upload_api.py::test_upload_rejects_direct_video_without_creating_asset_or_job": 1,
+    "tests/test_upload_finalize.py::test_finalization_hash_mismatch_is_terminal_without_asset_or_original": 1,
+    "tests/test_upload_finalize.py::test_finalization_is_idempotent_and_log_uses_existing_lut_safety_job": 1,
+    "tests/test_upload_finalize.py::test_finalization_promotes_verified_original_and_creates_asset_and_preview_job": 1,
+    "tests/test_upload_finalize.py::test_finalization_recovers_promoted_file_after_database_failure": 1,
+    "tests/test_upload_finalize.py::test_only_retryable_finalization_failure_can_be_requeued": 1,
+    "tests/test_upload_finalize.py::test_phase2b_finalization_always_creates_generation_one_preview_job": 2,
+    "tests/test_upload_finalize.py::test_phase2b_preview_job_insert_failure_rolls_back_asset_and_session_relation": 1,
+    "tests/test_upload_session_chunk_races.py::test_cancel_while_request_is_staged_prevents_publish": 1,
+    "tests/test_upload_session_chunk_races.py::test_expired_session_status_read_cleans_verified_temporary_chunks": 1,
+    "tests/test_upload_session_chunk_races.py::test_replace_before_database_commit_leaves_no_verified_row_and_next_put_recovers": 1,
+    "tests/test_upload_session_chunks_api.py::test_chunk_put_publishes_verified_bytes_and_same_retry_is_idempotent": 1,
+    "tests/test_upload_session_chunks_api.py::test_chunk_put_rejects_missing_headers_and_token": 1,
+    "tests/test_upload_session_chunks_api.py::test_chunk_put_rejects_wrong_range_and_conflicting_verified_bytes": 1,
+    "tests/test_upload_session_finalize_api.py::test_cancel_removes_temporary_chunks_and_is_terminal": 1,
+    "tests/test_upload_session_finalize_api.py::test_finalize_requires_all_chunks_then_queues_one_deduplicated_job": 1,
+    "tests/test_upload_session_finalize_api.py::test_finalize_returns_existing_asset_and_preview_job_after_completion": 1,
+    "tests/test_upload_sessions_api.py::test_create_session_is_idempotent_and_get_does_not_extend_expiry": 1,
+    "tests/test_upload_sessions_api.py::test_get_expired_session_marks_terminal_and_create_refuses_same_key": 1,
+    "tests/test_upload_sessions_api.py::test_session_api_accepts_exact_hard_size_and_chunk_count_boundary": 1,
+    "tests/test_upload_sessions_api.py::test_session_api_requires_token_and_rejects_size_limit": 1,
+    "tests/test_worker_jobs.py::test_claim_next_job_claims_only_supported_job_types": 1,
+    "tests/test_worker_jobs.py::test_claim_next_job_updates_status_and_lease": 1,
+    "tests/test_worker_jobs.py::test_claim_next_job_with_empty_supported_types_claims_nothing": 1,
+    "tests/test_worker_jobs.py::test_explicit_unsupported_job_failure_helper_marks_claimed_job_failed": 1,
+    "tests/test_worker_jobs.py::test_recover_expired_jobs_moves_running_jobs_to_queued": 1,
+    "tests/test_worker_jobs.py::test_supported_job_types_include_preview_processors": 1,
+    "tests/test_worker_jobs.py::test_worker_claims_finalize_job_and_delegates": 1,
+    "tests/test_worker_jobs.py::test_worker_claims_lut_preview_job_and_delegates": 1,
+    "tests/test_worker_jobs.py::test_worker_claims_preview_job_and_delegates": 1,
+    "tests/test_worker_jobs.py::test_worker_claims_rendition_job_only_with_dedicated_processor": 1,
+    "tests/test_worker_jobs.py::test_worker_leaves_unsupported_job_queued": 1
+  },
+  "command": {
+    "kind": "file",
+    "sha256": "a7202424b9ef54ea65805a78dfa4d429a51d293ac7691db86c10889131f6c682",
+    "size": 481
+  },
+  "config": {
+    "kind": "file",
+    "sha256": "a4c110c1b644b65f6a8f49b7bd1adc2aab7698554b2e6b11fc9a72c82c7c5c50",
+    "size": 1099
+  },
+  "expected_cases": 279,
+  "expected_nodes": 186,
+  "external_source_and_runtime_unchanged": true,
+  "frozen_sources": {
+    "server-implementation/README-conversion.md": {
+      "kind": "file",
+      "sha256": "ee9a1259a721262b5f4047edd3898ddc6ab4b31d586afc9c2b05bc75df5ad895",
+      "size": 7404
+    },
+    "server-implementation/README-publication.md": {
+      "kind": "file",
+      "sha256": "71afbe88229a5353b9d75dede6cb9c528c0c67b4d07b9a3edcf609fe12ce527a",
+      "size": 8093
+    },
+    "server-implementation/README-storage.md": {
+      "kind": "file",
+      "sha256": "1290481788b3eef99ea2fa0ebec0dee6e617eb65d23efdbf587466911a9f8b12",
+      "size": 11035
+    },
+    "server-implementation/README.md": {
+      "kind": "file",
+      "sha256": "51943e93f205f4097b6e9db5e2c2b90c421a5017c1305052ea52230f9d976828",
+      "size": 7404
+    },
+    "server-implementation/backend-conversion-overlay.diff": {
+      "kind": "file",
+      "sha256": "c70165df57a89862cabfbf3335f5ee3178e38d2e7f987beacf081c907c794384",
+      "size": 54045
+    },
+    "server-implementation/backend-overlay.diff": {
+      "kind": "file",
+      "sha256": "fb2efffea7927d1041b8e0f6263142bc1eef54fe39c16c15dd0a6d560cab37a1",
+      "size": 41837
+    },
+    "server-implementation/backend-overlay/app/api/frame_relay_publication.py": {
+      "kind": "file",
+      "sha256": "02886996a9fb134e797a0d5fcdcb0597b54bd4830dea35150f5379a8e588e514",
+      "size": 5802
+    },
+    "server-implementation/backend-overlay/app/api/frame_relay_storage.py": {
+      "kind": "file",
+      "sha256": "824a4fec598f0dd515823905a26756197e2438b1e299e057c99249220e56b221",
+      "size": 3888
+    },
+    "server-implementation/backend-overlay/app/api/registrations.py": {
+      "kind": "file",
+      "sha256": "97dac737ea0c9b2e170da2c65e711acf1363f3d633494149b6a189cd75d2ae63",
+      "size": 2792
+    },
+    "server-implementation/backend-overlay/app/db/frame_relay_migrations.py": {
+      "kind": "file",
+      "sha256": "34322766ed836a7a6d7b65fdb51db4136a0bdca43132aefc3fc5118c051592b8",
+      "size": 3312
+    },
+    "server-implementation/backend-overlay/app/db/frame_relay_schema/001_registrations.sql": {
+      "kind": "file",
+      "sha256": "4ebddf580bca5141d77631419002871b06a7eaf406de4559abd9a3bc24b20735",
+      "size": 1574
+    },
+    "server-implementation/backend-overlay/app/db/frame_relay_schema/002_storage.sql": {
+      "kind": "file",
+      "sha256": "d2daf36dbc5780bd25adbe589f21e32ec419e95f39a96cbdc26b8923081f2287",
+      "size": 2890
+    },
+    "server-implementation/backend-overlay/app/db/frame_relay_schema/003_conversion_candidates.sql": {
+      "kind": "file",
+      "sha256": "5ab91e78a977aac51666257624e5a5ddf23b4bb8571e61846e601842763be698",
+      "size": 2299
+    },
+    "server-implementation/backend-overlay/app/db/frame_relay_schema/004_publication.sql": {
+      "kind": "file",
+      "sha256": "35723b0fba32c443261634043ce8d0127d1f9cdea080fbe03da053290468ea98",
+      "size": 7063
+    },
+    "server-implementation/backend-overlay/app/main.py": {
+      "kind": "file",
+      "sha256": "0fda5cc5cc8a964fe4b4eb7c3e3dd095014c86a0b2a59d1619afca87847cc85a",
+      "size": 3368
+    },
+    "server-implementation/backend-overlay/app/repositories/frame_relay_conversion.py": {
+      "kind": "file",
+      "sha256": "1790850659596ff27c5ff461ad36ec42f5b5a14431dbc2db0bd255fcd2abf2f2",
+      "size": 9350
+    },
+    "server-implementation/backend-overlay/app/repositories/frame_relay_publication.py": {
+      "kind": "file",
+      "sha256": "474b1fcd72f68aca4d5aa4a46360f9ede4b2846d7513ac38ed30d32eb581270a",
+      "size": 15561
+    },
+    "server-implementation/backend-overlay/app/repositories/frame_relay_storage.py": {
+      "kind": "file",
+      "sha256": "a04ce2960cbde636e55ccbb02c422a64b62848601930d6a7d9ababe818a7fa60",
+      "size": 14383
+    },
+    "server-implementation/backend-overlay/app/repositories/jobs.py": {
+      "kind": "file",
+      "sha256": "cd978d713fddacde23e69225640e54b1ede6c3af0db8a2a825e23d5280359bef",
+      "size": 9530
+    },
+    "server-implementation/backend-overlay/app/repositories/processed_results.py": {
+      "kind": "file",
+      "sha256": "4db134354893dca4fbc90deb23cfda689512162631904c72d43dc7e28e33a80b",
+      "size": 13008
+    },
+    "server-implementation/backend-overlay/app/repositories/registrations.py": {
+      "kind": "file",
+      "sha256": "75709099be921948aa19af49e6a2faae7bf95b997feae2c7f4fbc0d9375c00cd",
+      "size": 6075
+    },
+    "server-implementation/backend-overlay/app/schemas/frame_relay_publication.py": {
+      "kind": "file",
+      "sha256": "20caedcc20a0f5f136eb685409626512d0ba604311198ccc0ef7db2ded3979ad",
+      "size": 4702
+    },
+    "server-implementation/backend-overlay/app/schemas/frame_relay_storage.py": {
+      "kind": "file",
+      "sha256": "35870a1a797388e30daad03d041c3659adbc850f12c5c0165e6108fb5a711d01",
+      "size": 2428
+    },
+    "server-implementation/backend-overlay/app/schemas/registrations.py": {
+      "kind": "file",
+      "sha256": "56e3e04528e343f2f737b483831a5a9daf70854dc8b76b203fd2d6e24ca92046",
+      "size": 1569
+    },
+    "server-implementation/backend-overlay/app/services/asset_read.py": {
+      "kind": "file",
+      "sha256": "d4c8367ebeca4a3b742eeed0199d3c4c98459484cbc90e71830f6a764619d011",
+      "size": 15554
+    },
+    "server-implementation/backend-overlay/app/services/formal_preview_finalizer.py": {
+      "kind": "file",
+      "sha256": "6608c9415d2fbc25bc7501db974c01a5101d6c8d68cd688aa68c9f515c3b0d5c",
+      "size": 15059
+    },
+    "server-implementation/backend-overlay/app/services/formal_preview_processing.py": {
+      "kind": "file",
+      "sha256": "f44005c49bd97847e00b8e20017acc3c47c7d36ecc514499f626fa3e9a66e5cf",
+      "size": 23618
+    },
+    "server-implementation/backend-overlay/app/services/frame_relay_conversion.py": {
+      "kind": "file",
+      "sha256": "36f680277fe765fd47f271e5dd029080157db9b38f5412095beca5b7487b8ec1",
+      "size": 10648
+    },
+    "server-implementation/backend-overlay/app/services/frame_relay_distribution.py": {
+      "kind": "file",
+      "sha256": "0bc72b02ff4d1c610f15c99c7aa50bbde68c5ec3b209678d74bc9a211767f41b",
+      "size": 6340
+    },
+    "server-implementation/backend-overlay/app/services/frame_relay_files.py": {
+      "kind": "file",
+      "sha256": "24dcf5c800a8bd7ff91b5209935985008e5ac3071459e50172cccf26e59e66ed",
+      "size": 6493
+    },
+    "server-implementation/backend-overlay/app/services/frame_relay_finalize.py": {
+      "kind": "file",
+      "sha256": "c02b941ccca15f09ebfb2d3ec4851dd3385b84bdf05a5f3802ce2f4375775540",
+      "size": 8755
+    },
+    "server-implementation/backend-overlay/app/services/frame_relay_publication.py": {
+      "kind": "file",
+      "sha256": "0047d7ffaec2997dcdf285c960f10dabcd40d291501c28971f4113540ade418b",
+      "size": 16451
+    },
+    "server-implementation/backend-overlay/app/services/frame_relay_storage.py": {
+      "kind": "file",
+      "sha256": "51b63a6355a6022f6a9479e1f95ba568e3c106d4b91fe8fae482606a6cfd655e",
+      "size": 15977
+    },
+    "server-implementation/backend-overlay/app/services/phase2b_migration.py": {
+      "kind": "file",
+      "sha256": "1f247429844d8658f4b1025f8085017678a8443f20f8a8662cffaf73341b08fe",
+      "size": 10031
+    },
+    "server-implementation/backend-overlay/app/services/preview.py": {
+      "kind": "file",
+      "sha256": "a9f8b5e16e27c79cce5b4b367390c2d4e76890e09b2017b369666d28544d28c7",
+      "size": 12161
+    },
+    "server-implementation/backend-overlay/app/services/preview_stream.py": {
+      "kind": "file",
+      "sha256": "34f5dcf36c98a8d43b69913a9d5ce0d5bf231423bdacf19454c724adae8d62c3",
+      "size": 4332
+    },
+    "server-implementation/backend-overlay/app/services/processed_result_backfill.py": {
+      "kind": "file",
+      "sha256": "fb4c1de3e1bbd88cbef1ce7de5f1303e481a3ce21e03e6369f79b3eeefae5ce6",
+      "size": 7450
+    },
+    "server-implementation/backend-overlay/app/services/processed_result_delivery.py": {
+      "kind": "file",
+      "sha256": "a040d667754936866b5dd177c0e42f63527c73ea2748b7a2a93f5d8909f012fc",
+      "size": 12122
+    },
+    "server-implementation/backend-overlay/app/services/processed_result_finalizer.py": {
+      "kind": "file",
+      "sha256": "149ca58f11040267e9d18f56d500490cce8fbd32880de180dae7a917ec355a42",
+      "size": 4688
+    },
+    "server-implementation/backend-overlay/app/services/processed_result_stream.py": {
+      "kind": "file",
+      "sha256": "1ea1d732907c5509abbd7090c79fba04c54ccbb5771308eb74bf96d560eed0ad",
+      "size": 5722
+    },
+    "server-implementation/backend-overlay/app/services/registrations.py": {
+      "kind": "file",
+      "sha256": "0fbf49480264f8d661299be7a1244aef3ff3e33444c88847fe144454f8cabe2f",
+      "size": 1289
+    },
+    "server-implementation/backend-overlay/app/services/rendition_creation.py": {
+      "kind": "file",
+      "sha256": "081297f874e1841a440fa5d1f90c8ff423bd9adb5b0e671bee46fd78f1b0ec8a",
+      "size": 9766
+    },
+    "server-implementation/backend-overlay/app/services/rendition_finalizer.py": {
+      "kind": "file",
+      "sha256": "3018f1e6b037acd31b7cbd262acff7aee66d77a98d9b7766b5fe2bb8af4fd53e",
+      "size": 7754
+    },
+    "server-implementation/backend-overlay/app/services/rendition_processing.py": {
+      "kind": "file",
+      "sha256": "4a20594158c1fb74686cdc98bcb0eb831895d9b49cdfb2003086f27d1b911701",
+      "size": 11426
+    },
+    "server-implementation/backend-overlay/app/services/upload_finalize.py": {
+      "kind": "file",
+      "sha256": "4907590f81fa1c09dec57bc92072300e81b4fa64990ce7a6124ab3de7030f394",
+      "size": 13863
+    },
+    "server-implementation/backend-overlay/app/services/upload_sessions.py": {
+      "kind": "file",
+      "sha256": "fc5d11402ed2fd9525188165d62a4f8be9e01e2fee7c64612ba0b61ba9e4786e",
+      "size": 16657
+    },
+    "server-implementation/backend-overlay/app/workers/worker.py": {
+      "kind": "file",
+      "sha256": "76cf7deb029ea7dbd8d9bf982a73187bd629d3010ab4ccf61e0fc3bd8df0eae4",
+      "size": 3519
+    },
+    "server-implementation/backend-overlay/tests/frame_relay_publication_fixture.py": {
+      "kind": "file",
+      "sha256": "53fcc18fa00d1d0b972f2ad90012437098b5c03b152866faca8516d61b6ac69f",
+      "size": 6290
+    },
+    "server-implementation/backend-overlay/tests/test_frame_relay_conversion.py": {
+      "kind": "file",
+      "sha256": "3789d575c7b2333221be07e3b14c5238b37907f1ab18be3926ba2be07be37939",
+      "size": 24655
+    },
+    "server-implementation/backend-overlay/tests/test_frame_relay_inventory.py": {
+      "kind": "file",
+      "sha256": "061a8752308812d7a924db50bc47e0961a8f0c55a850bdf47ddab4e96c6261c0",
+      "size": 19140
+    },
+    "server-implementation/backend-overlay/tests/test_frame_relay_publication.py": {
+      "kind": "file",
+      "sha256": "1abe9811ab970e39f63a7dd30cc81364797ad107eff34cd768316c0cee78a2e9",
+      "size": 42338
+    },
+    "server-implementation/backend-overlay/tests/test_frame_relay_registrations.py": {
+      "kind": "file",
+      "sha256": "fa0ce426c3b3b3ca684c846a62b466556b9e27af9a299d0c92a31a264f8a224a",
+      "size": 22936
+    },
+    "server-implementation/backend-overlay/tests/test_frame_relay_storage.py": {
+      "kind": "file",
+      "sha256": "a7cd9760a85bae25e1e87932eacbe6686d15955123b3a276a882a2166a3adb8c",
+      "size": 40776
+    },
+    "server-implementation/backend-overlay/tests/test_worker_jobs.py": {
+      "kind": "file",
+      "sha256": "ffa822c7aaa9ddf2a3158665f7af58f9a0cba130b4a525e513258fe34e35b384",
+      "size": 8342
+    },
+    "server-implementation/backend-publication-overlay.diff": {
+      "kind": "file",
+      "sha256": "41376904cfa47acc261a4ca3f2fcaaab99389683ac371db826f4fa5fb50d10bf",
+      "size": 119917
+    },
+    "server-implementation/backend-storage-overlay.diff": {
+      "kind": "file",
+      "sha256": "f68fe8ab4854f40bdac758ca891b33ee593c3337153115a321c562e072b9f80c",
+      "size": 106084
+    },
+    "server-implementation/cases-conversion.json": {
+      "kind": "file",
+      "sha256": "634be8320a4e053f2da404274316b951a1c13f3a0b70adb3d3267a9dc10b9571",
+      "size": 14487
+    },
+    "server-implementation/cases-inventory.json": {
+      "kind": "file",
+      "sha256": "1646537866858741b27039ce2d8609f114e0b1575b10aebf749554579c2b5a89",
+      "size": 20190
+    },
+    "server-implementation/cases-publication.json": {
+      "kind": "file",
+      "sha256": "0350a0aac443d8051281bfa7a254496e9cd5031296115042ac00adbea0725a0c",
+      "size": 18303
+    },
+    "server-implementation/cases-storage.json": {
+      "kind": "file",
+      "sha256": "0b532602d782d7defafda416b7d663af56a2ebf40671699aa0204d50c89955e8",
+      "size": 12282
+    },
+    "server-implementation/cases.json": {
+      "kind": "file",
+      "sha256": "e78646a40eeb6ea315d095475c1fe3816bb5497fda5adaf187f2b2dec7cb7b1b",
+      "size": 4032
+    },
+    "server-implementation/prepare_conversion_snapshot.py": {
+      "kind": "file",
+      "sha256": "12de360b83a9c73a8baf68f97d093d1bf9d04c0bf173db24b16bfb5620071c8c",
+      "size": 13923
+    },
+    "server-implementation/prepare_inventory_snapshot.py": {
+      "kind": "file",
+      "sha256": "5c3e9671692d3341d10733ef971a3acfa76b730de248eade90fe024f68700fc5",
+      "size": 11079
+    },
+    "server-implementation/prepare_publication_snapshot.py": {
+      "kind": "file",
+      "sha256": "0a8f910d7aa6a238bd5e6574f430f79bb0994967963722ad0282fb6fdbed5a7f",
+      "size": 15510
+    },
+    "server-implementation/prepare_registration_snapshot.py": {
+      "kind": "file",
+      "sha256": "66e19e2c83b21266ce1ebae77e2c640e18c79d56907cbfd78dee21b3277b57f3",
+      "size": 7634
+    },
+    "server-implementation/prepare_storage_snapshot.py": {
+      "kind": "file",
+      "sha256": "85b2546a463a5e89966304d9eab0b2a7e0fe285583ca818acfae7eab06d4eb11",
+      "size": 13682
+    },
+    "server-implementation/s27-wire-contract.json": {
+      "kind": "file",
+      "sha256": "455868ebe8d057ad32471a169396333c03cd1bcf2b4a4986f3147935f2617e0a",
+      "size": 14594
+    },
+    "server-isolation/README-publication.md": {
+      "kind": "file",
+      "sha256": "c7538cd810e3a774d9f8344297fe59e303f8b0eace0b8fca528c3ce91f059974",
+      "size": 19138
+    },
+    "server-isolation/README-rendition.md": {
+      "kind": "file",
+      "sha256": "1b15b3123112cbc15a691dcc33867ed4f32dae0ced289def8e67e218475de13b",
+      "size": 9585
+    },
+    "server-isolation/README.md": {
+      "kind": "file",
+      "sha256": "25af2df7e0a95c5a0e2cbf2aed8c85a4584eeefb7e85773d3a04a29feecfdf43",
+      "size": 22699
+    },
+    "server-isolation/cases.json": {
+      "kind": "file",
+      "sha256": "5194fdda15897fd3e18e99b1497934cfac4b024d6f570b9c08d68b8c2d952949",
+      "size": 1216
+    },
+    "server-isolation/check_storage_guard.py": {
+      "kind": "file",
+      "sha256": "6d2bc6eebd477609b4546f7f8e46ee19732cd89730222ee111085e41801da628",
+      "size": 6424
+    },
+    "server-isolation/isolation_guard.py": {
+      "kind": "file",
+      "sha256": "74015efc998eb3dc8fe45387bc65b9e9bb2bbacd24ece43991ee644eff2e8265",
+      "size": 18949
+    },
+    "server-isolation/listener_lifecycle.py": {
+      "kind": "file",
+      "sha256": "738a43ebf7a7b88bebf9d0bb129e0d0fa8ff22801ad90f63dbe370c3cd28b632",
+      "size": 12707
+    },
+    "server-isolation/listener_probe.py": {
+      "kind": "file",
+      "sha256": "55f37c0f4d0cb61450bed69ff3a29c969ba777f5c076fc0257b26ec0be26e255",
+      "size": 10408
+    },
+    "server-isolation/prepare_inventory_probe.py": {
+      "kind": "file",
+      "sha256": "477ef2ec754d0e9de95c3d66d4ac7e4cb0239195a9254139819ebb1130bdf4bf",
+      "size": 33925
+    },
+    "server-isolation/prepare_publication_probe.py": {
+      "kind": "file",
+      "sha256": "e841e196a571df8cefdce36b1cb0b162d304bd86e8ea3f02768b41c98d2c038c",
+      "size": 45304
+    },
+    "server-isolation/prepare_registration_listener.py": {
+      "kind": "file",
+      "sha256": "5d658d5f62344bfdc317df42098d23fbbd7151fe4599128c31eee7574e34fa70",
+      "size": 12498
+    },
+    "server-isolation/prepare_rendition_fixture.py": {
+      "kind": "file",
+      "sha256": "621a3cd833595f5b0f8cd883ee91add5df00918d0f46b05b85d97610888cbc8f",
+      "size": 12930
+    },
+    "server-isolation/prepare_snapshot.py": {
+      "kind": "file",
+      "sha256": "51d6dea96a3e4e5f910b9a5e2dec44b70d5bfa5ba6e20900d7a5978ba52f0f9b",
+      "size": 4877
+    },
+    "server-isolation/prepare_storage_listener.py": {
+      "kind": "file",
+      "sha256": "f4280c5814d1f7f5b8ccfa6dd15c9b62ee877284aff1a63ecb02edf5139fe3e5",
+      "size": 5242
+    },
+    "server-isolation/publication_fixture_listener.py": {
+      "kind": "file",
+      "sha256": "fe2c3a874be6eb780db2cfeb455a8945412e077cbf08973657ee8f1f38a72133",
+      "size": 31524
+    },
+    "server-isolation/range_probe.py": {
+      "kind": "file",
+      "sha256": "545eb1ffacd3deaccfd7cbcfd7d3f8bd601e6434a01f922b68da70a2998cad6a",
+      "size": 13227
+    },
+    "server-isolation/registration_listener.py": {
+      "kind": "file",
+      "sha256": "7f87dfd93804dbdf1e327a2a04df5275e2a5e5b5281cb1ee3745d04b9d38fd0d",
+      "size": 15348
+    },
+    "server-isolation/rendition_fixture_listener.py": {
+      "kind": "file",
+      "sha256": "d52c669b3812e53a263bc7c3c192c0a9a8c2b965e89abf1a0531ea91e4a0aa67",
+      "size": 18577
+    },
+    "server-isolation/request_listener_stop.py": {
+      "kind": "file",
+      "sha256": "5cd8ca271d0151af97730953e3cbd8c14ef0e6ba95f80450f91fd2155af5624d",
+      "size": 2531
+    },
+    "server-isolation/run_publication_fixture.py": {
+      "kind": "file",
+      "sha256": "a826dde9f517375bd8f57d301a805ee7dc3e3a9e68985ad708ba2422cb07311e",
+      "size": 14943
+    },
+    "server-isolation/run_publication_simulator_probe.py": {
+      "kind": "file",
+      "sha256": "b670a8bfefc644096c597508556ccbae195a2812e89574054d9d4f56f22afd65",
+      "size": 15780
+    },
+    "server-isolation/run_pytest.py": {
+      "kind": "file",
+      "sha256": "2d787626748eb4960f6bf24f54d3cf4afd67765502b2802145b73fabc4ce0f3c",
+      "size": 17822
+    },
+    "server-isolation/run_registration_integration.py": {
+      "kind": "file",
+      "sha256": "abb736ba6c172601923cd2c70c0bab3dd19c63e61325732c69aad22bed2b2e0d",
+      "size": 14682
+    },
+    "server-isolation/run_registration_simulator_probe.py": {
+      "kind": "file",
+      "sha256": "df6e09e5d398154f78893c9fbbdade7142244dc059ec35d761ee0f3ac81ecce6",
+      "size": 15287
+    },
+    "server-isolation/run_rendition_fixture.py": {
+      "kind": "file",
+      "sha256": "f8d933b23909867b966284d7d596b29c654d31187af17653626919e5f56e5146",
+      "size": 15892
+    },
+    "server-isolation/run_rendition_simulator_probe.py": {
+      "kind": "file",
+      "sha256": "246492336092e91126f917be3bd20b3a8deb013e101d15689ec6df877552dab6",
+      "size": 14935
+    },
+    "server-isolation/run_simulator_probe.py": {
+      "kind": "file",
+      "sha256": "d45f7e0c08dbec6c0a40108b4304fa5f2715ae7420541b55a5e9ac1ae3038c21",
+      "size": 8189
+    },
+    "server-isolation/run_storage_integration.py": {
+      "kind": "file",
+      "sha256": "ffdfc8a5a6b43b66bcbc74c5d2147f7f85a0ed6a5e08e4ea928457b39c46817a",
+      "size": 13748
+    },
+    "server-isolation/storage_http_probe.py": {
+      "kind": "file",
+      "sha256": "fda1bb072ec429cd52297636240cb11d16d47b257e7d049502ec101529155227",
+      "size": 16262
+    },
+    "server-isolation/storage_listener.py": {
+      "kind": "file",
+      "sha256": "361bc816be758e4b52332215407ad6fdc530382b2fb35f660645c4ac3b98e77f",
+      "size": 13074
+    }
+  },
+  "inherited_cases": 230,
+  "inherited_nodes": 170,
+  "overlay_diff": {
+    "kind": "file",
+    "sha256": "cb95e8881c1a3460f693e202418d8683bb9293fca58a9e4405089798ff41d297",
+    "size": 149038
+  },
+  "preserved_tests_and_001_002_003_sql_unchanged": true,
+  "provenance": {
+    "kind": "file",
+    "sha256": "61418b7136ff898a70afa7ecb15bc14dec97c1e850be0b769e9284185f735b00",
+    "size": 584556
+  },
+  "python_ast_files": [
+    "server-implementation/backend-overlay/app/api/frame_relay_publication.py",
+    "server-implementation/backend-overlay/app/api/frame_relay_storage.py",
+    "server-implementation/backend-overlay/app/api/registrations.py",
+    "server-implementation/backend-overlay/app/db/frame_relay_migrations.py",
+    "server-implementation/backend-overlay/app/main.py",
+    "server-implementation/backend-overlay/app/repositories/frame_relay_conversion.py",
+    "server-implementation/backend-overlay/app/repositories/frame_relay_publication.py",
+    "server-implementation/backend-overlay/app/repositories/frame_relay_storage.py",
+    "server-implementation/backend-overlay/app/repositories/jobs.py",
+    "server-implementation/backend-overlay/app/repositories/processed_results.py",
+    "server-implementation/backend-overlay/app/repositories/registrations.py",
+    "server-implementation/backend-overlay/app/schemas/frame_relay_publication.py",
+    "server-implementation/backend-overlay/app/schemas/frame_relay_storage.py",
+    "server-implementation/backend-overlay/app/schemas/registrations.py",
+    "server-implementation/backend-overlay/app/services/asset_read.py",
+    "server-implementation/backend-overlay/app/services/formal_preview_finalizer.py",
+    "server-implementation/backend-overlay/app/services/formal_preview_processing.py",
+    "server-implementation/backend-overlay/app/services/frame_relay_conversion.py",
+    "server-implementation/backend-overlay/app/services/frame_relay_distribution.py",
+    "server-implementation/backend-overlay/app/services/frame_relay_files.py",
+    "server-implementation/backend-overlay/app/services/frame_relay_finalize.py",
+    "server-implementation/backend-overlay/app/services/frame_relay_publication.py",
+    "server-implementation/backend-overlay/app/services/frame_relay_storage.py",
+    "server-implementation/backend-overlay/app/services/phase2b_migration.py",
+    "server-implementation/backend-overlay/app/services/preview.py",
+    "server-implementation/backend-overlay/app/services/preview_stream.py",
+    "server-implementation/backend-overlay/app/services/processed_result_backfill.py",
+    "server-implementation/backend-overlay/app/services/processed_result_delivery.py",
+    "server-implementation/backend-overlay/app/services/processed_result_finalizer.py",
+    "server-implementation/backend-overlay/app/services/processed_result_stream.py",
+    "server-implementation/backend-overlay/app/services/registrations.py",
+    "server-implementation/backend-overlay/app/services/rendition_creation.py",
+    "server-implementation/backend-overlay/app/services/rendition_finalizer.py",
+    "server-implementation/backend-overlay/app/services/rendition_processing.py",
+    "server-implementation/backend-overlay/app/services/upload_finalize.py",
+    "server-implementation/backend-overlay/app/services/upload_sessions.py",
+    "server-implementation/backend-overlay/app/workers/worker.py",
+    "server-implementation/backend-overlay/tests/frame_relay_publication_fixture.py",
+    "server-implementation/backend-overlay/tests/test_frame_relay_conversion.py",
+    "server-implementation/backend-overlay/tests/test_frame_relay_inventory.py",
+    "server-implementation/backend-overlay/tests/test_frame_relay_publication.py",
+    "server-implementation/backend-overlay/tests/test_frame_relay_registrations.py",
+    "server-implementation/backend-overlay/tests/test_frame_relay_storage.py",
+    "server-implementation/backend-overlay/tests/test_worker_jobs.py",
+    "server-implementation/prepare_conversion_snapshot.py",
+    "server-implementation/prepare_inventory_snapshot.py",
+    "server-implementation/prepare_publication_snapshot.py",
+    "server-implementation/prepare_registration_snapshot.py",
+    "server-implementation/prepare_storage_snapshot.py",
+    "server-isolation/check_storage_guard.py",
+    "server-isolation/isolation_guard.py",
+    "server-isolation/listener_lifecycle.py",
+    "server-isolation/listener_probe.py",
+    "server-isolation/prepare_inventory_probe.py",
+    "server-isolation/prepare_publication_probe.py",
+    "server-isolation/prepare_registration_listener.py",
+    "server-isolation/prepare_rendition_fixture.py",
+    "server-isolation/prepare_snapshot.py",
+    "server-isolation/prepare_storage_listener.py",
+    "server-isolation/publication_fixture_listener.py",
+    "server-isolation/range_probe.py",
+    "server-isolation/registration_listener.py",
+    "server-isolation/rendition_fixture_listener.py",
+    "server-isolation/request_listener_stop.py",
+    "server-isolation/run_publication_fixture.py",
+    "server-isolation/run_publication_simulator_probe.py",
+    "server-isolation/run_pytest.py",
+    "server-isolation/run_registration_integration.py",
+    "server-isolation/run_registration_simulator_probe.py",
+    "server-isolation/run_rendition_fixture.py",
+    "server-isolation/run_rendition_simulator_probe.py",
+    "server-isolation/run_simulator_probe.py",
+    "server-isolation/run_storage_integration.py",
+    "server-isolation/storage_http_probe.py",
+    "server-isolation/storage_listener.py"
+  ],
+  "python_compile_files": [
+    "server-implementation/backend-overlay/app/api/frame_relay_publication.py",
+    "server-implementation/backend-overlay/app/api/frame_relay_storage.py",
+    "server-implementation/backend-overlay/app/api/registrations.py",
+    "server-implementation/backend-overlay/app/db/frame_relay_migrations.py",
+    "server-implementation/backend-overlay/app/main.py",
+    "server-implementation/backend-overlay/app/repositories/frame_relay_conversion.py",
+    "server-implementation/backend-overlay/app/repositories/frame_relay_publication.py",
+    "server-implementation/backend-overlay/app/repositories/frame_relay_storage.py",
+    "server-implementation/backend-overlay/app/repositories/jobs.py",
+    "server-implementation/backend-overlay/app/repositories/processed_results.py",
+    "server-implementation/backend-overlay/app/repositories/registrations.py",
+    "server-implementation/backend-overlay/app/schemas/frame_relay_publication.py",
+    "server-implementation/backend-overlay/app/schemas/frame_relay_storage.py",
+    "server-implementation/backend-overlay/app/schemas/registrations.py",
+    "server-implementation/backend-overlay/app/services/asset_read.py",
+    "server-implementation/backend-overlay/app/services/formal_preview_finalizer.py",
+    "server-implementation/backend-overlay/app/services/formal_preview_processing.py",
+    "server-implementation/backend-overlay/app/services/frame_relay_conversion.py",
+    "server-implementation/backend-overlay/app/services/frame_relay_distribution.py",
+    "server-implementation/backend-overlay/app/services/frame_relay_files.py",
+    "server-implementation/backend-overlay/app/services/frame_relay_finalize.py",
+    "server-implementation/backend-overlay/app/services/frame_relay_publication.py",
+    "server-implementation/backend-overlay/app/services/frame_relay_storage.py",
+    "server-implementation/backend-overlay/app/services/phase2b_migration.py",
+    "server-implementation/backend-overlay/app/services/preview.py",
+    "server-implementation/backend-overlay/app/services/preview_stream.py",
+    "server-implementation/backend-overlay/app/services/processed_result_backfill.py",
+    "server-implementation/backend-overlay/app/services/processed_result_delivery.py",
+    "server-implementation/backend-overlay/app/services/processed_result_finalizer.py",
+    "server-implementation/backend-overlay/app/services/processed_result_stream.py",
+    "server-implementation/backend-overlay/app/services/registrations.py",
+    "server-implementation/backend-overlay/app/services/rendition_creation.py",
+    "server-implementation/backend-overlay/app/services/rendition_finalizer.py",
+    "server-implementation/backend-overlay/app/services/rendition_processing.py",
+    "server-implementation/backend-overlay/app/services/upload_finalize.py",
+    "server-implementation/backend-overlay/app/services/upload_sessions.py",
+    "server-implementation/backend-overlay/app/workers/worker.py",
+    "server-implementation/backend-overlay/tests/frame_relay_publication_fixture.py",
+    "server-implementation/backend-overlay/tests/test_frame_relay_conversion.py",
+    "server-implementation/backend-overlay/tests/test_frame_relay_inventory.py",
+    "server-implementation/backend-overlay/tests/test_frame_relay_publication.py",
+    "server-implementation/backend-overlay/tests/test_frame_relay_registrations.py",
+    "server-implementation/backend-overlay/tests/test_frame_relay_storage.py",
+    "server-implementation/backend-overlay/tests/test_worker_jobs.py",
+    "server-implementation/prepare_conversion_snapshot.py",
+    "server-implementation/prepare_inventory_snapshot.py",
+    "server-implementation/prepare_publication_snapshot.py",
+    "server-implementation/prepare_registration_snapshot.py",
+    "server-implementation/prepare_storage_snapshot.py",
+    "server-isolation/check_storage_guard.py",
+    "server-isolation/isolation_guard.py",
+    "server-isolation/listener_lifecycle.py",
+    "server-isolation/listener_probe.py",
+    "server-isolation/prepare_inventory_probe.py",
+    "server-isolation/prepare_publication_probe.py",
+    "server-isolation/prepare_registration_listener.py",
+    "server-isolation/prepare_rendition_fixture.py",
+    "server-isolation/prepare_snapshot.py",
+    "server-isolation/prepare_storage_listener.py",
+    "server-isolation/publication_fixture_listener.py",
+    "server-isolation/range_probe.py",
+    "server-isolation/registration_listener.py",
+    "server-isolation/rendition_fixture_listener.py",
+    "server-isolation/request_listener_stop.py",
+    "server-isolation/run_publication_fixture.py",
+    "server-isolation/run_publication_simulator_probe.py",
+    "server-isolation/run_pytest.py",
+    "server-isolation/run_registration_integration.py",
+    "server-isolation/run_registration_simulator_probe.py",
+    "server-isolation/run_rendition_fixture.py",
+    "server-isolation/run_rendition_simulator_probe.py",
+    "server-isolation/run_simulator_probe.py",
+    "server-isolation/run_storage_integration.py",
+    "server-isolation/storage_http_probe.py",
+    "server-isolation/storage_listener.py"
+  ],
+  "runtime_created": false,
+  "s20_original_copy_complete": false,
+  "s26j_tmp_input_reverified": false,
+  "selected_inventory_cases": 49,
+  "selected_inventory_nodes": 16,
+  "snapshot": {
+    "backend/.dockerignore": {
+      "kind": "file",
+      "sha256": "c4e67d0bdf4231c08c3f78687881651047a164b13bb5e323ce0cee72734be019",
+      "size": 65
+    },
+    "backend/.env.example": {
+      "kind": "file",
+      "sha256": "c665c450b7b6ea7ddaa5b8e77f6d0c9a89ba5defb3bf2517c44c37eee35ce301",
+      "size": 389
+    },
+    "backend/Dockerfile": {
+      "kind": "file",
+      "sha256": "27232bfb046929e14db1da0a195498e32ad017dd2c4f6dbb31a4e92e35fd1c44",
+      "size": 653
+    },
+    "backend/app/__init__.py": {
+      "kind": "file",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "backend/app/api/__init__.py": {
+      "kind": "file",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "backend/app/api/assets.py": {
+      "kind": "file",
+      "sha256": "cf20bd3996a6ef3caec793aa4a50b2c6fc6751a475551d36d318fe3f15320dde",
+      "size": 10684
+    },
+    "backend/app/api/capabilities.py": {
+      "kind": "file",
+      "sha256": "ea41934961997354df59dcc16001860ff9b1ce9f689851790687eefc6a0d7cee",
+      "size": 1842
+    },
+    "backend/app/api/deps.py": {
+      "kind": "file",
+      "sha256": "2c1cd8a3e22e02186f07df086b108b1e188b87d4ca2fd72b064b47dfc00befe1",
+      "size": 748
+    },
+    "backend/app/api/frame_relay_publication.py": {
+      "kind": "file",
+      "sha256": "02886996a9fb134e797a0d5fcdcb0597b54bd4830dea35150f5379a8e588e514",
+      "size": 5802
+    },
+    "backend/app/api/frame_relay_storage.py": {
+      "kind": "file",
+      "sha256": "824a4fec598f0dd515823905a26756197e2438b1e299e057c99249220e56b221",
+      "size": 3888
+    },
+    "backend/app/api/health.py": {
+      "kind": "file",
+      "sha256": "1f6dd0812dacbc379da0e01b236045640a678016552c3dd2d708058601a1cc91",
+      "size": 138
+    },
+    "backend/app/api/presets.py": {
+      "kind": "file",
+      "sha256": "6674329092427912c3735e8d90ba6f27c583551c9e478cab21824cd8dc6bf2cd",
+      "size": 554
+    },
+    "backend/app/api/registrations.py": {
+      "kind": "file",
+      "sha256": "97dac737ea0c9b2e170da2c65e711acf1363f3d633494149b6a189cd75d2ae63",
+      "size": 2792
+    },
+    "backend/app/api/renditions.py": {
+      "kind": "file",
+      "sha256": "c9ef931a6569413f5634bd29cd88d160fcd26a4aa2f02bc71b8011974631c6a5",
+      "size": 1700
+    },
+    "backend/app/api/upload_sessions.py": {
+      "kind": "file",
+      "sha256": "bfba4a96ea59d2464ae58aeb05d0f077ebcb10a55f2d9c23e1a791910c9667d4",
+      "size": 4630
+    },
+    "backend/app/core/__init__.py": {
+      "kind": "file",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "backend/app/core/settings.py": {
+      "kind": "file",
+      "sha256": "9df68044265bb36bb7df36591a9abca31b7a5089321a2a9881cd1104fe03afd6",
+      "size": 6228
+    },
+    "backend/app/db/__init__.py": {
+      "kind": "file",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "backend/app/db/connection.py": {
+      "kind": "file",
+      "sha256": "9f08e5677b85fd098cc5edd2fd72c25005a4f1833003a197675cdc3c3a5644c3",
+      "size": 1613
+    },
+    "backend/app/db/detector_v2/__init__.py": {
+      "kind": "file",
+      "sha256": "679887bdafdfbba27c6fb80c519b0abcbbf7cdd4f23f060aca543913c23b25d4",
+      "size": 548
+    },
+    "backend/app/db/detector_v2/schema.py": {
+      "kind": "file",
+      "sha256": "7039d8045980a058377c4b97ccfca223a6e72bbefa3f2175d025dfc388360a58",
+      "size": 18918
+    },
+    "backend/app/db/frame_relay_migrations.py": {
+      "kind": "file",
+      "sha256": "34322766ed836a7a6d7b65fdb51db4136a0bdca43132aefc3fc5118c051592b8",
+      "size": 3312
+    },
+    "backend/app/db/frame_relay_schema/001_registrations.sql": {
+      "kind": "file",
+      "sha256": "4ebddf580bca5141d77631419002871b06a7eaf406de4559abd9a3bc24b20735",
+      "size": 1574
+    },
+    "backend/app/db/frame_relay_schema/002_storage.sql": {
+      "kind": "file",
+      "sha256": "d2daf36dbc5780bd25adbe589f21e32ec419e95f39a96cbdc26b8923081f2287",
+      "size": 2890
+    },
+    "backend/app/db/frame_relay_schema/003_conversion_candidates.sql": {
+      "kind": "file",
+      "sha256": "5ab91e78a977aac51666257624e5a5ddf23b4bb8571e61846e601842763be698",
+      "size": 2299
+    },
+    "backend/app/db/frame_relay_schema/004_publication.sql": {
+      "kind": "file",
+      "sha256": "35723b0fba32c443261634043ce8d0127d1f9cdea080fbe03da053290468ea98",
+      "size": 7063
+    },
+    "backend/app/db/migrations.py": {
+      "kind": "file",
+      "sha256": "8c7afb071dae9e67b90240c17eda8fa546a75210f8804911b716263118bf5983",
+      "size": 1475
+    },
+    "backend/app/db/migrations/001_initial.sql": {
+      "kind": "file",
+      "sha256": "ad1070489641a6d964a44415d24d0e62702aab80da01159b9e591f75534a2f35",
+      "size": 1733
+    },
+    "backend/app/db/migrations/002_invalidate_identity_log_previews.sql": {
+      "kind": "file",
+      "sha256": "3868eca4e6b21390fd60fe00982b24ec8d093956e4b33c59f661f2d13353fedd",
+      "size": 506
+    },
+    "backend/app/db/migrations/003_phase2a_resumable_uploads.sql": {
+      "kind": "file",
+      "sha256": "aadf4575a23b93805df17423d6b764ebf8dc3e57547209e2729e9f169e4e260e",
+      "size": 2528
+    },
+    "backend/app/db/migrations/004_processed_video_delivery.sql": {
+      "kind": "file",
+      "sha256": "053678c304a2bcae581e382ebea4c907f8a52409bea62081b11c8c75958ead75",
+      "size": 12226
+    },
+    "backend/app/db/migrations/005_enforce_processed_result_derived_file_immutability.sql": {
+      "kind": "file",
+      "sha256": "e11ff60be8853b3e25a80a2991f28a78a0636cdd962c04b0719ff07d72da3ef3",
+      "size": 378
+    },
+    "backend/app/db/migrations/006_enforce_processed_result_lifecycle_immutability.sql": {
+      "kind": "file",
+      "sha256": "a93270b5f1c90b519e12d6275f41791174500332b50f0d1d61087875e7aa9f89",
+      "size": 689
+    },
+    "backend/app/db/migrations/007_managed_preview_presets.sql": {
+      "kind": "file",
+      "sha256": "06198b6aef5d2936ce9e16ef520dfe868d4b4f6aac724c6313e87de2be61efd9",
+      "size": 11729
+    },
+    "backend/app/db/phase2b/008_apple_log_formal_preview.sql": {
+      "kind": "file",
+      "sha256": "7fa73f76abbbf2ab3564b3e7cb4ccbf0e102567be680148a1958217e2784b98a",
+      "size": 22752
+    },
+    "backend/app/db/phase2b/__init__.py": {
+      "kind": "file",
+      "sha256": "af0b58e2146fe375f7251013cb866e41f8e3d84587755d78cf77cf82af084853",
+      "size": 566
+    },
+    "backend/app/db/phase2c/009_safe_delete_candidate.sql": {
+      "kind": "file",
+      "sha256": "0655f8bae3267bad74f60b6110084327a48c4cb010b60267288c858bb5822d6e",
+      "size": 24607
+    },
+    "backend/app/db/phase2c/__init__.py": {
+      "kind": "file",
+      "sha256": "b8c0a71b9ebb73a7051a398a34ced477f6763a97308f3998e2fbfa13b894f034",
+      "size": 6815
+    },
+    "backend/app/db/phase_schema_identity.py": {
+      "kind": "file",
+      "sha256": "9c2ae77533222d87cab69cd7a0c077e5f282dc72bd7ebab24aeb1bd43f001880",
+      "size": 17521
+    },
+    "backend/app/main.py": {
+      "kind": "file",
+      "sha256": "0fda5cc5cc8a964fe4b4eb7c3e3dd095014c86a0b2a59d1619afca87847cc85a",
+      "size": 3368
+    },
+    "backend/app/repositories/__init__.py": {
+      "kind": "file",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "backend/app/repositories/assets.py": {
+      "kind": "file",
+      "sha256": "e16331c44b4b16e091029910be7701443ecc207588269dd89bb6ba54b99229a2",
+      "size": 5240
+    },
+    "backend/app/repositories/derived_files.py": {
+      "kind": "file",
+      "sha256": "7842ec2273972f34649c3dc16ef321cc384ca40ea9e62d2b43993aebea7998af",
+      "size": 1380
+    },
+    "backend/app/repositories/formal_previews.py": {
+      "kind": "file",
+      "sha256": "b73008b0d43d9d716144de8860675d0b8ee0b47e986f7aafa1b808505c68bb4b",
+      "size": 9422
+    },
+    "backend/app/repositories/frame_relay_conversion.py": {
+      "kind": "file",
+      "sha256": "1790850659596ff27c5ff461ad36ec42f5b5a14431dbc2db0bd255fcd2abf2f2",
+      "size": 9350
+    },
+    "backend/app/repositories/frame_relay_publication.py": {
+      "kind": "file",
+      "sha256": "474b1fcd72f68aca4d5aa4a46360f9ede4b2846d7513ac38ed30d32eb581270a",
+      "size": 15561
+    },
+    "backend/app/repositories/frame_relay_storage.py": {
+      "kind": "file",
+      "sha256": "a04ce2960cbde636e55ccbb02c422a64b62848601930d6a7d9ababe818a7fa60",
+      "size": 14383
+    },
+    "backend/app/repositories/jobs.py": {
+      "kind": "file",
+      "sha256": "cd978d713fddacde23e69225640e54b1ede6c3af0db8a2a825e23d5280359bef",
+      "size": 9530
+    },
+    "backend/app/repositories/processed_results.py": {
+      "kind": "file",
+      "sha256": "4db134354893dca4fbc90deb23cfda689512162631904c72d43dc7e28e33a80b",
+      "size": 13008
+    },
+    "backend/app/repositories/registrations.py": {
+      "kind": "file",
+      "sha256": "75709099be921948aa19af49e6a2faae7bf95b997feae2c7f4fbc0d9375c00cd",
+      "size": 6075
+    },
+    "backend/app/repositories/rendition_provenance.py": {
+      "kind": "file",
+      "sha256": "e7ae5e69bda93ee8be4956d94ee77305fd27867179bfdc6c5d61325f2925f0b9",
+      "size": 1961
+    },
+    "backend/app/repositories/renditions.py": {
+      "kind": "file",
+      "sha256": "d4764621eac5d3fbd09117dd5d4d1f6adce825e386e3c5d2440257d1a080d244",
+      "size": 8232
+    },
+    "backend/app/repositories/upload_chunks.py": {
+      "kind": "file",
+      "sha256": "020c151ee0ee66b2fc83622f426d640b40a8660596061c80076b16919c99ad99",
+      "size": 2133
+    },
+    "backend/app/repositories/upload_sessions.py": {
+      "kind": "file",
+      "sha256": "72d0507e4610ae92d295cf8b3f13cf9b5ee6975b290c9ac4767d6b2ac9494efc",
+      "size": 10506
+    },
+    "backend/app/schemas/__init__.py": {
+      "kind": "file",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "backend/app/schemas/assets.py": {
+      "kind": "file",
+      "sha256": "61a24abe1056db81c4230c540bda60fc3131b7834bd8a24958bed4cfa302e8c9",
+      "size": 15059
+    },
+    "backend/app/schemas/frame_relay_publication.py": {
+      "kind": "file",
+      "sha256": "20caedcc20a0f5f136eb685409626512d0ba604311198ccc0ef7db2ded3979ad",
+      "size": 4702
+    },
+    "backend/app/schemas/frame_relay_storage.py": {
+      "kind": "file",
+      "sha256": "35870a1a797388e30daad03d041c3659adbc850f12c5c0165e6108fb5a711d01",
+      "size": 2428
+    },
+    "backend/app/schemas/presets.py": {
+      "kind": "file",
+      "sha256": "36943deb1959f1dfccd53c15f5d4ca89749228a771bbcf2cf34509a61ab1431a",
+      "size": 955
+    },
+    "backend/app/schemas/registrations.py": {
+      "kind": "file",
+      "sha256": "56e3e04528e343f2f737b483831a5a9daf70854dc8b76b203fd2d6e24ca92046",
+      "size": 1569
+    },
+    "backend/app/schemas/renditions.py": {
+      "kind": "file",
+      "sha256": "528c6486da3dc939ba9a50b36d1735c9515ff43b28feadeee00d31db811ae09d",
+      "size": 1035
+    },
+    "backend/app/schemas/upload_sessions.py": {
+      "kind": "file",
+      "sha256": "8d0c459f53130ae50b69ecb747d7b3eaf14224889ab07613a907a73d2cfc447b",
+      "size": 3227
+    },
+    "backend/app/services/__init__.py": {
+      "kind": "file",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "backend/app/services/apple_log_detector.py": {
+      "kind": "file",
+      "sha256": "45a6f472e44e6f5958b6b9081ae4543947ebff6178a418db22d17bb807cafed3",
+      "size": 12505
+    },
+    "backend/app/services/asset_read.py": {
+      "kind": "file",
+      "sha256": "d4c8367ebeca4a3b742eeed0199d3c4c98459484cbc90e71830f6a764619d011",
+      "size": 15554
+    },
+    "backend/app/services/bounded_subprocess.py": {
+      "kind": "file",
+      "sha256": "e1503fa8a636cae52f84b87097d111deb04a9c7f2fb874a930ddd8a13b272b6d",
+      "size": 5670
+    },
+    "backend/app/services/canonical_json.py": {
+      "kind": "file",
+      "sha256": "c21f3cdcf900d4fb83b3c01f319969fe3d1a9f79b79d0707c3d55a52c710ea9b",
+      "size": 449
+    },
+    "backend/app/services/client_compatibility.py": {
+      "kind": "file",
+      "sha256": "800288925f04e2f75baa711a94d2bd45a5a9b2dfb8f4207b6c20119473b0fbf9",
+      "size": 1296
+    },
+    "backend/app/services/detector_capability.py": {
+      "kind": "file",
+      "sha256": "7ecca7e86b71cb650afc2835e8c2cc7296b9d3253c955d86f86bf936b57c2d84",
+      "size": 3696
+    },
+    "backend/app/services/detector_certification.py": {
+      "kind": "file",
+      "sha256": "4e279fd2108df7849634bac28772ef509601c39d7e189b759ba000537b2ceee7",
+      "size": 20894
+    },
+    "backend/app/services/detector_fixture_descriptor.py": {
+      "kind": "file",
+      "sha256": "e495e69f4916f9e1d7b3496b17ddaaa099ee17dd9bd08bff533ddac3a2c150f6",
+      "size": 6413
+    },
+    "backend/app/services/detector_inspection.py": {
+      "kind": "file",
+      "sha256": "b0c99306c610bd08533ebbefd15f2c8db8b7ea1b290ecfc87ba3b437d31e0ce2",
+      "size": 9867
+    },
+    "backend/app/services/detector_manifest.py": {
+      "kind": "file",
+      "sha256": "874c2cbcf9d4982e3ee52bb563fa2cb9d1402b589a27a5ccf8b7c19bb15b1099",
+      "size": 31575
+    },
+    "backend/app/services/detector_snapshot_cleanup.py": {
+      "kind": "file",
+      "sha256": "fe665b18ef40accba72a521370054d7664f5da05f9c5d93fbf91f2dcbec7beaf",
+      "size": 10611
+    },
+    "backend/app/services/detector_source.py": {
+      "kind": "file",
+      "sha256": "e36bbd28e52e3a38d2e0784a5afab85628610f6347dd17e9fc1beec0b15c86db",
+      "size": 5360
+    },
+    "backend/app/services/detector_v2_host_migration.py": {
+      "kind": "file",
+      "sha256": "1d0496f5c5660e145adf1dc552567b724da050c70609e0b45cf5128227741e9c",
+      "size": 1835
+    },
+    "backend/app/services/detector_v2_migration.py": {
+      "kind": "file",
+      "sha256": "65eaaee5385dceebf11c9615d7fb73b16bb8e05ceb26ee5f6b929d1d1340649e",
+      "size": 19951
+    },
+    "backend/app/services/disposable_database_target.py": {
+      "kind": "file",
+      "sha256": "6164807167ad8315a91819f178217253ad0161c3613cd8cd30067e55454b6211",
+      "size": 5517
+    },
+    "backend/app/services/external_fixture_git_audit.py": {
+      "kind": "file",
+      "sha256": "7e153acea7cc6f4332486dc9cb6900da6b344f4959b4a8f892f038fa94c3fa14",
+      "size": 7350
+    },
+    "backend/app/services/ffmpeg.py": {
+      "kind": "file",
+      "sha256": "d20bc0162d28f628f70caee5f34dcd3fc2a51efb17eabbd0332f4ba361d4a022",
+      "size": 2227
+    },
+    "backend/app/services/formal_preview_authority.py": {
+      "kind": "file",
+      "sha256": "368dc7a212c96d0259a71a1b4dd709987871c1682d667b1bbbd473e705ff95cc",
+      "size": 2100
+    },
+    "backend/app/services/formal_preview_finalizer.py": {
+      "kind": "file",
+      "sha256": "6608c9415d2fbc25bc7501db974c01a5101d6c8d68cd688aa68c9f515c3b0d5c",
+      "size": 15059
+    },
+    "backend/app/services/formal_preview_processing.py": {
+      "kind": "file",
+      "sha256": "f44005c49bd97847e00b8e20017acc3c47c7d36ecc514499f626fa3e9a66e5cf",
+      "size": 23618
+    },
+    "backend/app/services/formal_preview_read.py": {
+      "kind": "file",
+      "sha256": "fc149b8c9fdaa35af89c8416294eee8e4dc96576f1e3a18c8262ceb61af4f026",
+      "size": 8553
+    },
+    "backend/app/services/frame_relay_conversion.py": {
+      "kind": "file",
+      "sha256": "36f680277fe765fd47f271e5dd029080157db9b38f5412095beca5b7487b8ec1",
+      "size": 10648
+    },
+    "backend/app/services/frame_relay_distribution.py": {
+      "kind": "file",
+      "sha256": "0bc72b02ff4d1c610f15c99c7aa50bbde68c5ec3b209678d74bc9a211767f41b",
+      "size": 6340
+    },
+    "backend/app/services/frame_relay_files.py": {
+      "kind": "file",
+      "sha256": "24dcf5c800a8bd7ff91b5209935985008e5ac3071459e50172cccf26e59e66ed",
+      "size": 6493
+    },
+    "backend/app/services/frame_relay_finalize.py": {
+      "kind": "file",
+      "sha256": "c02b941ccca15f09ebfb2d3ec4851dd3385b84bdf05a5f3802ce2f4375775540",
+      "size": 8755
+    },
+    "backend/app/services/frame_relay_publication.py": {
+      "kind": "file",
+      "sha256": "0047d7ffaec2997dcdf285c960f10dabcd40d291501c28971f4113540ade418b",
+      "size": 16451
+    },
+    "backend/app/services/frame_relay_storage.py": {
+      "kind": "file",
+      "sha256": "51b63a6355a6022f6a9479e1f95ba568e3c106d4b91fe8fae482606a6cfd655e",
+      "size": 15977
+    },
+    "backend/app/services/initial_release_guard.py": {
+      "kind": "file",
+      "sha256": "a39225e3b256faae4402c067bceef5ce14a9f4e4475fe2b8466364d7f66f4c1f",
+      "size": 945
+    },
+    "backend/app/services/iso_bmff_log_parser.py": {
+      "kind": "file",
+      "sha256": "b1e69bf31d12dcf2c282ec70fdbe28dc0df6f116719fd010d036e71cceed4ba8",
+      "size": 22498
+    },
+    "backend/app/services/lut_snapshot.py": {
+      "kind": "file",
+      "sha256": "721454522cde5e0d434f08b0af2d70f7d84d15ca3e722b3470a6f7e11ea84fe1",
+      "size": 7926
+    },
+    "backend/app/services/media_range.py": {
+      "kind": "file",
+      "sha256": "55cb44413304b9f162c436cd2a4d63ed4ef03ebae1c40cd275fb2509a0ffb96d",
+      "size": 2728
+    },
+    "backend/app/services/offline_startup_migration.py": {
+      "kind": "file",
+      "sha256": "c2f377c4ddc6e3750614f3ea2b41cec5596f9dcf298b0b5f88f2a64595c6e06a",
+      "size": 9982
+    },
+    "backend/app/services/operator_migration_identity.py": {
+      "kind": "file",
+      "sha256": "67d7961b613b2218f4543368ed872711549f72c78c7e5349898d7666c4a4ddd7",
+      "size": 1877
+    },
+    "backend/app/services/operator_release_manifest.py": {
+      "kind": "file",
+      "sha256": "9185d4905bb835411c662e5a37b7f957c5a691b37cad02313184d53baf533481",
+      "size": 16263
+    },
+    "backend/app/services/operator_release_orchestration.py": {
+      "kind": "file",
+      "sha256": "056c1d8b8159438d98aaa1887f8a38a5c70b49e2dee8808797247682659ca476",
+      "size": 43566
+    },
+    "backend/app/services/operator_restore_drill.py": {
+      "kind": "file",
+      "sha256": "070b652c56c4931d470ee45eae5a14294846752e1f8c9d5020b203e12d6cb37b",
+      "size": 24008
+    },
+    "backend/app/services/phase2_rollout.py": {
+      "kind": "file",
+      "sha256": "443b36384dd62996a48ede2147aeabc566b165bba16cc21ffffc937a5d93a771",
+      "size": 2912
+    },
+    "backend/app/services/phase2b_drain.py": {
+      "kind": "file",
+      "sha256": "0e8507b93f4bfaa3eb17dcfdfeb87764d16aaff2f520ad6e47e06e3fe2184e3d",
+      "size": 1044
+    },
+    "backend/app/services/phase2b_drain_check.py": {
+      "kind": "file",
+      "sha256": "2b62dc5d19252474f72d44517bc699620a19c1735b9f5c5dbd268b0f962766bb",
+      "size": 471
+    },
+    "backend/app/services/phase2b_host_migration.py": {
+      "kind": "file",
+      "sha256": "224dad219852b7974159155b2021c48cdabbf5a56b5a13f8f8a84d819a069773",
+      "size": 1711
+    },
+    "backend/app/services/phase2b_migration.py": {
+      "kind": "file",
+      "sha256": "1f247429844d8658f4b1025f8085017678a8443f20f8a8662cffaf73341b08fe",
+      "size": 10031
+    },
+    "backend/app/services/phase2c_host_migration.py": {
+      "kind": "file",
+      "sha256": "b6f75837727fc77f11c85f712a149990deea5b4568b57367fc81c3a030560ea3",
+      "size": 1892
+    },
+    "backend/app/services/phase2c_migration.py": {
+      "kind": "file",
+      "sha256": "c78bb0286e09f0f2c3ea2230030c77f2a3877124df124d21a4ecbef778a90e18",
+      "size": 10583
+    },
+    "backend/app/services/preset_manifest.py": {
+      "kind": "file",
+      "sha256": "fd4cb5658382d132c380b63b70eab111832d876974cf8f581c040d24734095c1",
+      "size": 15027
+    },
+    "backend/app/services/preset_registry.py": {
+      "kind": "file",
+      "sha256": "508200553b231d7e61f2f3430a75666ebd0838fa8e429b24794a2fbbbac7a79c",
+      "size": 17561
+    },
+    "backend/app/services/preview.py": {
+      "kind": "file",
+      "sha256": "a9f8b5e16e27c79cce5b4b367390c2d4e76890e09b2017b369666d28544d28c7",
+      "size": 12161
+    },
+    "backend/app/services/preview_stream.py": {
+      "kind": "file",
+      "sha256": "34f5dcf36c98a8d43b69913a9d5ce0d5bf231423bdacf19454c724adae8d62c3",
+      "size": 4332
+    },
+    "backend/app/services/processed_result_authority.py": {
+      "kind": "file",
+      "sha256": "98e2891f65e5235b347efb1bbbffdd895a67b1007308052e735baba4bd8d8d07",
+      "size": 9477
+    },
+    "backend/app/services/processed_result_backfill.py": {
+      "kind": "file",
+      "sha256": "fb4c1de3e1bbd88cbef1ce7de5f1303e481a3ce21e03e6369f79b3eeefae5ce6",
+      "size": 7450
+    },
+    "backend/app/services/processed_result_delivery.py": {
+      "kind": "file",
+      "sha256": "a040d667754936866b5dd177c0e42f63527c73ea2748b7a2a93f5d8909f012fc",
+      "size": 12122
+    },
+    "backend/app/services/processed_result_finalizer.py": {
+      "kind": "file",
+      "sha256": "149ca58f11040267e9d18f56d500490cce8fbd32880de180dae7a917ec355a42",
+      "size": 4688
+    },
+    "backend/app/services/processed_result_integrity.py": {
+      "kind": "file",
+      "sha256": "586657fad3c82cc553c3bb92843f7bc84c34fa8bd4593bb1c2ac403ca88f17eb",
+      "size": 5922
+    },
+    "backend/app/services/processed_result_recovery.py": {
+      "kind": "file",
+      "sha256": "1b27f9249f7058b3e814a27cf4538c6dbedd2a2af1a0f2594b1f176d0558150e",
+      "size": 2163
+    },
+    "backend/app/services/processed_result_stream.py": {
+      "kind": "file",
+      "sha256": "1ea1d732907c5509abbd7090c79fba04c54ccbb5771308eb74bf96d560eed0ad",
+      "size": 5722
+    },
+    "backend/app/services/registrations.py": {
+      "kind": "file",
+      "sha256": "0fbf49480264f8d661299be7a1244aef3ff3e33444c88847fe144454f8cabe2f",
+      "size": 1289
+    },
+    "backend/app/services/rendition_creation.py": {
+      "kind": "file",
+      "sha256": "081297f874e1841a440fa5d1f90c8ff423bd9adb5b0e671bee46fd78f1b0ec8a",
+      "size": 9766
+    },
+    "backend/app/services/rendition_finalizer.py": {
+      "kind": "file",
+      "sha256": "3018f1e6b037acd31b7cbd262acff7aee66d77a98d9b7766b5fe2bb8af4fd53e",
+      "size": 7754
+    },
+    "backend/app/services/rendition_processing.py": {
+      "kind": "file",
+      "sha256": "4a20594158c1fb74686cdc98bcb0eb831895d9b49cdfb2003086f27d1b911701",
+      "size": 11426
+    },
+    "backend/app/services/safe_delete_candidate.py": {
+      "kind": "file",
+      "sha256": "ae48ccfeed19ee65a07d10fac147ad730d643b8439dcf121b6dff755dc0ba815",
+      "size": 18427
+    },
+    "backend/app/services/safe_delete_reconciliation.py": {
+      "kind": "file",
+      "sha256": "44a7f2d9dce54e54c4fbcee8ebc5ea754ab5b6049fdb68ef18d349f879f2bef6",
+      "size": 3295
+    },
+    "backend/app/services/safe_delete_reconciliation_host.py": {
+      "kind": "file",
+      "sha256": "a4783ce77df494f7d755c8b654435c9d39ee0be2f3507c24a051a24c04970db8",
+      "size": 2580
+    },
+    "backend/app/services/storage.py": {
+      "kind": "file",
+      "sha256": "5aa7f7a7b929ba29f6c56857dd01fc60dd046ce0e62e52efefb9d8de54b8449d",
+      "size": 11611
+    },
+    "backend/app/services/synthetic_detector_fixture.py": {
+      "kind": "file",
+      "sha256": "10480fdebdfb3bab91e4de5efd4e5f5a0136e36c6aeb513517d73348b8ab6369",
+      "size": 1202
+    },
+    "backend/app/services/upload.py": {
+      "kind": "file",
+      "sha256": "d12d84f4d2c54015d67d265bb200117a3a22c7e75aa2faede9ea757d1e94d73e",
+      "size": 6663
+    },
+    "backend/app/services/upload_finalize.py": {
+      "kind": "file",
+      "sha256": "4907590f81fa1c09dec57bc92072300e81b4fa64990ce7a6124ab3de7030f394",
+      "size": 13863
+    },
+    "backend/app/services/upload_sessions.py": {
+      "kind": "file",
+      "sha256": "fc5d11402ed2fd9525188165d62a4f8be9e01e2fee7c64612ba0b61ba9e4786e",
+      "size": 16657
+    },
+    "backend/app/workers/__init__.py": {
+      "kind": "file",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "backend/app/workers/worker.py": {
+      "kind": "file",
+      "sha256": "76cf7deb029ea7dbd8d9bf982a73187bd629d3010ab4ccf61e0fc3bd8df0eae4",
+      "size": 3519
+    },
+    "backend/assets/detectors/apple-log-v2/certificate-summary.json": {
+      "kind": "file",
+      "sha256": "3df5b82e49c5699006e22f0bff5577d16a82822a236947ed23df86a99e30141b",
+      "size": 1057
+    },
+    "backend/assets/detectors/apple-log-v2/detector-rule-input-v2.json": {
+      "kind": "file",
+      "sha256": "86774d3f95a8c623fa08b095737e83dd51c788e1c6d13658370e982cd1f82484",
+      "size": 1935
+    },
+    "backend/assets/detectors/apple-log-v2/detector-rule-input-v2.json.sha256": {
+      "kind": "file",
+      "sha256": "55f810ad15c9e84776fd572d77c5a59c06aefe14439580f2b4d2f32634d3d6d6",
+      "size": 65
+    },
+    "backend/assets/detectors/apple-log-v2/manifest.json": {
+      "kind": "file",
+      "sha256": "2b20a4ee4bc5d0952467a3b153aa223951fbc391f6acfdce82237d97d28b936a",
+      "size": 2987
+    },
+    "backend/assets/lut/presets/identity-v1/identity-v1.cube": {
+      "kind": "file",
+      "sha256": "49b26018aa20fd0a788a93ddacf62d7b1a6b211803603bac1990a8c1c31080d8",
+      "size": 132773
+    },
+    "backend/assets/lut/presets/identity-v1/manifest.json": {
+      "kind": "file",
+      "sha256": "f2d2d89c0ef4532391980c428b927d8cc698891476fbb3c6e2dbe2f72fbba5fd",
+      "size": 561
+    },
+    "backend/assets/lut/presets/test-red-blue-swap-v1/manifest.json": {
+      "kind": "file",
+      "sha256": "92cce9e1557db28fa8990ce90a33286faddb51651e48ef38220fa3d04d12d4e9",
+      "size": 582
+    },
+    "backend/assets/lut/presets/test-red-blue-swap-v1/test-red-blue-swap-v1.cube": {
+      "kind": "file",
+      "sha256": "e1d6ec8c3c83e67f59753dd4f4c43827a1f90a3eb32d53a0b4ca9a3d947dba14",
+      "size": 132783
+    },
+    "backend/assets/lut/rec709.cube": {
+      "kind": "file",
+      "sha256": "a09d2e326a4e3f1f8321a2eea8a8e8b8c63b4e58a6405b365e1ba4c95c8930ec",
+      "size": 197
+    },
+    "backend/pyproject.toml": {
+      "kind": "file",
+      "sha256": "3fbf9aaa3fc379745e6840856e5be090374ca4d1cb87c5f8ac3801d6a19fdc6a",
+      "size": 482
+    },
+    "backend/scripts/audit_external_fixture_git_history.py": {
+      "kind": "file",
+      "sha256": "c039187d84f3c5d72157db874b76d2b958604ae877ff1bad95196e34ac2b8ce5",
+      "size": 1705
+    },
+    "backend/scripts/certify_apple_log_detector.py": {
+      "kind": "file",
+      "sha256": "17822b167fd1415fa5eff1c58f87da756cd505e9b467892041697f36113485c5",
+      "size": 1711
+    },
+    "backend/scripts/certify_operator_restore_drill.py": {
+      "kind": "file",
+      "sha256": "8f113e3044494617417469ce4b59d289ac2d9da32e1372772d79726c6649401f",
+      "size": 3453
+    },
+    "backend/scripts/check_detector_v2_api_capability.py": {
+      "kind": "file",
+      "sha256": "e025b32a0084055cc801bf41444e915e535ffe4b6427f70f354f418538835285",
+      "size": 1722
+    },
+    "backend/scripts/generate_test_luts.py": {
+      "kind": "file",
+      "sha256": "567b48fa8653c3889eb4c82b2875ce6025eaaef25ffafb2a502df08a7bc2fc7d",
+      "size": 3295
+    },
+    "backend/scripts/initialize_disposable_database_target.py": {
+      "kind": "file",
+      "sha256": "64e081dfe62e596883beb07c6ff3be896661b25eeb8ef3d6a3e8a71b7bf26c33",
+      "size": 743
+    },
+    "backend/scripts/inspect_detector_fixture.py": {
+      "kind": "file",
+      "sha256": "f66b3d8d8a716e0b10be3804783a702d07787984ea14d32f0d0b2c0a8e693f5a",
+      "size": 725
+    },
+    "backend/scripts/inspect_operator_migration_identity.py": {
+      "kind": "file",
+      "sha256": "9b145079aeb19ac47cdcf4913954a916c78f983afbe613ffb6bb9f5bec722f76",
+      "size": 1289
+    },
+    "backend/scripts/migrate_detector_v2.py": {
+      "kind": "file",
+      "sha256": "3100f82a1269436c0403380d337ad33a37d289b092f2f1e4e28854846e44d8cc",
+      "size": 2375
+    },
+    "backend/scripts/migrate_phase2b_formal_preview.py": {
+      "kind": "file",
+      "sha256": "0e1036ae37886dea9f9cce58ca36d30f9bc863fc599f937f18275c77622fc962",
+      "size": 1666
+    },
+    "backend/scripts/migrate_phase2b_operator_safe.py": {
+      "kind": "file",
+      "sha256": "1ed7d023df436c696319a9781ff683fb9134dc1199065123f1f3d91a328d124d",
+      "size": 1094
+    },
+    "backend/scripts/migrate_phase2c_operator_safe.py": {
+      "kind": "file",
+      "sha256": "b0e874b877ab0401c1294c1697d18ff86be16149ae4ff2a2297325b411ec8a2d",
+      "size": 1627
+    },
+    "backend/scripts/migrate_phase2c_safe_delete_candidate.py": {
+      "kind": "file",
+      "sha256": "0fdd5422600537436d0620fa3dc3e37dd15cf35762b1a86ef89fdf4a90543b6c",
+      "size": 1925
+    },
+    "backend/scripts/migrate_startup_offline.py": {
+      "kind": "file",
+      "sha256": "7e444e0bd86c607a63d63964d9f6c83d084228f42623dc982aca3b80769b0b8b",
+      "size": 2677
+    },
+    "backend/scripts/preflight_detector_v2.py": {
+      "kind": "file",
+      "sha256": "e7cccf9272c6160ea31cff46c516848bca4ff4638c85297ac3b655f1cd3ec9c4",
+      "size": 1583
+    },
+    "backend/scripts/prepare_operator_release_manifest.py": {
+      "kind": "file",
+      "sha256": "ebad97e8776a6eca4e9f64950bf05acc5ca3c2f47bebab5254eee44801055dd4",
+      "size": 2073
+    },
+    "backend/scripts/reconcile_safe_delete_candidates.py": {
+      "kind": "file",
+      "sha256": "531defcf0acc399efb8d079ead2844cf222819acdaa3b1a9c3c1d6a707d8a99f",
+      "size": 1336
+    },
+    "backend/scripts/reject_legacy_operator_migration.py": {
+      "kind": "file",
+      "sha256": "24bd96213b2ddca4b7902ce40bed603950fc8bb0fed46d95dee28be2c9b13b79",
+      "size": 212
+    },
+    "backend/scripts/run_detector_v2_migration.py": {
+      "kind": "file",
+      "sha256": "d17799d7b0aab726539b9bc3af1e23243945c39d31e0edc71d12343fcb5d0b1d",
+      "size": 725
+    },
+    "backend/scripts/run_operator_release_orchestration.py": {
+      "kind": "file",
+      "sha256": "1bb2966377bcaa82d38e4ee9b86eb79bc23f380e176a1ead13ea5d399c96fda9",
+      "size": 1976
+    },
+    "backend/scripts/run_operator_restore_drill.py": {
+      "kind": "file",
+      "sha256": "6340863a293e784816351f5a194f5c2a3044032449633599fc55c19a97a87848",
+      "size": 2805
+    },
+    "backend/scripts/run_operator_worker_drain.py": {
+      "kind": "file",
+      "sha256": "16d6728a9780d9bdee7805cdaefc9df14ce540516846fb73a490f4131c9df445",
+      "size": 1011
+    },
+    "backend/scripts/run_phase2b_formal_preview_migration.py": {
+      "kind": "file",
+      "sha256": "022de62dc3e780dd77eb475a03d28061101cd145fb40a7d9eb4df6587cf67a98",
+      "size": 1005
+    },
+    "backend/scripts/run_phase2c_safe_delete_candidate_migration.py": {
+      "kind": "file",
+      "sha256": "e0aeca4700eb27db7a56bbc26fddea005fe630fae4e8cb83f80e5084ca4c225d",
+      "size": 1079
+    },
+    "backend/scripts/run_safe_delete_candidate_reconciliation.py": {
+      "kind": "file",
+      "sha256": "38dd99d7d68a3149628bf847523d1e6db7cb1c1d0f04de06f710685e814c183e",
+      "size": 1167
+    },
+    "backend/scripts/validate_image_codecs.py": {
+      "kind": "file",
+      "sha256": "6d82a6c5aafdaadb4be412f0015ecac7fa7a87c782b2d3244642ffec14afb8b2",
+      "size": 10113
+    },
+    "backend/scripts/validate_operator_rollback_reconstruction.py": {
+      "kind": "file",
+      "sha256": "09f218d4b852d3e17b57338ebc4bda9b9a8fcfc0aae9ff6335bbaf791204956a",
+      "size": 1009
+    },
+    "backend/tests/detector_test_support.py": {
+      "kind": "file",
+      "sha256": "54d5c7ac2f82bdd401ad0210ebb8c6d972075d88b1108dd905aaa19135042108",
+      "size": 6677
+    },
+    "backend/tests/fixtures/image-codecs/README.md": {
+      "kind": "file",
+      "sha256": "d7562da51406a4469a5c9b995a2cc7ff8088904905d658f812b303c38a26aec8",
+      "size": 1175
+    },
+    "backend/tests/fixtures/image-codecs/invalid/grid.jpg": {
+      "kind": "file",
+      "sha256": "5b99b8dae647694b814ef876212177a20b1218a00f40fbce42005c6b5eacad28",
+      "size": 941
+    },
+    "backend/tests/fixtures/image-codecs/invalid/grid.png": {
+      "kind": "file",
+      "sha256": "4f7a5f16cdae213954baf8a98f5ce275ccab43da7c37511b5e4da5099ba2a1bc",
+      "size": 219
+    },
+    "backend/tests/fixtures/image-codecs/invalid/invalid.heic": {
+      "kind": "file",
+      "sha256": "b4cd9478421415dcc7d30c6cc2b3985c0bca4b0682535f522288c082038db703",
+      "size": 40
+    },
+    "backend/tests/fixtures/image-codecs/invalid/manifest.json": {
+      "kind": "file",
+      "sha256": "ca4f58c856b07303943cb22e713f68e9876d8034af2ee73de9f1944e50db4940",
+      "size": 1047
+    },
+    "backend/tests/fixtures/image-codecs/valid/grid.heic": {
+      "kind": "file",
+      "sha256": "4baf9758e3c27642a331f3cf016aeeb6574d01bae3be25dd53a859c4ed7015c1",
+      "size": 586
+    },
+    "backend/tests/fixtures/image-codecs/valid/grid.jpg": {
+      "kind": "file",
+      "sha256": "5b99b8dae647694b814ef876212177a20b1218a00f40fbce42005c6b5eacad28",
+      "size": 941
+    },
+    "backend/tests/fixtures/image-codecs/valid/grid.png": {
+      "kind": "file",
+      "sha256": "4f7a5f16cdae213954baf8a98f5ce275ccab43da7c37511b5e4da5099ba2a1bc",
+      "size": 219
+    },
+    "backend/tests/fixtures/image-codecs/valid/manifest.json": {
+      "kind": "file",
+      "sha256": "b9bcbe6fd4f4e54733ad6f8bcb3eeaf46a60a1df87105ea42e2b5d9235ea8fd8",
+      "size": 1042
+    },
+    "backend/tests/frame_relay_publication_fixture.py": {
+      "kind": "file",
+      "sha256": "53fcc18fa00d1d0b972f2ad90012437098b5c03b152866faca8516d61b6ac69f",
+      "size": 6290
+    },
+    "backend/tests/phase2c_test_support.py": {
+      "kind": "file",
+      "sha256": "e40753031f29523beace375a47a2ccd7c3ded0780992d8437f444a341d220bc7",
+      "size": 5699
+    },
+    "backend/tests/test_apple_log_detector.py": {
+      "kind": "file",
+      "sha256": "7294ab7f6eef4f46c17df4d4a49e4d83f54bc7ab47293f66045570ea38955eff",
+      "size": 16977
+    },
+    "backend/tests/test_asset_read_api.py": {
+      "kind": "file",
+      "sha256": "125a6ad34e391f26467a1243cc2cad1579c5f403872ebc1e56a1039e5cf4ec57",
+      "size": 8747
+    },
+    "backend/tests/test_asset_read_service.py": {
+      "kind": "file",
+      "sha256": "1a205842588a8511618949628dd490ce3336af7e39055ca4890649a61620d932",
+      "size": 3898
+    },
+    "backend/tests/test_asset_schemas.py": {
+      "kind": "file",
+      "sha256": "26660245d2a88e2f864438c9c5e8b64dd04454f76a1dd679d051c856d04ed28e",
+      "size": 3866
+    },
+    "backend/tests/test_auth.py": {
+      "kind": "file",
+      "sha256": "0f0e20dd410d3ed1b3f6ec5d12ca9f042b442d64a860e665189b7c6d275b6afb",
+      "size": 1676
+    },
+    "backend/tests/test_bounded_subprocess.py": {
+      "kind": "file",
+      "sha256": "63cc078899a6bec4672a50d66819ad0051e72858de56859913c1c4edaf04a7e1",
+      "size": 4267
+    },
+    "backend/tests/test_canonical_json.py": {
+      "kind": "file",
+      "sha256": "3da06521bd268f439037f645d53c147114612c9046b52766d2a41eca895b1413",
+      "size": 544
+    },
+    "backend/tests/test_db.py": {
+      "kind": "file",
+      "sha256": "2ab1c868c59e76af6ed234558293d32a11001050c7cadbffe42000d6ac687030",
+      "size": 7035
+    },
+    "backend/tests/test_detector_capability.py": {
+      "kind": "file",
+      "sha256": "92927b1805079f2013eaa829e0885def0235d821493f0cba21827e512518818d",
+      "size": 6064
+    },
+    "backend/tests/test_detector_certification.py": {
+      "kind": "file",
+      "sha256": "61f675e66881f46a13fb05fa945d755e864ec83c960973467d29ae5191e1b2da",
+      "size": 22907
+    },
+    "backend/tests/test_detector_certification_cli.py": {
+      "kind": "file",
+      "sha256": "9fed01b8878e7dd6cd6a9a1b0fb378d99fe34295164021c0cd6e9fc6874f5519",
+      "size": 2437
+    },
+    "backend/tests/test_detector_fixture_descriptor.py": {
+      "kind": "file",
+      "sha256": "12668cb8143f6ee87e49ad39013d6804ead49d48887cc98b0cd7604a3ba365e3",
+      "size": 7407
+    },
+    "backend/tests/test_detector_inspection.py": {
+      "kind": "file",
+      "sha256": "88f797d50cfa8510268238696dfc221c7fd0e778e49b4001f195d4b048127502",
+      "size": 7699
+    },
+    "backend/tests/test_detector_manifest.py": {
+      "kind": "file",
+      "sha256": "d6905911fc56f4f8d9963ecd92270e5adc0e967ef62bcd8d09b0a8e21c8798ba",
+      "size": 17153
+    },
+    "backend/tests/test_detector_real_fixtures.py": {
+      "kind": "file",
+      "sha256": "885d899a8f36074d23de3a50ad2e1085fe61a3972c44a17215bda5c97c156e30",
+      "size": 1829
+    },
+    "backend/tests/test_detector_snapshot_cleanup.py": {
+      "kind": "file",
+      "sha256": "5990ac215074786a7a66e4c3f8cc82e844c0e2d12501cf81d590d45b7876e2df",
+      "size": 8438
+    },
+    "backend/tests/test_detector_source.py": {
+      "kind": "file",
+      "sha256": "4d19b6da754bb37355f292631850e583df9976ffc6017f36bcd070fe7d916fe1",
+      "size": 9080
+    },
+    "backend/tests/test_detector_v2_migration.py": {
+      "kind": "file",
+      "sha256": "adbed7141e635cf323b61f6562109f0949284ed06bf7fdb83052bb4b25916ba7",
+      "size": 25722
+    },
+    "backend/tests/test_detector_v2_operator_paths.py": {
+      "kind": "file",
+      "sha256": "ed07843e0fb2add7deb31f4aefad72fa4ac2e2fae918a29153ec68128aac3d67",
+      "size": 6703
+    },
+    "backend/tests/test_detector_v2_schema.py": {
+      "kind": "file",
+      "sha256": "785233e5e91d95a28a60030da63ad5720794fd8b9c8b5e31fc69f796b6a6378b",
+      "size": 12813
+    },
+    "backend/tests/test_disposable_database_target.py": {
+      "kind": "file",
+      "sha256": "a826a936aa90671248c74af1980d49271a446b36a66cde5eb0d9b71a6c31057e",
+      "size": 5415
+    },
+    "backend/tests/test_docker_configuration.py": {
+      "kind": "file",
+      "sha256": "53d16b91999d89bab3baf386051bb02269df4ec4c1718883e04fc14870eb66c3",
+      "size": 9586
+    },
+    "backend/tests/test_external_fixture_git_audit.py": {
+      "kind": "file",
+      "sha256": "cad9b04cd9210297099e9e713d2f2999c8b448ced864b19c6e9257823af95e50",
+      "size": 13426
+    },
+    "backend/tests/test_ffmpeg_adapter.py": {
+      "kind": "file",
+      "sha256": "f5e6eb9e4ca09ae0c81a0de5c786a3fdef150b8a8f36b810daf37ce64e3e20c6",
+      "size": 2700
+    },
+    "backend/tests/test_formal_preview_api.py": {
+      "kind": "file",
+      "sha256": "3794b1809593f23dee5af374ab8ab0a5bd1724965ac162dab6d7cb9dcc1ac2a2",
+      "size": 10192
+    },
+    "backend/tests/test_formal_preview_authority.py": {
+      "kind": "file",
+      "sha256": "015e8ea14ff0f313b83c85af43006796770199430db2917c48a59f47f7fc8270",
+      "size": 2375
+    },
+    "backend/tests/test_formal_preview_finalizer.py": {
+      "kind": "file",
+      "sha256": "fe7ed8ff23ece5042c114f4523638377c7a4c6d7764f9fc56bf94cdfd9324799",
+      "size": 14478
+    },
+    "backend/tests/test_formal_preview_processing.py": {
+      "kind": "file",
+      "sha256": "4aaf2df5cade95817dc377201020e509f357c468a576bf12fce18a102b13326e",
+      "size": 25163
+    },
+    "backend/tests/test_formal_preview_repositories.py": {
+      "kind": "file",
+      "sha256": "19b4d0ded92db5019e57918a245746da92ed268f190029c32563acb1b50eff6b",
+      "size": 3637
+    },
+    "backend/tests/test_frame_relay_conversion.py": {
+      "kind": "file",
+      "sha256": "3789d575c7b2333221be07e3b14c5238b37907f1ab18be3926ba2be07be37939",
+      "size": 24655
+    },
+    "backend/tests/test_frame_relay_inventory.py": {
+      "kind": "file",
+      "sha256": "061a8752308812d7a924db50bc47e0961a8f0c55a850bdf47ddab4e96c6261c0",
+      "size": 19140
+    },
+    "backend/tests/test_frame_relay_publication.py": {
+      "kind": "file",
+      "sha256": "1abe9811ab970e39f63a7dd30cc81364797ad107eff34cd768316c0cee78a2e9",
+      "size": 42338
+    },
+    "backend/tests/test_frame_relay_registrations.py": {
+      "kind": "file",
+      "sha256": "fa0ce426c3b3b3ca684c846a62b466556b9e27af9a299d0c92a31a264f8a224a",
+      "size": 22936
+    },
+    "backend/tests/test_frame_relay_storage.py": {
+      "kind": "file",
+      "sha256": "a7cd9760a85bae25e1e87932eacbe6686d15955123b3a276a882a2166a3adb8c",
+      "size": 40776
+    },
+    "backend/tests/test_image_codec_validation.py": {
+      "kind": "file",
+      "sha256": "0730d660ea179bd925323ac2b596674c0f85f39f459965798659592ab0cbf871",
+      "size": 7319
+    },
+    "backend/tests/test_initial_release_guard.py": {
+      "kind": "file",
+      "sha256": "4d240f41d770079eb0ac342c3b0daaf4d384cfde8a4c56ba33399ca3959026d5",
+      "size": 7133
+    },
+    "backend/tests/test_iso_bmff_log_parser.py": {
+      "kind": "file",
+      "sha256": "2e496c7173fc4104760d41df64677a6dff27104d89af19b4a8e1b4a9ffd69611",
+      "size": 48537
+    },
+    "backend/tests/test_job_dedup.py": {
+      "kind": "file",
+      "sha256": "21ed7e937ec49fb4f6eb30f5d36e9bf64ae5978661b4a0389a0ec29e28c72601",
+      "size": 1973
+    },
+    "backend/tests/test_lut_snapshot.py": {
+      "kind": "file",
+      "sha256": "7630f29b62ca0b6f7c2ba45d42af8b3b7eaec297b9ecd02d9afc9b55b2d1d885",
+      "size": 5876
+    },
+    "backend/tests/test_offline_startup_migration.py": {
+      "kind": "file",
+      "sha256": "e638b21e9a232632f8f16c8129ce7c58d516d9b6aa8c144134230e209898bfe9",
+      "size": 6275
+    },
+    "backend/tests/test_operator_migration_identity.py": {
+      "kind": "file",
+      "sha256": "470d040ac7d39081af797d69525b99407ac9af7d14f750e876168e818a712824",
+      "size": 1663
+    },
+    "backend/tests/test_operator_release_manifest.py": {
+      "kind": "file",
+      "sha256": "68da1ce24be993dfae7e7179dabbbdb7e07f3130ef360ed897015d5871b6e20e",
+      "size": 7435
+    },
+    "backend/tests/test_operator_release_orchestration.py": {
+      "kind": "file",
+      "sha256": "cbf9fe8067e09a70364d6b9b3a1941f25df857884359e062ff7db966f24608d0",
+      "size": 34683
+    },
+    "backend/tests/test_operator_restore_drill.py": {
+      "kind": "file",
+      "sha256": "2909ae806a2e6681f7cee6986c79cc127571e4b382efc5e830b1c96870add24e",
+      "size": 15003
+    },
+    "backend/tests/test_phase2_rollout.py": {
+      "kind": "file",
+      "sha256": "dbc734edbbce3fe3a819ab9fbf9bbd5d7e4ad7adc7f4c756b26297b8de7c6efe",
+      "size": 10737
+    },
+    "backend/tests/test_phase2a_migration.py": {
+      "kind": "file",
+      "sha256": "7ea110c3a23cc4d9260c21b2e1c8bdb2104a35638bf7700fd8e05e3ecc5dc696",
+      "size": 1432
+    },
+    "backend/tests/test_phase2b_host_migration.py": {
+      "kind": "file",
+      "sha256": "e3e1afc62ead1ae51ae9e398f084ba93e8bf1ed1bc3bb040b06f8140b552c91e",
+      "size": 967
+    },
+    "backend/tests/test_phase2b_migration.py": {
+      "kind": "file",
+      "sha256": "f5d92a2b4846de588e471e1b358a9ae33eb79730facde63e56f21e9a0673d9c7",
+      "size": 18751
+    },
+    "backend/tests/test_phase2b_schema.py": {
+      "kind": "file",
+      "sha256": "fa3a1385bc183b053a008a1ed977629cf7194c1abb8d10af11e655c4ef9e0d39",
+      "size": 33839
+    },
+    "backend/tests/test_phase2c_api.py": {
+      "kind": "file",
+      "sha256": "c60eda8390edd6862dcc3294ee585226229d257464bd7c896000388e09093ad1",
+      "size": 19926
+    },
+    "backend/tests/test_phase2c_confirmation.py": {
+      "kind": "file",
+      "sha256": "6518a6f2a6368b9434906ff11e2c5b0aa4b5747dd186d933b54ab4ede1185310",
+      "size": 10414
+    },
+    "backend/tests/test_phase2c_migration.py": {
+      "kind": "file",
+      "sha256": "affe12adff27fe22b07f4fdc92ca201a61a5748bf2416ccbf5d3441bd74aa780",
+      "size": 7886
+    },
+    "backend/tests/test_phase2c_operator_paths.py": {
+      "kind": "file",
+      "sha256": "439e6bdbaaa6fc4d89c606ca330dcd887f1a35511e73752c71812764459993a0",
+      "size": 9850
+    },
+    "backend/tests/test_phase2c_schema.py": {
+      "kind": "file",
+      "sha256": "8aebff73e8a9dbd38c68ddbf10452d03b196aeae073facf0ac16fb5ee19029a8",
+      "size": 22532
+    },
+    "backend/tests/test_preset_api.py": {
+      "kind": "file",
+      "sha256": "ef8faed9c6e730d63cac94010112d78cc9ce44518c441d2283c32c4e8881a440",
+      "size": 3296
+    },
+    "backend/tests/test_preset_manifest.py": {
+      "kind": "file",
+      "sha256": "b1c7c5d75593bc7fa1f9707afc1424d5146870febcbe4c38e6238361e5657479",
+      "size": 6759
+    },
+    "backend/tests/test_preset_registry.py": {
+      "kind": "file",
+      "sha256": "811c15a63bf44f878bc4d824f3fe65f1c780f562c50250f9e504acc139f5c462",
+      "size": 10902
+    },
+    "backend/tests/test_preview_confirmation_api.py": {
+      "kind": "file",
+      "sha256": "4bc755a20f1605ab07b07fdcc636f8cd1c7495eb162a16d1a1d6d85c0eecdf70",
+      "size": 6759
+    },
+    "backend/tests/test_preview_repositories.py": {
+      "kind": "file",
+      "sha256": "fe9b738e53935dc013fa07ba6d66ccd50368547638ffc79bc11cbcb7935ce1d2",
+      "size": 6137
+    },
+    "backend/tests/test_preview_service.py": {
+      "kind": "file",
+      "sha256": "b9772ee805d1736648a88cacc7d7f1aadfce0ac77c4d8c68ecbaacd4c5f8414a",
+      "size": 23647
+    },
+    "backend/tests/test_preview_stream.py": {
+      "kind": "file",
+      "sha256": "e2de5667f572d1a8f68d46b4a29bde303ad34d7f3a74809979ad9a304d169623",
+      "size": 1435
+    },
+    "backend/tests/test_preview_streaming_api.py": {
+      "kind": "file",
+      "sha256": "40a4e0b6d641d18da34b4e0654f83605a779e17f3e98f0af42d0eaed302913cc",
+      "size": 8537
+    },
+    "backend/tests/test_processed_result_authority.py": {
+      "kind": "file",
+      "sha256": "7df2e16deebea99ffe341f8006fe7f4e9edb1aefafb106cdeec5c031129381e2",
+      "size": 4769
+    },
+    "backend/tests/test_processed_result_backfill.py": {
+      "kind": "file",
+      "sha256": "65524de788134f3853001f5f475f7f57af39da053d0f59e9cc30fe491923a6c5",
+      "size": 10782
+    },
+    "backend/tests/test_processed_result_delivery.py": {
+      "kind": "file",
+      "sha256": "4eba85398ce56389bda8d07b2617a98865879be682c88732200cb07bec2c957f",
+      "size": 3634
+    },
+    "backend/tests/test_processed_result_finalizer.py": {
+      "kind": "file",
+      "sha256": "7c733b518b3133e9cf10341adf5f7c98dbba1c16c3751167885ff3726e0de488",
+      "size": 9092
+    },
+    "backend/tests/test_processed_result_integrity.py": {
+      "kind": "file",
+      "sha256": "16e5ecccf886d443da2b06a6840e7289b82dbfa7b1eaa7932bcaf114792604d4",
+      "size": 3317
+    },
+    "backend/tests/test_processed_result_recovery.py": {
+      "kind": "file",
+      "sha256": "db114f1792a30c9310e1e82b1c09fa7ba182d2b1c6c1dea1ba7d18fd49b2be35",
+      "size": 3015
+    },
+    "backend/tests/test_processed_result_streaming_api.py": {
+      "kind": "file",
+      "sha256": "b42d96df15d8e3e12131107631629b9c8cb081dcd12e6f49091fab9d8deb7253",
+      "size": 16783
+    },
+    "backend/tests/test_processed_results_migration.py": {
+      "kind": "file",
+      "sha256": "b76b4fd9f64d49024b872ab8fe18c4d0bc6863ed16c4973b03e08177a8e94eae",
+      "size": 26708
+    },
+    "backend/tests/test_processed_results_repository.py": {
+      "kind": "file",
+      "sha256": "0a5fc62f5077948710d61ece80fdf841c10887f55e34d2a1e00ef7149ade98ab",
+      "size": 3694
+    },
+    "backend/tests/test_rendition_api.py": {
+      "kind": "file",
+      "sha256": "579a5a76aa6a9d95342bc16a5efe0a3625ed3ac8076a24210c82ecd84c180cc0",
+      "size": 14552
+    },
+    "backend/tests/test_rendition_finalizer.py": {
+      "kind": "file",
+      "sha256": "6f398d32b485c03c379e7cacc29593df4255a418dd805eac28808da415939e6c",
+      "size": 9640
+    },
+    "backend/tests/test_rendition_processing.py": {
+      "kind": "file",
+      "sha256": "529c37210865fc1c3411b7aef3784ea5959b83dde748f08531a10ba0dd0232b8",
+      "size": 15372
+    },
+    "backend/tests/test_rendition_repositories.py": {
+      "kind": "file",
+      "sha256": "8f0828ec6dec6a80306dd3db601f23798e8558f19b19760ca9f5d92719ffda60",
+      "size": 8497
+    },
+    "backend/tests/test_renditions_migration.py": {
+      "kind": "file",
+      "sha256": "17a0ed8f6e1f3ecd38b988feff26e9d31c1f179bff2d5c03c3c5a5a3a1f09466",
+      "size": 5799
+    },
+    "backend/tests/test_safe_delete_candidate.py": {
+      "kind": "file",
+      "sha256": "3989a03213df0ae641b3a12eafc4ff6b71ebedbe73bd7128fa1fa9d9bb61983c",
+      "size": 20932
+    },
+    "backend/tests/test_safe_delete_reconciliation.py": {
+      "kind": "file",
+      "sha256": "d60af01bc18a78df24a7a0809d3aeae3541114b34979d2cc316a8e19cb8c4756",
+      "size": 10172
+    },
+    "backend/tests/test_settings.py": {
+      "kind": "file",
+      "sha256": "c4c1e66b26996e18943186ec02a8abcadf3cd801bab60868c8aabb586ededac9",
+      "size": 7455
+    },
+    "backend/tests/test_storage.py": {
+      "kind": "file",
+      "sha256": "bcc416049f7c361adcf8afa4ff8fcff9f23c3205180262a0aed408b2822f8407",
+      "size": 4800
+    },
+    "backend/tests/test_synthetic_detector_fixture.py": {
+      "kind": "file",
+      "sha256": "39e68f5b73fbe8752f08bcec633a8aab272cd4292b77fdcd41248dc22d40fc47",
+      "size": 864
+    },
+    "backend/tests/test_upload_api.py": {
+      "kind": "file",
+      "sha256": "25ce606bacc13ced30e37651ec7ce012cdccda37654f65bc92526a375a5063f6",
+      "size": 6556
+    },
+    "backend/tests/test_upload_finalize.py": {
+      "kind": "file",
+      "sha256": "8732997958f67adc2f57702c7de8be389c32f4cb39e5551ad5320c454533c82c",
+      "size": 9964
+    },
+    "backend/tests/test_upload_repositories.py": {
+      "kind": "file",
+      "sha256": "e1269685fa02cb888be423109a134286b15838fa78efeeac8583637ab91a40af",
+      "size": 3354
+    },
+    "backend/tests/test_upload_service.py": {
+      "kind": "file",
+      "sha256": "140ed173ba4b87e0b253a5d0e13514481010f22b6077d9367849f4c7868d9fb2",
+      "size": 3803
+    },
+    "backend/tests/test_upload_session_chunk_races.py": {
+      "kind": "file",
+      "sha256": "3f84a86c64e2c98928301d094f13f34ebdce2c257a01b6f977747ad42f7db4bd",
+      "size": 5497
+    },
+    "backend/tests/test_upload_session_chunks_api.py": {
+      "kind": "file",
+      "sha256": "9b5f8b787250b25217d9a4076de7ddc8585b33d23abba6f3caba02b4f41230c8",
+      "size": 3613
+    },
+    "backend/tests/test_upload_session_errors.py": {
+      "kind": "file",
+      "sha256": "2d96baaf01a19089ce7981284ba54f78c6a633ca5c9138d42bc8317659514bcd",
+      "size": 1849
+    },
+    "backend/tests/test_upload_session_finalize_api.py": {
+      "kind": "file",
+      "sha256": "34845a6ba6d07384c3fcb6eed8a7c5fde4ef942f19ce6a02afa6cf197175d64c",
+      "size": 5276
+    },
+    "backend/tests/test_upload_session_repositories.py": {
+      "kind": "file",
+      "sha256": "2d24cdaab0894b2583953e4422cf532573d9bd0be2986bbd1cc70c1bcb20114d",
+      "size": 4314
+    },
+    "backend/tests/test_upload_session_schemas.py": {
+      "kind": "file",
+      "sha256": "4b990e43f012d6ec85563a7d9625e2df39d4adbbf2b2d0d1b71cbba3d707c3e5",
+      "size": 1512
+    },
+    "backend/tests/test_upload_sessions_api.py": {
+      "kind": "file",
+      "sha256": "5dce14f575e06def1726d0666957bc5b41c65cad8033cb285d6590bb464adb6d",
+      "size": 4683
+    },
+    "backend/tests/test_worker_jobs.py": {
+      "kind": "file",
+      "sha256": "ffa822c7aaa9ddf2a3158665f7af58f9a0cba130b4a525e513258fe34e35b384",
+      "size": 8342
+    },
+    "backend/uv.lock": {
+      "kind": "file",
+      "sha256": "894d37f9b277e3d6333f3c13e62564ebdb7c4cef5ee2292fc261d19d10d3e8f4",
+      "size": 43073
+    }
+  },
+  "tests_executed": false
+}

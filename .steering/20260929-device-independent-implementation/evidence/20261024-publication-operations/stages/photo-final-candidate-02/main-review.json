@@ -1,0 +1,82 @@
+{
+  "reviewer": "main",
+  "independentValidation": false,
+  "scope": "Photo finalwriter/capture/sharedclaim/physicalFD +knownPhotos RECpreflight only",
+  "status": "scoped non-device implementation and necessary related/native/build verified, alltask/device/producer notcomplete",
+  "source": {
+    "id": "DI-SOURCE-20261025-18",
+    "inputs": 500,
+    "code": 395,
+    "SHA256": "a3766d6eab9d3d98d5b39e5079bb6298929d46a90638e76dfa746518a4cff523",
+    "fingerprint": "d8c273cad1a3101ceb4f7cc8db65df2f765f17e451897cd26c4c6e26620605fb"
+  },
+  "changedFromMetadata14": [
+    "FrameRelay/Application/MediaIO/CaptureMediaAdmission.swift",
+    "FrameRelay/Application/MediaOperations/PhotoSaveBatchCoordinator.swift",
+    "FrameRelay/Application/MediaOperations/PhotoSaveCoordinator.swift",
+    "FrameRelay/Application/MediaOperations/PhotoSaveDispatchClaims.swift",
+    "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+    "FrameRelay/Application/Ports/PhotoLibraryPorts.swift",
+    "FrameRelay/Application/Ports/PhotoSaveStartPorts.swift",
+    "FrameRelay/Application/Ports/RenditionMediaPorts.swift",
+    "FrameRelay/Composition/ProductCaptureMediaBoundary.swift",
+    "FrameRelay/Composition/ProductComposition.swift",
+    "FrameRelay/Composition/ProductPhotoSaveBatch.swift",
+    "FrameRelay/Composition/ProductRenditionFactory.swift",
+    "FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift",
+    "FrameRelay/Platform/LocalStore/PhotoSaveStartStoreBoundary.swift",
+    "FrameRelay/Platform/Photos/NativePhotoLibrary.swift",
+    "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift",
+    "FrameRelayTests/Application/CaptureMediaResumeAuthorizationTests.swift",
+    "FrameRelayTests/Integration/Composition/ProductPhotoCaptureStopTests.swift",
+    "FrameRelayTests/Integration/Composition/ProductPhotoSaveBatchTests.swift",
+    "FrameRelayTests/Integration/Photos/NativePhotoLibraryTests.swift",
+    "FrameRelayTests/Integration/Photos/PhotoSaveFinalStartTests.swift",
+    "FrameRelayTests/Integration/Photos/PhotoSaveFinalStoreDriftTests.swift",
+    "FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift",
+    "FrameRelayTests/Support/ProductPhotoSaveBatchFixture.swift",
+    "docs/architecture.md",
+    "docs/development-guidelines.md",
+    "docs/functional-design.md",
+    "docs/repository-structure.md"
+  ],
+  "checks": [
+    "same actual currentUUID/registration/exact intent mutation+receipt/lastrecord/result-terminal-release absence/temporarycomplete+content+date+directory-file/usage+epoch+logicalreader/currentrendition/invalidation-removal join before actual sync SDK registration",
+    "fullhash retained ownerFD witness revoked before firstclose; final fstat/fstatat/lstat/identity/timestamps withoutread/hash/open/await",
+    "samewriter→singlecapturepermit→sharedrawUTF8operation/fullinputclaim→directsyncPhotoKitperformChanges; observeryields/wakes/continuations outside locks",
+    "pre-firstawait sharedclaim and preparedcap reservation; otherowner noSDK/result/terminal/release; consumed claims retained; restart oldintentunknown/noauto",
+    "heldsameintent/use, explicitpreSDKcancel; accepted SDKactualcompletion andownFD thenactualterminal+receipt/release; actualaction started wins over postactionfalse",
+    "RECpreflight tracks alreadyinflightpreparations andknowncapabilities, no parentpersoncancel; fresh UUID/revision/registry/captureowner/exactterminal-release lookups+noPhotoReader andrevokedwitness; unknownexternaloutcome mayready iflocallyclosed; localunknownneverready",
+    "STOP/leave callercancelled wrapswholeclosure, appownedjoin retained, oldowner cannotstartnextREC",
+    "nilUUID/noPhotos empty/recordingonly root passes without UUID/credentialmutation; unresolvedoldPhotoUse unknown",
+    "validindependentcachedPhotos canhavephysicaloriginalabsent/localbindingabsent/historicalremoved; prior orderingfences unchanged"
+  ],
+  "mainFindings": {
+    "PHOTO-CAPTURE-NIL-01": "fixed explicit noPhotos proof, nil3 regression passed169",
+    "PHOTO-START-AFTER-01": "fixed actualstarted precedence, faultaction1→false preserves FD/use until actualcallback passed169",
+    "STACK-167": "ipsStackGuard16K/42frames; freshreplay path, no deep recursion. noninlineHelper split preservesguards, old2SIGBUS cases pass169; ips/raw.o report retained"
+  },
+  "native170": {
+    "newSimulator": "F6E8FB66-5889-4AC6-93E8-1F14DCE809B2",
+    "nonce": "ec9e835d-94bb-435b-b489-0f0d44fb2947",
+    "baselineAssets": 6,
+    "newAdditions": 1,
+    "completionCallbacks": 1,
+    "staleABAConsumedLegacyStarts": 0,
+    "allBaselineAssetResourceHashDatePreserved": true,
+    "addedMovieWholeBytesDateVideoTrack1AudioTrack1": true,
+    "sourceBytesRetained": true,
+    "ownReadersFD0": true,
+    "SQLiteReopenNoSDKReadd": true,
+    "normalNativeWiFiAdmission": "not measured; direct localCoordinator technicalpublication fixture"
+  },
+  "documents": "photo-final-doc-review-02.json/4docs99links/0finding, temporalP2 retainedandcorrected",
+  "protection": "protection-followup-07/summary.json: oldoriginals/states/containers/fixtures retained; Keychain/Photos8 byteexceptions cause/scope unknown; no originalDBconnection/restore/oldkill",
+  "limits": [
+    "acceptedPhotoKit has no cancellation handle; knownlocalcompletiondrain not allSDK-global/allmedia stop",
+    "formal producer/native strict positiveURLSession dispatch/physical quality/PRD/allsteering incomplete",
+    "Native test is once-only freshsyntheticallocatedroot; no oldfixture/Photosdelete/reseed",
+    "oldNativebatch65 hadinjectedinitialWiFi admission; no promotion toformalnativeWiFi proof"
+  ],
+  "createdUTC": "2026-10-24T20:48:13.409639+00:00"
+}

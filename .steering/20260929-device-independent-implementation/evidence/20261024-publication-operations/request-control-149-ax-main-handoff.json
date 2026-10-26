@@ -1,0 +1,832 @@
+{
+  "schema": "fr-request-control-149-final-handoff-v1",
+  "createdUTC": "2026-10-24T20:29:28.972213+00:00",
+  "purposeJapanese": "mainの実装中証跡整理。担当本人操作UIの限定read-only診断であり、独立implementation validationではない。",
+  "conclusionJapanese": "149はFAILを保持する（exit65・1case failure・skip0、strict7監査11回中Contrast1件）。remoteResume/allPause/localCancelの3business tapsとexact UI history prefix6（期待6親10子）、relaunch最終導線まで到達。記録済み現物保全6files+sourceInputは署名一致、MAX設定からlargeへ復元。個別failing UILabelのID/label/frameは記録に提供されず断定不能。前後画像とAX treeには本文のnav背後への重なりを実観測し、DI14に既存のopaque nav変更があるため改善可能性はあるが未再監査で解消とは扱わない。",
+  "official149": {
+    "runPath": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149",
+    "xcresultPath": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149/result.xcresult",
+    "exitCode": 65,
+    "testPassed": 0,
+    "testFailed": 1,
+    "testSkipped": 0,
+    "failureTexts": [
+      {
+        "failureText": "Contrast failed",
+        "targetName": "FrameRelayUITests",
+        "testIdentifier": 1,
+        "testIdentifierString": "MediaRequestControlFlowTests/testExistingRequestsPersonIntentFixedAllPauseAndRelaunch()",
+        "testIdentifierURL": "test://com.apple.xcode/FrameRelay/FrameRelayUITests/MediaRequestControlFlowTests/testExistingRequestsPersonIntentFixedAllPauseAndRelaunch",
+        "testName": "testExistingRequestsPersonIntentFixedAllPauseAndRelaunch()"
+      }
+    ],
+    "startedAtUTC": "2026-10-24T18:38:37.843570+00:00",
+    "finishedAtUTC": "2026-10-24T20:17:03.548100+00:00",
+    "wallSeconds": 5905.650375541998,
+    "testDurationSeconds": 5799.2407430410385,
+    "diagnostics": {
+      "errorCount": 0,
+      "warningCount": 0,
+      "analyzerWarningCount": 0
+    },
+    "executedBinding": "DI-SOURCE-20261025-08",
+    "codeInputCount": 358,
+    "codeInputFingerprint": "29d181dd6b200876f7e52c462217c8e11d672aaa78e67bf862091dc44b2fdf47",
+    "sourceInputsBeforeAfterByteSignaturesIdentical": true,
+    "changedInputs": [],
+    "sourceUI": {
+      "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-candidate-04/source-snapshot/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift",
+      "sha256": "2d3b75c3de2b77662ed33906cc694f7d6877cae26b37555d39f9bc1f1c9233f0",
+      "bytes": 38342
+    },
+    "sourceView": {
+      "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-candidate-04/source-snapshot/FrameRelay/Features/Library/LibraryView.swift",
+      "sha256": "7da99889965584fef66dc1d2c360e4179b6b2acac5deead63e71470322786763",
+      "bytes": 53825
+    },
+    "sourceManifestSHA256": "b4879488741ad4ec9e766692a8caa420276c57ac2f6ab108bbbd2fcb490b5d71",
+    "mode": {
+      "phase": "tail",
+      "startPhase": "remoteResume",
+      "initialPrefix": 3,
+      "initialPrefixAuthority": "main provided writer143 observe; this agent did not connect DB"
+    },
+    "finalUIExactHistoryPrefix": 6,
+    "UIExpectedParents": 6,
+    "UIExpectedFixedChildren": 10,
+    "allFunctionalCheckpointsThroughFinalRelaunchMarker": true,
+    "actualWriterDirectObservationByThisAgent": false,
+    "writerReopenReaderVerification": "not performed in this UI-only diagnostic; main-owned VERIFY is separate",
+    "allNativeTaps": [
+      {
+        "stdoutLine": 4792,
+        "elapsedSeconds": 834.79,
+        "text": "Tap \"library.request.resumeIntent.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1\" Button",
+        "kind": "business"
+      },
+      {
+        "stdoutLine": 7699,
+        "elapsedSeconds": 1682.26,
+        "text": "Tap \"library.itemTitle.rc-6debb933-local\" StaticText",
+        "kind": "navigation"
+      },
+      {
+        "stdoutLine": 7865,
+        "elapsedSeconds": 1701.42,
+        "text": "Tap \"BackButton\" Button",
+        "kind": "navigation"
+      },
+      {
+        "stdoutLine": 11841,
+        "elapsedSeconds": 2811.41,
+        "text": "Tap \"library.request.allPause\" Button",
+        "kind": "business"
+      },
+      {
+        "stdoutLine": 14133,
+        "elapsedSeconds": 3575.6,
+        "text": "Tap \"library.itemTitle.rc-6debb933-local\" StaticText",
+        "kind": "navigation"
+      },
+      {
+        "stdoutLine": 14451,
+        "elapsedSeconds": 3603.16,
+        "text": "Tap \"BackButton\" Button",
+        "kind": "navigation"
+      },
+      {
+        "stdoutLine": 16077,
+        "elapsedSeconds": 4026.75,
+        "text": "Tap \"library.itemTitle.rc-6debb933-local\" StaticText",
+        "kind": "navigation"
+      },
+      {
+        "stdoutLine": 16475,
+        "elapsedSeconds": 4065.74,
+        "text": "Tap \"library.request.cancel.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4\" Button",
+        "kind": "business"
+      },
+      {
+        "stdoutLine": 16762,
+        "elapsedSeconds": 4086.32,
+        "text": "Tap \"BackButton\" Button",
+        "kind": "navigation"
+      },
+      {
+        "stdoutLine": 22564,
+        "elapsedSeconds": 5563.62,
+        "text": "Tap \"library.itemTitle.rc-6debb933-local\" StaticText",
+        "kind": "navigation"
+      },
+      {
+        "stdoutLine": 22929,
+        "elapsedSeconds": 5594.77,
+        "text": "Tap \"BackButton\" Button",
+        "kind": "navigation"
+      }
+    ],
+    "businessTapCount": 3,
+    "navigationTapCount": 8,
+    "replayedBusinessOperations": false,
+    "consumedMarkers": [
+      {
+        "stdoutLine": 7237,
+        "elapsedSeconds": 1516.39,
+        "text": "Added attachment named 'max-remoteResume-consumed-prefix-4'",
+        "name": "max-remoteResume-consumed-prefix-4",
+        "prefix": 4
+      },
+      {
+        "stdoutLine": 15566,
+        "elapsedSeconds": 3842.44,
+        "text": "Added attachment named 'max-allPause-consumed-prefix-5'",
+        "name": "max-allPause-consumed-prefix-5",
+        "prefix": 5
+      },
+      {
+        "stdoutLine": 18813,
+        "elapsedSeconds": 4657.84,
+        "text": "Added attachment named 'max-localCancel-consumed-prefix-6'",
+        "name": "max-localCancel-consumed-prefix-6",
+        "prefix": 6
+      }
+    ],
+    "historyScanCompletions": [
+      {
+        "stdoutLine": 2780,
+        "elapsedSeconds": 213.95,
+        "text": "Added attachment named 'media-request-control-complete-native-history'",
+        "name": "media-request-control-complete-native-history"
+      },
+      {
+        "stdoutLine": 7234,
+        "elapsedSeconds": 1516.29,
+        "text": "Added attachment named 'media-request-control-complete-native-history'",
+        "name": "media-request-control-complete-native-history"
+      },
+      {
+        "stdoutLine": 15563,
+        "elapsedSeconds": 3842.34,
+        "text": "Added attachment named 'media-request-control-complete-native-history'",
+        "name": "media-request-control-complete-native-history"
+      },
+      {
+        "stdoutLine": 18810,
+        "elapsedSeconds": 4657.74,
+        "text": "Added attachment named 'media-request-control-complete-native-history'",
+        "name": "media-request-control-complete-native-history"
+      },
+      {
+        "stdoutLine": 19952,
+        "elapsedSeconds": 4906.52,
+        "text": "Added attachment named 'media-request-control-complete-native-history'",
+        "name": "media-request-control-complete-native-history"
+      }
+    ],
+    "relaunchCompletionMarkers": [
+      {
+        "stdoutLine": 23446,
+        "elapsedSeconds": 5769.78,
+        "text": "Added attachment named 'max-relaunch-identical-six-parents-ten-children'",
+        "name": "max-relaunch-identical-six-parents-ten-children"
+      }
+    ],
+    "relaunchHistoryScope": "same plan/heading/identity/decision maps plus expected stop-disposition fallback; do not claim every transient stop string stays identical",
+    "lastNewRootFeedbackAfterLocalCancel": {
+      "audit": "max-localCancel-new-root-result-feedback",
+      "afterElapsedSeconds": 4260.61,
+      "fullText": "通信操作の対象別の受付結果を保存しました。本人意思・未処理理由と停止要求を確認してください。通信処理の終了は未確認です。"
+    }
+  },
+  "strictAuditEvidence": {
+    "types": [
+      "dynamicType",
+      "textClipped",
+      "sufficientElementDescription",
+      "trait",
+      "hitRegion",
+      "elementDetection",
+      "contrast"
+    ],
+    "handlerReturnsFalse": true,
+    "filteringOrSuppression": false,
+    "sourceAuditCallLine": 502,
+    "completedInvocations": 11,
+    "issueFreeInvocations": 10,
+    "issueCallbackAttachmentCount": 1,
+    "stdoutCounts": {
+      "before": 11,
+      "after": 11,
+      "issue": 1
+    },
+    "xcresultActivitiesObservedCounts": {
+      "before": 11,
+      "after": 11,
+      "issue": 1
+    },
+    "pairs": [
+      {
+        "name": "max-remoteResume-native-controls-before",
+        "before": {
+          "stdoutLine": 3878,
+          "elapsedSeconds": 528.38,
+          "text": "Added attachment named 'max-remoteResume-native-controls-before-accessibility-before'",
+          "name": "max-remoteResume-native-controls-before-accessibility-before"
+        },
+        "after": {
+          "stdoutLine": 3883,
+          "elapsedSeconds": 530.63,
+          "text": "Added attachment named 'max-remoteResume-native-controls-before-accessibility-after'",
+          "name": "max-remoteResume-native-controls-before-accessibility-after"
+        },
+        "issueCount": 0
+      },
+      {
+        "name": "max-remoteResume-intent-and-waits-after",
+        "before": {
+          "stdoutLine": 5837,
+          "elapsedSeconds": 1135.02,
+          "text": "Added attachment named 'max-remoteResume-intent-and-waits-after-accessibility-before'",
+          "name": "max-remoteResume-intent-and-waits-after-accessibility-before"
+        },
+        "after": {
+          "stdoutLine": 5842,
+          "elapsedSeconds": 1137.27,
+          "text": "Added attachment named 'max-remoteResume-intent-and-waits-after-accessibility-after'",
+          "name": "max-remoteResume-intent-and-waits-after-accessibility-after"
+        },
+        "issueCount": 0
+      },
+      {
+        "name": "max-fixed-five-before-all-pause",
+        "before": {
+          "stdoutLine": 11309,
+          "elapsedSeconds": 2630.86,
+          "text": "Added attachment named 'max-fixed-five-before-all-pause-accessibility-before'",
+          "name": "max-fixed-five-before-all-pause-accessibility-before"
+        },
+        "after": {
+          "stdoutLine": 11314,
+          "elapsedSeconds": 2633.18,
+          "text": "Added attachment named 'max-fixed-five-before-all-pause-accessibility-after'",
+          "name": "max-fixed-five-before-all-pause-accessibility-after"
+        },
+        "issueCount": 0
+      },
+      {
+        "name": "max-allPause-result-two-recorded-three-unprocessed",
+        "before": {
+          "stdoutLine": 12700,
+          "elapsedSeconds": 3136.95,
+          "text": "Added attachment named 'max-allPause-result-two-recorded-three-unprocessed-accessibility-before'",
+          "name": "max-allPause-result-two-recorded-three-unprocessed-accessibility-before"
+        },
+        "after": {
+          "stdoutLine": 12705,
+          "elapsedSeconds": 3139.92,
+          "text": "Added attachment named 'max-allPause-result-two-recorded-three-unprocessed-accessibility-after'",
+          "name": "max-allPause-result-two-recorded-three-unprocessed-accessibility-after"
+        },
+        "issueCount": 0
+      },
+      {
+        "name": "max-allPause-paused-waiting-controls",
+        "before": {
+          "stdoutLine": 13643,
+          "elapsedSeconds": 3399.99,
+          "text": "Added attachment named 'max-allPause-paused-waiting-controls-accessibility-before'",
+          "name": "max-allPause-paused-waiting-controls-accessibility-before"
+        },
+        "after": {
+          "stdoutLine": 13650,
+          "elapsedSeconds": 3402.49,
+          "text": "Added attachment named 'max-allPause-paused-waiting-controls-accessibility-after'",
+          "name": "max-allPause-paused-waiting-controls-accessibility-after"
+        },
+        "issueCount": 1
+      },
+      {
+        "name": "max-allPause-paused-local-controls",
+        "before": {
+          "stdoutLine": 14440,
+          "elapsedSeconds": 3600.98,
+          "text": "Added attachment named 'max-allPause-paused-local-controls-accessibility-before'",
+          "name": "max-allPause-paused-local-controls-accessibility-before"
+        },
+        "after": {
+          "stdoutLine": 14445,
+          "elapsedSeconds": 3602.99,
+          "text": "Added attachment named 'max-allPause-paused-local-controls-accessibility-after'",
+          "name": "max-allPause-paused-local-controls-accessibility-after"
+        },
+        "issueCount": 0
+      },
+      {
+        "name": "max-localCancel-native-controls-before",
+        "before": {
+          "stdoutLine": 16384,
+          "elapsedSeconds": 4052.18,
+          "text": "Added attachment named 'max-localCancel-native-controls-before-accessibility-before'",
+          "name": "max-localCancel-native-controls-before-accessibility-before"
+        },
+        "after": {
+          "stdoutLine": 16389,
+          "elapsedSeconds": 4054.2,
+          "text": "Added attachment named 'max-localCancel-native-controls-before-accessibility-after'",
+          "name": "max-localCancel-native-controls-before-accessibility-after"
+        },
+        "issueCount": 0
+      },
+      {
+        "name": "max-localCancel-intent-and-waits-after",
+        "before": {
+          "stdoutLine": 16751,
+          "elapsedSeconds": 4084.13,
+          "text": "Added attachment named 'max-localCancel-intent-and-waits-after-accessibility-before'",
+          "name": "max-localCancel-intent-and-waits-after-accessibility-before"
+        },
+        "after": {
+          "stdoutLine": 16756,
+          "elapsedSeconds": 4086.13,
+          "text": "Added attachment named 'max-localCancel-intent-and-waits-after-accessibility-after'",
+          "name": "max-localCancel-intent-and-waits-after-accessibility-after"
+        },
+        "issueCount": 0
+      },
+      {
+        "name": "max-localCancel-new-root-result-feedback",
+        "before": {
+          "stdoutLine": 17269,
+          "elapsedSeconds": 4258.49,
+          "text": "Added attachment named 'max-localCancel-new-root-result-feedback-accessibility-before'",
+          "name": "max-localCancel-new-root-result-feedback-accessibility-before"
+        },
+        "after": {
+          "stdoutLine": 17274,
+          "elapsedSeconds": 4260.61,
+          "text": "Added attachment named 'max-localCancel-new-root-result-feedback-accessibility-after'",
+          "name": "max-localCancel-new-root-result-feedback-accessibility-after"
+        },
+        "issueCount": 0
+      },
+      {
+        "name": "max-relaunch-local-cancelled-no-auto-dispatch",
+        "before": {
+          "stdoutLine": 22918,
+          "elapsedSeconds": 5592.55,
+          "text": "Added attachment named 'max-relaunch-local-cancelled-no-auto-dispatch-accessibility-before'",
+          "name": "max-relaunch-local-cancelled-no-auto-dispatch-accessibility-before"
+        },
+        "after": {
+          "stdoutLine": 22923,
+          "elapsedSeconds": 5594.59,
+          "text": "Added attachment named 'max-relaunch-local-cancelled-no-auto-dispatch-accessibility-after'",
+          "name": "max-relaunch-local-cancelled-no-auto-dispatch-accessibility-after"
+        },
+        "issueCount": 0
+      },
+      {
+        "name": "max-relaunch-same-fixed-history-no-redispatch",
+        "before": {
+          "stdoutLine": 23436,
+          "elapsedSeconds": 5766.93,
+          "text": "Added attachment named 'max-relaunch-same-fixed-history-no-redispatch-accessibility-before'",
+          "name": "max-relaunch-same-fixed-history-no-redispatch-accessibility-before"
+        },
+        "after": {
+          "stdoutLine": 23441,
+          "elapsedSeconds": 5769.38,
+          "text": "Added attachment named 'max-relaunch-same-fixed-history-no-redispatch-accessibility-after'",
+          "name": "max-relaunch-same-fixed-history-no-redispatch-accessibility-after"
+        },
+        "issueCount": 0
+      }
+    ],
+    "scope": "11回は各7カテゴリを要求したnative audit呼出回数。77個の別画面検査を意味しない。FAILをPASSへ置換しない。"
+  },
+  "preservationAndFonts": {
+    "recordedTrackedFileCount": 6,
+    "recordedTrackedFileSignatures": {
+      "s28-media-request-control-external-6debb933-100f-4327-835f-5415010a47e7.mov": {
+        "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+        "bytes": 2907110,
+        "device": 16777234,
+        "inode": 33066938
+      },
+      "FrameRelayLibrary/synthetic-original-rc-6debb933-local.reservation": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "device": 16777234,
+        "inode": 33066936
+      },
+      "FrameRelayLibrary/synthetic-original-rc-6debb933-local.mov": {
+        "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+        "bytes": 2907110,
+        "device": 16777234,
+        "inode": 33066937
+      },
+      "FrameRelayLibrary/run.marker": {
+        "sha256": "6799d0120e8097713bc31b23b326bcf411279f0f144bd4b7f050229a025e301c",
+        "bytes": 30,
+        "device": 16777234,
+        "inode": 33066911
+      },
+      "FrameRelayLibrary/s28-media-request-control-seed.json": {
+        "sha256": "2f12ca7d2ab8d7a9f3de7f0d5d32373997b16125ca8deb913b00a384e92c5854",
+        "bytes": 36276,
+        "device": 16777234,
+        "inode": 33066939
+      },
+      "FrameRelayLibrary/request-control-source-6debb933-100f-4327-835f-5415010a47e7.mov": {
+        "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+        "bytes": 2907110,
+        "device": 16777234,
+        "inode": 33066933
+      }
+    },
+    "signatureKeys": [
+      "sha256",
+      "bytes",
+      "device",
+      "inode"
+    ],
+    "allBeforeAfterTrackedSignaturesEqual": true,
+    "sourceInputBeforeAfter": {
+      "before": {
+        "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+        "bytes": 2907110,
+        "device": 16777234,
+        "inode": 33015426
+      },
+      "after": {
+        "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+        "bytes": 2907110,
+        "device": 16777234,
+        "inode": 33015426
+      },
+      "unchanged": true
+    },
+    "wrapperPreservation": {
+      "retainedHashesAndInodesUnchanged": true,
+      "missing": [],
+      "allowedUnlink": [],
+      "added": [],
+      "changed": [],
+      "allExpectedSyntheticUnlink": true,
+      "contentSizeRestored": "large",
+      "expectedRestore": "large"
+    },
+    "fontSetting": {
+      "requested": "accessibility-extra-extra-extra-large",
+      "observed": "accessibility-extra-extra-extra-large",
+      "before": "large",
+      "restored": "large"
+    },
+    "scope": "main wrapperの既存sidecar照合。担当は原本/MOVやSimulator/Photos/Keychain/実DBを直接再読取していない。"
+  },
+  "contrastIssue": {
+    "phase": "max-allPause-paused-waiting-controls",
+    "customIssueAttachmentUUID": "8F94B60D-B63D-4CEA-A3C9-3F793D2785C6",
+    "customIssueText": "Contrast failed\nContrast failed for UILabel\nauditType=1\nuptime=1837865.5536784169",
+    "rawAuditType": 1,
+    "exactIssueElement": {
+      "identifier": null,
+      "label": null,
+      "frame": null,
+      "status": "not supplied by recorded callback or official failure detail"
+    },
+    "confirmedClass": "UILabel",
+    "nativeFailureMessage": "Contrast failed",
+    "nativeDetailedDescription": "Contrast failed for UILabel",
+    "testFailureSource": {
+      "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-candidate-04/source-snapshot/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift",
+      "line": 502
+    },
+    "officialFailureScreenshot": {
+      "attachmentUUID": "B52E09E8-9A05-44DF-A06A-960469484399",
+      "payloadId": "0~3NqiZPVDPsEh0V-E8ZZ5AUmASZvNR5eWqHpQGlNKifiA_AorkeQMyvi2SQFLn3WGavDWBVuH9MpyTzNHGQpmpw==",
+      "identicalPayloadTo": "after.png"
+    },
+    "completeIssueDescriptionLookup": {
+      "testDetailsNode": "56398674-0445-45DB-99CF-C17D0D9532A4",
+      "payloadRefAvailable": false,
+      "legacyFailureSummaryDetailedDescription": "Contrast failed for UILabel",
+      "legacyFailureSummaryAttachments": [
+        "App Screenshot"
+      ],
+      "noAdditionalElementIdentityOrFrameFound": true,
+      "separateDescriptionExportCreated": false,
+      "activitiesDescriptionEntryUUID": "5D03E5B6-07F4-41A8-8185-2A4DFFBF40F9"
+    },
+    "elementIdentityLimitJapanese": "個別UILabelのID/label/frameは特定できない。下の本文要素は画像/AX treeで実在と重なりを確認した候補であり、SDKが失敗対象と明示した要素ではない。"
+  },
+  "observedImagesAndGeometry": {
+    "imagesViewedUsingViewImage": [
+      "before.png",
+      "after.png"
+    ],
+    "nativePointSize": [
+      402,
+      874
+    ],
+    "screenshotPixelSize": [
+      1206,
+      2622
+    ],
+    "navigationBarFramePoints": {
+      "x": 0,
+      "y": 62,
+      "width": 402,
+      "height": 54
+    },
+    "before": {
+      "scene": "root Library: waiting remote request paused actions",
+      "treeScrollBar": {
+        "pages": 78,
+        "valuePercent": 68
+      },
+      "bodyUnderNavigation": {
+        "identifier": "library.request.transport.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+        "label": "通信状態の記録：開始待ち。通信処理の終了・媒体の使用解放は別に確認が必要です。",
+        "framePoints": {
+          "x": 48,
+          "y": -280.3,
+          "width": 306,
+          "height": 436
+        },
+        "verticalOverlapWithNavPoints": 54.0,
+        "candidate04ViewSourceLine": 341,
+        "DI14ViewSourceLine": 351
+      },
+      "pausedNativeControls": [
+        {
+          "identifier": "library.request.pause.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+          "label": "この通信を停止",
+          "disabled": true,
+          "framePoints": {
+            "x": 48,
+            "y": 171.7,
+            "width": 306,
+            "height": 126
+          }
+        },
+        {
+          "identifier": "library.request.cancel.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+          "label": "この通信を取り消す",
+          "disabled": false,
+          "framePoints": {
+            "x": 48,
+            "y": 517.7,
+            "width": 306,
+            "height": 126
+          }
+        },
+        {
+          "identifier": "library.request.resumeIntent.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+          "label": "停止を解除して待機",
+          "disabled": false,
+          "framePoints": {
+            "x": 48,
+            "y": 659.7,
+            "width": 306,
+            "height": 126
+          }
+        }
+      ]
+    },
+    "afterOfficialFailureScreenshot": {
+      "scene": "root Library: allPause saved history, local child stop disposition and waiting child identity",
+      "treeScrollBar": {
+        "pages": 40,
+        "valuePercent": 88
+      },
+      "bodyUnderNavigation": {
+        "identifier": "library.request.historyStop.f3a25045-2eb1-416d-a902-524c4beba983",
+        "label": "停止要求：今回の対象では不要でした。通信処理の終了・媒体の使用解放は別に確認が必要です。",
+        "framePoints": {
+          "x": 32,
+          "y": 83.7,
+          "width": 338,
+          "height": 498
+        },
+        "verticalOverlapWithNavPoints": 32.3,
+        "candidate04ViewSourceLine": 452,
+        "DI14ViewSourceLine": 492
+      }
+    },
+    "observedJapanese": [
+      "before/after両画像で本文がnavigation bar背後でぼけて見える。AX矩形もnav領域と交差している。",
+      "beforeはpaused waiting controls、afterはallPause履歴へ表示位置/AX構成が変わっている。内部SDK動作が変化を起こした理由は未測定。",
+      "beforeのpause/cancel/resume全3native buttonは126pt高でviewport内にあり、pauseだけDisabledという既存期待に一致している。これは個別UILabelのcontrast成功を保証する観測ではない。"
+    ],
+    "inferenceJapanese": "nav背後の本文とblur/背景の合成がContrast検査に関与した可能性がある。APIに対象elementがなく、どのUILabelで失敗したか、contrast比や内部原因は確定できない。"
+  },
+  "immutableViewComparison": {
+    "executedCandidate04": {
+      "binding": "DI-SOURCE-20261025-08",
+      "source": {
+        "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-candidate-04/source-snapshot/FrameRelay/Features/Library/LibraryView.swift",
+        "sha256": "7da99889965584fef66dc1d2c360e4179b6b2acac5deead63e71470322786763",
+        "bytes": 53825
+      },
+      "rootNavigationTitleLine": 139,
+      "opaqueRootNavModifiersPresent": false
+    },
+    "currentFrozenDI14": {
+      "binding": "DI-SOURCE-20261025-14",
+      "bindingFile": {
+        "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-binding.json",
+        "sha256": "ef0fe5afc231489216b892ac65cda9553e8f7e25e0fe708cac07ba2e8573b263",
+        "bytes": 122280
+      },
+      "source": {
+        "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot/FrameRelay/Features/Library/LibraryView.swift",
+        "sha256": "29e3a78095652cbc6ca229910c75cfc6f7670d3a1f94c2d9508d38d7f7d11339",
+        "bytes": 61781
+      },
+      "sourceManifestSHA256": "0a90dd8f2aff0bf2e41b7e675357dd56f95993b1c632ddc7bbf7da91555f4e51",
+      "codeInputFingerprint": "56b2c680ae6fdcb47f7171036a25a35a88bdbc21b2d3ad8b277318318fadaa26",
+      "inputCounts": {
+        "steering input": 2,
+        "server support": 97,
+        "stable document": 6,
+        "App/Unit/UI/project": 389,
+        "total": 494
+      },
+      "rootOpaqueModifierLines": [
+        147,
+        148
+      ]
+    },
+    "originalUploadOpaqueReferenceA169": {
+      "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Features/Library/LibraryView.swift",
+      "sha256": "a169bbafa90cb8aeecde2fdf074150953cb376869bf4342733c3e4e22410551e",
+      "bytes": 59771
+    },
+    "rootModifierCounts": {
+      "candidate04": {
+        ".toolbarBackground(Color(uiColor: .systemBackground), for: .navigationBar)": 0,
+        ".toolbarBackgroundVisibility(.visible, for: .navigationBar)": 0
+      },
+      "originalUploadA169": {
+        ".toolbarBackground(Color(uiColor: .systemBackground), for: .navigationBar)": 1,
+        ".toolbarBackgroundVisibility(.visible, for: .navigationBar)": 1
+      },
+      "DI14": {
+        ".toolbarBackground(Color(uiColor: .systemBackground), for: .navigationBar)": 1,
+        ".toolbarBackgroundVisibility(.visible, for: .navigationBar)": 1
+      }
+    },
+    "identicalPrimitiveAndHistoryBlocks": {
+      "LibraryWrappingText": {
+        "byteEqual": true,
+        "sha256": "1e6cef5bc7b23674df51cffc4399767d3fe574ace07e850e9c636e12fb29527b"
+      },
+      "LibraryRenditionPlaybackButton": {
+        "byteEqual": true,
+        "sha256": "324f2fc548a0a239a667b9e3bd0867b6bbd352b359dc172ff92820c466d1c6bc"
+      },
+      "LibraryActionButtonStyle": {
+        "byteEqual": true,
+        "sha256": "9eefa4e762fef9581d7bd0e381460f55dfccd21d71841d9390084fff16292c7c"
+      },
+      "LibraryMediaControlHistory": {
+        "byteEqual": true,
+        "sha256": "975fdb3fb33f2b83c553a0d228f22a17dbf5c3fe75d392c3eb8af59c5f009589"
+      }
+    },
+    "remoteRequestControlsIdenticalExceptUploadOnlyMetadataBlock": true,
+    "uploadOnlyMetadataBlockCondition": "model.hasUploadMetadataPort && row.request.purpose == .upload",
+    "failingAuditTargetPurpose": "remote rendition download; upload-only block does not directly render in waiting row",
+    "existingRelevantChangeJapanese": "DI14 rootにはa169原本受付Viewと同じ systemBackground のtoolbarBackground、およびvisibleの2行が既にある。candidate04 rootにはない。detail側の背景指定と区別する。",
+    "possibilityJapanese": "同じnav背後の文字blurに関するContrast低下であれば、DI14の既存opaque root nav指定で改善する可能性がある。本文UILabel・button・history実装の色/折返しを新たに変える根拠は本記録から確定しない。",
+    "notEstablishedJapanese": "DI14で同じMAX paused-waiting場面のstrict7 auditを再実行していないため、149のissue解消やcurrent sourceでのperson-control全UI成功とは言えない。追加機能で全rootの配置も変わるため旧画像のframeを現行表示へそのまま移さない。",
+    "futureEvidenceNeededJapanese": "必要ならmainが別途許可した、消費済みprefix6に完全一致する読み取り専用のpaused-waiting観測/strict7 auditで確認する。3操作の再送や再seedでの再現は行わない。"
+  },
+  "exportedAttachments": [
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-149-ax/before.png",
+      "sha256": "a49a9c490a96f5ef83886d17e202b566a48616ef73f1f38bf7eb1eb8afcb39ae",
+      "bytes": 613610,
+      "attachmentUUID": "40A8061C-B5A8-4E08-93EC-56BB9CB21BB3",
+      "payloadId": "0~I9b87MfnJ-_87_nxys_R_ITD9pqOE7GO853fVwpuyA1EVJIJja6veP-pNP-7WRVntpa6tLF52ENIsG3RhqNB5g==",
+      "pixelSize": [
+        1206,
+        2622
+      ]
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-149-ax/before-tree.txt",
+      "sha256": "c9e73404ad505638f4cc598a719aa67f2cd72e821b0f919cdafdf31d9cc65a68",
+      "bytes": 14390,
+      "attachmentUUID": "483DF2AB-ECFC-4115-BBBF-A0320F936BF5",
+      "payloadId": "0~eTnELWpNuq3DH0ompApNGNMZJuZWJumhej3HR3rfU42rdsv3hjCprrvsu5a-PVK8z_TUV_evFf2QH4qzuUpRBQ=="
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-149-ax/issue.txt",
+      "sha256": "ff82c0f2f18939aa217a291de778334f9c8f13df14e262bbee6e842fd8301507",
+      "bytes": 81,
+      "attachmentUUID": "8F94B60D-B63D-4CEA-A3C9-3F793D2785C6",
+      "payloadId": "0~23rmXnIfkqp09KE0MoBFzwZPU7RxdkdGyod6A_mI5ttgEahYzRgMneNDVjjNV7zs3MtcVfAETZQlo_fHT9LI1A=="
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-149-ax/after.png",
+      "sha256": "85ca5f97d11a258ead956dac3553459aab3dbe610890dcab7ec28cef7ac2472e",
+      "bytes": 651455,
+      "attachmentUUID": "5C1B0222-AE92-410B-A3B4-902C6BDCAC72",
+      "payloadId": "0~3NqiZPVDPsEh0V-E8ZZ5AUmASZvNR5eWqHpQGlNKifiA_AorkeQMyvi2SQFLn3WGavDWBVuH9MpyTzNHGQpmpw==",
+      "pixelSize": [
+        1206,
+        2622
+      ]
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-149-ax/after-tree.txt",
+      "sha256": "03da5ca8e542d1b6e8b93d835306d62ecf2cb52b7bdd11fa828af15629e338b0",
+      "bytes": 6600,
+      "attachmentUUID": "9D16EDFA-787A-4BA8-8D6E-759FF2BEC670",
+      "payloadId": "0~tjWKxUanmNVaxys4zmMlk2HlbATnJuwuvNIfYV3OvEPlovSkyqyQy1uAGqi22qLUqaMjvM5Vm_WUStLUWB3oSQ=="
+    }
+  ],
+  "exportScope": "当該issue text1・対応before/after PNG2・対応before/after tree2の計5 payloadだけをselective export。全attachment exportなし。",
+  "evidenceFiles": [
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149/result.json",
+      "sha256": "72a544ab3f3768e9b65093ddc3dc70643a629a9addc466b3268e745e0d535eff",
+      "bytes": 7064
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149/command.json",
+      "sha256": "a5b3682dace5e324f5a4862ccc85ce429f604f961e0d9438246d21eacad2adaf",
+      "bytes": 4393
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149/tests.json",
+      "sha256": "1b39725c8cdef33b41bf66382a1bc82bd254a26127a298cc3de7459858c8d857",
+      "bytes": 1532
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149/build.json",
+      "sha256": "c00bda2c96fbf018672a456460497e5cffe52f6f4394a600cc8917c4bce8be2f",
+      "bytes": 619
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149/stdout.log",
+      "sha256": "10a7fd2ec033bfb7d1ee944f4c09c781678b7a6492a436876b2db43d797caaa7",
+      "bytes": 2273645
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149/sources-before.json",
+      "sha256": "8e4255e73cdc10fc9e2001976eb49153f24c44fb15453d5004534785fa4fa159",
+      "bytes": 62153
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149/sources-after.json",
+      "sha256": "8e4255e73cdc10fc9e2001976eb49153f24c44fb15453d5004534785fa4fa159",
+      "bytes": 62153
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149-conditions.json",
+      "sha256": "c79b07da110f8a0c07a95626e0e08d5c75b237e32ebd90c8ce74e9cabde3f69b",
+      "bytes": 3599
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149-preservation.json",
+      "sha256": "cae23cfba41ef6ce2f9c5ce6bf75f07e1213cad918dd59337c81643be600f236",
+      "bytes": 220
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149-source-preservation.json",
+      "sha256": "530ce94bb61f79fd1bdc8e73d2506d4847cb4e8d6cc9200824af986753e7c8c3",
+      "bytes": 361
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149-fixture-before.json",
+      "sha256": "3a35b16170078245e7b3df9b2ad5b17913e592fde731575c48b75178e77c2c05",
+      "bytes": 1618
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149-fixture-after.json",
+      "sha256": "047c61e9bc9ff94cd785c6714c4efb12b04fbc5b5b3029ce59134495a2790971",
+      "bytes": 1618
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-149-progress-check.json",
+      "sha256": "eb08330b7938d7817d6ae50ec2ef1e90a9ce55e2573cb8fe811457ef220e97a6",
+      "bytes": 585872
+    }
+  ],
+  "scopeAndLimitationsJapanese": [
+    "製品/UI/fixtureの変更、操作再送、Simulator/DB操作、SDK/test再実行、killは行っていない。",
+    "raw保存記録・凍結source・選択5添付の担当診断であり、独立implementation validationではない。",
+    "149 FAIL、旧122中断/126/130/139失敗は保持する。過去と今回の監査を合算してfull PASSとはしない。",
+    "global SDK/Photos/Keychain/networkの呼出数0は未測定。本文や画像からその値を生成しない。",
+    "実writer independent reopen/readers等の最終確認はmainの別VERIFYに委ね、このUI診断では照会しない。"
+  ],
+  "ownership": {
+    "onlyUpdatedNewProgressFile": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-149-progress-check.json",
+    "onlyNewAttachmentDirectory": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-149-ax",
+    "onlyNewFinalHandoff": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-149-final-handoff.json",
+    "sourceOrPriorRunArtifactEdits": false
+  }
+}

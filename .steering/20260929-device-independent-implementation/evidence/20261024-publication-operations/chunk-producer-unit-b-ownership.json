@@ -1,0 +1,58 @@
+{
+  "feature": "same S23/S28 upload chunk producer UnitB",
+  "state": "in-progress after UnitA DI20 source freeze, Unit177 executing immutable copy",
+  "files": [
+    "FrameRelay/Domain/Operations/BackgroundMediaTask.swift",
+    "FrameRelay/Platform/LocalStore/BackgroundMediaStoreProjection.swift",
+    "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift",
+    "FrameRelay/Application/Recovery/BackgroundMediaRecovery.swift",
+    "FrameRelay/Application/Ports/OriginalRemovalPorts.swift",
+    "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+    "FrameRelayTests/Domain/BackgroundUploadChunkTaskTests.swift",
+    "FrameRelayTests/Integration/Storage/BackgroundUploadChunkStoreTests.swift",
+    "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift",
+    "FrameRelay/Application/Ports/BackgroundMediaPorts.swift",
+    "FrameRelay/Platform/Network/UploadChunkWire.swift",
+    "FrameRelay/Platform/Network/BackgroundMediaSession.swift",
+    "FrameRelay/Composition/ProductBackgroundMediaFactory.swift",
+    "FrameRelayTests/Application/UploadChunkWireTests.swift",
+    "FrameRelayTests/Application/BackgroundUploadChunkCoordinatorTests.swift",
+    "FrameRelayTests/Integration/Remote/BackgroundUploadChunkSessionTests.swift"
+  ],
+  "owners": {
+    "/root/manifest_projection": [
+      "FrameRelay/Domain/Operations/BackgroundMediaTask.swift",
+      "FrameRelay/Platform/LocalStore/BackgroundMediaStoreProjection.swift",
+      "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift",
+      "FrameRelay/Application/Recovery/BackgroundMediaRecovery.swift",
+      "FrameRelay/Application/Ports/OriginalRemovalPorts.swift",
+      "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+      "FrameRelayTests/Domain/BackgroundUploadChunkTaskTests.swift",
+      "FrameRelayTests/Integration/Storage/BackgroundUploadChunkStoreTests.swift"
+    ],
+    "/root/original_upload_app": [
+      "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift",
+      "FrameRelay/Application/Ports/BackgroundMediaPorts.swift",
+      "FrameRelay/Platform/Network/UploadChunkWire.swift",
+      "FrameRelay/Platform/Network/BackgroundMediaSession.swift",
+      "FrameRelay/Composition/ProductBackgroundMediaFactory.swift",
+      "FrameRelayTests/Application/UploadChunkWireTests.swift",
+      "FrameRelayTests/Application/BackgroundUploadChunkCoordinatorTests.swift",
+      "FrameRelayTests/Integration/Remote/BackgroundUploadChunkSessionTests.swift"
+    ]
+  },
+  "UnitAReadOnly": [
+    "FrameRelay/Domain/Operations/UploadChunk.swift",
+    "FrameRelay/Platform/TemporaryMedia/ManagedUploadSource.swift",
+    "FrameRelayTests/Domain/UploadChunkTests.swift",
+    "FrameRelayTests/Integration/Storage/ManagedUploadChunkSourceTests.swift"
+  ],
+  "constraints": [
+    "no overlapping ownership/no revert others",
+    "no native strict positive resume/default admission unavailable",
+    "main owns runtime/evidence/steering",
+    "source.uploadChunk indirect; no fullsnapshot nested in BackendChange",
+    "whole old encoding+logic/P2/Photo previouswork preserve"
+  ],
+  "createdUTC": "2026-10-24T21:15:01.754307+00:00"
+}

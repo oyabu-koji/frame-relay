@@ -11,10 +11,13 @@ nonisolated struct StoredVerificationEvidence: Equatable, Sendable, Codable {
     let expected: RemoteOperationContext
     let evidence: VerificationEvidence
     let commit: BackendCommitReceipt
+    /// Nil retains the exact legacy initializer/encoding/receipt authority.
+    var metadataProvenance: UploadMetadataVerificationProvenance? = nil
 
-    var key: BackendCommitKey { .verification(command, evidence.id, expected) }
+    var key: BackendCommitKey { metadataProvenance?.key ?? .verification(command, evidence.id, expected) }
     var isCommitted: Bool {
-        expected == evidence.context && commit.matches(key, revision: commit.previousRevision)
+        if let metadataProvenance { return metadataProvenance.matches(self) }
+        return expected == evidence.context && commit.matches(key, revision: commit.previousRevision)
     }
 }
 

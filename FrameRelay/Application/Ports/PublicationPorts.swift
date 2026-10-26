@@ -1,13 +1,5 @@
 import Foundation
 
-nonisolated struct PublicationManifest: Equatable, Sendable {
-    let current: RenditionIdentity?
-    let revision: UInt64
-    let invalidationGeneration: InvalidationGeneration
-    let replacementPending: Bool
-    let mediaType: String?
-}
-
 nonisolated struct PublicationDistributionRequest: Equatable, Sendable {
     enum Purpose: String, Sendable { case source, read }
     enum Kind: String, Sendable { case full, range, resume }

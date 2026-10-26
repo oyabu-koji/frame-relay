@@ -1,0 +1,1534 @@
+--- FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift@03
++++ FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift@04
+@@ -67,7 +67,7 @@
+ 
+ /// One consumer per session awaits every disk/resource return. Delegate
+ /// callbacks never launch independent terminal/finish-event Tasks.
+-actor BackgroundMediaCoordinator: OriginalRemovalBackgroundPort {
++actor BackgroundMediaCoordinator: OriginalRemovalBackgroundPort, BackgroundInvalidationTerminationPort {
+     typealias SessionFactory = @Sendable (BackgroundMediaSessionIdentity) async throws -> any BackgroundMediaSessionPort
+     typealias SourceFactory = @Sendable () async throws -> any BackgroundMediaUploadSourcePort
+     typealias DidDrain = @Sendable (BackgroundMediaDrainObservation) async -> Void
+@@ -107,6 +107,12 @@
+     private var preparing: [BackgroundMediaTaskID: BackgroundMediaAttachmentBarrier] = [:]
+     private var starts: [BackgroundMediaTaskID: MediaTarget] = [:]
+     private var removalSeals: [MediaOperationID: OriginalRemovalAdmissionSeal] = [:]
++    private struct InvalidationStop {
++        let record: InvalidationRecord
++        let epoch: ReaderReconciliationEpoch
++        let binding: BackgroundMediaTaskBinding
++    }
++    private var invalidationStops: [InvalidationStop] = []
+     private var pending: [BackendStoreMutation] = []
+     private var observedTerminals: [BackgroundMediaTaskBinding] = []
+     private var captureWaits: [MediaOperationID: Set<MediaWaitReason>] = [:]
+@@ -420,6 +426,182 @@
+         removalSeals.values.contains { $0.target.original == original }
+     }
+ 
++    /// Only the actual writer reservation can ask this process's known upload
++    /// owners to stop. Cancellation is not an invalidation/ACK completion.
++    func stopForInvalidation(_ record: InvalidationRecord, epoch: ReaderReconciliationEpoch)
++        async -> BackendOutcome<BackgroundInvalidationObservation> {
++        guard await currentInvalidation(record, epoch: epoch) != nil else { return .unknown }
++        await retryHeldEvents()
++        guard let snapshot = await currentInvalidation(record, epoch: epoch) else { return .unknown }
++        let original = record.rendition.original
++        guard !starts.values.contains(where: { $0.original == original }),
++              !preparing.keys.contains(where: { live[$0]?.lease.original == original }) else { return .unknown }
++        let tasks = snapshot.backgroundTasks.filter { $0.intent.context.target.original == original }
++        guard tasks.allSatisfy({ validInvalidationUpload($0, record: record, snapshot: snapshot) }),
++              live.allSatisfy({ id, owned in
++                  owned.lease.original != original || tasks.contains(where: { PublicationStoreBoundary.exact($0.intent.id, id) })
++              }) else { return .unknown }
++        var waiting = false
++        for task in tasks {
++            guard validInvalidationUpload(task, record: record, snapshot: snapshot),
++                  let binding = task.binding else { return .unknown }
++            // A completely closed old upload is observable from its exact
++            // journal and a fresh SDK inventory. No old source is reopened,
++            // adopted or released to obtain that observation.
++            guard let owned = live[task.intent.id] else { continue }
++            if owned.released { continue }
++            waiting = true
++            // The serial event consumer alone closes a source after a terminal.
++            // A recorded/observed terminal must never be replaced by a new SDK
++            // request, a synthetic closure, or an adopted old lease.
++            if task.terminal != nil || observedTerminals.contains(where: { PublicationStoreBoundary.exact($0, binding) }) { continue }
++            guard let session = sessions[task.intent.session], !session.corruptSequence, session.recovery != nil,
++                  !session.unsafeIntents.contains(task.intent.id),
++                  !retainedEvents.contains(where: { PublicationStoreBoundary.exact($0.session, task.intent.session) }),
++                  case .succeeded(let observed) = await session.port.enumerate(),
++                  let fresh = await currentInvalidation(record, epoch: epoch),
++                  validInvalidationUpload(task, record: record, snapshot: fresh),
++                  knownEnumeration(observed, session: task.intent.session, snapshot: fresh),
++                  observed.filter({ observation in
++                      observation.taskIdentifier == binding.taskIdentifier
++                          && PublicationStoreBoundary.exact(observation.session, binding.session)
++                          && binding.taskDescription.utf8.elementsEqual((observation.taskDescription ?? "").utf8)
++                          && observation.kind == .upload
++                          && [.running, .suspended, .canceling].contains(observation.state)
++                  }).count == 1 else { return .unknown }
++            let terminal = await session.port.observeTerminal(binding)
++            guard let fresh = await currentInvalidation(record, epoch: epoch),
++                  validInvalidationUpload(task, record: record, snapshot: fresh) else { return .unknown }
++            switch terminal {
++            case .succeeded(let actual):
++                guard PublicationStoreBoundary.exact(actual.binding, binding) else { return .unknown }
++                continue
++            case .inProgress: break
++            default: return .unknown
++            }
++            if invalidationStops.contains(where: {
++                PublicationStoreBoundary.exact($0.record, record) && PublicationStoreBoundary.exact($0.epoch, epoch)
++                    && PublicationStoreBoundary.exact($0.binding, binding)
++            }) { continue }
++            guard await confirmsInvalidationTask(task, record: record, epoch: epoch),
++                  await stop(task.intent, binding: binding, session: session.port, invalidation: record, epoch: epoch) else { return .unknown }
++        }
++        // Even an immediate callback cannot turn the cancellation poll into an
++        // ACK. The next explicit poll obtains a new OS/journal inventory.
++        if waiting { return .inProgress }
++        return await observeInvalidation(record, epoch: epoch)
++    }
++
++    func observeInvalidation(_ record: InvalidationRecord, epoch: ReaderReconciliationEpoch)
++        async -> BackendOutcome<BackgroundInvalidationObservation> {
++        guard await currentInvalidation(record, epoch: epoch) != nil,
++              case .succeeded(let transport) = await observeStoppedTransport(record.rendition.original,
++                invalidation: record, epoch: epoch),
++              let snapshot = await currentInvalidation(record, epoch: epoch) else { return .unknown }
++        let value = BackgroundInvalidationObservation(record: record, storeIdentity: identity, transport: transport)
++        return value.validates(record: record, epoch: epoch, backend: snapshot) ? .succeeded(value) : .unknown
++    }
++
++    private func currentInvalidation(_ record: InvalidationRecord, epoch: ReaderReconciliationEpoch) async -> BackendStoreSnapshot? {
++        guard let removalStore, !Task.isCancelled else { return nil }
++        for _ in 0..<3 {
++            guard let backend = await load(), case .succeeded(let originals) = await removalStore.loadOriginalState() else { return nil }
++            if backend.revision != originals.revision { continue }
++            let original = record.rendition.original
++            guard PublicationStoreBoundary.exact(originals.reconciliationEpoch, Optional(epoch)),
++                  let state = originals.logicalOriginals.first(where: { PublicationStoreBoundary.exact($0.original, original) }),
++                  !originals.logicalOriginals.contains(where: {
++                      $0.original.capture == original.capture && !PublicationStoreBoundary.exact($0.original, original)
++                  }), state.removal == nil,
++                  state.invalidation.map({ PublicationStoreBoundary.exact($0.record, record) }) == true,
++                  let registration = backend.registrations.last(where: {
++                      $0.server.registration.destination == record.registration.destination
++                  }), registration.isCommitted, PublicationStoreBoundary.exact(registration.server.registration, record.registration),
++                  backend.confirmationStates.contains(where: {
++                      PublicationStoreBoundary.exact($0.registration, record.registration)
++                          && PublicationStoreBoundary.exact($0.current, record.rendition)
++                          && $0.generation.rawValue < record.generation.rawValue
++                  }) else { return nil }
++            return backend
++        }
++        return nil
++    }
++
++    private func invalidationCurrent(_ record: InvalidationRecord?, epoch: ReaderReconciliationEpoch?) async -> Bool {
++        guard let record else { return true } // Existing removal observer has no invalidation contract.
++        guard let epoch else { return false }
++        return await currentInvalidation(record, epoch: epoch) != nil
++    }
++
++    private func confirmsInvalidationTask(_ task: BackgroundMediaTaskState, record: InvalidationRecord,
++                                         epoch: ReaderReconciliationEpoch) async -> Bool {
++        guard !task.events.isEmpty else { return false }
++        for event in task.events {
++            guard case .committed(let receipt) = await store.lookupCommit(event.mutation),
++                  PublicationStoreBoundary.exact(receipt, event.commit),
++                  await currentInvalidation(record, epoch: epoch) != nil else { return false }
++        }
++        return true
++    }
++
++    private func validInvalidationUpload(_ task: BackgroundMediaTaskState, record: InvalidationRecord,
++        snapshot: BackendStoreSnapshot) -> Bool {
++        let context = task.intent.context
++        guard context.storeIdentity == identity,
++              PublicationStoreBoundary.exact(context.target, MediaTarget.original(record.rendition.original)),
++              snapshot.backgroundTasks.contains(where: { PublicationStoreBoundary.exact($0.intent, task.intent) }),
++              let binding = task.binding,
++              PublicationStoreBoundary.exact(binding.session, task.intent.session),
++              binding.taskDescription.utf8.elementsEqual(task.intent.taskDescription.utf8),
++              case .upload(let session, let lease, let source) = task.intent.source,
++              PublicationStoreBoundary.exact(source.content, record.rendition.original.content),
++              PublicationStoreBoundary.exact(lease.original, record.rendition.original),
++              PublicationStoreBoundary.exact(lease.operation, context.operation),
++              let request = snapshot.requests.first(where: { $0.operation == context.operation }),
++              PublicationStoreBoundary.exact(request.operation, context.operation),
++              PublicationStoreBoundary.exact(request.attempt, Optional(context.attempt)),
++              PublicationStoreBoundary.exact(request.registration, context.registration),
++              PublicationStoreBoundary.exact(request.target, context.target),
++              PublicationStoreBoundary.exact(request.session, Optional(session)), request.purpose == .upload,
++              request.transport != .completed else { return false }
++        if let key = live.keys.first(where: { $0 == task.intent.id }), let owned = live[key] {
++            guard PublicationStoreBoundary.exact(key, task.intent.id),
++                  PublicationStoreBoundary.exact(owned.binding, Optional(binding)),
++                  PublicationStoreBoundary.exact(owned.lease, lease), PublicationStoreBoundary.exact(owned.identity, source) else { return false }
++            if !owned.released {
++                // OriginalReadLease.epoch belongs to ManagedOriginalAccess,
++                // independently of the writer's media reconciliation epoch.
++                // currentInvalidation checks that writer epoch; this process's
++                // exact live lease/source/binding above proves original ownership.
++                return PublicationStoreBoundary.exact(context.registration, record.registration)
++            }
++        }
++        guard let terminal = task.terminal, let closed = task.ownerClosure,
++              PublicationStoreBoundary.exact(terminal.binding, binding), PublicationStoreBoundary.exact(closed.binding, binding),
++              PublicationStoreBoundary.exact(closed.uploadSource, Optional(source)), closed.tasksJoined, closed.handlesClosed,
++              request.transport == .stopped else { return false }
++        // This is only a candidate for the shared observer below. That observer
++        // verifies every historical commit, stopped-after-ownerClosed ordering,
++        // fresh SDK tasks, current inventory epoch and exact lease absence.
++        return true
++    }
++
++    private func knownEnumeration(_ observations: [BackgroundMediaTaskObservation], session: BackgroundMediaSessionIdentity,
++                                  snapshot: BackendStoreSnapshot) -> Bool {
++        guard observations.allSatisfy({ PublicationStoreBoundary.exact($0.session, session) }),
++              Set(observations.map(\.taskIdentifier)).count == observations.count else { return false }
++        return observations.allSatisfy { observation in
++            let matches = snapshot.backgroundTasks.filter {
++                guard let binding = $0.binding else { return false }
++                return PublicationStoreBoundary.exact(binding.session, observation.session)
++                    && binding.taskIdentifier == observation.taskIdentifier
++                    && binding.taskDescription.utf8.elementsEqual((observation.taskDescription ?? "").utf8)
++            }
++            guard matches.count == 1, let matched = matches.first else { return false }
++            switch matched.intent.source { case .upload: return observation.kind == .upload; case .download: return observation.kind == .download }
++        }
++    }
++
+     /// Observation only: never request cancellation, adopt an old source or
+     /// manufacture a stopped transition in order to satisfy a removal.
+     func sealForRemoval(_ seal: OriginalRemovalAdmissionSeal) async -> BackendOutcome<OriginalRemovalTransportFence> {
+@@ -428,13 +610,23 @@
+             $0.target.original == seal.target.original && $0.target.operation != seal.target.operation
+         }) else { return .notExecuted }
+         removalSeals[seal.target.operation] = seal
+-        let original = seal.target.original
++        guard case .succeeded(let observed) = await observeStoppedTransport(seal.target.original), let snapshot = await load() else { return .unknown }
++        let fence = OriginalRemovalTransportFence(seal: seal, inventory: observed.inventory, stops: observed.stops)
++        return fence.validatesHistory(snapshot) ? .succeeded(fence) : .unknown
++    }
++
++    /// Common no-seal observer. Removal preserves its own real seal/fence;
++    /// invalidation supplies its independently persisted reservation instead.
++    private func observeStoppedTransport(_ original: OriginalContent, invalidation: InvalidationRecord? = nil,
++        epoch: ReaderReconciliationEpoch? = nil) async -> BackendOutcome<BackgroundStoppedTransportObservation> {
+         guard let removalStore,
+               !starts.values.contains(where: { $0.original == original }),
+               !preparing.keys.contains(where: { live[$0]?.lease.original == original }),
+               !live.values.contains(where: { $0.lease.original == original && (!$0.released || $0.binding == nil) }),
+               case .succeeded(let inventory) = await removalStore.loadRemovalTransportInventory(original),
+-              let snapshot = await load(), inventory.matchesProjection(snapshot) else { return .unknown }
++              await invalidationCurrent(invalidation, epoch: epoch),
++              let snapshot = await load(), inventory.matchesProjection(snapshot),
++              await invalidationCurrent(invalidation, epoch: epoch) else { return .unknown }
+         let stops: [TransportStopReceipt]
+         if let historical = OriginalRemovalTransportHistory.stoppedTasks(original, backend: snapshot) { stops = historical }
+         else if OriginalRemovalTransportHistory.neverStartedForRemoval(original, backend: snapshot),
+@@ -443,10 +635,13 @@
+                     $0.attempt == nil && $0.session == nil && $0.transport == .queued
+                 }) { stops = [] }
+         else { return .unknown }
+-        let fence = OriginalRemovalTransportFence(seal: seal, inventory: inventory, stops: stops)
+-        guard fence.validatesHistory(snapshot) else { return .unknown }
++        let observation = BackgroundStoppedTransportObservation(inventory: inventory, stops: stops)
++        guard observation.validatesHistory(snapshot) else { return .unknown }
+         for task in inventory.tasks {
+-            guard await confirmsHistoricalStop(task, snapshot: snapshot) else { return .unknown }
++            guard await confirmsHistoricalStop(task, snapshot: snapshot), await invalidationCurrent(invalidation, epoch: epoch) else { return .unknown }
++            if let invalidation {
++                guard epoch != nil, validInvalidationUpload(task, record: invalidation, snapshot: snapshot) else { return .unknown }
++            }
+             if let owned = live[task.intent.id] {
+                 guard owned.released, let binding = task.binding,
+                       PublicationStoreBoundary.exact(owned.binding, Optional(binding)),
+@@ -463,13 +658,15 @@
+         }
+         for sessionIdentity in sessionInventory {
+             guard let port = try? await session(for: sessionIdentity),
++                  await invalidationCurrent(invalidation, epoch: epoch),
+                   sessions[sessionIdentity]?.corruptSequence == false,
+                   sessions[sessionIdentity]?.recovery != nil,
+                   !(sessions[sessionIdentity]?.unsafeIntents.contains(where: { id in
+                       inventory.tasks.contains { $0.intent.id == id }
+                   }) ?? true),
+                   !retainedEvents.contains(where: { $0.session == sessionIdentity }),
+-                  case .succeeded(let observed) = await port.enumerate() else { return .unknown }
++                  case .succeeded(let observed) = await port.enumerate(),
++                  await invalidationCurrent(invalidation, epoch: epoch) else { return .unknown }
+             guard observed.allSatisfy({ PublicationStoreBoundary.exact($0.session, sessionIdentity) }),
+                   Set(observed.map(\.taskIdentifier)).count == observed.count else { return .unknown }
+             for observation in observed {
+@@ -490,17 +687,20 @@
+         }
+         for fact in inventory.journal {
+             guard case .committed(let receipt) = await store.lookupCommit(fact.mutation),
+-                  PublicationStoreBoundary.exact(receipt, fact.commit) else { return .unknown }
++                  PublicationStoreBoundary.exact(receipt, fact.commit),
++                  await invalidationCurrent(invalidation, epoch: epoch) else { return .unknown }
+         }
+         guard !starts.values.contains(where: { $0.original == original }),
+               case .succeeded(let latest) = await removalStore.loadRemovalTransportInventory(original), latest == inventory,
++              await invalidationCurrent(invalidation, epoch: epoch),
+               case .succeeded(let originals) = await removalStore.loadOriginalState(), originals.reconciliationEpoch == inventory.epoch,
+               let state = originals.logicalOriginals.first(where: { PublicationStoreBoundary.exact($0.original, original) }),
+               inventory.tasks.allSatisfy({ task in
+                   if case .upload(_, let lease, _) = task.intent.source { return !state.readers.contains(lease) }
+                   return false
+               }) else { return .unknown }
+-        return .succeeded(fence)
++        guard await invalidationCurrent(invalidation, epoch: epoch) else { return .unknown }
++        return .succeeded(observation)
+     }
+ 
+     func releaseAfterRemoval(_ release: OriginalRemovalAdmissionRelease) async -> Bool {
+@@ -512,10 +712,19 @@
+     }
+ 
+     @discardableResult private func stop(_ intent: BackgroundMediaTaskIntent, binding: BackgroundMediaTaskBinding,
+-                      session: any BackgroundMediaSessionPort) async -> Bool {
++                      session: any BackgroundMediaSessionPort, invalidation: InvalidationRecord? = nil,
++                      epoch: ReaderReconciliationEpoch? = nil) async -> Bool {
+         guard await persist(.backgroundTask(command: command(), value: .stopRequested(intent))) else { return false }
++        if let invalidation {
++            guard let epoch, let snapshot = await currentInvalidation(invalidation, epoch: epoch),
++                  let task = snapshot.backgroundTasks.first(where: { PublicationStoreBoundary.exact($0.intent, intent) }),
++                  PublicationStoreBoundary.exact(task.binding, Optional(binding)),
++                  validInvalidationUpload(task, record: invalidation, snapshot: snapshot),
++                  live[task.intent.id]?.released == false else { return false }
++            invalidationStops.append(.init(record: invalidation, epoch: epoch, binding: binding))
++        }
+         await session.requestStop(binding)
+-        return true
++        return await invalidationCurrent(invalidation, epoch: epoch)
+     }
+ 
+     func recover(_ identity: BackgroundMediaSessionIdentity) async -> BackendOutcome<BackgroundMediaRecoveryReport> {
+--- FrameRelay/Composition/ProductBackgroundMediaFactory.swift@03
++++ FrameRelay/Composition/ProductBackgroundMediaFactory.swift@04
+@@ -8,7 +8,7 @@
+ /// Bound to one ProductLibraryFactory, not the first arbitrary test/product
+ /// store opened in this process. The normal App and background delegate share
+ /// the same instance and therefore the same writer and OS session owners.
+-actor ProductBackgroundMediaFactory: OriginalRemovalBackgroundPort {
++actor ProductBackgroundMediaFactory: OriginalRemovalBackgroundPort, BackgroundInvalidationTerminationPort {
+     static let shared = ProductBackgroundMediaFactory(library: .shared)
+     nonisolated let captureAdmission: CaptureMediaAdmission
+ 
+@@ -92,6 +92,26 @@
+         removalSeals.values.contains { $0.target.original == original }
+     }
+ 
++    func stopForInvalidation(_ record: InvalidationRecord, epoch: ReaderReconciliationEpoch)
++        async -> BackendOutcome<BackgroundInvalidationObservation> {
++        do {
++            let services = try await library()
++            guard case .loaded(let snapshot) = await services.store.load(), let identity = snapshot.storeIdentity else { return .unknown }
++            let owner = try coordinator(services: services, identity: identity)
++            return await owner.stopForInvalidation(record, epoch: epoch)
++        } catch { return .unknown }
++    }
++
++    func observeInvalidation(_ record: InvalidationRecord, epoch: ReaderReconciliationEpoch)
++        async -> BackendOutcome<BackgroundInvalidationObservation> {
++        do {
++            let services = try await library()
++            guard case .loaded(let snapshot) = await services.store.load(), let identity = snapshot.storeIdentity else { return .unknown }
++            let owner = try coordinator(services: services, identity: identity)
++            return await owner.observeInvalidation(record, epoch: epoch)
++        } catch { return .unknown }
++    }
++
+     func sealForRemoval(_ seal: OriginalRemovalAdmissionSeal) async -> BackendOutcome<OriginalRemovalTransportFence> {
+         if let existing = removalSeals[seal.target.operation], !existing.exactlyMatches(seal) { return .unknown }
+         guard !removalSeals.values.contains(where: {
+--- FrameRelay/Composition/ProductStatusSynchronization.swift@03
++++ FrameRelay/Composition/ProductStatusSynchronization.swift@04
+@@ -11,17 +11,20 @@
+     private let credentials: any RegistrationAuthorizationPort
+     private let admission: @MainActor @Sendable () -> Bool
+     private let remoteFactory: RemoteFactory
++    private let background: (any BackgroundInvalidationTerminationPort)?
+     private var sessions: [Session] = []
+     private var running = false
+ 
+     init(store: any MediaOperationStorePort & OriginalStorePort, access: ManagedOriginalAccess,
+          media: ProductMediaTermination, credentials: any RegistrationAuthorizationPort,
+          admission: @escaping @MainActor @Sendable () -> Bool,
++         background: (any BackgroundInvalidationTerminationPort)? = nil,
+          remoteFactory: @escaping RemoteFactory = { connection, credentials, store, identity in
+              URLSessionPublicationRemote(connection: connection, credentials: credentials, store: store, identity: identity)
+          }) {
+         self.store = store; self.access = access; self.media = media; self.credentials = credentials
+         self.admission = admission; self.remoteFactory = remoteFactory
++        self.background = background
+     }
+ 
+     func synchronize(connection: RegistrationConnection, registration: DeviceRegistration) async -> StatusSynchronizationReport {
+@@ -42,7 +45,8 @@
+                     && $0.connection.endpoint.origin.absoluteString.utf8.elementsEqual(connection.endpoint.origin.absoluteString.utf8)
+             }) { coordinator = existing.coordinator }
+             else {
+-                let external = ProductStatusInvalidationTermination(boundary: boundary, media: media, admission: admission)
++                let external = ProductStatusInvalidationTermination(boundary: boundary, originals: store,
++                    media: media, admission: admission, background: background)
+                 let invalidations = MediaInvalidationCoordinator(store: store, identity: identity, ordering: access,
+                     scopes: media.scopes, external: external)
+                 coordinator = BackendStatusSynchronizationCoordinator(store: store, identity: identity, registration: registration,
+@@ -64,9 +68,8 @@
+     }
+ }
+ 
+-/// The current product external producer owns the original player. It cannot
+-/// attest to an old upload source or background SDK owner. Even a prepared
+-/// intent without an attached task is retained as unresolved for that video.
++/// Combines the actual original player with the same app-lifetime background
++/// owner. An old/unknown source or prepared attachment gap stays unresolved.
+ ///
+ /// The coordinator commits reserveInvalidation BEFORE calling this wrapper.
+ /// That reservation fences acquire/acquireMedia and background prepared/resume
+@@ -75,11 +78,15 @@
+ /// unnoticed between this inventory and the final invalidation commit.
+ actor ProductStatusInvalidationTermination: PublicationExternalTerminationPort {
+     private let boundary: StatusSynchronizationRegistrationBoundary
++    private let originals: any OriginalStorePort
+     private let media: ProductMediaTermination
+     private let admission: @MainActor @Sendable () -> Bool
+-    init(boundary: StatusSynchronizationRegistrationBoundary, media: ProductMediaTermination,
+-         admission: @escaping @MainActor @Sendable () -> Bool) {
+-        self.boundary = boundary; self.media = media; self.admission = admission
++    private let background: (any BackgroundInvalidationTerminationPort)?
++    init(boundary: StatusSynchronizationRegistrationBoundary, originals: any OriginalStorePort, media: ProductMediaTermination,
++         admission: @escaping @MainActor @Sendable () -> Bool,
++         background: (any BackgroundInvalidationTerminationPort)? = nil) {
++        self.boundary = boundary; self.originals = originals; self.media = media; self.admission = admission
++        self.background = background
+     }
+     private func check(_ original: OriginalContent) async throws {
+         guard await admission(), !Task.isCancelled else { throw BackendContractError.unavailable }
+@@ -92,14 +99,67 @@
+         }
+     }
+     func stopAndObserve(original: OriginalContent, epoch: ReaderReconciliationEpoch) async throws {
+-        try await check(original)
++        guard let background else {
++            try await check(original)
++            try await media.stopAndObserve(original: original, epoch: epoch)
++            try await check(original)
++            return
++        }
++        let record = try await reservation(original: original, epoch: epoch).record
++        let before = try await backgroundObservation(background, record: record, epoch: epoch, stopping: true)
+         try await media.stopAndObserve(original: original, epoch: epoch)
+-        try await check(original)
++        let after = try await backgroundObservation(background, record: record, epoch: epoch, stopping: false)
++        guard before.inventory == after.inventory, PublicationStoreBoundary.exact(before.stops, after.stops) else {
++            throw BackendContractError.readersActive
++        }
+     }
+     func observeTerminal(original: OriginalContent, epoch: ReaderReconciliationEpoch) async throws -> EvidenceID {
+-        try await check(original)
++        guard let background else {
++            try await check(original)
++            let result = try await media.observeTerminal(original: original, epoch: epoch)
++            try await check(original)
++            return result
++        }
++        let record = try await reservation(original: original, epoch: epoch).record
++        let before = try await backgroundObservation(background, record: record, epoch: epoch, stopping: false)
+         let result = try await media.observeTerminal(original: original, epoch: epoch)
+-        try await check(original)
++        let after = try await backgroundObservation(background, record: record, epoch: epoch, stopping: false)
++        guard before.inventory == after.inventory, PublicationStoreBoundary.exact(before.stops, after.stops) else {
++            throw BackendContractError.readersActive
++        }
+         return result
+     }
++
++    private func reservation(original: OriginalContent, epoch: ReaderReconciliationEpoch)
++        async throws -> (record: InvalidationRecord, backend: BackendStoreSnapshot) {
++        for _ in 0..<3 {
++            guard await admission(), !Task.isCancelled else { throw BackendContractError.unavailable }
++            let backend = try await boundary.load()
++            guard case .succeeded(let snapshot) = await originals.loadOriginalState() else { throw BackendContractError.unavailable }
++            if backend.revision != snapshot.revision { continue }
++            guard PublicationStoreBoundary.exact(snapshot.reconciliationEpoch, Optional(epoch)),
++                  let state = snapshot.logicalOriginals.first(where: { PublicationStoreBoundary.exact($0.original, original) }),
++                  state.removal == nil, let pending = state.invalidation,
++                  PublicationStoreBoundary.exact(pending.rendition.original, original),
++                  PublicationStoreBoundary.exact(pending.registration, boundary.registration.server.registration) else {
++                throw BackendContractError.identityMismatch
++            }
++            return (pending.record, backend)
++        }
++        throw BackendContractError.revisionConflict
++    }
++
++    private func backgroundObservation(_ background: any BackgroundInvalidationTerminationPort,
++        record: InvalidationRecord, epoch: ReaderReconciliationEpoch, stopping: Bool) async throws -> BackgroundInvalidationObservation {
++        let before = try await reservation(original: record.rendition.original, epoch: epoch)
++        guard PublicationStoreBoundary.exact(before.record, record) else { throw BackendContractError.identityMismatch }
++        let result = stopping ? await background.stopForInvalidation(record, epoch: epoch)
++            : await background.observeInvalidation(record, epoch: epoch)
++        let after = try await reservation(original: record.rendition.original, epoch: epoch)
++        guard PublicationStoreBoundary.exact(after.record, record), case .succeeded(let observation) = result,
++              observation.validates(record: record, epoch: epoch, backend: after.backend) else {
++            throw BackendContractError.readersActive
++        }
++        return observation
++    }
+ }
+--- FrameRelay/Composition/ProductComposition.swift@03
++++ FrameRelay/Composition/ProductComposition.swift@04
+@@ -103,7 +103,7 @@
+                     remote: URLSessionRegistrationRemote(credentials: vault, store: services.store))
+                 statusSynchronization = statusSynchronizationFactory?(services, media)
+                     ?? ProductStatusSynchronization(store: services.store, access: services.access, media: media,
+-                        credentials: vault, admission: admission)
++                        credentials: vault, admission: admission, background: backgroundFactory)
+                 remoteInventory = remoteInventoryFactory?(services)
+                     ?? RemoteInventoryCoordinator(store: services.store, admission: admission, remoteFactory: { connection, registration, identity in
+                         URLSessionRemoteInventoryRemote(connection: connection, credentials: vault, store: services.store,
+--- FrameRelay/Application/Ports/BackgroundInvalidationPorts.swift@03
++++ FrameRelay/Application/Ports/BackgroundInvalidationPorts.swift@04
+@@ -0,0 +1,64 @@
++import Foundation
++
++/// Fresh transport observations only. This is neither a removal admission seal
++/// nor a new durable terminal, and it cannot start or resume any SDK task.
++nonisolated struct BackgroundStoppedTransportObservation: Equatable, Sendable {
++    let inventory: OriginalRemovalTransportInventory
++    let stops: [TransportStopReceipt]
++
++    func validatesHistory(_ backend: BackendStoreSnapshot) -> Bool {
++        let original = inventory.original
++        guard inventory.storeIdentity == backend.storeIdentity, inventory.matchesProjection(backend) else { return false }
++        if stops.isEmpty {
++            return OriginalRemovalTransportHistory.neverStartedForRemoval(original, backend: backend)
++                && backend.backgroundTasks.allSatisfy { $0.intent.context.target.original != original }
++                && backend.requests.filter { $0.target.original == original }.allSatisfy {
++                    $0.attempt == nil && $0.session == nil && $0.transport == .queued
++                }
++        }
++        guard let actual = OriginalRemovalTransportHistory.stoppedTasks(original, backend: backend),
++              PublicationStoreBoundary.exact(stops, actual) else { return false }
++        for task in inventory.tasks {
++            guard let closed = task.events.last(where: { if case .ownerClosed = $0.change { return true }; return false }),
++                  inventory.journal.contains(where: { fact in
++                      guard fact.commit.committedRevision > closed.commit.committedRevision,
++                            case .requestTransition(_, let operation, let target, let registration, .stopped(let receipt)) = fact.mutation.change else { return false }
++                      return PublicationStoreBoundary.exact(operation, task.intent.context.operation)
++                          && PublicationStoreBoundary.exact(target, task.intent.context.target)
++                          && PublicationStoreBoundary.exact(registration, task.intent.context.registration)
++                          && stops.contains(where: { PublicationStoreBoundary.exact($0, receipt) })
++                  }) else { return false }
++        }
++        return true
++    }
++}
++
++/// Bound to an actual pending invalidation and the writer's current process
++/// epoch. The registry still observes all its other media owners independently.
++nonisolated struct BackgroundInvalidationObservation: Equatable, Sendable {
++    let record: InvalidationRecord
++    let storeIdentity: RegistrationStoreIdentity
++    let transport: BackgroundStoppedTransportObservation
++
++    var inventory: OriginalRemovalTransportInventory { transport.inventory }
++    var stops: [TransportStopReceipt] { transport.stops }
++
++    func validates(record expected: InvalidationRecord, epoch: ReaderReconciliationEpoch,
++                   backend: BackendStoreSnapshot) -> Bool {
++        PublicationStoreBoundary.exact(record, expected)
++            && storeIdentity == backend.storeIdentity && inventory.storeIdentity == storeIdentity
++            && PublicationStoreBoundary.exact(inventory.epoch, epoch)
++            && PublicationStoreBoundary.exact(inventory.original, expected.rendition.original)
++            && transport.validatesHistory(backend)
++    }
++}
++
++nonisolated protocol BackgroundInvalidationTerminationPort: Sendable {
++    /// A call that issues cancellation must return inProgress, even if the
++    /// callback finishes immediately. A later explicit poll observes completion.
++    func stopForInvalidation(_ record: InvalidationRecord, epoch: ReaderReconciliationEpoch)
++        async -> BackendOutcome<BackgroundInvalidationObservation>
++    /// Observation only. It never adopts old source owners or requests a stop.
++    func observeInvalidation(_ record: InvalidationRecord, epoch: ReaderReconciliationEpoch)
++        async -> BackendOutcome<BackgroundInvalidationObservation>
++}
+--- FrameRelayTests/Application/BackgroundInvalidationTests.swift@03
++++ FrameRelayTests/Application/BackgroundInvalidationTests.swift@04
+@@ -0,0 +1,449 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@Suite(.serialized) struct BackgroundInvalidationTests {
++    @Test func cancellationPollCannotAckEvenWhenTerminalOwnerCloseAndStoppedWinTheAwaitRace() async throws {
++        try await withStorageRun { run in
++            let f = try await BackgroundInvalidationFixture.make(run, immediateTerminal: true)
++            _ = try await f.start(); try await f.reserve()
++            #expect(await f.coordinator.stopForInvalidation(f.record, epoch: f.epoch) == .inProgress)
++            let completedBeforeReturn = try await mediaSnapshot(f.originals.store)
++            #expect(completedBeforeReturn.requests[0].transport == .stopped)
++            #expect(completedBeforeReturn.backgroundTasks[0].ownerClosure?.handlesClosed == true)
++            #expect(completedBeforeReturn.invalidations.isEmpty && completedBeforeReturn.outbox.isEmpty)
++            #expect((await f.managed.resources()).openHandles == 0)
++            guard case .succeeded = await f.coordinator.stopForInvalidation(f.record, epoch: f.epoch) else {
++                throw BackendContractError.unknownResult
++            }
++            #expect((await f.sdk.counts()) == [1, 1, 1])
++            await f.sdk.finishStream(); _ = try await f.managed.closeOwner()
++        }
++    }
++    @Test func actualReservationStopsKnownUploadWithoutChangingPersonIntentAndOnlyLaterObservationSucceeds() async throws {
++        try await withStorageRun { run in
++            let f = try await BackgroundInvalidationFixture.make(run)
++            let task = try await f.start()
++            guard case .upload(_, let originalLease, _) = task.intent.source else {
++                throw BackendContractError.wrongStage
++            }
++            let originalOwnerEpoch = originalLease.epoch
++            // The real original owner and the writer's media inventory use
++            // independent epochs. Neither can be substituted for the other.
++            #expect(originalOwnerEpoch != f.epoch)
++            #expect(await f.coordinator.stopForInvalidation(f.record, epoch: f.epoch) == .unknown)
++            #expect((await f.sdk.counts())[2] == 0)
++            try await f.reserve()
++            #expect(await f.coordinator.stopForInvalidation(f.record, epoch: originalOwnerEpoch) == .unknown)
++            #expect((await f.sdk.counts())[2] == 0)
++            #expect(await f.coordinator.stopForInvalidation(f.record, epoch: f.epoch) == .inProgress)
++            let pending = try await mediaSnapshot(f.originals.store)
++            #expect(pending.invalidations.isEmpty && pending.outbox.isEmpty)
++            #expect(pending.backgroundTasks[0].stopRequested && pending.backgroundTasks[0].terminal == nil)
++            #expect(pending.requests[0].intent == .running && pending.requests[0].remote == .notExecuted)
++            #expect((await f.managed.resources()).openHandles == 1)
++            #expect(await f.coordinator.observeInvalidation(f.record, epoch: f.epoch) == .unknown)
++            await f.sdk.complete(try #require(task.binding), outcome: .cancelled, finishEvents: true)
++            try await f.waitForStopped()
++            guard case .succeeded(let observed) = await f.coordinator.stopForInvalidation(f.record, epoch: f.epoch) else {
++                throw BackendContractError.unknownResult
++            }
++            let final = try await mediaSnapshot(f.originals.store)
++            #expect(observed.validates(record: f.record, epoch: f.epoch, backend: final))
++            #expect(observed.stops.count == 1 && observed.inventory.tasks.count == 1)
++            #expect((await f.sdk.counts()) == [1, 1, 1])
++            #expect(final.requests[0].intent == .running && final.requests[0].transport == .stopped)
++            #expect(final.invalidations.isEmpty && final.outbox.isEmpty) // This port creates no ACK.
++            #expect(try await mediaOriginalSnapshot(f.originals.store).logicalOriginals[0].readers.isEmpty)
++            #expect((await f.managed.resources()).openHandles == 0)
++            try await f.assertOriginalUnchanged()
++            await f.sdk.finishStream(); _ = try await f.managed.closeOwner()
++        }
++    }
++
++    @Test func eachActualTerminalBoundaryWithholdsObservationUntilTheStoppedCommit() async throws {
++        try await withStorageRun { run in
++            let terminal = BackgroundCheckpoint(), finish = BackgroundCheckpoint()
++            let lease = BackgroundCheckpoint(), stopped = BackgroundCheckpoint()
++            let f = try await BackgroundInvalidationFixture.make(run, terminalBarrier: terminal,
++                finishBarrier: finish, releaseBarrier: lease, stoppedBarrier: stopped)
++            let state = try await f.start(); try await f.reserve()
++            #expect(await f.coordinator.stopForInvalidation(f.record, epoch: f.epoch) == .inProgress)
++            await f.sdk.complete(try #require(state.binding), outcome: .cancelled, finishEvents: true)
++            try await terminal.waitForArrival()
++            #expect(await f.coordinator.observeInvalidation(f.record, epoch: f.epoch) == .unknown)
++            #expect((await f.managed.resources()).openHandles == 1)
++            await terminal.release(); try await finish.waitForArrival()
++            #expect(try await mediaSnapshot(f.originals.store).backgroundTasks[0].terminal != nil)
++            #expect(try await mediaSnapshot(f.originals.store).backgroundTasks[0].ownerClosure == nil)
++            #expect(await f.coordinator.observeInvalidation(f.record, epoch: f.epoch) == .unknown)
++            await finish.release(); try await lease.waitForArrival()
++            #expect((await f.managed.resources()).openHandles == 0)
++            #expect(!(try await mediaOriginalSnapshot(f.originals.store).logicalOriginals[0].readers.isEmpty))
++            #expect(await f.coordinator.observeInvalidation(f.record, epoch: f.epoch) == .unknown)
++            await lease.release(); try await stopped.waitForArrival()
++            #expect(try await mediaOriginalSnapshot(f.originals.store).logicalOriginals[0].readers.isEmpty)
++            #expect(try await mediaSnapshot(f.originals.store).requests[0].transport != .stopped)
++            #expect(await f.coordinator.observeInvalidation(f.record, epoch: f.epoch) == .unknown)
++            await stopped.release(); try await f.waitForStopped()
++            guard case .succeeded = await f.coordinator.observeInvalidation(f.record, epoch: f.epoch) else { throw BackendContractError.unknownResult }
++            #expect(try await mediaSnapshot(f.originals.store).invalidations.isEmpty)
++            try await f.assertOriginalUnchanged()
++            await f.sdk.finishStream(); _ = try await f.managed.closeOwner()
++        }
++    }
++
++    @Test(arguments: ["epoch", "id-alias", "registration", "generation", "original", "store-uuid", "attempt"])
++    func wrongReservationIdentityCannotCancelTheKnownSDKOwner(mode: String) async throws {
++        try await withStorageRun { run in
++            let f = try await BackgroundInvalidationFixture.make(run), task = try await f.start()
++            try await f.reserve()
++            var record = f.record, epoch = f.epoch
++            switch mode {
++            case "store-uuid": await f.audit.setFault(.storeUUID)
++            case "attempt": await f.audit.setFault(.attempt)
++            case "epoch": epoch = .init(rawValue: UUID().uuidString)
++            case "id-alias": record = .init(id: .init(rawValue: "invalidation-e\u{0301}"), rendition: record.rendition,
++                registration: record.registration, generation: record.generation)
++            case "registration": record = .init(id: record.id, rendition: record.rendition,
++                registration: .init(destination: record.registration.destination, id: .init(rawValue: "other-registration"),
++                    generation: record.registration.generation), generation: record.generation)
++            case "generation": record = .init(id: record.id, rendition: record.rendition,
++                registration: record.registration, generation: .init(rawValue: record.generation.rawValue + 1))
++            default: record = .init(id: record.id, rendition: statusRendition(try publicationOriginal("another-original")),
++                registration: record.registration, generation: record.generation)
++            }
++            let before = try await mediaSnapshot(f.originals.store)
++            #expect(await f.coordinator.stopForInvalidation(record, epoch: epoch) == .unknown)
++            #expect(await f.coordinator.observeInvalidation(record, epoch: epoch) == .unknown)
++            #expect(try await mediaSnapshot(f.originals.store) == before)
++            #expect((await f.sdk.counts())[2] == 0)
++            await f.audit.setFault(nil)
++            await f.sdk.complete(try #require(task.binding), outcome: .cancelled, finishEvents: true)
++            try await f.waitForStopped()
++            await f.sdk.finishStream(); _ = try await f.managed.closeOwner()
++        }
++    }
++
++    @Test(arguments: ["unknown", "reused", "wrong-kind", "duplicate", "missing"])
++    func untrustedFreshSDKInventoryNeverAuthorizesCancellationOrAnAck(mode: String) async throws {
++        try await withStorageRun { run in
++            let f = try await BackgroundInvalidationFixture.make(run), task = try await f.start()
++            let binding = try #require(task.binding)
++            let expected = try #require(await f.sdk.observations().first)
++            let other = BackgroundMediaTaskObservation(session: binding.session,
++                taskIdentifier: mode == "unknown" ? binding.taskIdentifier + 100 : binding.taskIdentifier,
++                taskDescription: "foreign-task", kind: .upload, state: .suspended, bytesSent: 0, bytesReceived: 0)
++            switch mode {
++            case "unknown": await f.sdk.setObservations([expected, other])
++            case "reused": await f.sdk.setObservations([other])
++            case "duplicate": await f.sdk.setObservations([expected, expected])
++            case "missing": await f.sdk.setObservations([])
++            default: await f.sdk.setObservations([.init(session: binding.session, taskIdentifier: binding.taskIdentifier,
++                taskDescription: binding.taskDescription, kind: .download, state: .suspended, bytesSent: 0, bytesReceived: 0)])
++            }
++            try await f.reserve()
++            #expect(await f.coordinator.stopForInvalidation(f.record, epoch: f.epoch) == .unknown)
++            #expect((await f.sdk.counts())[2] == 0)
++            #expect((await f.managed.resources()).openHandles == 1)
++            #expect(try await mediaSnapshot(f.originals.store).invalidations.isEmpty)
++            await f.sdk.setObservations([expected])
++            guard case .succeeded = await f.coordinator.recover(f.plan.session) else { throw BackendContractError.unknownResult }
++            await f.sdk.complete(binding, outcome: .cancelled, finishEvents: true)
++            try await f.waitForStopped()
++            await f.sdk.finishStream(); _ = try await f.managed.closeOwner()
++        }
++    }
++
++    @Test func unknownStoppedCommitNeedsItsExactLookupAndDoesNotRepeatSourceFinish() async throws {
++        try await withStorageRun { run in
++            let f = try await BackgroundInvalidationFixture.make(run), task = try await f.start()
++            try await f.reserve(); await f.fault.hideStoppedLookup()
++            #expect(await f.coordinator.stopForInvalidation(f.record, epoch: f.epoch) == .inProgress)
++            await f.sdk.complete(try #require(task.binding), outcome: .cancelled, finishEvents: true)
++            try await backgroundEventually { await f.fault.hiddenStoppedCount() > 0 }
++            #expect((await f.managed.resources()).openHandles == 0)
++            #expect(await f.coordinator.observeInvalidation(f.record, epoch: f.epoch) == .unknown)
++            #expect(try await mediaSnapshot(f.originals.store).invalidations.isEmpty)
++            await f.fault.allowStoppedLookup()
++            guard case .succeeded = await f.coordinator.stopForInvalidation(f.record, epoch: f.epoch) else { throw BackendContractError.unknownResult }
++            #expect(await f.source.finishCount() == 1)
++            #expect(await f.fault.stoppedCommitCount() == 1)
++            #expect((await f.sdk.counts())[2] == 1)
++            try await f.assertOriginalUnchanged()
++            await f.sdk.finishStream(); _ = try await f.managed.closeOwner()
++        }
++    }
++
++    @Test func reopenedOwnerRefusesLiveSourceButObservesFullyClosedHistoryWithoutAdoptingItsOldEpochLease() async throws {
++        try await withStorageRun { run in
++            let f = try await BackgroundInvalidationFixture.make(run), task = try await f.start()
++            try await f.reserve()
++            let sdk = BackgroundSessionProbe(identity: f.plan.session)
++            await sdk.setObservations(await f.sdk.observations())
++            let restored = BackgroundMediaCoordinator(store: f.originals.store, identity: f.plan.context.storeIdentity,
++                originals: f.originals.access, removalStore: f.originals.store, sessionFactory: { _ in sdk },
++                sourceFactory: { throw BackendContractError.unavailable })
++            // A replacement coordinator still cannot borrow the original
++            // process owner's live lease/source, even with the right store epoch.
++            #expect(await restored.stopForInvalidation(f.record, epoch: f.epoch) == .unknown)
++            #expect(await restored.observeInvalidation(f.record, epoch: f.epoch) == .unknown)
++            #expect((await sdk.counts()) == [0, 0, 0])
++            #expect((await f.managed.resources()).openHandles == 1)
++            #expect(!(try await mediaOriginalSnapshot(f.originals.store).logicalOriginals[0].readers.isEmpty))
++            await f.sdk.complete(try #require(task.binding), outcome: .cancelled, finishEvents: true)
++            try await f.waitForStopped()
++            await sdk.setObservations([])
++            let reopened = try OriginalRemovalFixture.open(run, candidate: f.originals.candidate)
++            let epoch = try #require(try await mediaOriginalSnapshot(reopened).reconciliationEpoch)
++            let access = ManagedOriginalAccess(store: reopened, originals: f.originals.files)
++            let closedHistory = BackgroundMediaCoordinator(store: reopened, identity: f.plan.context.storeIdentity,
++                originals: access, removalStore: reopened, sessionFactory: { _ in sdk },
++                sourceFactory: { throw BackendContractError.unavailable })
++            let before = try await mediaSnapshot(reopened)
++            guard case .succeeded(let observed) = await closedHistory.observeInvalidation(f.record, epoch: epoch) else {
++                throw BackendContractError.unknownResult
++            }
++            #expect(observed.validates(record: f.record, epoch: epoch, backend: before))
++            #expect(PublicationStoreBoundary.exact(observed.inventory.epoch, epoch))
++            #expect(try await mediaSnapshot(reopened) == before) // Observation writes no release/intent/ACK.
++            #expect((await sdk.counts()) == [0, 0, 0])
++            await sdk.finishStream(); await f.sdk.finishStream(); _ = try await f.managed.closeOwner()
++        }
++    }
++
++    @Test func anAttachedSDKTaskStillInsideTheStartGapStaysUnresolved() async throws {
++        try await withStorageRun { run in
++            let attached = BackgroundCheckpoint()
++            let f = try await BackgroundInvalidationFixture.make(run, attachBarrier: attached)
++            let starting = Task { await f.coordinator.startUpload(f.plan) }
++            try await attached.waitForArrival(); try await f.reserve()
++            #expect(await f.coordinator.stopForInvalidation(f.record, epoch: f.epoch) == .unknown)
++            #expect((await f.sdk.counts()) == [1, 0, 0])
++            #expect(try await mediaSnapshot(f.originals.store).backgroundTasks[0].binding == nil)
++            await attached.release(); _ = await starting.value
++            let state = try #require(try await mediaSnapshot(f.originals.store).backgroundTasks.first)
++            await f.sdk.complete(try #require(state.binding), outcome: .cancelled, finishEvents: true)
++            try await f.waitForStopped()
++            await f.sdk.finishStream(); _ = try await f.managed.closeOwner()
++        }
++    }
++
++    @Test func aCopyAlreadyInFlightCannotBecomeAStopProofOrAcquireANewSDKOwner() async throws {
++        try await withStorageRun { run in
++            let f = try await BackgroundInvalidationFixture.make(run), copying = BackgroundCheckpoint()
++            let source = BackgroundInvalidationCopyGate(base: f.managed, gate: copying)
++            let factories = BackgroundFactoryProbe()
++            let coordinator = BackgroundMediaCoordinator(store: f.originals.store, identity: f.plan.context.storeIdentity,
++                originals: f.originals.access, removalStore: f.originals.store, admission: BackgroundPermitProbe(),
++                sessionFactory: { _ in await factories.sdkCreated(); return f.sdk }, sourceFactory: { source })
++            let starting = Task { await coordinator.startUpload(f.plan) }
++            try await copying.waitForArrival(); try await f.reserve()
++            #expect(await coordinator.stopForInvalidation(f.record, epoch: f.epoch) == .unknown)
++            #expect(await coordinator.observeInvalidation(f.record, epoch: f.epoch) == .unknown)
++            #expect(await factories.counts() == [0, 0])
++            #expect(try await mediaSnapshot(f.originals.store).backgroundTasks.isEmpty)
++            #expect(!(try await mediaOriginalSnapshot(f.originals.store).logicalOriginals[0].readers.isEmpty))
++            await copying.release(); #expect(await starting.value == .unknown)
++            #expect(await factories.counts() == [0, 0])
++            #expect(try await mediaSnapshot(f.originals.store).invalidations.isEmpty)
++            try await f.assertOriginalUnchanged()
++            await f.sdk.finishStream()
++            // The interrupted copy's lease is intentionally not inferred closed.
++        }
++    }
++
++    @MainActor @Test func preparedDownloadIsRejectedWithoutAdoptingItsOldMediaReader() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run)
++            let rendition = f.renditions[0], registration = f.registration.server.registration
++            let operation = MediaOperationID(rawValue: UUID().uuidString), attempt = TransferAttemptID(rawValue: UUID().uuidString)
++            let before = try await mediaSnapshot(f.store)
++            let request = MediaRequest(operation: operation, target: .rendition(rendition), purpose: .download,
++                registration: registration, expectedStartRevision: before.revision)
++            _ = try await mediaCommit(f.store, .request(command: operation, value: request))
++            _ = try await mediaCommit(f.store, .requestTransition(command: .init(rawValue: UUID().uuidString),
++                operation: operation, target: request.target, registration: registration,
++                value: .reconciled(.init(context: .init(operation: operation, registration: registration, target: request.target, session: nil),
++                    observation: .init(rawValue: 1), result: .notExecuted))))
++            _ = try await mediaCommit(f.store, .requestTransition(command: .init(rawValue: UUID().uuidString),
++                operation: operation, target: request.target, registration: registration, value: .beginAttempt(attempt)))
++            let original = try await mediaOriginalSnapshot(f.store), epoch = try #require(original.reconciliationEpoch)
++            let lease = MediaReadLease(id: .init(rawValue: UUID().uuidString), target: request.target, operation: operation,
++                registration: registration, context: .transport(attempt), epoch: epoch, accessGeneration: .init(rawValue: 1))
++            _ = try await mediaOriginalCommit(f.store, .acquireMedia(lease))
++            let intent = BackgroundMediaTaskIntent(id: .init(rawValue: UUID().uuidString), context: .init(operation: operation, attempt: attempt,
++                target: request.target, registration: registration, gateGeneration: 1, storeIdentity: f.identity),
++                session: .init(identifier: .init(rawValue: UUID().uuidString), generation: .init(rawValue: UUID())),
++                taskDescription: UUID().uuidString, requestFingerprint: .init(sha256: String(repeating: "a", count: 64)),
++                source: .download(rendition: rendition, range: nil, lease: lease))
++            let snapshot = try await mediaSnapshot(f.store)
++            guard case .committed = await f.store.commit(.init(expectedRevision: snapshot.revision,
++                change: .backgroundTask(command: .init(rawValue: UUID().uuidString), value: .prepared(intent)), expectedStoreIdentity: f.identity)) else { throw BackendContractError.notCommitted }
++            let access = ManagedOriginalAccess(store: f.store, originals: ManagedOriginalStore(run: run))
++            let record = statusInvalidation(rendition, registration: registration)
++            guard case .succeeded = await access.reserveInvalidation(record) else { throw BackendContractError.notCommitted }
++            let factories = BackgroundFactoryProbe()
++            let coordinator = BackgroundMediaCoordinator(store: f.store, identity: f.identity, originals: access, removalStore: f.store,
++                sessionFactory: { _ in await factories.sdkCreated(); throw BackendContractError.unavailable },
++                sourceFactory: { await factories.sourceCreated(); throw BackendContractError.unavailable })
++            #expect(await coordinator.stopForInvalidation(record, epoch: epoch) == .unknown)
++            #expect(await coordinator.observeInvalidation(record, epoch: epoch) == .unknown)
++            #expect(await factories.counts() == [0, 0])
++            #expect(try await mediaOriginalSnapshot(f.store).logicalOriginals[0].mediaReaders == [lease])
++            #expect(try await mediaSnapshot(f.store).invalidations.isEmpty)
++        }
++    }
++}
++
++/// New isolated files and real common-writer receipts. The session/permit/Mac
++/// notExecuted observation are technical inputs, never native resume evidence.
++nonisolated struct BackgroundInvalidationFixture {
++    let originals: OriginalRemovalFixture
++    let plan: BackgroundMediaUploadPlan
++    let rendition: RenditionIdentity
++    let record: InvalidationRecord
++    let epoch: ReaderReconciliationEpoch
++    let managed: ManagedUploadSource
++    let source: BackgroundSourceProbe
++    let sdk: BackgroundSessionProbe
++    let fault: BackgroundStoreProbe
++    let audit: BackgroundInvalidationIdentityStore
++    let coordinator: BackgroundMediaCoordinator
++    let reference: CaptureOriginalReference
++    let bytes: Data
++
++    static func make(_ run: ExplorationRunDirectory, terminalBarrier: BackgroundCheckpoint? = nil,
++        finishBarrier: BackgroundCheckpoint? = nil, releaseBarrier: BackgroundCheckpoint? = nil,
++        stoppedBarrier: BackgroundCheckpoint? = nil, attachBarrier: BackgroundCheckpoint? = nil,
++        immediateTerminal: Bool = false) async throws -> Self {
++        let f = try await BackgroundCoordinatorFixture.make(run)
++        let original = f.plan.context.target.original
++        let rendition = statusRendition(original)
++        _ = try await mediaCommit(f.originals.store, .publication(mediaPublication(rendition, registration: f.plan.context.registration)))
++        let binding = try #require(try await mediaOriginalSnapshot(f.originals.store).originals.first?.binding)
++        let url = try await f.originals.files.existingURL(for: binding.reference)
++        let bytes = try Data(contentsOf: url)
++        let managed = try ManagedUploadSource(run: run, originals: f.originals.access)
++        let source = BackgroundSourceProbe(base: managed, finishBarrier: finishBarrier)
++        let sdk = BackgroundSessionProbe(identity: f.plan.session)
++        let fault = BackgroundStoreProbe(base: f.originals.store, terminalBarrier: terminalBarrier,
++            attachBarrier: attachBarrier, stoppedBarrier: stoppedBarrier)
++        let access = BackgroundAccessProbe(base: f.originals.access, releaseBarrier: releaseBarrier)
++        let audit = BackgroundInvalidationIdentityStore(base: fault)
++        let session: any BackgroundMediaSessionPort
++        if immediateTerminal { session = BackgroundInvalidationImmediateSession(base: sdk, store: f.originals.store) }
++        else { session = sdk }
++        let coordinator = BackgroundMediaCoordinator(store: audit, identity: f.plan.context.storeIdentity,
++            originals: access, removalStore: f.originals.store, admission: BackgroundPermitProbe(),
++            sessionFactory: { _ in session }, sourceFactory: { source })
++        return .init(originals: f.originals, plan: f.plan, rendition: rendition,
++            record: statusInvalidation(rendition, registration: f.plan.context.registration, id: "invalidation-\u{00e9}"),
++            epoch: try #require(try await mediaOriginalSnapshot(f.originals.store).reconciliationEpoch),
++            managed: managed, source: source, sdk: sdk, fault: fault, audit: audit, coordinator: coordinator,
++            reference: binding.reference, bytes: bytes)
++    }
++    func start() async throws -> BackgroundMediaTaskState {
++        guard case .started(let task) = await coordinator.startUpload(plan) else { throw BackendContractError.notCommitted }
++        return task
++    }
++    func reserve() async throws {
++        guard case .succeeded(let permit) = await originals.access.reserveInvalidation(record),
++              PublicationStoreBoundary.exact(permit.record, record) else { throw BackendContractError.notCommitted }
++    }
++    func waitForStopped() async throws {
++        try await backgroundEventually {
++            guard let snapshot = try? await mediaSnapshot(originals.store) else { return false }
++            return snapshot.requests.first(where: { $0.operation == plan.context.operation })?.transport == .stopped
++                && snapshot.backgroundTasks.first(where: { $0.intent.id == plan.id })?.ownerClosure != nil
++        }
++    }
++    func assertOriginalUnchanged() async throws {
++        let url = try await originals.files.existingURL(for: reference)
++        #expect(try Data(contentsOf: url) == bytes)
++        let digest = try await originals.files.digest(for: reference)
++        #expect(digest.sha256 == plan.context.target.original.content.digest && digest.byteCount == UInt64(bytes.count))
++    }
++}
++
++/// Invalid observations only; no successful result or changed request is ever
++/// written. The underlying source and single writer remain the real fixtures.
++actor BackgroundInvalidationIdentityStore: MediaOperationStorePort {
++    enum Fault: Sendable { case storeUUID, attempt }
++    let base: any MediaOperationStorePort
++    private var fault: Fault?
++    init(base: any MediaOperationStorePort) { self.base = base }
++    func setFault(_ fault: Fault?) { self.fault = fault }
++    func load() async -> BackendStoreLoadResult {
++        let value = await base.load()
++        guard let fault, case .loaded(var snapshot) = value else { return value }
++        switch fault {
++        case .storeUUID: snapshot.storeIdentity = .init(rawValue: UUID())
++        case .attempt:
++            if let first = snapshot.requests.first, let encoded = try? JSONEncoder().encode(first),
++               var object = (try? JSONSerialization.jsonObject(with: encoded)) as? [String: Any] {
++                object["attempt"] = ["rawValue": "different-observed-attempt"]
++                if let changed = try? JSONSerialization.data(withJSONObject: object),
++                   let request = try? JSONDecoder().decode(MediaRequest.self, from: changed) {
++                    var requests = snapshot.requests
++                    requests[0] = request
++                    snapshot = .init(revision: snapshot.revision, registrationIntents: snapshot.registrationIntents,
++                        registrations: snapshot.registrations, batches: snapshot.batches, requests: requests,
++                        verifications: snapshot.verifications, confirmations: snapshot.confirmations,
++                        invalidations: snapshot.invalidations, outbox: snapshot.outbox, storeIdentity: snapshot.storeIdentity,
++                        publications: snapshot.publications, confirmationStates: snapshot.confirmationStates,
++                        deliveries: snapshot.deliveries, distributionObservations: snapshot.distributionObservations,
++                        temporaryMedia: snapshot.temporaryMedia, photoRegistrations: snapshot.photoRegistrations,
++                        photoSaveBatches: snapshot.photoSaveBatches, backgroundTasks: snapshot.backgroundTasks,
++                        remoteInventory: snapshot.remoteInventory, publicationManifests: snapshot.publicationManifests)
++                }
++            }
++        }
++        return .loaded(snapshot)
++    }
++    func commit(_ mutation: BackendStoreMutation) async -> BackendCommitResult { await base.commit(mutation) }
++    func lookupCommit(_ mutation: BackendStoreMutation) async -> BackendCommitResult { await base.lookupCommit(mutation) }
++}
++
++private actor BackgroundInvalidationCopyGate: BackgroundMediaUploadSourcePort {
++    let base: ManagedUploadSource
++    let gate: BackgroundCheckpoint
++    init(base: ManagedUploadSource, gate: BackgroundCheckpoint) { self.base = base; self.gate = gate }
++    func create(from lease: OriginalReadLease, id: ManagedUploadSourceID) async throws -> ManagedUploadSourceIdentity {
++        await gate.checkpoint(); return try await base.create(from: lease, id: id)
++    }
++    func uploadFile(for identity: ManagedUploadSourceIdentity, lease: OriginalReadLease) async throws -> BackgroundMediaUploadFile { try await base.uploadFile(for: identity, lease: lease) }
++    func retain(_ identity: ManagedUploadSourceIdentity, lease: OriginalReadLease, for binding: BackgroundMediaTaskBinding) async throws { try await base.retain(identity, lease: lease, for: binding) }
++    func finish(_ identity: ManagedUploadSourceIdentity, lease: OriginalReadLease, terminal: BackgroundMediaSDKTerminal) async throws -> BackgroundMediaOwnerClosure {
++        try await base.finish(identity, lease: lease, terminal: terminal)
++    }
++}
++
++private actor BackgroundInvalidationImmediateSession: BackgroundMediaSessionPort {
++    let base: BackgroundSessionProbe
++    let store: any MediaOperationStorePort
++    init(base: BackgroundSessionProbe, store: any MediaOperationStorePort) { self.base = base; self.store = store }
++    func events() async throws -> AsyncStream<BackgroundMediaSDKEvent> { try await base.events() }
++    func enumerate() async -> BackendOutcome<[BackgroundMediaTaskObservation]> { await base.enumerate() }
++    func createSuspended(_ intent: BackgroundMediaTaskIntent, request: URLRequest, upload: BackgroundMediaUploadFile?) async -> BackendOutcome<BackgroundMediaTaskBinding> {
++        await base.createSuspended(intent, request: request, upload: upload)
++    }
++    func resume(_ binding: BackgroundMediaTaskBinding, permit: BackgroundMediaStrictPermit,
++                captureAuthorization: CaptureMediaResumeAuthorization) async -> BackendOutcome<BackgroundMediaTaskBinding> {
++        await base.resume(binding, permit: permit, captureAuthorization: captureAuthorization)
++    }
++    func requestStop(_ binding: BackgroundMediaTaskBinding) async {
++        await base.requestStop(binding)
++        await base.complete(binding, outcome: .cancelled, finishEvents: true)
++        // Deterministically finish the existing real source/lease consumer
++        // before cancellation returns. This is an explicit fake SDK event,
++        // independent of the separately flagged native callback probe.
++        try? await backgroundEventually {
++            guard case .loaded(let snapshot) = await self.store.load() else { return false }
++            return snapshot.backgroundTasks.first(where: { $0.binding == binding })?.ownerClosure != nil
++                && snapshot.requests.first?.transport == .stopped
++        }
++    }
++    func observeTerminal(_ binding: BackgroundMediaTaskBinding) async -> BackendOutcome<BackgroundMediaSDKTerminal> { await base.observeTerminal(binding) }
++    func invalidate() async { await base.invalidate() }
++}
+--- FrameRelayTests/Integration/Composition/ProductBackgroundInvalidationTests.swift@03
++++ FrameRelayTests/Integration/Composition/ProductBackgroundInvalidationTests.swift@04
+@@ -0,0 +1,224 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@Suite(.serialized) @MainActor struct ProductBackgroundInvalidationTests {
++    @Test func normalStatusCancelsSharedOwnerThenNextExplicitPollAcksWhileAnotherVideoContinues() async throws {
++        let parent = try backgroundInvalidationProductParent()
++        let photos = BackgroundInvalidationUnusedPhotos()
++        let library = ProductLibraryFactory(supportDirectory: parent, photoLibrary: photos)
++        let services = try await library.open(), seed = try await BackgroundProductInvalidationSeed.make(services)
++        let managed = try ManagedUploadSource(run: services.run, originals: services.access)
++        let source = BackgroundSourceProbe(base: managed)
++        let sdk = BackgroundSessionProbe(identity: seed.fixture.plan.session)
++        let background = ProductBackgroundMediaFactory(library: library, admission: BackgroundPermitProbe(),
++            sessionFactory: { _ in sdk }, sourceFactory: { opened in
++                guard opened.store === services.store else { throw BackendContractError.identityMismatch }
++                return source
++            })
++        let other = try await seed.fixture.originals.original("independent-" + UUID().uuidString)
++        let otherV1 = statusRendition(other.original), otherV2 = statusRendition(other.original, version: 2)
++        _ = try await mediaCommit(services.store, .publication(mediaPublication(otherV1, registration: seed.record.registration)))
++        let remote = StatusMetadataRemote()
++        remote.pages = [.succeeded(.init(records: [seed.record], nextAfter: nil))]
++        remote.setManifest(seed.rendition, revision: 2, generation: seed.record.generation.rawValue)
++        remote.setManifest(otherV2, revision: 2)
++        let composition = ProductComposition(factory: library, backgroundFactory: background, registrationFactory: { store in
++            RegistrationCoordinator(store: store, vault: BackgroundInvalidationEmptyVault(), remote: RegistrationTestRemote())
++        }, statusSynchronizationFactory: { opened, media in
++            ProductStatusSynchronization(store: opened.store, access: opened.access, media: media,
++                credentials: BackgroundInvalidationNoCredentials(), admission: { true }, background: background,
++                remoteFactory: { _, _, _, _ in remote })
++        })
++        await composition.open()
++        let port = try #require(composition.statusSynchronization)
++        guard case .started(let started) = await background.startUpload(seed.fixture.plan) else { throw BackendContractError.notCommitted }
++        let first = await port.synchronize(connection: seed.connection, registration: seed.registration)
++        #expect(first.phase == .partial && first.unresolvedInvalidations == 1)
++        #expect(first.items.first(where: { $0.original == other.original })?.disposition == .recorded)
++        let reserved = try await mediaOriginalSnapshot(services.store)
++        #expect(reserved.logicalOriginals.first(where: { $0.original == seed.rendition.original })?.invalidation?.record == seed.record)
++        #expect(try await mediaSnapshot(services.store).invalidations.isEmpty)
++        #expect(remote.sent.isEmpty && remote.mediaCalls == 0)
++        #expect((await sdk.counts()) == [1, 1, 1])
++        #expect((await managed.resources()).openHandles == 1)
++        let request = try #require(try await mediaSnapshot(services.store).requests.first)
++        #expect(request.intent == .running && request.remote == .notExecuted)
++
++        await sdk.complete(try #require(started.binding), outcome: .cancelled, finishEvents: true)
++        try await backgroundInvalidationWaitForStopped(services.store, operation: seed.fixture.plan.context.operation)
++        #expect(try await mediaSnapshot(services.store).invalidations.isEmpty) // No automatic ACK from a callback.
++        #expect(remote.sent.isEmpty)
++        let second = await port.synchronize(connection: seed.connection, registration: seed.registration)
++        #expect(second.phase == .checked && second.unresolvedInvalidations == 0)
++        let completed = try await mediaSnapshot(services.store), ack = try #require(completed.invalidations.first)
++        #expect(PublicationStoreBoundary.exact(ack.record, seed.record) && ack.isCommitted)
++        #expect(await services.store.lookupInvalidation(ack) == .succeeded(seed.record.id))
++        #expect(remote.sent == [.invalidation(ack)] && remote.mediaCalls == 0)
++        #expect(try await mediaOriginalSnapshot(services.store).logicalOriginals.allSatisfy { $0.readers.isEmpty && $0.mediaReaders.isEmpty })
++        #expect((await managed.resources()).openHandles == 0)
++        #expect(await source.finishCount() == 1)
++        let third = await port.synchronize(connection: seed.connection, registration: seed.registration)
++        #expect(third.unresolvedInvalidations == 0)
++        #expect(try await mediaSnapshot(services.store).invalidations == [ack])
++        #expect((await sdk.counts()) == [1, 1, 1])
++        #expect(await source.copyCount() == 1)
++        let reopened = try SQLiteRecordingStore(run: services.run, mode: .openExisting)
++        #expect(try await mediaSnapshot(reopened).invalidations == [ack])
++        #expect(try await mediaSnapshot(reopened).backgroundTasks == completed.backgroundTasks)
++        let digest = try await services.originals.digest(for: seed.binding.reference)
++        #expect(digest.sha256 == seed.rendition.original.content.digest)
++        #expect(await services.originals.observeFile(other.reference) == .present(byteCount: other.original.content.byteCount))
++        #expect(await photos.callCount() == 0)
++        await sdk.finishStream(); _ = try await managed.closeOwner()
++    }
++
++    @Test func freshFactoryRefusesAnUnknownLiveSourceAndOnlyObservesItAfterAllDurableTerminals() async throws {
++        let library = ProductLibraryFactory(supportDirectory: try backgroundInvalidationProductParent(), photoLibrary: BackgroundInvalidationUnusedPhotos())
++        let services = try await library.open(), seed = try await BackgroundProductInvalidationSeed.make(services)
++        let managed = try ManagedUploadSource(run: services.run, originals: services.access)
++        let sdk = BackgroundSessionProbe(identity: seed.fixture.plan.session)
++        let old = ProductBackgroundMediaFactory(library: library, admission: BackgroundPermitProbe(),
++            sessionFactory: { _ in sdk }, sourceFactory: { _ in managed })
++        guard case .started(let started) = await old.startUpload(seed.fixture.plan) else { throw BackendContractError.notCommitted }
++        guard case .succeeded = await services.access.reserveInvalidation(seed.record) else { throw BackendContractError.notCommitted }
++        let calls = BackgroundFactoryProbe(), newSDK = BackgroundSessionProbe(identity: seed.fixture.plan.session)
++        let fresh = ProductBackgroundMediaFactory(library: library, sessionFactory: { _ in await calls.sdkCreated(); return newSDK },
++            sourceFactory: { _ in await calls.sourceCreated(); throw BackendContractError.unavailable })
++        #expect(await fresh.stopForInvalidation(seed.record, epoch: seed.epoch) == .unknown)
++        #expect(await fresh.observeInvalidation(seed.record, epoch: seed.epoch) == .unknown)
++        #expect(await calls.counts() == [0, 0])
++        #expect((await managed.resources()).openHandles == 1)
++        await sdk.complete(try #require(started.binding), outcome: .cancelled, finishEvents: true)
++        try await backgroundInvalidationWaitForStopped(services.store, operation: seed.fixture.plan.context.operation)
++        let before = try await mediaSnapshot(services.store)
++        guard case .succeeded(let observed) = await fresh.observeInvalidation(seed.record, epoch: seed.epoch) else {
++            throw BackendContractError.unknownResult
++        }
++        #expect(observed.validates(record: seed.record, epoch: seed.epoch, backend: before))
++        #expect(await calls.counts() == [1, 0]) // Fresh enumeration only, no source factory/adoption.
++        #expect(try await mediaSnapshot(services.store) == before)
++        #expect(try await mediaSnapshot(services.store).invalidations.isEmpty)
++        await sdk.finishStream(); await newSDK.finishStream(); _ = try await managed.closeOwner()
++    }
++
++    @Test func wrapperRequiresTheActualPendingReservationBeforeCallingAnyBackgroundOrPlayerPort() async throws {
++        let library = ProductLibraryFactory(supportDirectory: try backgroundInvalidationProductParent(), photoLibrary: BackgroundInvalidationUnusedPhotos())
++        let services = try await library.open(), seed = try await BackgroundProductInvalidationSeed.make(services)
++        let player = BackgroundInvalidationOriginalPlayer()
++        let media = ProductMediaTermination(store: services.store, access: services.access, player: player)
++        let background = BackgroundInvalidationCallProbe()
++        let wrapper = ProductStatusInvalidationTermination(boundary: .init(store: services.store,
++            identity: seed.fixture.plan.context.storeIdentity, registration: seed.registration), originals: services.store,
++            media: media, admission: { true }, background: background)
++        do { try await wrapper.stopAndObserve(original: seed.rendition.original, epoch: seed.epoch); Issue.record("Missing reservation was accepted") }
++        catch {}
++        #expect(await background.count() == 0)
++        #expect(player.stops == 0)
++        guard case .succeeded = await services.access.reserveInvalidation(seed.record) else { throw BackendContractError.notCommitted }
++        do { try await wrapper.stopAndObserve(original: seed.rendition.original, epoch: .init(rawValue: UUID().uuidString)); Issue.record("Wrong epoch was accepted") }
++        catch {}
++        #expect(await background.count() == 0)
++        #expect(player.stops == 0)
++        #expect(try await mediaSnapshot(services.store).invalidations.isEmpty)
++    }
++}
++
++@MainActor struct BackgroundProductInvalidationSeed {
++    let fixture: BackgroundCoordinatorFixture
++    let binding: OriginalBinding
++    let rendition: RenditionIdentity
++    let record: InvalidationRecord
++    let registration: DeviceRegistration
++    let epoch: ReaderReconciliationEpoch
++    let connection: RegistrationConnection
++
++    static func make(_ services: ProductLibraryServices) async throws -> Self {
++        let originals = OriginalRemovalFixture(run: services.run, store: services.store,
++            files: services.originals, access: services.access)
++        // This new product-only root needs a wire-valid connection identity;
++        // the existing coordinator fixture intentionally uses legacy text IDs.
++        let binding = try await originals.original("background-product-invalidation-" + UUID().uuidString)
++        let registered = try await inventoryRegister(services.store)
++        let registration = registered.server.registration
++        let initial = try await mediaSnapshot(services.store)
++        let identity = try #require(initial.storeIdentity)
++        let operation = MediaOperationID(rawValue: UUID().uuidString.lowercased())
++        let request = MediaRequest(operation: operation, target: .original(binding.original), purpose: .upload,
++            registration: registration, expectedStartRevision: initial.revision)
++        _ = try await mediaCommit(services.store, .request(command: operation, value: request))
++        let macSession = UploadSessionID(rawValue: UUID().uuidString.lowercased())
++        _ = try await mediaCommit(services.store, .requestTransition(command: .init(rawValue: UUID().uuidString.lowercased()),
++            operation: operation, target: request.target, registration: registration,
++            value: .reconciled(.init(context: .init(operation: operation, registration: registration,
++                target: request.target, session: macSession), observation: .init(rawValue: 1), result: .notExecuted))))
++        var upload = URLRequest(url: try #require(URL(string: "https://example.invalid/background-media")))
++        upload.httpMethod = "PUT"
++        let plan = BackgroundMediaUploadPlan(id: .init(rawValue: UUID().uuidString.lowercased()),
++            context: .init(operation: operation, attempt: .init(rawValue: UUID().uuidString.lowercased()),
++                target: request.target, registration: registration, gateGeneration: 1, storeIdentity: identity),
++            session: .init(identifier: .init(rawValue: "test.FrameRelay.background." + UUID().uuidString),
++                generation: .init(rawValue: UUID())), taskDescription: UUID().uuidString,
++            sourceID: .init(rawValue: UUID().uuidString), macSession: macSession, request: upload)
++        let fixture = BackgroundCoordinatorFixture(originals: originals, plan: plan)
++        let rendition = statusRendition(fixture.plan.context.target.original)
++        _ = try await mediaCommit(services.store, .publication(mediaPublication(rendition, registration: fixture.plan.context.registration)))
++        let snapshot = try await mediaSnapshot(services.store), original = try await mediaOriginalSnapshot(services.store)
++        return .init(fixture: fixture, binding: try #require(original.originals.first?.binding), rendition: rendition,
++            record: statusInvalidation(rendition, registration: fixture.plan.context.registration),
++            registration: try #require(snapshot.registrations.last), epoch: try #require(original.reconciliationEpoch),
++            connection: try .init(endpoint: .init(httpsOrigin: "https://127.0.0.1:1"), destination: fixture.plan.context.registration.destination))
++    }
++}
++
++nonisolated func backgroundInvalidationProductParent() throws -> URL {
++    let parent = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
++        .appendingPathComponent("FrameRelay-background-invalidation-" + UUID().uuidString)
++    try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: false)
++    return parent
++}
++
++nonisolated func backgroundInvalidationWaitForStopped(_ store: any MediaOperationStorePort, operation: MediaOperationID) async throws {
++    try await backgroundEventually {
++        guard case .loaded(let snapshot) = await store.load() else { return false }
++        return snapshot.requests.first(where: { $0.operation == operation })?.transport == .stopped
++            && snapshot.backgroundTasks.first(where: { $0.intent.context.operation == operation })?.ownerClosure != nil
++    }
++}
++
++nonisolated struct BackgroundInvalidationNoCredentials: RegistrationAuthorizationPort {
++    func authorization(for connection: RegistrationConnection, intent: RegistrationIntent?, storeIdentity: RegistrationStoreIdentity) async throws -> RegistrationAuthorization {
++        throw RegistrationAccessError.credentialUnavailable
++    }
++}
++
++nonisolated struct BackgroundInvalidationEmptyVault: RegistrationVaultPort {
++    func connection(storeIdentity: RegistrationStoreIdentity?) async throws -> RegistrationConnection? { nil }
++    func saveConnection(_ connection: RegistrationConnection, bearer: String, storeIdentity: RegistrationStoreIdentity) async throws { throw RegistrationAccessError.credentialUnavailable }
++    func prepareIntent(for destination: DestinationIdentity, storeIdentity: RegistrationStoreIdentity) async throws -> RegistrationIntent { throw RegistrationAccessError.credentialUnavailable }
++    func requireCredential(for intent: RegistrationIntent, storeIdentity: RegistrationStoreIdentity) async throws { throw RegistrationAccessError.credentialUnavailable }
++}
++
++actor BackgroundInvalidationUnusedPhotos: PhotoLibraryPort {
++    private var calls = 0
++    func authorizationStatus(for access: PhotoLibraryAccess) -> PhotoLibraryAuthorization { calls += 1; return .denied }
++    func requestAuthorization(for access: PhotoLibraryAccess) -> PhotoLibraryAuthorization { calls += 1; return .denied }
++    func add(_ command: PhotoLibraryAddCommand) -> PhotoRegistrationResult { calls += 1; return .init(intent: command.registration.intent, outcome: .unknown(localIdentifier: nil)) }
++    func lookup(_ identifier: PhotoAssetIdentifier) -> PhotoLibraryLookupResult { calls += 1; return .init(identifier: identifier, authorization: .denied, presence: .unavailable) }
++    func callCount() -> Int { calls }
++}
++
++@MainActor private final class BackgroundInvalidationOriginalPlayer: OriginalPlaybackTerminationPort {
++    private(set) var stops = 0
++    @MainActor func stopAndObserve(original: OriginalContent) async throws -> OriginalPlaybackTermination {
++        stops += 1; return .init(original: original, admissionClosed: true, createdOwners: 0, terminals: [])
++    }
++    @MainActor func resumeAfterInvalidation(_ acknowledgement: InvalidationAcknowledgement) async throws {}
++}
++
++private actor BackgroundInvalidationCallProbe: BackgroundInvalidationTerminationPort {
++    private var calls = 0
++    func stopForInvalidation(_ record: InvalidationRecord, epoch: ReaderReconciliationEpoch) -> BackendOutcome<BackgroundInvalidationObservation> { calls += 1; return .unknown }
++    func observeInvalidation(_ record: InvalidationRecord, epoch: ReaderReconciliationEpoch) -> BackendOutcome<BackgroundInvalidationObservation> { calls += 1; return .unknown }
++    func count() -> Int { calls }
++}
+--- FrameRelayTests/Integration/Remote/BackgroundInvalidationTerminalTests.swift@03
++++ FrameRelayTests/Integration/Remote/BackgroundInvalidationTerminalTests.swift@04
+@@ -0,0 +1,288 @@
++import CryptoKit
++import Darwin
++import Foundation
++import Testing
++@testable import FrameRelay
++
++/// One new UUID root on the explicitly dedicated simulator only. Native resume
++/// remains refused and no task.resume is called. The injected permit, saved
++/// classification and Mac metadata below are technical inputs, not production
++/// network/Log/Rec.709 or active-upload invalidation acceptance.
++@Suite(.serialized) @MainActor struct BackgroundInvalidationTerminalTests {
++    @Test(.enabled(if: ProcessInfo.processInfo.environment["FR_BACKGROUND_INVALIDATION_NATIVE"] == "1"), .timeLimit(.minutes(3)))
++    func nativeResumeRefusalCancellationClosesOwnFDThenLaterNormalPollAcksWithoutSending() async throws {
++        let environment = ProcessInfo.processInfo.environment
++        let dedicated = UUID(uuidString: "64ADDF12-3B84-40E9-BC0A-922CEC02E77A")!
++        try #require(environment["SIMULATOR_UDID"].flatMap(UUID.init(uuidString:)) == dedicated)
++        try #require(environment["FR_BACKGROUND_INVALIDATION_SIMULATOR_ID"].flatMap(UUID.init(uuidString:)) == dedicated)
++        let rootID = try #require(environment["FR_BACKGROUND_INVALIDATION_ROOT_ID"].flatMap(UUID.init(uuidString:)))
++        let parent = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
++            .appendingPathComponent("FrameRelay-background-invalidation-native-" + rootID.uuidString)
++        try #require(!FileManager.default.fileExists(atPath: parent.path))
++        try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: false)
++        let photos = BackgroundInvalidationUnusedPhotos()
++        let library = ProductLibraryFactory(supportDirectory: parent, photoLibrary: photos)
++        let services = try await library.open(), seed = try await BackgroundProductInvalidationSeed.make(services)
++        let originalURL = try await services.originals.existingURL(for: seed.binding.reference)
++        let bytes = try Data(contentsOf: originalURL)
++        let sentinel = parent.appendingPathComponent("external-sentinel.bin"), sentinelBytes = Data(UUID().uuidString.utf8)
++        try sentinelBytes.write(to: sentinel, options: .withoutOverwriting)
++        let managed = try ManagedUploadSource(run: services.run, originals: services.access)
++        let finish = BackgroundCheckpoint()
++        let source = BackgroundInvalidationNativeSource(base: managed, store: services.store, gate: finish)
++        let native = try BackgroundMediaSession(identity: seed.fixture.plan.session)
++        let sdk = BackgroundInvalidationNativeSession(base: native)
++        let expectedSession = seed.fixture.plan.session
++        let background = ProductBackgroundMediaFactory(library: library, admission: BackgroundPermitProbe(),
++            sessionFactory: { identity in
++                guard PublicationStoreBoundary.exact(identity, expectedSession) else { throw BackendContractError.identityMismatch }
++                return sdk
++            }, sourceFactory: { opened in
++                guard opened.store === services.store else { throw BackendContractError.identityMismatch }
++                return source
++            })
++        let remote = StatusMetadataRemote()
++        remote.pages = [.succeeded(.init(records: [seed.record], nextAfter: nil))]
++        remote.setManifest(seed.rendition, revision: 2, generation: seed.record.generation.rawValue)
++        let composition = ProductComposition(factory: library, backgroundFactory: background, registrationFactory: { store in
++            RegistrationCoordinator(store: store, vault: BackgroundInvalidationEmptyVault(), remote: RegistrationTestRemote())
++        }, statusSynchronizationFactory: { opened, media in
++            ProductStatusSynchronization(store: opened.store, access: opened.access, media: media,
++                credentials: BackgroundInvalidationNoCredentials(), admission: { true }, background: background,
++                remoteFactory: { _, _, _, _ in remote })
++        })
++        do {
++            await composition.open()
++            let port = try #require(composition.statusSynchronization)
++            // The existing resume-refusal branch issues the real cancel before
++            // invalidation is polled. This probe does not count it as a cancel
++            // newly issued by stopForInvalidation; that branch has Unit coverage.
++            #expect(await background.startUpload(seed.fixture.plan) == .refused(.sdkResumeUnavailable))
++            try await finish.waitForArrival()
++            let before = try await mediaSnapshot(services.store), task = try #require(before.backgroundTasks.first)
++            let binding = try #require(task.binding), terminal = try #require(task.terminal)
++            let initialSDK = await sdk.snapshot()
++            #expect(initialSDK.created == [binding] && initialSDK.resumes.count == 1 && initialSDK.stops == [binding])
++            let attempt = try #require(initialSDK.resumes.first)
++            guard case .succeeded(let suspended) = attempt.observations else { throw BackendContractError.unknownResult }
++            #expect(suspended.count == 1 && suspended[0].state == .suspended && suspended[0].kind == .upload)
++            #expect(PublicationStoreBoundary.exact(suspended[0].session, binding.session))
++            #expect(suspended[0].taskIdentifier == binding.taskIdentifier && suspended[0].taskDescription == binding.taskDescription)
++            #expect(suspended[0].bytesSent == 0 && suspended[0].bytesReceived == 0)
++            #expect(attempt.result == .notExecuted && attempt.terminal == .inProgress)
++            #expect(terminal.binding == binding && terminal.outcome == .cancelled)
++            #expect(task.stopRequested && task.resumeRequested && task.ownerClosure == nil)
++            #expect((await managed.resources()).openHandles == 1)
++            #expect(before.invalidations.isEmpty && before.outbox.isEmpty)
++
++            let first = await port.synchronize(connection: seed.connection, registration: seed.registration)
++            let waiting = try await mediaSnapshot(services.store)
++            #expect(first.phase == .partial && first.unresolvedInvalidations == 1)
++            #expect(waiting.invalidations.isEmpty && waiting.outbox.isEmpty && remote.sent.isEmpty)
++            #expect(waiting.backgroundTasks[0].terminal == terminal && waiting.backgroundTasks[0].ownerClosure == nil)
++            #expect((await managed.resources()).openHandles == 1)
++            #expect((await sdk.snapshot()).stops == initialSDK.stops) // No additional invalidation-origin cancel.
++            #expect(!(try await mediaOriginalSnapshot(services.store).logicalOriginals[0].readers.isEmpty))
++            #expect(try await mediaOriginalSnapshot(services.store).logicalOriginals[0].invalidation?.record == seed.record)
++
++            await finish.release()
++            try await backgroundInvalidationWaitForStopped(services.store, operation: seed.fixture.plan.context.operation)
++            let closed = try await mediaSnapshot(services.store), observation = try #require(await source.snapshot().first)
++            guard case .upload(_, let lease, let identity) = task.intent.source else { throw BackendContractError.identityMismatch }
++            #expect(closed.invalidations.isEmpty && remote.sent.isEmpty) // Consumer completion alone did not ACK.
++            #expect(observation.lease == lease && observation.closure.uploadSource == identity)
++            #expect(observation.terminal == terminal && observation.durableTerminalBeforeFinish == terminal)
++            #expect(observation.durableClosureBeforeFinish == nil && observation.closure.binding == binding)
++            #expect(observation.closure.tasksJoined && observation.closure.handlesClosed)
++            #expect(observation.before.openHandles == 1 && observation.after.openHandles == 0 && observation.after.activeCopies == 0)
++            #expect(observation.descriptors.count == 1 && observation.descriptors.allSatisfy { $0.result == -1 && $0.error == EBADF })
++            #expect(observation.readersBeforeFinish == [observation.lease])
++            #expect(try await mediaOriginalSnapshot(services.store).logicalOriginals[0].readers.isEmpty)
++
++            let second = await port.synchronize(connection: seed.connection, registration: seed.registration)
++            let final = try await mediaSnapshot(services.store), ack = try #require(final.invalidations.first)
++            #expect(second.phase == .checked && second.unresolvedInvalidations == 0)
++            #expect(PublicationStoreBoundary.exact(ack.record, seed.record) && ack.isCommitted)
++            #expect(remote.sent == [.invalidation(ack)] && remote.mediaCalls == 0)
++            #expect(final.backgroundTasks[0].ownerClosure == observation.closure)
++            #expect(final.requests[0].transport == .stopped && final.requests[0].intent == .running && final.requests[0].remote == .notExecuted)
++            let inventory = try #require(await backgroundInvalidationInventory(services.store, original: seed.rendition.original))
++            let terminalCommit = try #require(taskEvent(final.backgroundTasks[0], terminal: true))
++            let closeCommit = try #require(taskEvent(final.backgroundTasks[0], terminal: false))
++            let stoppedCommit = try #require(inventory.journal.first { fact in
++                if case .requestTransition(_, let operation, _, _, .stopped) = fact.mutation.change { return operation == seed.fixture.plan.context.operation }
++                return false
++            })
++            #expect(terminalCommit.commit.committedRevision < closeCommit.commit.committedRevision)
++            #expect(closeCommit.commit.committedRevision < stoppedCommit.commit.committedRevision)
++            #expect(stoppedCommit.commit.committedRevision < ack.commit.committedRevision)
++            for fact in inventory.journal { #expect(await services.store.lookupCommit(fact.mutation) == .committed(fact.commit)) }
++            let original = try #require(try await mediaOriginalSnapshot(services.store).logicalOriginals.first)
++            #expect(original.readers.isEmpty && original.mediaReaders.isEmpty && original.invalidation == nil && original.removal == nil)
++            #expect(try Data(contentsOf: originalURL) == bytes)
++            #expect(try Data(contentsOf: sentinel) == sentinelBytes)
++            let exports = await source.exportedFiles()
++            #expect(exports.count == 1)
++            #expect(try Data(contentsOf: exports[0].url) == bytes)
++            let reopened = try SQLiteRecordingStore(run: services.run, mode: .openExisting)
++            #expect(try await mediaSnapshot(reopened).invalidations == [ack])
++            #expect(try await mediaSnapshot(reopened).backgroundTasks == final.backgroundTasks)
++            #expect(await reopened.lookupInvalidation(ack) == .succeeded(seed.record.id))
++            #expect(try await mediaOriginalSnapshot(reopened).logicalOriginals[0].readers.isEmpty)
++            #expect(await photos.callCount() == 0)
++
++            await sdk.invalidate()
++            try await backgroundEventually { await sdk.hasEnded() }
++            await sdk.joinForwarder()
++            let observed = await sdk.snapshot(), resources = try await managed.closeOwner()
++            let actualTerminals = observed.events.compactMap { event -> BackgroundMediaSDKTerminal? in
++                if case .taskTerminal(let value) = event.value { return value }; return nil
++            }
++            #expect(observed.created == [binding] && observed.resumes.count == 1 && observed.stops == [binding])
++            #expect(actualTerminals == [terminal] && observed.ended)
++            #expect(observed.events.allSatisfy { PublicationStoreBoundary.exact($0.session, binding.session) && $0.stream == observed.events.first?.stream })
++            #expect(observed.events.map(\.sequence) == observed.events.indices.map { UInt64($0) + 1 })
++            #expect(observed.events.filter { if case .sessionInvalidated(errorCode: nil) = $0.value { return true }; return false }.count == 1)
++            #expect(!observed.events.contains { if case .unknownTaskTerminal = $0.value { return true }; return false })
++            #expect(!observed.events.contains { if case .downloadArtifactUnavailable = $0.value { return true }; return false })
++            #expect(resources.openHandles == 0 && resources.activeCopies == 0)
++            let report: [String: Any] = [
++                "schema": "fr-background-invalidation-native-v1", "fixtureOnly": true, "customRoot": parent.path,
++                "originalSHA256": SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined(),
++                "injectedStrictPermit": true, "injectedMacObservation": "notExecuted", "injectedMetadataRemote": true,
++                "sdkCreated": observed.created.count, "nativeResumeAttempts": observed.resumes.count,
++                "nativeAcceptedResumes": observed.resumes.filter { if case .succeeded = $0.result { return true }; return false }.count,
++                "suspendedBytesSent": suspended[0].bytesSent, "suspendedBytesReceived": suspended[0].bytesReceived,
++                "nativeCancelOrigin": "existing startUpload native-resume-refusal stop; not new invalidation stop dispatch",
++                "nativeCancelRequests": observed.stops.count, "nativeCancelledCallbacks": actualTerminals.filter { $0.outcome == .cancelled }.count,
++                "firstPollHadActualTerminalButOpenOwnFD": true, "firstPollAckCount": waiting.invalidations.count,
++                "secondPollAckCount": final.invalidations.count, "ownFDClosedEBADF": observation.descriptors.allSatisfy { $0.result == -1 && $0.error == EBADF },
++                "fdScope": "only this ManagedUploadSource retained FD; no claim about SDK-owned descriptors",
++                "leaseAbsent": !original.readers.contains(observation.lease), "stoppedBeforeAck": stoppedCommit.commit.committedRevision < ack.commit.committedRevision,
++                "diskReopenAckExact": try await mediaSnapshot(reopened).invalidations == [ack], "photoCalls": await photos.callCount(),
++                "sessionForwarderEnded": observed.ended, "originalAndSentinelPreserved": try Data(contentsOf: originalURL) == bytes && Data(contentsOf: sentinel) == sentinelBytes
++            ]
++            Attachment.record(String(decoding: try JSONSerialization.data(withJSONObject: report, options: [.sortedKeys]), as: UTF8.self),
++                named: "background-invalidation-native-observation.json")
++        } catch {
++            await finish.release()
++            for binding in await sdk.snapshot().created { await sdk.requestStop(binding) }
++            await sdk.invalidate()
++            try? await backgroundEventually { await sdk.hasEnded() }
++            await sdk.joinForwarder()
++            throw error
++        }
++    }
++}
++
++nonisolated private func taskEvent(_ task: BackgroundMediaTaskState, terminal: Bool) -> StoredBackgroundMediaTaskEvent? {
++    task.events.first { event in
++        if terminal, case .terminal = event.change { return true }
++        if !terminal, case .ownerClosed = event.change { return true }
++        return false
++    }
++}
++nonisolated private func backgroundInvalidationInventory(_ store: any OriginalStorePort, original: OriginalContent) async -> OriginalRemovalTransportInventory? {
++    guard case .succeeded(let value) = await store.loadRemovalTransportInventory(original) else { return nil }; return value
++}
++
++nonisolated private struct BackgroundInvalidationNativeResume: Sendable {
++    let observations: BackendOutcome<[BackgroundMediaTaskObservation]>
++    let terminal: BackendOutcome<BackgroundMediaSDKTerminal>
++    let result: BackendOutcome<BackgroundMediaTaskBinding>
++}
++nonisolated private struct BackgroundInvalidationNativeSDKSnapshot: Sendable {
++    let created: [BackgroundMediaTaskBinding]
++    let resumes: [BackgroundInvalidationNativeResume]
++    let stops: [BackgroundMediaTaskBinding]
++    let events: [BackgroundMediaSDKEvent]
++    let ended: Bool
++}
++private actor BackgroundInvalidationNativeSession: BackgroundMediaSessionPort {
++    let base: BackgroundMediaSession
++    private var taken = false
++    private var created: [BackgroundMediaTaskBinding] = []
++    private var resumes: [BackgroundInvalidationNativeResume] = []
++    private var stops: [BackgroundMediaTaskBinding] = []
++    private var observed: [BackgroundMediaSDKEvent] = []
++    private var forwarder: Task<Void, Never>?
++    private var ended = false
++    init(base: BackgroundMediaSession) { self.base = base }
++    func events() async throws -> AsyncStream<BackgroundMediaSDKEvent> {
++        guard !taken else { throw BackendContractError.wrongStage }; taken = true
++        let input = try await base.events(), pair = AsyncStream<BackgroundMediaSDKEvent>.makeStream()
++        forwarder = Task {
++            for await event in input { observed.append(event); pair.continuation.yield(event) }
++            pair.continuation.finish(); ended = true
++        }
++        return pair.stream
++    }
++    func createSuspended(_ intent: BackgroundMediaTaskIntent, request: URLRequest, upload: BackgroundMediaUploadFile?) async -> BackendOutcome<BackgroundMediaTaskBinding> {
++        let result = await base.createSuspended(intent, request: request, upload: upload)
++        if case .succeeded(let binding) = result { created.append(binding) }
++        return result
++    }
++    func enumerate() async -> BackendOutcome<[BackgroundMediaTaskObservation]> { await base.enumerate() }
++    func resume(_ binding: BackgroundMediaTaskBinding, permit: BackgroundMediaStrictPermit,
++                captureAuthorization: CaptureMediaResumeAuthorization) async -> BackendOutcome<BackgroundMediaTaskBinding> {
++        let before = await base.enumerate(), terminal = await base.observeTerminal(binding)
++        let result = await base.resume(binding, permit: permit, captureAuthorization: captureAuthorization)
++        resumes.append(.init(observations: before, terminal: terminal, result: result)); return result
++    }
++    func requestStop(_ binding: BackgroundMediaTaskBinding) async { stops.append(binding); await base.requestStop(binding) }
++    func observeTerminal(_ binding: BackgroundMediaTaskBinding) async -> BackendOutcome<BackgroundMediaSDKTerminal> { await base.observeTerminal(binding) }
++    func invalidate() async { await base.invalidate() }
++    func hasEnded() -> Bool { ended }
++    func joinForwarder() async { await forwarder?.value }
++    func snapshot() -> BackgroundInvalidationNativeSDKSnapshot { .init(created: created, resumes: resumes, stops: stops, events: observed, ended: ended) }
++}
++
++nonisolated private struct BackgroundInvalidationFDProbe: Sendable {
++    let result: Int32
++    let error: Int32
++}
++nonisolated private struct BackgroundInvalidationNativeFinish: Sendable {
++    let lease: OriginalReadLease
++    let terminal: BackgroundMediaSDKTerminal
++    let closure: BackgroundMediaOwnerClosure
++    let before: ManagedUploadSourceResources
++    let after: ManagedUploadSourceResources
++    let descriptors: [BackgroundInvalidationFDProbe]
++    let durableTerminalBeforeFinish: BackgroundMediaSDKTerminal?
++    let durableClosureBeforeFinish: BackgroundMediaOwnerClosure?
++    let readersBeforeFinish: [OriginalReadLease]
++}
++private actor BackgroundInvalidationNativeSource: BackgroundMediaUploadSourcePort {
++    let base: ManagedUploadSource
++    let store: SQLiteRecordingStore
++    let gate: BackgroundCheckpoint
++    private var exports: [BackgroundMediaUploadFile] = []
++    private var finishes: [BackgroundInvalidationNativeFinish] = []
++    init(base: ManagedUploadSource, store: SQLiteRecordingStore, gate: BackgroundCheckpoint) { self.base = base; self.store = store; self.gate = gate }
++    func create(from lease: OriginalReadLease, id: ManagedUploadSourceID) async throws -> ManagedUploadSourceIdentity { try await base.create(from: lease, id: id) }
++    func uploadFile(for identity: ManagedUploadSourceIdentity, lease: OriginalReadLease) async throws -> BackgroundMediaUploadFile {
++        let value = try await base.uploadFile(for: identity, lease: lease); exports.append(value); return value
++    }
++    func retain(_ identity: ManagedUploadSourceIdentity, lease: OriginalReadLease, for binding: BackgroundMediaTaskBinding) async throws {
++        try await base.retain(identity, lease: lease, for: binding)
++    }
++    func finish(_ identity: ManagedUploadSourceIdentity, lease: OriginalReadLease,
++                terminal: BackgroundMediaSDKTerminal) async throws -> BackgroundMediaOwnerClosure {
++        let before = await base.resources(), snapshot = try await mediaSnapshot(store)
++        let task = snapshot.backgroundTasks.first { $0.binding == terminal.binding }
++        let readers = try await mediaOriginalSnapshot(store).logicalOriginals.first { $0.original == lease.original }?.readers ?? []
++        await gate.checkpoint()
++        let closure = try await base.finish(identity, lease: lease, terminal: terminal)
++        let descriptors = before.descriptors.map { descriptor -> BackgroundInvalidationFDProbe in
++            let result = fcntl(descriptor, F_GETFD)
++            return .init(result: result, error: result == -1 ? errno : 0)
++        }
++        let after = await base.resources()
++        finishes.append(.init(lease: lease, terminal: terminal, closure: closure, before: before, after: after,
++            descriptors: descriptors, durableTerminalBeforeFinish: task?.terminal,
++            durableClosureBeforeFinish: task?.ownerClosure, readersBeforeFinish: readers))
++        return closure
++    }
++    func snapshot() -> [BackgroundInvalidationNativeFinish] { finishes }
++    func exportedFiles() -> [BackgroundMediaUploadFile] { exports }
++}

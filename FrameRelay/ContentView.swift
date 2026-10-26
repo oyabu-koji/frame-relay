@@ -72,10 +72,12 @@ struct ContentView: View {
                     }
                     .interactiveDismissDisabled()
             }
-            .sheet(isPresented: Binding(get: { composition.playback?.target != nil }, set: { _ in }),
+            .sheet(isPresented: Binding(get: { composition.playback?.target != nil || composition.renditionPlayback?.target != nil }, set: { _ in }),
                    onDismiss: { Task { await composition.presentationEnded() } }) {
-                if let playback = composition.playback {
+                if let playback = composition.playback, playback.target != nil {
                     OriginalPlaybackView(model: playback, dismiss: {})
+                } else if let rendition = composition.renditionPlayback, rendition.target != nil {
+                    RenditionPlaybackView(model: rendition)
                 }
             }
             .onChange(of: scenePhase) { _, phase in

@@ -1,0 +1,51 @@
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-01/source-snapshot/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
+index fb6b0e8..0e97fc7 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-01/source-snapshot/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
+@@ -422,6 +422,12 @@ final class MediaRequestControlFlowTests: XCTestCase {
+     }
+ 
+     @MainActor private func rootReveal(_ value: XCUIElement, _ app: XCUIApplication) throws {
++        if value.exists {
++            let upper = app.navigationBars.firstMatch.frame.maxY + 2
++            let viewport = CGRect(x: app.frame.minX, y: upper, width: app.frame.width, height: max(0, app.frame.maxY - upper - 8))
++            let visible = value.frame.intersection(viewport)
++            if !visible.isNull && visible.height >= min(44, value.frame.height) { return }
++        }
+         try top(app)
+         try reveal(value, app)
+     }
+@@ -429,7 +435,7 @@ final class MediaRequestControlFlowTests: XCTestCase {
+         let camera = button("product.capture", app)
+         for _ in 0..<180 {
+             if camera.exists && camera.isHittable && camera.frame.midY > app.navigationBars.firstMatch.frame.maxY + 2 { return }
+-            app.swipeDown()
++            app.swipeDown(velocity: .fast)
+         }
+         throw RequestControlUIFailure.unreachable
+     }
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-01/source-snapshot/FrameRelayUITests/Flows/OriginalUploadAcceptanceFlowTests.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/OriginalUploadAcceptanceFlowTests.swift
+index 260e8d7..051b35f 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-01/source-snapshot/FrameRelayUITests/Flows/OriginalUploadAcceptanceFlowTests.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/OriginalUploadAcceptanceFlowTests.swift
+@@ -364,11 +364,19 @@ final class OriginalUploadAcceptanceFlowTests: XCTestCase {
+         for _ in 0..<180 {
+             let anchor = element(identifier, app)
+             if anchor.exists && anchor.isHittable && anchor.frame.minY >= app.navigationBars.firstMatch.frame.maxY - 2 { return }
+-            app.swipeDown()
++            app.swipeDown(velocity: .fast)
+         }
+         attach(app, "original-upload-top-unreachable-" + identifier); throw UploadUIFailure.unreachable
+     }
+     @MainActor private func reveal(_ identifier: String, _ app: XCUIApplication, location: UploadUILocation = .root) throws {
++        let current = element(identifier, app)
++        if current.exists {
++            let upper = app.navigationBars.firstMatch.frame.maxY + 2
++            let viewport = CGRect(x: app.frame.minX, y: upper, width: app.frame.width,
++                height: max(0, app.frame.maxY - upper - 8))
++            let visible = current.frame.intersection(viewport)
++            if !visible.isNull && visible.height >= min(44, current.frame.height) { return }
++        }
+         try seekTop(app, location: location)
+         // Both directions start from a known root/detail anchor. A failed query
+         // never reads XCUIElement.identifier to derive another query or error.

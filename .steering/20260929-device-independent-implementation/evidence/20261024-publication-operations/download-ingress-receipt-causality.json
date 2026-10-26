@@ -1,0 +1,110 @@
+{
+  "kind": "read-only receipt causality correction、独立validation/実装許可ではない",
+  "created_UTC": "2026-10-24T21:58:56.076478+00:00",
+  "inputs": {
+    ".steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-chunk-candidate-01/source-snapshot/FrameRelay/Platform/Network/PublicationHTTPBinding.swift": {
+      "sha256": "98a6e6c028b4f79342eae62cc21b4751b4edbffd8a5c532745782f052aa01089",
+      "bytes": 9038
+    },
+    ".steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-chunk-candidate-01/source-snapshot/FrameRelay/Platform/Remote/URLSessionPublicationRemote.swift": {
+      "sha256": "0e73a37d797d15b9d97b0919b6bfb0fe81a993e36be3358beff694bdc406894a",
+      "bytes": 15169
+    },
+    ".steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-chunk-candidate-01/source-snapshot/FrameRelay/Platform/Remote/PublicationWire.swift": {
+      "sha256": "e2e5a5467dfedef21f067b452f55fe600af4cb8f75881ff5e69a90cbe68656a5",
+      "bytes": 20285
+    },
+    ".steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-chunk-candidate-01/source-snapshot/FrameRelay/Platform/Network/FixedRenditionRangeReader.swift": {
+      "sha256": "84ddf58aa4b1e9a149706c9feb05eabd243b15b717a645deafe733dc48806895",
+      "bytes": 13764
+    },
+    ".steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-chunk-candidate-01/source-snapshot/FrameRelay/Domain/Media/ConfirmationRecord.swift": {
+      "sha256": "b6a479431fce416237e33d17ecdd6a476740e9712be1a0d2bef4f9a293e2a2ce",
+      "bytes": 7085
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/repositories/frame_relay_publication.py": {
+      "sha256": "474b1fcd72f68aca4d5aa4a46360f9ede4b2846d7513ac38ed30d32eb581270a",
+      "bytes": 15561
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/frame_relay_publication.py": {
+      "sha256": "0047d7ffaec2997dcdf285c960f10dabcd40d291501c28971f4113540ade418b",
+      "bytes": 16451
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/services/frame_relay_distribution.py": {
+      "sha256": "0bc72b02ff4d1c610f15c99c7aa50bbde68c5ec3b209678d74bc9a211767f41b",
+      "bytes": 6340
+    },
+    ".steering/20260929-device-independent-implementation/support/server-implementation/backend-overlay/app/api/frame_relay_publication.py": {
+      "sha256": "02886996a9fb134e797a0d5fcdcb0597b54bd4830dea35150f5379a8e588e514",
+      "bytes": 5802
+    }
+  },
+  "prior_contracts_unchanged": {
+    "download-ingress-implementation-contract.json": "84ea512186b0eb4b2df8dbe0b1b09bc009f06beadc65f1c0b95396c456f01fe3",
+    "download-ingress-phase-a-dependency-addendum.json": "8c533764413209fabce8d70e002a549b74b4d43654671fb9034ae5c57866e756"
+  },
+  "conclusion": "GET前には実commit済みcontrol-plane read ticketのDistributionReceiptが存在する。一方それは実GET受理済み/実媒体受信済みのreceiptではない。actual GET admissionは別server tableへcommitされ、GET応答は既存ticket IDと内容identityのheadersを返すが新BackendCommitReceiptを返さない。以前のbeforecreateで実GET受理済receipt必須という表現は誤り。Aをuntrusted expected proposal+actual prepared/known creationのFD pinだけへ分離し、callback後のactual response観測を同writerへ保存、final importのみがticket/実response観測/actual SDK terminal/ownFDclose/fullhashを要求する順序は妥当。",
+  "existing_facts": [
+    {
+      "stage": "GET前のsource ticket",
+      "client": "PublicationHTTPBinding.swift:37-44がPublicationDistributionRequest(purpose:.source,kind:.full)をremote.distribute/lookupDistributionへ渡す。",
+      "meaning": "source correlation用のcontrol-plane実commit。media GET自体はsource ticketを受理しない。"
+    },
+    {
+      "stage": "GET前のread ticket",
+      "client": "PublicationHTTPBinding.swift:48-57が新operationでpurpose:.read,kind:.range,source:sourceOperationを発行。URLSessionPublicationRemote.swift:20-31はPOST publication/distributions又はexact operations/lookup。PublicationWire.swift:112-121がechoを検査しDistributionReceiptへdecode。",
+      "server": "services/frame_relay_publication.py:213-218がtransaction内のrepositories/frame_relay_publication.py:167-187を呼ぶ。readは元sourceとrendition/registration/gateを照合し、operation/recipient/head revisionを実commitする。",
+      "exact_type": "DistributionReceipt(operation,rendition,registration,commit)",
+      "receipt_key": "BackendCommitKey.distribution(operation,rendition,registration)",
+      "meaning": "当該新GETに使用する事前の単回read ticket。実GETが既に来た/媒体byte送受信済みという意味ではない。"
+    },
+    {
+      "stage": "GET前のdevice journal",
+      "client": "FixedRenditionRangeReader.swift:149-163がtransport lease取得→MediaDistributionObservation(result:.succeeded(authorized.distribution))をcommit→client.read(authorized)を実行。",
+      "exact_type": "StoredMediaDistributionObservation / MediaDistributionObservation",
+      "receipt_key": "BackendCommitKey.distributionObservation(command,lease.id,observationGeneration)",
+      "meaning": "server control-plane ticketを端末writerが保存した事実。HTTP readより前に実行されるのでactual GET admission又は受信完了の証明にしない。"
+    },
+    {
+      "stage": "actual GET server admission",
+      "server": "api/frame_relay_publication.py:96-117→services/frame_relay_distribution.py:97-125。登録/新read ticket/gate/range/current renditionと実artifact FD/fullhashを再判定後、repository.admitをtransaction内で実行。repositories/frame_relay_publication.py:201-211がfr_get_admissionsへ単回admissionを追加し、消費済ticketを拒否する。",
+      "meaning": "この段階がactual GET受理。先行read ticket transactionとは別。source ticketやread ticketの発行だけでは到達していない。"
+    },
+    {
+      "stage": "actual GET response",
+      "server": "AcceptedStream.__init__ services/frame_relay_distribution.py:50-67が200/206、Content-Type/Length/Range、X-FrameRelay-Wire-Version/Distribution-ID/Rendition-ID/Publication-Generation/Content-SHA256/Content-Bytes/no-storeを返す。APIのPinnedResponseはこのaccepted streamを返す。",
+      "new_server_receipt": "無し。HTTP応答にprevious_revision/committed_revision付きの新DistributionReceiptやGET-admission receiptは存在しない。",
+      "client": "PublicationHTTPBinding.swift:76-84とFixedRenditionHTTPClientのresponse検査は既存ticketと実応答headersを照合する。これはresponse witnessであって新しいserver commit receiptではない。"
+    }
+  ],
+  "full_read_boundary": {
+    "wire_server_support": "PublicationWire.distributionRequest:53-56はread/full/range:nil/sourceありをencodeでき、既存server DistributionRequest/open_streamもfull GETを扱う。新backend full-read protocolを発明する必要はない。",
+    "actual_normal_client_producer": "現在PublicationHTTPBinding.authorizeはrange必須で.read/.rangeだけを発行する。normal full-read ticket producer/download plan builderは未接続。型/wireの対応を通常producer実装済みにしない。",
+    "positive_native": "normal background strict positive resume・正式publication artifact producerも未成立。今回再調査/開放していない。"
+  },
+  "correct_minimal_A_contract": {
+    "names": "BackgroundDownloadExpectedProposal / KnownPreparedDownloadReference / BackgroundDownloadArtifactReference。AにはCommittedBackgroundDownloadMetadataやmetadata-authority grant型を持ち込まない。",
+    "expected_proposal": "store UUID、expected full rendition（OriginalContent/完整deliveryContent含む）、registration、日時/MIMEの期待値と由来候補、transport lease/epoch、request fingerprint/response expected identity。すべてuntrusted入力で、pin成功をmetadata正当性/媒体許可/verified successに昇格しない。",
+    "existing_authentic_reference": "実在StoredBackgroundMediaTaskEventのprepared .downloadとそのBackendCommitKey.backgroundTask(command,taskID)を使い、MediaOperationStorePort.load/lookupCommitでexact元mutation/receipt/current UUID/source-kindを確認する。これはknown resource slotの対応だけでfull metadata authorityの代用ではない。",
+    "actual_creation": "Sessionのcreationsに実createSuspendedしたexact binding/intentが存在することを別に要求。prepared receiptだけで旧SDK task/FDをadoptしない。",
+    "API": "ManagedDownloadIngress.registerExpected(_ proposal: BackgroundDownloadExpectedProposal, prepared: KnownPreparedDownloadReference, store: any MediaOperationStorePort) async throws -> PreparedDownloadSink。内部で既存load/lookupCommitを使いslotを作るだけ。future metadata/backend keyやnormal network権限を参照しない。bindKnownCreation/pinKnownCallbackは実Session creationへ対応し、eventにはsmall artifactRefだけ。",
+    "pin_result": "untrusted pinned artifact capabilityのみ。missing full-read ticket/unknown日時/current mismatchの対象はimport不可。A testが期待値を合成注入しても正式media authorityを作らない。",
+    "compile_dependency_resolution": "Aの値/Port/FD owner/Session eventをA内で定義し、prepared referenceは既存Domain/Portを使うため、未実装Core0 metadata keyに依存しない。compile成功はまだ実行未確認。",
+    "Core0_previous_addendum": "Core0を入れるならbeforecreateのexpected metadata予約/登録を記録する役割に限定し、actual GET受理済receiptを要求又は生成しない。その登録のisCommittedもnative取得/verified権限にはならない。Aの低レベルpinを先行するための必須依存にはしない。"
+  },
+  "callback_and_final_import_order": [
+    "beforecreate: untrusted expected proposalとactual prepared/transport lease対応を固定。既存のcontrol-plane read ticketがあればそのexact参照を保持できるが、GET受理済とは呼ばない。正常strict拒否時は通常attempt/lease/SDK開始前の現guardを維持。",
+    "actual known callback:実downloadTask.responseのstatus/URL/headersを期待proposalと照合してFDだけpin。callbackで全read/hashは行わない。callback provenanceとnormalized observed response factsをartifact refへ束縛する。これはactual responseのlocal witnessであり新server receiptではない。",
+    "callback後: samewriterへ新しいlocal response observationを加算する。keyは新観測用command/artifact/binding/fingerprintに束縛するlocal専用keyとし、server .distribution key/revisionを捏造しない。元actualprepared/attachedとcallback metadata/既存read ticketのexact対応を保存する。新keyは後段Core/importの実装所有で定義する。",
+    "bounded worker:同FDとprivate targetだけを使いhash/copy、stopとcurrent scopeを確認。control-plane ticketが無い/expected metadataしか無いartifactはverifiedとして公開しない。",
+    "final import: actual read ticket（実在するcontrol-plane receipt）とcallback後local response observationの実commit、same bindingのactual SDK terminal、ownFDclose、完全coverage/fullhash、実日時/current rendition/epoch/UUID/registrationと原本保全をすべて要求する。metadata予約やpin成功だけでは通さない。",
+    "unknown/reopen:source URL/旧FD/旧leaf/空registryを採用しない。stop勝ちは実drain/close後もverified0。actual responseが欠けるcancelled suspended taskから成功観測を作らない。"
+  ],
+  "tests_scope": [
+    "Core ticket/real store commit tests、synthetic callback pin/response observation tests、realSDK nonresume negative testsを区別する。",
+    "A positive componentは明示注入の合成response/source前提。actual prepared/store receiptを実commitしてもHTTP受信成功とは主張しない。",
+    "normal full-read producer無し/actualresponse無し/unknown日時/source ticket only/改変ticket/response mismatch/旧ownerはfinalimport拒否。",
+    "callback actual witnessを保存する新local keyを既存server .distribution receiptへ偽装しないこと、GET-before/afterの到達順とcommit scopeをassertする。"
+  ],
+  "not_done": "code/SDK/build/test/Simulator/fixture/Keychain操作無し。normalfull-read/native正resume/正式producerを新設又は完了扱いにしていない。"
+}

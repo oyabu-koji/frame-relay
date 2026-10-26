@@ -1,0 +1,10 @@
+--- 115/FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift
++++ current/FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift
+@@ -55,6 +55,7 @@
+ }
+ 
+ actor PhotoSaveLibrary: PhotoLibraryPort {
++    nonisolated static func make() -> PhotoSaveLibrary { PhotoSaveLibrary() }
+     var addAuthorization: PhotoLibraryAuthorization = .notDetermined
+     var readAuthorization: PhotoLibraryAuthorization = .notDetermined
+     var addRequestResult: PhotoLibraryAuthorization = .authorized

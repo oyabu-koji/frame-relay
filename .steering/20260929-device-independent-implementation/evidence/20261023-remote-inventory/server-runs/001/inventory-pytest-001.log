@@ -1,0 +1,48 @@
+........................................................................ [ 25%]
+........................................................................ [ 51%]
+........................................................................ [ 77%]
+..............................................................F          [100%]
+=================================== FAILURES ===================================
+_________ test_broken_schema_never_becomes_an_empty_inventory_success __________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10abc8170>
+tmp_path = PosixPath('/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/S28-inventory/runtime-pytest-001/pytest-tmp/test_broken_schema_never_becom0')
+
+    def test_broken_schema_never_becomes_an_empty_inventory_success(monkeypatch, tmp_path):
+        settings, _request, _value = _setup(tmp_path, monkeypatch)
+        current = query(settings)
+        with _database(settings) as conn:
+            with conn:
+                conn.execute("DROP TABLE fr_upload_states")
+        with pytest.raises(FrameRelaySchemaError):
+>           service.original_inventory(settings, current, NEW_SECRET)
+
+../snapshot-001/backend/tests/test_frame_relay_inventory.py:357: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/app/services/frame_relay_storage.py:33: in original_inventory
+    after, sessions = repository.inventory_sessions(conn, request, secret)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/repositories/frame_relay_storage.py:133: in inventory_sessions
+    if not conn.in_transaction or not available(conn):
+                                      ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+conn = <s20_isolation_guard.Guard.install.<locals>.GuardedConnection object at 0x10920fb50>
+
+    def available(conn):
+        names = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if "fr_schema_migrations" not in names:
+            if any(name.startswith("fr_") for name in names):
+                raise StorageError("storage_schema_unavailable")
+            return False  # A truly legacy-only database, not a broken FR ledger.
+        validate_frame_relay_schema(conn)
+        if not {"fr_upload_bindings", "fr_upload_states", "fr_upload_chunks",
+                "fr_job_claims", "fr_storage_evidence"}.issubset(names):
+>           raise StorageError("storage_schema_unavailable")
+E           app.repositories.frame_relay_storage.StorageError: storage_schema_unavailable
+
+../snapshot-001/backend/app/repositories/frame_relay_storage.py:42: StorageError
+=========================== short test summary info ============================
+FAILED ../snapshot-001/backend/tests/test_frame_relay_inventory.py::test_broken_schema_never_becomes_an_empty_inventory_success
+1 failed, 278 passed in 18.37s
+{"runtime": "/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/S28-inventory/runtime-pytest-001", "execution_kind": "pytest", "exit_code": 1, "pytest_exit_code": 1, "failure_type": null}

@@ -1,0 +1,1514 @@
+{
+  "schema": "fr-original-upload-main-handoff-v1",
+  "createdUTC": "2026-10-24T19:15:59.764918+00:00",
+  "purpose": "main の実装中証跡整理。担当テストの記録照合であり、独立 implementation validation ではない。",
+  "conclusionJapanese": "固定実行版 DI-SOURCE-20261025-06 で MAX 全フロー146は PASS（厳格7種監査16回・issue0）、実 writer VERIFY153も PASS（親2・子4・現在要求2）。通常141のFAIL3issuesは保持し、修正後144は消費操作0の既存stage2読み取り専用観測に限定する。",
+  "sourceBinding": {
+    "id": "DI-SOURCE-20261025-06",
+    "candidatePath": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03",
+    "bindingFile": {
+      "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-binding.json",
+      "sha256": "c93e09190eb4a5b04042b5963283d302a54c2977805af4ed0d102bfcd74acf34",
+      "bytes": 118054
+    },
+    "sourceRevision": "64fc455c0af071234a04486b058065a1d01704fc",
+    "sourceManifestSHA256": "4dd5e1988ca40067ccea2154d0c05f32dd4ded152bc6e4cb73a6922b74c5b022",
+    "codeInputFingerprint": "cd822c759afd928343c00fb8a9283377771a066090c6ae775ca3af7b1066237e",
+    "inputCounts": {
+      "steering input": 2,
+      "server support": 97,
+      "stable document": 6,
+      "App/Unit/UI/project": 372,
+      "total": 477
+    },
+    "actualBoundFilesChecked": 477,
+    "actualBoundFileMismatches": [],
+    "definition": "477 input の binding 内各 sha256/size を immutable snapshot と照合し、372 App/Unit/UI/project は各run sources-before/after と一致。実装内容の独立評価は行わない。",
+    "keySourceFiles": [
+      {
+        "relativePath": "FrameRelay/Features/Library/LibraryView.swift",
+        "sha256": "a169bbafa90cb8aeecde2fdf074150953cb376869bf4342733c3e4e22410551e",
+        "bytes": 59771
+      },
+      {
+        "relativePath": "FrameRelayUITests/Flows/OriginalUploadAcceptanceFlowTests.swift",
+        "sha256": "6f99a94af8252c58e9cdfe2eda5c9db21e5ce5f2aad72549e60d7c743fc42c80",
+        "bytes": 37577
+      },
+      {
+        "relativePath": "FrameRelayTests/Integration/Composition/ProductOriginalUploadAcceptanceSeedTests.swift",
+        "sha256": "eace5ee0f08cca07395d55695b9e2ef64dc99b923df11f09d4a378d46dcada7f",
+        "bytes": 30528
+      }
+    ],
+    "derivation": {
+      "parent_id": "DI-SOURCE-20261025-05",
+      "parent_stage": "original-upload-acceptance-candidate-02",
+      "parent_source_manifest_sha256": "b97dd1ade02164e79a52839cba376793ad005906568585588efe7a07ce0244fb",
+      "only_changed_files": [
+        "FrameRelay/Features/Library/LibraryView.swift"
+      ],
+      "reason": "Only original selection Toggle native multiline label and opaque root navigation background address actual strict AX141 findings; no metadata feature code added",
+      "overlay_sources": {
+        "FrameRelay/Features/Library/LibraryView.swift": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-141-fixed-LibraryView.swift"
+      },
+      "all_other_input_bytes_match_parent": true,
+      "current_workspace_other_changes_excluded": true
+    },
+    "liveWorkspaceUsedForDiagnosis": false
+  },
+  "strictAuditContract": {
+    "sourceRelativePath": "FrameRelayUITests/Flows/OriginalUploadAcceptanceFlowTests.swift",
+    "sourceLine": 457,
+    "issueHandlerReturnLine": 469,
+    "types": [
+      "dynamicType",
+      "textClipped",
+      "sufficientElementDescription",
+      "trait",
+      "hitRegion",
+      "elementDetection",
+      "contrast"
+    ],
+    "issueHandlerReturnsFalse": true,
+    "filteringOrSuppression": false,
+    "auditFunctionSHA256": "ab8195cf6601a38dfa84bd857a7601d692b3866844979ecf4a04af4af95ef78b",
+    "measurement": "各回のcustom accessibility-before/after attachmentをxcresult activitiesとstdoutで完全対応させる。issue件数は全custom callback attachment件数。16×7は要求カテゴリ数であり、独立した112画面検査の意味ではない。"
+  },
+  "runs": {
+    "original-upload-ui-normal-141": {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141",
+      "xcresultPath": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141/result.xcresult",
+      "requestedMode": {
+        "PHASE": "all"
+      },
+      "exitCode": 65,
+      "testPassed": 0,
+      "testFailed": 1,
+      "testSkipped": 0,
+      "diagnostics": {
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "sourceFingerprint": "7ba4c43c2ba98999baaf0909e7ff7a546d299ef0bb3cdd55b53b4d85546c4c5e",
+      "codeInputCount": 372,
+      "runBeforeAfterInputsIdentical": true,
+      "matchesCandidate03CodeInputs": false,
+      "changedInputs": [],
+      "startedAtUTC": "2026-10-24T17:32:48.752813+00:00",
+      "finishedAtUTC": "2026-10-24T17:41:25.501504+00:00",
+      "wallSeconds": 516.7461315409746,
+      "fontSetting": {
+        "before": "large",
+        "requested": "large",
+        "observed": "large",
+        "restored": "large",
+        "restoreExpected": "large"
+      },
+      "trackedFileSignaturesUnchanged": true,
+      "trackedFileCount": 9,
+      "recordedContainerBaseBefore": "/Users/oyabu/Library/Developer/CoreSimulator/Devices/0B25C6C1-874F-469C-9E64-5147ECD8B0E3/data/Containers/Data/Application/CC71657E-9D16-40BF-9E74-95616E2AB7BC/Library/Application Support",
+      "recordedContainerBaseAfter": "/Users/oyabu/Library/Developer/CoreSimulator/Devices/0B25C6C1-874F-469C-9E64-5147ECD8B0E3/data/Containers/Data/Application/559D4499-3B98-4734-8012-CC3F0C89BB0F/Library/Application Support",
+      "preservationReport": {
+        "retainedHashesAndInodesUnchanged": true,
+        "missing": [],
+        "allowedUnlink": [],
+        "added": [],
+        "changed": [],
+        "allExpectedSyntheticUnlink": true,
+        "contentSizeRestored": "large",
+        "expectedRestore": "large"
+      },
+      "evidenceFiles": [
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141/result.json",
+          "sha256": "628fa7cc3575809f10ef2f1a321642f4003813d073d7595a2a62925dbb2e2c14",
+          "bytes": 5360
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141/command.json",
+          "sha256": "80c3e300c0784389c4e7d4fb73bc1719360f45822c32b6c69ec8f3ad845b4b04",
+          "bytes": 2446
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141/tests.json",
+          "sha256": "baead6694f8f097df30c210bd49389e06c0d3da6a0862a6d993a31aef206c7c2",
+          "bytes": 1760
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141/build.json",
+          "sha256": "fc1dcf6158f788c740bd2ef88708705532fd283a89ebe82d82a812c78d1e03e1",
+          "bytes": 621
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141/tree.json",
+          "sha256": "5e2fcdbb4826bcf1d0f9ad390e07cb7874c301945c09cdd4111847d36f56bd79",
+          "bytes": 3614
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141/stdout.log",
+          "sha256": "16134c12604b10bb5c0e6c10eb23fc7904963224fe08ecd6589b8b7f25f6f0da",
+          "bytes": 520443
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141/sources-before.json",
+          "sha256": "a5d1e360039985fda69646383776730ddda21cdf27b2a9df0861138a20be5b8e",
+          "bytes": 64699
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141/sources-after.json",
+          "sha256": "a5d1e360039985fda69646383776730ddda21cdf27b2a9df0861138a20be5b8e",
+          "bytes": 64699
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141-conditions.json",
+          "sha256": "248858c783931d3e8b2d6823ce220ddb81fac75f0d4f73706931f17294432a25",
+          "bytes": 1673
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141-preservation.json",
+          "sha256": "cae23cfba41ef6ce2f9c5ce6bf75f07e1213cad918dd59337c81643be600f236",
+          "bytes": 220
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141-source-preservation.json",
+          "sha256": "530ce94bb61f79fd1bdc8e73d2506d4847cb4e8d6cc9200824af986753e7c8c3",
+          "bytes": 361
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141-fixture-before.json",
+          "sha256": "f113c043180a3d2ae20713e3866eb674f3294ef63877077c67da5439f36f118e",
+          "bytes": 2298
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141-fixture-after.json",
+          "sha256": "bb29f61fcab1176f6b49b4b41f3832edfab65a4cec8292d8073690d5452b19b5",
+          "bytes": 2298
+        }
+      ],
+      "strictAccessibility": {
+        "completedInvocations": 16,
+        "beforeCount": 16,
+        "afterCount": 16,
+        "issueCallbackAttachmentCount": 3,
+        "stdoutAndXCResultNamesAgree": true,
+        "pairedInvocations": [
+          {
+            "name": "normal-library-3-saved-2-present-1-missing-stage-0",
+            "beforeTimeUTCUnix": 1792863215.523,
+            "afterTimeUTCUnix": 1792863218.834,
+            "beforeAttachmentUUID": "9AC193E0-F81E-4ECA-9B71-21D32FA4BE5A",
+            "afterAttachmentUUID": "ED10C51F-6954-4B9A-BA75-4BDFAA908504"
+          },
+          {
+            "name": "normal-single-detail-before-native-acceptance",
+            "beforeTimeUTCUnix": 1792863224.739,
+            "afterTimeUTCUnix": 1792863226.734,
+            "beforeAttachmentUUID": "7850B2F1-803C-456F-A461-D9CB1137AD02",
+            "afterAttachmentUUID": "973A2DCD-EC72-44FF-81DC-F1AF323F6629"
+          },
+          {
+            "name": "normal-single-accepted-communication-not-started",
+            "beforeTimeUTCUnix": 1792863235.055,
+            "afterTimeUTCUnix": 1792863237.101,
+            "beforeAttachmentUUID": "0B7159A8-17B9-4E12-8F0E-E477BAB7B15C",
+            "afterAttachmentUUID": "2DE77F1D-4B24-4BC5-BCEA-E5F53CA8F1B0"
+          },
+          {
+            "name": "normal-queued-current-request-a",
+            "beforeTimeUTCUnix": 1792863270.63,
+            "afterTimeUTCUnix": 1792863272.704,
+            "beforeAttachmentUUID": "7A7E4398-6EF8-4E40-BFAC-06F6CA190637",
+            "afterAttachmentUUID": "F6F3BA4E-9EE7-4728-9D9B-BF3B6EF6B1D6"
+          },
+          {
+            "name": "normal-library-3-saved-2-present-1-missing-stage-1",
+            "beforeTimeUTCUnix": 1792863300.757,
+            "afterTimeUTCUnix": 1792863302.965,
+            "beforeAttachmentUUID": "E1E306CC-95E6-4BCF-B421-99A72FC45E17",
+            "afterAttachmentUUID": "0712737A-A4B0-43C5-9EEF-7D7657710194"
+          },
+          {
+            "name": "normal-three-fixed-targets-before-one-native-tap",
+            "beforeTimeUTCUnix": 1792863324.269,
+            "afterTimeUTCUnix": 1792863326.969,
+            "beforeAttachmentUUID": "39A6395F-483A-4951-8519-A6662CD6B853",
+            "afterAttachmentUUID": "60550AD6-7F86-41F8-815C-79AA67EF565C"
+          },
+          {
+            "name": "normal-multiple-one-queued-two-not-processed",
+            "beforeTimeUTCUnix": 1792863337.587,
+            "afterTimeUTCUnix": 1792863340.314,
+            "beforeAttachmentUUID": "4A563D04-6CE1-464F-A39F-D6890ABD5B9D",
+            "afterAttachmentUUID": "AF10D845-99B6-4D9C-B1BF-147A90698F73"
+          },
+          {
+            "name": "normal-queued-current-request-b",
+            "beforeTimeUTCUnix": 1792863406.617,
+            "afterTimeUTCUnix": 1792863408.698,
+            "beforeAttachmentUUID": "BB0FD696-8EC1-4974-BD64-D92D06B691B5",
+            "afterAttachmentUUID": "C40024E6-4DCD-4F91-8BC0-B0A250A75B63"
+          },
+          {
+            "name": "normal-queued-current-request-a",
+            "beforeTimeUTCUnix": 1792863437.635,
+            "afterTimeUTCUnix": 1792863439.73,
+            "beforeAttachmentUUID": "A7F2887F-201E-4756-A6C4-72A02FADF8F7",
+            "afterAttachmentUUID": "CB96D6A8-62D8-4F82-937B-D396A1C5B643"
+          },
+          {
+            "name": "normal-library-3-saved-2-present-1-missing-stage-2",
+            "beforeTimeUTCUnix": 1792863474.108,
+            "afterTimeUTCUnix": 1792863476.282,
+            "beforeAttachmentUUID": "9B7A56EC-6BD8-489E-8C07-379B1162D334",
+            "afterAttachmentUUID": "F93C61E7-1B14-4505-AC93-79FE11D29A0A"
+          },
+          {
+            "name": "normal-library-3-saved-2-present-1-missing-stage-2",
+            "beforeTimeUTCUnix": 1792863539.585,
+            "afterTimeUTCUnix": 1792863541.759,
+            "beforeAttachmentUUID": "7B4C5B7E-D866-4AF7-9D48-6D16DF44AA8F",
+            "afterAttachmentUUID": "342C9256-FAF3-48EC-AB62-A5E9510B6EE0"
+          },
+          {
+            "name": "normal-queued-current-request-b",
+            "beforeTimeUTCUnix": 1792863561.838,
+            "afterTimeUTCUnix": 1792863563.91,
+            "beforeAttachmentUUID": "221FB3CE-D01A-44E2-B87A-42B2CEA37CE4",
+            "afterAttachmentUUID": "1B89E359-F48F-4390-B911-2C8DE3DD9B63"
+          },
+          {
+            "name": "normal-queued-current-request-a",
+            "beforeTimeUTCUnix": 1792863602.885,
+            "afterTimeUTCUnix": 1792863604.971,
+            "beforeAttachmentUUID": "43F58349-5F3E-4F77-944F-692D250D5BED",
+            "afterAttachmentUUID": "834358AB-B067-432C-8CC9-9000A1F5DD00"
+          },
+          {
+            "name": "normal-discard-history-empty-originals-retained",
+            "beforeTimeUTCUnix": 1792863613.904,
+            "afterTimeUTCUnix": 1792863616.032,
+            "beforeAttachmentUUID": "F360EDD1-F263-44DC-9A4B-D950A0069128",
+            "afterAttachmentUUID": "08405502-EBA6-4223-BDF5-9EF8D48F288E"
+          },
+          {
+            "name": "normal-relaunch-same-parents-children-queued",
+            "beforeTimeUTCUnix": 1792863623.179,
+            "afterTimeUTCUnix": 1792863625.354,
+            "beforeAttachmentUUID": "2882F08C-0EE8-41E7-AC24-487A5B404559",
+            "afterAttachmentUUID": "8071E15B-E25A-40F2-AD8D-C9F94758CFA8"
+          },
+          {
+            "name": "normal-relaunch-explicit-receipt-lookup-no-new-parent",
+            "beforeTimeUTCUnix": 1792863677.206,
+            "afterTimeUTCUnix": 1792863679.499,
+            "beforeAttachmentUUID": "B2E3B9DA-D98F-4E41-B1BB-0E7652416756",
+            "afterAttachmentUUID": "EC3B3F41-94DD-41F5-8D61-6C4D75BB898B"
+          }
+        ],
+        "issueAttachments": [
+          {
+            "name": "normal-library-3-saved-2-present-1-missing-stage-0-unhandled-accessibility-issue",
+            "uuid": "40E71423-2B1F-420D-854F-35BCAE2EBD75",
+            "timeUTCUnix": 1792863218.402
+          },
+          {
+            "name": "normal-three-fixed-targets-before-one-native-tap-unhandled-accessibility-issue",
+            "uuid": "72F31DA5-C04D-48E7-99C5-9964E1506218",
+            "timeUTCUnix": 1792863326.782
+          },
+          {
+            "name": "normal-multiple-one-queued-two-not-processed-unhandled-accessibility-issue",
+            "uuid": "E58285AC-6F74-4CBC-AEF4-458809E8C8A6",
+            "timeUTCUnix": 1792863340.117
+          }
+        ],
+        "activityQuery": [
+          "/Applications/Xcode.app/Contents/Developer/usr/bin/xcresulttool",
+          "get",
+          "test-results",
+          "activities",
+          "--path",
+          "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-141/result.xcresult",
+          "--test-id",
+          "OriginalUploadAcceptanceFlowTests/testSingleThenFixedMultipleAcceptanceAndReadOnlyRelaunch()",
+          "--compact"
+        ],
+        "activityQueryExitCode": 0,
+        "activityQueryStderr": "",
+        "armedControls": [
+          {
+            "name": "original-upload-armed-once-library.action.transfer",
+            "uuid": "5701ABCA-9437-4951-814F-E329B6B222E8",
+            "timeUTCUnix": 1792863233.016
+          },
+          {
+            "name": "original-upload-armed-once-library.action.transfer",
+            "uuid": "44A89DF4-32FB-4C57-B6CD-774D0D4A226A",
+            "timeUTCUnix": 1792863327.74
+          },
+          {
+            "name": "original-upload-armed-once-library.transfer.record.lookup.6d70d8c2-372c-4b79-8f0f-53899122fb33",
+            "uuid": "4791E974-5354-4B62-A272-1EF1E1B13691",
+            "timeUTCUnix": 1792863636.35
+          }
+        ]
+      },
+      "taps": {
+        "totalNativeTaps": 22,
+        "counts": {
+          "navigationOnly": 16,
+          "consumingAcceptance": 2,
+          "selectionOnly": 3,
+          "readOnlyReceiptLookup": 1
+        },
+        "events": [
+          {
+            "stdoutLine": 655,
+            "testElapsedSeconds": 47.25,
+            "nativeActivity": "\"library.itemTitle.ou-fbfcf429-a\" StaticText",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 789,
+            "testElapsedSeconds": 57.86,
+            "nativeActivity": "Button (First Match)",
+            "identifier": "library.action.transfer",
+            "classification": "consumingAcceptance"
+          },
+          {
+            "stdoutLine": 837,
+            "testElapsedSeconds": 62.02,
+            "nativeActivity": "\"BackButton\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 1138,
+            "testElapsedSeconds": 88.19,
+            "nativeActivity": "\"library.itemTitle.ou-fbfcf429-a\" StaticText",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 1347,
+            "testElapsedSeconds": 97.64,
+            "nativeActivity": "\"BackButton\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 1837,
+            "testElapsedSeconds": 134.15,
+            "nativeActivity": "\"0\" Switch",
+            "classification": "selectionOnly",
+            "identifier": "library.select.ou-fbfcf429-a"
+          },
+          {
+            "stdoutLine": 1887,
+            "testElapsedSeconds": 140.32,
+            "nativeActivity": "\"0\" Switch",
+            "classification": "selectionOnly",
+            "identifier": "library.select.ou-fbfcf429-b"
+          },
+          {
+            "stdoutLine": 1915,
+            "testElapsedSeconds": 143.54,
+            "nativeActivity": "\"0\" Switch",
+            "classification": "selectionOnly",
+            "identifier": "library.select.ou-fbfcf429-missing"
+          },
+          {
+            "stdoutLine": 2044,
+            "testElapsedSeconds": 152.66,
+            "nativeActivity": "Button (First Match)",
+            "identifier": "library.action.transfer",
+            "classification": "consumingAcceptance"
+          },
+          {
+            "stdoutLine": 2679,
+            "testElapsedSeconds": 223.8,
+            "nativeActivity": "\"library.itemTitle.ou-fbfcf429-b\" StaticText",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 2888,
+            "testElapsedSeconds": 233.63,
+            "nativeActivity": "\"BackButton\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 3109,
+            "testElapsedSeconds": 255.03,
+            "nativeActivity": "\"library.itemTitle.ou-fbfcf429-a\" StaticText",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 3318,
+            "testElapsedSeconds": 264.68,
+            "nativeActivity": "\"BackButton\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 4789,
+            "testElapsedSeconds": 379.33,
+            "nativeActivity": "\"library.itemTitle.ou-fbfcf429-b\" StaticText",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 4998,
+            "testElapsedSeconds": 388.84,
+            "nativeActivity": "\"BackButton\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 5263,
+            "testElapsedSeconds": 420.14,
+            "nativeActivity": "\"library.itemTitle.ou-fbfcf429-a\" StaticText",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 5472,
+            "testElapsedSeconds": 429.92,
+            "nativeActivity": "\"BackButton\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 5499,
+            "testElapsedSeconds": 433.14,
+            "nativeActivity": "Any (First Match)",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 5509,
+            "testElapsedSeconds": 435.9,
+            "nativeActivity": "\"破棄の履歴\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 5578,
+            "testElapsedSeconds": 441.09,
+            "nativeActivity": "Any (First Match)",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 5588,
+            "testElapsedSeconds": 443.67,
+            "nativeActivity": "\"ライブラリ\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 5683,
+            "testElapsedSeconds": 461.23,
+            "nativeActivity": "Button (First Match)",
+            "identifier": "library.transfer.record.lookup.6d70d8c2-372c-4b79-8f0f-53899122fb33",
+            "classification": "readOnlyReceiptLookup"
+          }
+        ],
+        "scope": "stdout の native Tap 活動を全件分類。scroll/swipe/drag、App launch/terminate、query は tap に数えない。"
+      }
+    },
+    "original-upload-ui-normal-readonly-144": {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144",
+      "xcresultPath": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144/result.xcresult",
+      "requestedMode": {
+        "PHASE": "readonly",
+        "EXPECTED_STAGE": "multiple"
+      },
+      "exitCode": 0,
+      "testPassed": 1,
+      "testFailed": 0,
+      "testSkipped": 0,
+      "diagnostics": {
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "sourceFingerprint": "cd822c759afd928343c00fb8a9283377771a066090c6ae775ca3af7b1066237e",
+      "codeInputCount": 372,
+      "runBeforeAfterInputsIdentical": true,
+      "matchesCandidate03CodeInputs": true,
+      "changedInputs": [],
+      "startedAtUTC": "2026-10-24T17:49:51.452052+00:00",
+      "finishedAtUTC": "2026-10-24T17:53:31.762742+00:00",
+      "wallSeconds": 220.3216445001308,
+      "fontSetting": {
+        "before": "large",
+        "requested": "large",
+        "observed": "large",
+        "restored": "large",
+        "restoreExpected": "large"
+      },
+      "trackedFileSignaturesUnchanged": true,
+      "trackedFileCount": 9,
+      "recordedContainerBaseBefore": "/Users/oyabu/Library/Developer/CoreSimulator/Devices/0B25C6C1-874F-469C-9E64-5147ECD8B0E3/data/Containers/Data/Application/95E472AF-74FC-4DAD-9405-A6E8D9919367/Library/Application Support",
+      "recordedContainerBaseAfter": "/Users/oyabu/Library/Developer/CoreSimulator/Devices/0B25C6C1-874F-469C-9E64-5147ECD8B0E3/data/Containers/Data/Application/57BBDA73-E40B-4F98-A898-03FDBC7DCEF2/Library/Application Support",
+      "preservationReport": {
+        "retainedHashesAndInodesUnchanged": true,
+        "missing": [],
+        "allowedUnlink": [],
+        "added": [],
+        "changed": [],
+        "allExpectedSyntheticUnlink": true,
+        "contentSizeRestored": "large",
+        "expectedRestore": "large"
+      },
+      "evidenceFiles": [
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144/result.json",
+          "sha256": "1511c6729340a9bb4b1ca9175e2e33d51bdab1948760b32e989228dbf265e981",
+          "bytes": 4663
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144/command.json",
+          "sha256": "185fa9280a6c952ba33d2c5def73ee78bfa18dd17a061a87036be7631911c23b",
+          "bytes": 2534
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144/tests.json",
+          "sha256": "11bc02657d79f1a08121a67a3acd846a804ae09ba714ebb1b498a2348a9268e6",
+          "bytes": 1041
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144/build.json",
+          "sha256": "05595d7b355c8071e7eb7c9328a6be3d7bce76b8a3b81f77d19e6d6b086b4612",
+          "bytes": 621
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144/tree.json",
+          "sha256": "9eb1d1b62b56d6f36862cceb6ce466b052d083b57ec7b13f3d9107109cac4b2e",
+          "bytes": 1837
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144/stdout.log",
+          "sha256": "baf50d336c5f67e71e0977d5d64b99ee647991d9f757faa53394ba50e881370d",
+          "bytes": 661914
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144/sources-before.json",
+          "sha256": "b3dd90c7be63f022bae49f764be6db64c27de294698e5fcbe3c82f1a230bbfcb",
+          "bytes": 64699
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144/sources-after.json",
+          "sha256": "b3dd90c7be63f022bae49f764be6db64c27de294698e5fcbe3c82f1a230bbfcb",
+          "bytes": 64699
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144-conditions.json",
+          "sha256": "b65052aa9e40f8148fd98dd8066a9a9995f37c0a062a86f0f7617a8272a890b9",
+          "bytes": 1728
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144-preservation.json",
+          "sha256": "cae23cfba41ef6ce2f9c5ce6bf75f07e1213cad918dd59337c81643be600f236",
+          "bytes": 220
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144-source-preservation.json",
+          "sha256": "530ce94bb61f79fd1bdc8e73d2506d4847cb4e8d6cc9200824af986753e7c8c3",
+          "bytes": 361
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144-fixture-before.json",
+          "sha256": "3baefcc63c24340a126a29e080ddf760f4dcbd0dbed352698cde5f9d5b56189b",
+          "bytes": 2298
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144-fixture-after.json",
+          "sha256": "3b5f6d974921041e67d73e829ae71c11b8c9faf1c8bf89057e3813562ba26589",
+          "bytes": 2298
+        }
+      ],
+      "strictAccessibility": {
+        "completedInvocations": 5,
+        "beforeCount": 5,
+        "afterCount": 5,
+        "issueCallbackAttachmentCount": 0,
+        "stdoutAndXCResultNamesAgree": true,
+        "pairedInvocations": [
+          {
+            "name": "normal-library-3-saved-2-present-1-missing-stage-2",
+            "beforeTimeUTCUnix": 1792864307.569,
+            "afterTimeUTCUnix": 1792864309.691,
+            "beforeAttachmentUUID": "822975CC-5BAD-414A-A19F-DA934F0457F3",
+            "afterAttachmentUUID": "216D2B67-ADFF-4E55-AA60-2553901BBC6F"
+          },
+          {
+            "name": "normal-queued-current-request-b",
+            "beforeTimeUTCUnix": 1792864329.652,
+            "afterTimeUTCUnix": 1792864331.697,
+            "beforeAttachmentUUID": "84B6AA18-F472-4A92-9F7F-A3C47E6798F9",
+            "afterAttachmentUUID": "9218C3EC-E737-4EF4-88E6-72DAD09CDFB2"
+          },
+          {
+            "name": "normal-queued-current-request-a",
+            "beforeTimeUTCUnix": 1792864370.571,
+            "afterTimeUTCUnix": 1792864372.637,
+            "beforeAttachmentUUID": "41018AD7-DC4C-4A60-B3E9-950F2AF63862",
+            "afterAttachmentUUID": "48ECDCE4-1A77-4B3B-A628-27EA460E2E65"
+          },
+          {
+            "name": "normal-discard-history-empty-originals-retained",
+            "beforeTimeUTCUnix": 1792864381.441,
+            "afterTimeUTCUnix": 1792864383.565,
+            "beforeAttachmentUUID": "E5678753-E6FF-414C-8F74-EE1D6D44EDCD",
+            "afterAttachmentUUID": "F93FF263-1DF0-4EDB-8527-170C18F1BAC1"
+          },
+          {
+            "name": "normal-readonly-fixed-history",
+            "beforeTimeUTCUnix": 1792864407.769,
+            "afterTimeUTCUnix": 1792864409.9,
+            "beforeAttachmentUUID": "114878C1-9C88-4AB1-8CA7-FC51E0D795C5",
+            "afterAttachmentUUID": "DAFBA127-A219-4257-9B98-6E74EFA54615"
+          }
+        ],
+        "issueAttachments": [],
+        "activityQuery": [
+          "/Applications/Xcode.app/Contents/Developer/usr/bin/xcresulttool",
+          "get",
+          "test-results",
+          "activities",
+          "--path",
+          "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-normal-readonly-144/result.xcresult",
+          "--test-id",
+          "OriginalUploadAcceptanceFlowTests/testSingleThenFixedMultipleAcceptanceAndReadOnlyRelaunch()",
+          "--compact"
+        ],
+        "activityQueryExitCode": 0,
+        "activityQueryStderr": "",
+        "armedControls": []
+      },
+      "taps": {
+        "totalNativeTaps": 8,
+        "counts": {
+          "navigationOnly": 8
+        },
+        "events": [
+          {
+            "stdoutLine": 2859,
+            "testElapsedSeconds": 79.22,
+            "nativeActivity": "\"library.itemTitle.ou-fbfcf429-b\" StaticText",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 3068,
+            "testElapsedSeconds": 88.85,
+            "nativeActivity": "\"BackButton\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 3335,
+            "testElapsedSeconds": 119.94,
+            "nativeActivity": "\"library.itemTitle.ou-fbfcf429-a\" StaticText",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 3544,
+            "testElapsedSeconds": 129.81,
+            "nativeActivity": "\"BackButton\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 3571,
+            "testElapsedSeconds": 133.03,
+            "nativeActivity": "Any (First Match)",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 3581,
+            "testElapsedSeconds": 135.67,
+            "nativeActivity": "\"破棄の履歴\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 3650,
+            "testElapsedSeconds": 140.85,
+            "nativeActivity": "Any (First Match)",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 3660,
+            "testElapsedSeconds": 143.42,
+            "nativeActivity": "\"ライブラリ\" Button",
+            "classification": "navigationOnly"
+          }
+        ],
+        "scope": "stdout の native Tap 活動を全件分類。scroll/swipe/drag、App launch/terminate、query は tap に数えない。"
+      }
+    },
+    "original-upload-ui-max-146": {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146",
+      "xcresultPath": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146/result.xcresult",
+      "requestedMode": {
+        "PHASE": "all"
+      },
+      "exitCode": 0,
+      "testPassed": 1,
+      "testFailed": 0,
+      "testSkipped": 0,
+      "diagnostics": {
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "sourceFingerprint": "cd822c759afd928343c00fb8a9283377771a066090c6ae775ca3af7b1066237e",
+      "codeInputCount": 372,
+      "runBeforeAfterInputsIdentical": true,
+      "matchesCandidate03CodeInputs": true,
+      "changedInputs": [],
+      "startedAtUTC": "2026-10-24T17:54:15.300530+00:00",
+      "finishedAtUTC": "2026-10-24T19:00:28.919224+00:00",
+      "wallSeconds": 3973.5756667079404,
+      "fontSetting": {
+        "before": "large",
+        "requested": "accessibility-extra-extra-extra-large",
+        "observed": "accessibility-extra-extra-extra-large",
+        "restored": "large",
+        "restoreExpected": "large"
+      },
+      "trackedFileSignaturesUnchanged": true,
+      "trackedFileCount": 9,
+      "recordedContainerBaseBefore": "/Users/oyabu/Library/Developer/CoreSimulator/Devices/D2A95760-9D74-41FF-AF73-4C7CF94E0385/data/Containers/Data/Application/57C94727-6C29-400F-AD55-0382543DE6DB/Library/Application Support",
+      "recordedContainerBaseAfter": "/Users/oyabu/Library/Developer/CoreSimulator/Devices/D2A95760-9D74-41FF-AF73-4C7CF94E0385/data/Containers/Data/Application/806B2621-934E-4640-886B-5A2CC1B57E3E/Library/Application Support",
+      "preservationReport": {
+        "retainedHashesAndInodesUnchanged": true,
+        "missing": [],
+        "allowedUnlink": [],
+        "added": [],
+        "changed": [],
+        "allExpectedSyntheticUnlink": true,
+        "contentSizeRestored": "large",
+        "expectedRestore": "large"
+      },
+      "evidenceFiles": [
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146/result.json",
+          "sha256": "e7c29b1920505a4c5ea11d56341fdf257d87aee1d2da673a96a01d69f49003c0",
+          "bytes": 4558
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146/command.json",
+          "sha256": "2e995f8a12e2e58e85c0bb44e37357b5d620b283021918f12ca3dd3471c3129f",
+          "bytes": 2434
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146/tests.json",
+          "sha256": "f43ebd59b29cd0843655c2bebe7259eae466d3ed6b580b4e97664a5f511808c0",
+          "bytes": 1038
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146/build.json",
+          "sha256": "fd8e8eac5baf9597388ca77b5c55d4628fad995eb0794cd20f00158c640ea8b4",
+          "bytes": 618
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146/tree.json",
+          "sha256": "628448114e607de32b12e3c406bec2029d971eb922603710f68d7e7736e6b1c4",
+          "bytes": 1835
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146/stdout.log",
+          "sha256": "34c45d194a8fc4c4410a32b6033bfd8198b804d2f771e1aa3ec4aa19e339fc25",
+          "bytes": 1408719
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146/sources-before.json",
+          "sha256": "b3dd90c7be63f022bae49f764be6db64c27de294698e5fcbe3c82f1a230bbfcb",
+          "bytes": 64699
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146/sources-after.json",
+          "sha256": "b3dd90c7be63f022bae49f764be6db64c27de294698e5fcbe3c82f1a230bbfcb",
+          "bytes": 64699
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146-conditions.json",
+          "sha256": "3fb8adef5812920b2f1d000b428349cc8d1781f4e4cdd3d01e0f9408bc6b5629",
+          "bytes": 1725
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146-preservation.json",
+          "sha256": "cae23cfba41ef6ce2f9c5ce6bf75f07e1213cad918dd59337c81643be600f236",
+          "bytes": 220
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146-source-preservation.json",
+          "sha256": "530ce94bb61f79fd1bdc8e73d2506d4847cb4e8d6cc9200824af986753e7c8c3",
+          "bytes": 361
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146-fixture-before.json",
+          "sha256": "0148c96da0bcc6b37603f9b69417e9a1888ecdeec6a7cd04abee5fb52120d5eb",
+          "bytes": 2298
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146-fixture-after.json",
+          "sha256": "cf4a500988a04f4552ee06b131e1a339ee80dd58f5fb8555d06d589545cea6cc",
+          "bytes": 2298
+        }
+      ],
+      "strictAccessibility": {
+        "completedInvocations": 16,
+        "beforeCount": 16,
+        "afterCount": 16,
+        "issueCallbackAttachmentCount": 0,
+        "stdoutAndXCResultNamesAgree": true,
+        "pairedInvocations": [
+          {
+            "name": "max-library-3-saved-2-present-1-missing-stage-0",
+            "beforeTimeUTCUnix": 1792864618.73,
+            "afterTimeUTCUnix": 1792864620.942,
+            "beforeAttachmentUUID": "5AB6FC61-391D-4D5A-AE47-7E399B0CE266",
+            "afterAttachmentUUID": "98642DCA-1099-438C-8EAC-15D24D208AAD"
+          },
+          {
+            "name": "max-single-detail-before-native-acceptance",
+            "beforeTimeUTCUnix": 1792864626.952,
+            "afterTimeUTCUnix": 1792864628.916,
+            "beforeAttachmentUUID": "7540CFB0-39DC-46F4-8485-1ED1504BEBF3",
+            "afterAttachmentUUID": "85372C0E-186D-4A69-8CF0-52D0242E0F41"
+          },
+          {
+            "name": "max-single-accepted-communication-not-started",
+            "beforeTimeUTCUnix": 1792864709.103,
+            "afterTimeUTCUnix": 1792864711.083,
+            "beforeAttachmentUUID": "EC77691E-A51A-4B9B-9B38-F97C23ED306F",
+            "afterAttachmentUUID": "BEA99EE4-07EF-4464-AF0C-31E8BE192A47"
+          },
+          {
+            "name": "max-queued-current-request-a",
+            "beforeTimeUTCUnix": 1792865134.417,
+            "afterTimeUTCUnix": 1792865136.39,
+            "beforeAttachmentUUID": "E3850041-4A58-4102-9004-0C30225E9E51",
+            "afterAttachmentUUID": "3B036D8A-8C85-42B8-BFDD-F347E9AB6BE1"
+          },
+          {
+            "name": "max-library-3-saved-2-present-1-missing-stage-1",
+            "beforeTimeUTCUnix": 1792865301.338,
+            "afterTimeUTCUnix": 1792865303.384,
+            "beforeAttachmentUUID": "61B3647E-DC62-4132-9568-0C25D3F86894",
+            "afterAttachmentUUID": "64EDFE9A-1F5D-44E4-896E-918C66A08713"
+          },
+          {
+            "name": "max-three-fixed-targets-before-one-native-tap",
+            "beforeTimeUTCUnix": 1792865402.938,
+            "afterTimeUTCUnix": 1792865405.013,
+            "beforeAttachmentUUID": "B8A758E8-F44E-43DB-9B51-40EDC3A25AB5",
+            "afterAttachmentUUID": "8322C275-F3EE-402F-AEE4-5633E4108733"
+          },
+          {
+            "name": "max-multiple-one-queued-two-not-processed",
+            "beforeTimeUTCUnix": 1792865479.403,
+            "afterTimeUTCUnix": 1792865481.461,
+            "beforeAttachmentUUID": "48F7DBA0-1F1A-4606-90BF-30D5C1588701",
+            "afterAttachmentUUID": "3DD707EA-462F-4040-96CB-CBF3359495D1"
+          },
+          {
+            "name": "max-queued-current-request-a",
+            "beforeTimeUTCUnix": 1792866009.388,
+            "afterTimeUTCUnix": 1792866011.396,
+            "beforeAttachmentUUID": "1F3EB68C-0D19-4B07-92CF-935049B682CF",
+            "afterAttachmentUUID": "5B50AB5D-F973-425F-A35E-9168F5490184"
+          },
+          {
+            "name": "max-queued-current-request-b",
+            "beforeTimeUTCUnix": 1792866788.535,
+            "afterTimeUTCUnix": 1792866790.524,
+            "beforeAttachmentUUID": "41FF0B1A-AEFC-41D1-919A-50134EDEBE83",
+            "afterAttachmentUUID": "19FCD144-3503-4B17-B6DC-AE27A0498887"
+          },
+          {
+            "name": "max-library-3-saved-2-present-1-missing-stage-2",
+            "beforeTimeUTCUnix": 1792866965.575,
+            "afterTimeUTCUnix": 1792866967.618,
+            "beforeAttachmentUUID": "789E8D6B-4D3D-434B-AEBC-05856753E963",
+            "afterAttachmentUUID": "D8684E6F-D463-4D12-BDB0-E43647A1EED6"
+          },
+          {
+            "name": "max-library-3-saved-2-present-1-missing-stage-2",
+            "beforeTimeUTCUnix": 1792867270.919,
+            "afterTimeUTCUnix": 1792867273.026,
+            "beforeAttachmentUUID": "AD6F682E-8CA8-4D8C-88FA-D942ACF68A92",
+            "afterAttachmentUUID": "D26D184B-F40A-439F-A7B9-E259D197F0C5"
+          },
+          {
+            "name": "max-queued-current-request-a",
+            "beforeTimeUTCUnix": 1792867603.033,
+            "afterTimeUTCUnix": 1792867605.086,
+            "beforeAttachmentUUID": "9A59AB4D-6D03-4611-986E-E78F36E471CA",
+            "afterAttachmentUUID": "ACEA68AB-E404-45FD-8111-F1E69448C4A0"
+          },
+          {
+            "name": "max-queued-current-request-b",
+            "beforeTimeUTCUnix": 1792868117.62,
+            "afterTimeUTCUnix": 1792868119.624,
+            "beforeAttachmentUUID": "08A2439D-82D5-4725-BF66-8F58A076DBC6",
+            "afterAttachmentUUID": "21F1A01E-6601-4DD7-B1BD-B74FDE8A827D"
+          },
+          {
+            "name": "max-discard-history-empty-originals-retained",
+            "beforeTimeUTCUnix": 1792868135.795,
+            "afterTimeUTCUnix": 1792868138.217,
+            "beforeAttachmentUUID": "631EFA1A-E0F3-4A9E-8C90-7696144B76E2",
+            "afterAttachmentUUID": "A19EA9EE-3E89-4D60-85B0-B22B8AC78C65"
+          },
+          {
+            "name": "max-relaunch-same-parents-children-queued",
+            "beforeTimeUTCUnix": 1792868145.522,
+            "afterTimeUTCUnix": 1792868147.652,
+            "beforeAttachmentUUID": "6A622EA3-70F8-4B18-AF39-54DA9CBF4153",
+            "afterAttachmentUUID": "22AB2C17-729C-4356-840B-71559D5BF954"
+          },
+          {
+            "name": "max-relaunch-explicit-receipt-lookup-no-new-parent",
+            "beforeTimeUTCUnix": 1792868406.282,
+            "afterTimeUTCUnix": 1792868408.917,
+            "beforeAttachmentUUID": "318967D4-1417-407C-8C9F-B39124577ED8",
+            "afterAttachmentUUID": "18BE1020-BEB2-4AB7-A4C2-F691B1809683"
+          }
+        ],
+        "issueAttachments": [],
+        "activityQuery": [
+          "/Applications/Xcode.app/Contents/Developer/usr/bin/xcresulttool",
+          "get",
+          "test-results",
+          "activities",
+          "--path",
+          "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-max-146/result.xcresult",
+          "--test-id",
+          "OriginalUploadAcceptanceFlowTests/testSingleThenFixedMultipleAcceptanceAndReadOnlyRelaunch()",
+          "--compact"
+        ],
+        "activityQueryExitCode": 0,
+        "activityQueryStderr": "",
+        "armedControls": [
+          {
+            "name": "original-upload-armed-once-library.action.transfer",
+            "uuid": "0E6928FD-9E03-4CF0-8E9C-46476E4AC177",
+            "timeUTCUnix": 1792864660.302
+          },
+          {
+            "name": "original-upload-armed-once-library.action.transfer",
+            "uuid": "45D7AE50-531A-4DFC-8377-3A3AA64D8B45",
+            "timeUTCUnix": 1792865428.176
+          },
+          {
+            "name": "original-upload-armed-once-library.transfer.record.lookup.4d92aef8-dbf2-4f69-9b9d-5b7fed679213",
+            "uuid": "A6EFACE7-1348-4B0D-91AF-6D3531AD3E3D",
+            "timeUTCUnix": 1792868206.418
+          }
+        ]
+      },
+      "taps": {
+        "totalNativeTaps": 22,
+        "counts": {
+          "navigationOnly": 16,
+          "consumingAcceptance": 2,
+          "selectionOnly": 3,
+          "readOnlyReceiptLookup": 1
+        },
+        "events": [
+          {
+            "stdoutLine": 1062,
+            "testElapsedSeconds": 162.72,
+            "nativeActivity": "\"library.itemTitle.ou-6ad6cdcb-a\" StaticText",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 1304,
+            "testElapsedSeconds": 198.32,
+            "nativeActivity": "Button (First Match)",
+            "identifier": "library.action.transfer",
+            "classification": "consumingAcceptance"
+          },
+          {
+            "stdoutLine": 1540,
+            "testElapsedSeconds": 249.18,
+            "nativeActivity": "\"BackButton\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 2739,
+            "testElapsedSeconds": 556.68,
+            "nativeActivity": "\"library.itemTitle.ou-6ad6cdcb-a\" StaticText",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 3428,
+            "testElapsedSeconds": 674.49,
+            "nativeActivity": "\"BackButton\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 4489,
+            "testElapsedSeconds": 857.06,
+            "nativeActivity": "\"0\" Switch",
+            "classification": "selectionOnly",
+            "identifier": "library.select.ou-6ad6cdcb-a"
+          },
+          {
+            "stdoutLine": 4585,
+            "testElapsedSeconds": 875.25,
+            "nativeActivity": "\"0\" Switch",
+            "classification": "selectionOnly",
+            "identifier": "library.select.ou-6ad6cdcb-b"
+          },
+          {
+            "stdoutLine": 4709,
+            "testElapsedSeconds": 903.88,
+            "nativeActivity": "\"0\" Switch",
+            "classification": "selectionOnly",
+            "identifier": "library.select.ou-6ad6cdcb-missing"
+          },
+          {
+            "stdoutLine": 5005,
+            "testElapsedSeconds": 966.22,
+            "nativeActivity": "Button (First Match)",
+            "identifier": "library.action.transfer",
+            "classification": "consumingAcceptance"
+          },
+          {
+            "stdoutLine": 6652,
+            "testElapsedSeconds": 1399.11,
+            "nativeActivity": "\"library.itemTitle.ou-6ad6cdcb-a\" StaticText",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 7491,
+            "testElapsedSeconds": 1549.52,
+            "nativeActivity": "\"BackButton\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 9585,
+            "testElapsedSeconds": 2179.96,
+            "nativeActivity": "\"library.itemTitle.ou-6ad6cdcb-b\" StaticText",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 10414,
+            "testElapsedSeconds": 2328.63,
+            "nativeActivity": "\"BackButton\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 13837,
+            "testElapsedSeconds": 3026.78,
+            "nativeActivity": "\"library.itemTitle.ou-6ad6cdcb-a\" StaticText",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 14511,
+            "testElapsedSeconds": 3143.2,
+            "nativeActivity": "\"BackButton\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 15950,
+            "testElapsedSeconds": 3540.31,
+            "nativeActivity": "\"library.itemTitle.ou-6ad6cdcb-b\" StaticText",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 16621,
+            "testElapsedSeconds": 3657.77,
+            "nativeActivity": "\"BackButton\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 16668,
+            "testElapsedSeconds": 3665.39,
+            "nativeActivity": "Any (First Match)",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 16678,
+            "testElapsedSeconds": 3668.26,
+            "nativeActivity": "\"破棄の履歴\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 16769,
+            "testElapsedSeconds": 3676.6,
+            "nativeActivity": "Any (First Match)",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 16779,
+            "testElapsedSeconds": 3679.24,
+            "nativeActivity": "\"ライブラリ\" Button",
+            "classification": "navigationOnly"
+          },
+          {
+            "stdoutLine": 17049,
+            "testElapsedSeconds": 3744.46,
+            "nativeActivity": "Button (First Match)",
+            "identifier": "library.transfer.record.lookup.4d92aef8-dbf2-4f69-9b9d-5b7fed679213",
+            "classification": "readOnlyReceiptLookup"
+          }
+        ],
+        "scope": "stdout の native Tap 活動を全件分類。scroll/swipe/drag、App launch/terminate、query は tap に数えない。"
+      }
+    },
+    "original-upload-verify-max-153": {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153",
+      "xcresultPath": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153/result.xcresult",
+      "requestedMode": {
+        "PHASE": "all"
+      },
+      "exitCode": 0,
+      "testPassed": 1,
+      "testFailed": 0,
+      "testSkipped": 0,
+      "diagnostics": {
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "sourceFingerprint": "cd822c759afd928343c00fb8a9283377771a066090c6ae775ca3af7b1066237e",
+      "codeInputCount": 372,
+      "runBeforeAfterInputsIdentical": true,
+      "matchesCandidate03CodeInputs": true,
+      "changedInputs": [],
+      "startedAtUTC": "2026-10-24T19:02:47.978257+00:00",
+      "finishedAtUTC": "2026-10-24T19:02:54.040166+00:00",
+      "wallSeconds": 6.061600832967088,
+      "fontSetting": {
+        "before": "large",
+        "requested": "large",
+        "observed": "large",
+        "restored": "large",
+        "restoreExpected": "large"
+      },
+      "trackedFileSignaturesUnchanged": true,
+      "trackedFileCount": 9,
+      "recordedContainerBaseBefore": "/Users/oyabu/Library/Developer/CoreSimulator/Devices/D2A95760-9D74-41FF-AF73-4C7CF94E0385/data/Containers/Data/Application/806B2621-934E-4640-886B-5A2CC1B57E3E/Library/Application Support",
+      "recordedContainerBaseAfter": "/Users/oyabu/Library/Developer/CoreSimulator/Devices/D2A95760-9D74-41FF-AF73-4C7CF94E0385/data/Containers/Data/Application/A074B0B9-A81F-4620-B8DF-237C43A6717A/Library/Application Support",
+      "preservationReport": {
+        "retainedHashesAndInodesUnchanged": true,
+        "missing": [],
+        "allowedUnlink": [],
+        "added": [],
+        "changed": [],
+        "allExpectedSyntheticUnlink": true,
+        "contentSizeRestored": "large",
+        "expectedRestore": "large"
+      },
+      "evidenceFiles": [
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153/result.json",
+          "sha256": "b785579b0a25a18cffc609a69b482bf9439da480da1856ddc85a63a787713701",
+          "bytes": 4267
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153/command.json",
+          "sha256": "336ffcdeea414e9f0b253ab06fee8bc6d307b348b62d41807772699f4de012d8",
+          "bytes": 2142
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153/tests.json",
+          "sha256": "4ce067842343f3869a3446af19b021620238a29f0006c0970c75857ccc02ee15",
+          "bytes": 1038
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153/build.json",
+          "sha256": "3b3b385a23b9d2f4791ecdca3499c43f3ffcdaf730b80c7c42c01e3a27c7a0e9",
+          "bytes": 618
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153/tree.json",
+          "sha256": "f5410e19f2015e7db2511d962948bd4326e79c3b93fe4665d1e2f6c8481f16e5",
+          "bytes": 1903
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153/stdout.log",
+          "sha256": "543120dcfde47b34d6ccfe358a6e3ee08457fec3350536e90bd3ac042e5fc8ee",
+          "bytes": 17886
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153/sources-before.json",
+          "sha256": "b3dd90c7be63f022bae49f764be6db64c27de294698e5fcbe3c82f1a230bbfcb",
+          "bytes": 64699
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153/sources-after.json",
+          "sha256": "b3dd90c7be63f022bae49f764be6db64c27de294698e5fcbe3c82f1a230bbfcb",
+          "bytes": 64699
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153-conditions.json",
+          "sha256": "ee619c214e23866eeb956bde144b7c3dab65f707a1691c11222a030a82124e8d",
+          "bytes": 1316
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153-preservation.json",
+          "sha256": "cae23cfba41ef6ce2f9c5ce6bf75f07e1213cad918dd59337c81643be600f236",
+          "bytes": 220
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153-source-preservation.json",
+          "sha256": "530ce94bb61f79fd1bdc8e73d2506d4847cb4e8d6cc9200824af986753e7c8c3",
+          "bytes": 361
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153-fixture-before.json",
+          "sha256": "cf4a500988a04f4552ee06b131e1a339ee80dd58f5fb8555d06d589545cea6cc",
+          "bytes": 2298
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-verify-max-153-fixture-after.json",
+          "sha256": "af0e42018f54c5bb13b460c7ca209119d02fc6de6e7e6ce9720d6047f2415b96",
+          "bytes": 2298
+        }
+      ]
+    }
+  },
+  "scopeSeparation": [
+    {
+      "run": "original-upload-ui-normal-141",
+      "scope": "旧candidate02・通常largeの全フローは実行終了したがAX3issuesのためFAIL。単数+固定multiple計2 consuming tapsとrelaunch/明示照合の到達証拠を、成功結果へ置換しない。",
+      "auditInvocations": 16,
+      "issues": 3,
+      "issueBreakdown": {
+        "dynamicType": 2,
+        "contrast": 1
+      },
+      "priorDiagnostic": {
+        "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-ui-141-summary.json",
+        "sha256": "2e3c79aaa892b7f7474488aa3d9f6b39d3e616ca233e131d38cc4c1284f1e37f",
+        "bytes": 25653
+      }
+    },
+    {
+      "run": "original-upload-ui-normal-readonly-144",
+      "scope": "candidate03・通常large・readonly/EXPECTED_STAGE=multiple。既存親子/現在要求/空の破棄履歴を読み、同履歴を確認するだけ。single/multipleの再受付、relaunch全経路、明示照合の再実行を含まない。",
+      "auditInvocations": 5,
+      "issues": 0,
+      "consumingTaps": 0
+    },
+    {
+      "run": "original-upload-ui-max-146",
+      "scope": "candidate03・MAXでall(single→multiple→relaunch)を一回のmethodで完了。通常141で消費した端末と別の専用MAX集合。",
+      "auditInvocations": 16,
+      "issues": 0,
+      "consumingTaps": 2
+    },
+    {
+      "run": "original-upload-verify-max-153",
+      "scope": "同じcandidate03・同じMAX集合への実writer読み取りVERIFY。allのwriter終端はmultiple(stage2)であり、relaunch/lookupは新しい受付phaseを作らない。",
+      "uiAuditApplicable": false
+    }
+  ],
+  "fullMAXFunctionalCoverage": {
+    "entryPoint": "OriginalUploadAcceptanceFlowTests/testSingleThenFixedMultipleAcceptanceAndReadOnlyRelaunch()",
+    "phase": "all",
+    "sourceSequence": [
+      "single",
+      "multiple",
+      "relaunch"
+    ],
+    "completedChecks": [
+      "初期history stage0・保存済み3件/原本あり2件/欠落1件",
+      "単数A native受付1tapと受付全文",
+      "current A の対象動画/原本/継続意思/待機なし/開始待ち/全action全文・44pt",
+      "A/B/missing のnative選択3tap",
+      "固定multiple native受付1tapと受付全文",
+      "A alreadyRequested・B accepted・missing fileMissing の固定3子と親子全history",
+      "current A/B 2要求の全文と全action",
+      "relaunch前後の全history equalityとcurrent A/B",
+      "破棄履歴が空で原本を保持",
+      "固定multiple親への明示保存記録照合1tap・全文と親子history不増",
+      "最終strict7 auditまで完了"
+    ],
+    "lastAuditName": "max-relaunch-explicit-receipt-lookup-no-new-parent",
+    "sourceAssertionsRetained": "完全native title/identifier/enabled/hittable/44pt/全文/phase-prefix/history equality と strict7 false-handler を含む固定UIファイルSHA6f99a94a…を使用。App launchArguments/launchEnvironment の空検査も同ファイル内。"
+  },
+  "writer153": {
+    "summary": {
+      "actualPhase": "multiple",
+      "currentRequests": [
+        "128a19a3-d301-4afd-80c6-5ceacc4e50e8",
+        "d77cece9-9e4e-46d5-96be-dc6e4b0ba90b"
+      ],
+      "nonce": "6ad6cdcb-598f-4e30-b41c-68e0fbcc37b5",
+      "parents": [
+        {
+          "children": [
+            {
+              "capture": "ou-6ad6cdcb-a",
+              "decision": "accepted",
+              "operation": "128a19a3-d301-4afd-80c6-5ceacc4e50e8"
+            }
+          ],
+          "committedRevision": 12,
+          "parent": "c4db5a33-dde5-4117-b670-4a4460ed24e5",
+          "previousRevision": 11,
+          "scope": "single"
+        },
+        {
+          "children": [
+            {
+              "capture": "ou-6ad6cdcb-a",
+              "decision": "notProcessed.alreadyRequested",
+              "operation": "b9294203-c16c-4e25-abcf-405983a82e4c"
+            },
+            {
+              "capture": "ou-6ad6cdcb-b",
+              "decision": "accepted",
+              "operation": "d77cece9-9e4e-46d5-96be-dc6e4b0ba90b"
+            },
+            {
+              "capture": "ou-6ad6cdcb-missing",
+              "decision": "notProcessed.fileMissing",
+              "operation": "8a06a101-f78d-456d-b98a-9ebce43274a2"
+            }
+          ],
+          "committedRevision": 13,
+          "parent": "4d92aef8-dbf2-4f69-9b9d-5b7fed679213",
+          "previousRevision": 12,
+          "scope": "multiple"
+        }
+      ],
+      "requestedPhase": "all",
+      "schema": "fr-original-upload-verify-v1",
+      "simulator": "D2A95760-9D74-41FF-AF73-4C7CF94E0385",
+      "storeUUID": "C0E3FF40-3ED6-4133-A0DA-5002F6822413",
+      "variant": "max"
+    },
+    "parentCount": 2,
+    "fixedChildCount": 4,
+    "decisionCounts": {
+      "accepted": 2,
+      "notProcessed.alreadyRequested": 1,
+      "notProcessed.fileMissing": 1
+    },
+    "currentRequestCount": 2,
+    "revisionTransitions": [
+      {
+        "scope": "single",
+        "previous": 11,
+        "committed": 12
+      },
+      {
+        "scope": "multiple",
+        "previous": 12,
+        "committed": 13
+      }
+    ],
+    "preservedCheckLine": "ORIGINAL_UPLOAD_PRESERVED sourceInput=match sourceCopy=match originals2=match missingOriginal=neverCreated reservations3=match sentinel=match manifest=match rootAndFileInodes=match independentSQLite=equal attempts=0 sessions=0 tasks=0 logicalReaders=0 mediaReaders=0 directPhotosKeychainNetworkSDK=none nativeSDKInventory=notMeasured captureWaitExercise=none",
+    "reportedAndAssertedByFrozenVerify": {
+      "independentSQLite": "equal",
+      "attempts": 0,
+      "sessions": 0,
+      "tasks": 0,
+      "logicalReaders": 0,
+      "mediaReaders": 0,
+      "missingOriginal": "neverCreated"
+    },
+    "nativeSDKInventory": "notMeasured",
+    "captureWaitExercise": "none",
+    "scopeNote": "reader/attempt等は153の固定VERIFYの実assert成功とprintを根拠に記録。今回担当はSQLite/Simulator/mediaを直接再照会していない。"
+  },
+  "preservation146To153": {
+    "trackedFileCount": 9,
+    "trackedFileSignatures": {
+      "original-upload-external-6ad6cdcb-598f-4e30-b41c-68e0fbcc37b5.mov": {
+        "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+        "bytes": 2907110,
+        "device": 16777234,
+        "inode": 33261327
+      },
+      "FrameRelayLibrary/original-upload-acceptance-seed.json": {
+        "sha256": "4e2b8ffe6669df4ed57441f56843ba81e113fa226a173bafdfda049817ab2991",
+        "bytes": 50072,
+        "device": 16777234,
+        "inode": 33261329
+      },
+      "FrameRelayLibrary/synthetic-original-ou-6ad6cdcb-a.mov": {
+        "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+        "bytes": 2907110,
+        "device": 16777234,
+        "inode": 33261298
+      },
+      "FrameRelayLibrary/synthetic-original-ou-6ad6cdcb-a.reservation": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "device": 16777234,
+        "inode": 33261297
+      },
+      "FrameRelayLibrary/synthetic-original-ou-6ad6cdcb-b.mov": {
+        "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+        "bytes": 2907110,
+        "device": 16777234,
+        "inode": 33261300
+      },
+      "FrameRelayLibrary/synthetic-original-ou-6ad6cdcb-b.reservation": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "device": 16777234,
+        "inode": 33261299
+      },
+      "FrameRelayLibrary/original-upload-source-6ad6cdcb-598f-4e30-b41c-68e0fbcc37b5.mov": {
+        "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+        "bytes": 2907110,
+        "device": 16777234,
+        "inode": 33261296
+      },
+      "FrameRelayLibrary/run.marker": {
+        "sha256": "6799d0120e8097713bc31b23b326bcf411279f0f144bd4b7f050229a025e301c",
+        "bytes": 30,
+        "device": 16777234,
+        "inode": 33261241
+      },
+      "FrameRelayLibrary/synthetic-original-ou-6ad6cdcb-missing.reservation": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "device": 16777234,
+        "inode": 33261313
+      }
+    },
+    "comparisonKeys": [
+      "sha256",
+      "bytes",
+      "device",
+      "inode"
+    ],
+    "fourRecordedSnapshotsAgree": true,
+    "sourceInputSignature": {
+      "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+      "bytes": 2907110,
+      "device": 16777234,
+      "inode": 33015426
+    },
+    "sourceInputBothRunsBeforeAfterAgree": true,
+    "physicalScope": "記録済み9 files（sourceCopy1・originals2・reservations3・sentinel1・manifest1・run.marker1）と別途sourceInput1。実ファイルの再読取・修復・削除なし。",
+    "containerLocation": "各xcodebuild再installでbase container UUIDが移動しているが、保全signatureは全て同一。manifest書換や修復は行っていない。",
+    "fontMAX": {
+      "before": "large",
+      "requested": "accessibility-extra-extra-extra-large",
+      "observed": "accessibility-extra-extra-extra-large",
+      "restored": "large",
+      "restoreExpected": "large"
+    },
+    "fontVerify": {
+      "before": "large",
+      "requested": "large",
+      "observed": "large",
+      "restored": "large",
+      "restoreExpected": "large"
+    }
+  },
+  "limitationsJapanese": [
+    "通常largeの修正後全フロー成功は今回の証拠に含めない。141 FAILを保持し、144はreadonly stage2の5監査だけ。",
+    "この調査は既存run/xcresult/source-bindingの読み取り専用整理。製品変更、fixture操作、Simulator操作、SDK再実行、test追加実行、独立validationは行っていない。",
+    "通信要求受付と永続化、native表示、読み取り照合を扱う。実際のupload開始/完了、正式capture→save producer、実機の品質・PRD全体の受入は未確認。",
+    "global SDK/Photos/Keychain/network 呼出数0は未測定。VERIFYのdirect action範囲とnativeSDKInventory=notMeasuredを区別する。",
+    "MAXはrunnerのOS文字設定が要求値と一致した記録と復元記録を根拠とする。App内mock/font設定の注入は行わない固定UIを使用。"
+  ],
+  "outputOwnership": {
+    "onlyNewFile": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-146-153-main-handoff.json",
+    "sourceEdits": false,
+    "priorArtifactEdits": false,
+    "attachmentExportFilesCreated": false,
+    "simulatorOrSDKRuntimeCommands": false
+  }
+}

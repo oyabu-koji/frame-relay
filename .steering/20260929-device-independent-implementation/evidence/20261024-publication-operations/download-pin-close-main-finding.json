@@ -1,0 +1,9 @@
+{
+  "id": "DL-PIN-CLOSE-01",
+  "origin": "main implementation diff review, before runtime",
+  "problem": "Failed pin opens FD then try? close could hide failed actualclose; source=nil/inflightfalse mustnot prove noartifact FD0",
+  "resolution": "retain unknownPinHandle in same slot, seal futurepins, no blind retry reusedFDnumber, no unpinnedclosure while unknownhandle exists; SourceFile revoke/join/actualclose guards retained",
+  "state": "App9 implemented/technical closefault test beingdefined, notyetverified",
+  "scope": "local resourceclosure only, not server GET-admit/media permission/verifiedtemporary",
+  "createdUTC": "2026-10-24T22:26:59.718004+00:00"
+}

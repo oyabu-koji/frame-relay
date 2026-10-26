@@ -1,0 +1,50 @@
+{
+  "task": "S28 local complete rendition playback and explicit singular confirmation consumer",
+  "status": "done: fully local rendition single playback part, stage02",
+  "owner": "worker manifest_projection (new sequential ownership, old task released)",
+  "baseline_binding": "DI-SOURCE-20261024-01",
+  "files": [
+    "FrameRelay/Application/Ports/LibraryRenditionPorts.swift",
+    "FrameRelay/Application/Library/LocalRenditionSelection.swift",
+    "FrameRelay/Application/Library/RenditionPlaybackLibraryCommands.swift",
+    "FrameRelay/Composition/ProductRenditionFactory.swift",
+    "FrameRelay/Features/Playback/RenditionPlaybackModel.swift",
+    "FrameRelay/Features/Playback/RenditionPlaybackView.swift",
+    "FrameRelay/Application/Library/LibrarySnapshot.swift",
+    "FrameRelay/Application/Library/LibraryStoreReader.swift",
+    "FrameRelay/Features/Library/LibraryModel.swift",
+    "FrameRelay/Features/Library/LibraryView.swift",
+    "FrameRelay/Composition/ProductComposition.swift",
+    "FrameRelay/ContentView.swift",
+    "FrameRelay/Application/MediaIO/RenditionMediaScope.swift",
+    "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift",
+    "FrameRelayTests/Support/ProductRenditionFixture.swift",
+    "FrameRelayTests/Integration/Composition/ProductRenditionCompositionTests.swift",
+    "FrameRelayTests/Application/RenditionPlaybackModelTests.swift",
+    "FrameRelayTests/Support/ProductRenditionPresentationMovie.swift"
+  ],
+  "future_test_owner": {
+    "worker": "publication_ui",
+    "files": [
+      "FrameRelayTests/Integration/Composition/ProductLocalRenditionSeedTests.swift",
+      "FrameRelayUITests/Flows/LocalRenditionFlowTests.swift"
+    ],
+    "not_yet_authorized_to_edit": false,
+    "constraints": "Same S28 local subtask, own only new seed/UI2 files; coordinate frozen APIs with core worker, new dedicated simulator only, one seed fixed normal/max pairs with no repair/reseed"
+  },
+  "constraints": [
+    "other workers exist, do not revert their changes",
+    "old fixtures/evidence/Photos/Keychain/originals/P2 files preserved",
+    "same writer/registry, existing-only rendition root, no formal producer or positive network claim",
+    "main owns steering/evidence/commands/review, author owns docs4"
+  ],
+  "extra_test_material_owner": {
+    "worker": "manifest_projection",
+    "files": [
+      "FrameRelayTests/Support/ProductRenditionPresentationMovie.swift",
+      "FrameRelayTests/Support/ProductRenditionFixture.swift"
+    ],
+    "reason": "new dedicated root only: bounded native 180s movie forAX5 fullscroll; no existingfixture repair/reseed/legacybase change"
+  },
+  "binding": "DI-SOURCE-20261024-02"
+}

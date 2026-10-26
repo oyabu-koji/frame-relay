@@ -1,0 +1,2689 @@
+{
+  "schema": "fr-request-control-render-172-173-evidence-check-v1",
+  "purposeJapanese": "mainの実装中証跡整理。DI19の担当Control readonly UI実行の照合であり、独立implementation validationではない。",
+  "conclusionJapanese": "normal172/MAX173はともに正式PASS1・skip0・診断0。各runでlocal cancelledとwaiting pausedのstrict7 auditを2回実施し、全4回の前後attachmentが対応・issue0。各13件のnative全文が期待値と一致し、各person/metadata業務tap0、navigation tap2。全395codeは両run前後・DI19と一致し、6保全files+sourceInputのhash/bytes/device/inode不変・字体large復元を確認。旧149 FAIL/Contrast1は保持し、全history/SDK/旧wholeflow成功の証拠へ拡張しない。",
+  "createdAtUTC": "2026-10-24 21:15:31 UTC",
+  "bothRunsOfficiallyFinished": true,
+  "sourceBinding": {
+    "bindingID": "DI-SOURCE-20261025-19",
+    "bindingFile": {
+      "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-render-candidate-01/source-binding.json",
+      "sha256": "d1d381f55cdedb43715d28feaa9e46a392491cfd2c97fbb8c5efa483e83464be",
+      "bytes": 125388
+    },
+    "snapshot": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-render-candidate-01/source-snapshot",
+    "sourceManifestSHA256": "54f3dbe23b036f244d391e5fd8805872b0675f1d3c1ab841ac6e09a4fd5659e4",
+    "codeFingerprint": "e99b46dda70b7bd46533752a3c139ae1453dc249d1e633b3c1413e583083832b",
+    "inputCounts": {
+      "steering input": 2,
+      "server support": 97,
+      "stable document": 6,
+      "App/Unit/UI/project": 395,
+      "total": 500
+    },
+    "actualAll500BindingsMatch": true,
+    "boundFileIdentityFingerprint": "a766069063eb0ce37ea89f789fcc5a9363d62e5171a8ad5fd4f8e08325c829dc",
+    "changedFromDI18": [
+      "FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift"
+    ],
+    "other499InputsExactlyMatchDI18": true,
+    "derivation": {
+      "parent_id": "DI-SOURCE-20261025-18",
+      "parent_stage": "photo-final-candidate-02",
+      "parent_source_manifest_sha256": "a3766d6eab9d3d98d5b39e5079bb6298929d46a90638e76dfa746518a4cff523",
+      "only_changed_files": [
+        "FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift"
+      ],
+      "reason": "Only new read-only final localCancelled and waitingPaused native scene inspection phase; old fullflow exact restored by removing addedblock. Production, Unit, project and docs all exactly DI18; no new business action or sourcefixture repair.",
+      "added_files": [],
+      "overlay_sources": {
+        "FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift": "/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift"
+      },
+      "all_other_input_bytes_match_parent": true,
+      "current_workspace_other_changes_excluded": true
+    },
+    "UI": {
+      "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-render-candidate-01/source-snapshot/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift",
+      "sha256": "d639859fbdb6dc28e0b0c0cf166c515079636654321735eb81d06f29e68d9f9d",
+      "bytes": 40073
+    },
+    "parentBinding": {
+      "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/photo-final-candidate-02/source-binding.json",
+      "sha256": "8a271bcc5d86d6712d336fa1a0fe60494809c5de5ad48932160f3f80313bc047",
+      "bytes": 124491
+    }
+  },
+  "oldUIBodyRestoration": {
+    "exactMatchToDI18AfterRemovingOnlyAddedPhase": true,
+    "restoredSHA256": "2d3b75c3de2b77662ed33906cc694f7d6877cae26b37555d39f9bc1f1c9233f0",
+    "restoredBytes": 38342,
+    "currentUI_SHA256": "d639859fbdb6dc28e0b0c0cf166c515079636654321735eb81d06f29e68d9f9d"
+  },
+  "strictAuditContract": {
+    "types": [
+      "dynamicType",
+      "textClipped",
+      "sufficientElementDescription",
+      "trait",
+      "hitRegion",
+      "elementDetection",
+      "contrast"
+    ],
+    "handlerReturnsFalse": true,
+    "filterOrSuppression": false,
+    "sourcePhaseLine": 184,
+    "sourceAuditDefinitionLine": 518,
+    "sourceAuditCallLine": 525,
+    "falseHandlerLine": 531,
+    "sourceUI_SHA256": "d639859fbdb6dc28e0b0c0cf166c515079636654321735eb81d06f29e68d9f9d",
+    "countsAcrossOnlyTheseTwoRuns": {
+      "invocations": 4,
+      "issueCallbacks": 0
+    },
+    "noteJapanese": "各runの2回はそれぞれ7カテゴリを要求したnative audit呼出回数。過去149等の監査を合算した値ではない。"
+  },
+  "runs": {
+    "172": {
+      "name": "request-control-render-normal-172",
+      "variant": "normal",
+      "result": {
+        "exit_code": 0,
+        "started_at": "2026-10-24T20:54:41.626057+00:00",
+        "finished_at": "2026-10-24T20:57:42.321658+00:00",
+        "seconds": 180.69413920887746,
+        "source_fingerprint": "e99b46dda70b7bd46533752a3c139ae1453dc249d1e633b3c1413e583083832b",
+        "source_files": 395,
+        "sources_unchanged": true,
+        "changed_inputs": []
+      },
+      "tests": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "DF5792DA-974B-484E-AABE-CEB35BE81671",
+              "deviceName": "FrameRelay Request Controls normal 20261024 l0p333tn",
+              "modelName": "iPhone 18 Pro",
+              "osBuildNumber": "24A434",
+              "osVersion": "27.0",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 1,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "FrameRelay · Built with macOS 26.6.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1792875461.672,
+        "passedTests": 1,
+        "result": "Passed",
+        "runtimeWarnings": [],
+        "skippedTests": 0,
+        "startTime": 1792875282.415,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - FrameRelay",
+        "topInsights": [],
+        "totalTestCount": 1
+      },
+      "diagnostics": {
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "testDurationSeconds": [
+        61.21602702140808
+      ],
+      "phase": "inspectFinalPausedWaiting",
+      "derivedDirectory": "DerivedData-controls-readonly-normal",
+      "all395CodeSignaturesMatchBindingAndEachOther": true,
+      "sourcePreservation": {
+        "before": {
+          "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+          "bytes": 2907110,
+          "device": 16777234,
+          "inode": 33015426
+        },
+        "after": {
+          "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+          "bytes": 2907110,
+          "device": 16777234,
+          "inode": 33015426
+        },
+        "unchanged": true,
+        "repositoryBefore": {
+          "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-render-candidate-01/source-snapshot",
+          "binding": "DI-SOURCE-20261025-19",
+          "bindingFile": {
+            "sha256": "d1d381f55cdedb43715d28feaa9e46a392491cfd2c97fbb8c5efa483e83464be",
+            "bytes": 125388,
+            "device": 16777234,
+            "inode": 33635392
+          },
+          "sourceManifestSHA256": "54f3dbe23b036f244d391e5fd8805872b0675f1d3c1ab841ac6e09a4fd5659e4",
+          "codeFingerprint": "e99b46dda70b7bd46533752a3c139ae1453dc249d1e633b3c1413e583083832b",
+          "codeFiles": 395,
+          "device": 16777234,
+          "inode": 33634816,
+          "boundFileIdentityFingerprint": "a766069063eb0ce37ea89f789fcc5a9363d62e5171a8ad5fd4f8e08325c829dc"
+        },
+        "repositoryAfter": {
+          "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-render-candidate-01/source-snapshot",
+          "binding": "DI-SOURCE-20261025-19",
+          "bindingFile": {
+            "sha256": "d1d381f55cdedb43715d28feaa9e46a392491cfd2c97fbb8c5efa483e83464be",
+            "bytes": 125388,
+            "device": 16777234,
+            "inode": 33635392
+          },
+          "sourceManifestSHA256": "54f3dbe23b036f244d391e5fd8805872b0675f1d3c1ab841ac6e09a4fd5659e4",
+          "codeFingerprint": "e99b46dda70b7bd46533752a3c139ae1453dc249d1e633b3c1413e583083832b",
+          "codeFiles": 395,
+          "device": 16777234,
+          "inode": 33634816,
+          "boundFileIdentityFingerprint": "a766069063eb0ce37ea89f789fcc5a9363d62e5171a8ad5fd4f8e08325c829dc"
+        },
+        "repositoryUnchanged": true,
+        "seedArtifactUnchanged": true,
+        "sourceMetadataUnchanged": true,
+        "existingHelpersUnchanged": true,
+        "phase": "inspectFinalPausedWaiting",
+        "derivedDirectory": "DerivedData-controls-readonly-normal"
+      },
+      "fontSetting": {
+        "requested": "large",
+        "observed": "large",
+        "before": "large"
+      },
+      "preservation": {
+        "retainedHashesAndInodesUnchanged": true,
+        "missing": [],
+        "allowedUnlink": [],
+        "added": [],
+        "changed": [],
+        "allExpectedSyntheticUnlink": true,
+        "contentSizeRestored": "large",
+        "expectedRestore": "large"
+      },
+      "fixtureBeforeBase": "/Users/oyabu/Library/Developer/CoreSimulator/Devices/DF5792DA-974B-484E-AABE-CEB35BE81671/data/Containers/Data/Application/F050D5C2-731F-4B52-9239-F48E0663F5B6/Library/Application Support",
+      "fixtureAfterBase": "/Users/oyabu/Library/Developer/CoreSimulator/Devices/DF5792DA-974B-484E-AABE-CEB35BE81671/data/Containers/Data/Application/994042F1-B674-49D3-9F28-72CBDB93AB9E/Library/Application Support",
+      "fixtureFileSignatures": {
+        "s28-media-request-control-external-2a348f92-1908-4f90-b8ee-022db9af9292.mov": {
+          "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+          "bytes": 2907110,
+          "device": 16777234,
+          "inode": 33066059
+        },
+        "FrameRelayLibrary/synthetic-original-rc-2a348f92-local.reservation": {
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "device": 16777234,
+          "inode": 33066055
+        },
+        "FrameRelayLibrary/synthetic-original-rc-2a348f92-local.mov": {
+          "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+          "bytes": 2907110,
+          "device": 16777234,
+          "inode": 33066056
+        },
+        "FrameRelayLibrary/request-control-source-2a348f92-1908-4f90-b8ee-022db9af9292.mov": {
+          "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+          "bytes": 2907110,
+          "device": 16777234,
+          "inode": 33066054
+        },
+        "FrameRelayLibrary/run.marker": {
+          "sha256": "6799d0120e8097713bc31b23b326bcf411279f0f144bd4b7f050229a025e301c",
+          "bytes": 30,
+          "device": 16777234,
+          "inode": 33028345
+        },
+        "FrameRelayLibrary/s28-media-request-control-seed.json": {
+          "sha256": "08a0e2c9aeccc98b83eccc835c618decd7e9965c453ab63b7531f3b7aee3652c",
+          "bytes": 36279,
+          "device": 16777234,
+          "inode": 33066060
+        }
+      },
+      "expected": {
+        "manifest": {
+          "bytes": 36279,
+          "device": 16777234,
+          "inode": 33066060,
+          "sha256": "08a0e2c9aeccc98b83eccc835c618decd7e9965c453ab63b7531f3b7aee3652c"
+        },
+        "nonce": "2a348f92-1908-4f90-b8ee-022db9af9292",
+        "schema": "fr-s28-media-request-control-ui-v1",
+        "simulator": "DF5792DA-974B-484E-AABE-CEB35BE81671",
+        "storeUUID": "E34D8008-74B0-4F93-9CCF-EAFF54292F61",
+        "targets": [
+          {
+            "capture": "rc-2a348f92-local",
+            "operation": "208be315-67f9-44e3-99a6-fae3c0a22b59",
+            "requestToken": "MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+            "role": "local",
+            "startRevision": 5
+          },
+          {
+            "capture": "rc-2a348f92-waiting",
+            "operation": "038412fc-677b-4d3d-b3b8-ebe297c985fe",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtMmEzNDhmOTItd2FpdGluZw==.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "41e005ab-344a-4af0-9422-6f3e9899d62d",
+            "requestToken": "MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+            "role": "waiting",
+            "startRevision": 7
+          },
+          {
+            "capture": "rc-2a348f92-cancelled",
+            "operation": "86017ecc-3811-4895-ac0f-7001024809b7",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtMmEzNDhmOTItY2FuY2VsbGVk.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "83e379af-054d-4287-b12f-7c3228b897fd",
+            "requestToken": "ODYwMTdlY2MtMzgxMS00ODk1LWFjMGYtNzAwMTAyNDgwOWI3",
+            "role": "cancelled",
+            "startRevision": 12
+          },
+          {
+            "capture": "rc-2a348f92-completed",
+            "operation": "66805858-eeba-44aa-b0d5-5afcd8068491",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtMmEzNDhmOTItY29tcGxldGVk.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "31a8751e-7b9c-4d7d-a27b-a9e090eb8a09",
+            "requestToken": "NjY4MDU4NTgtZWViYS00NGFhLWIwZDUtNWFmY2Q4MDY4NDkx",
+            "role": "completed",
+            "startRevision": 15
+          },
+          {
+            "capture": "rc-2a348f92-ended",
+            "operation": "3cff1492-2d0a-4ab0-888a-842102855a27",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtMmEzNDhmOTItZW5kZWQ=.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "035e7902-065c-42f3-8bab-f510f8e4e93b",
+            "requestToken": "M2NmZjE0OTItMmQwYS00YWIwLTg4OGEtODQyMTAyODU1YTI3",
+            "role": "ended",
+            "startRevision": 18
+          }
+        ],
+        "variant": "normal"
+      },
+      "manifest": {
+        "bytes": 36279,
+        "device": 16777234,
+        "inode": 33066060,
+        "sha256": "08a0e2c9aeccc98b83eccc835c618decd7e9965c453ab63b7531f3b7aee3652c"
+      },
+      "nativeTaps": [
+        {
+          "line": 2572,
+          "elapsedSeconds": 8.92,
+          "nativeActivity": "\"library.itemTitle.rc-2a348f92-local\" StaticText"
+        },
+        {
+          "line": 2822,
+          "elapsedSeconds": 22.64,
+          "nativeActivity": "\"BackButton\" Button"
+        }
+      ],
+      "businessTaps": 0,
+      "metadataTaps": 0,
+      "navigationTaps": 2,
+      "swipeUpCount": 12,
+      "swipeDownCount": 0,
+      "nativeDragActivityCount": 0,
+      "evidenceFiles": [
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-normal-172/result.json",
+          "sha256": "e33efdb6f28aa88a9eb63cd3eaac6939328875ac6994a14e6c1c5c068af78b8c",
+          "bytes": 6506
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-normal-172/command.json",
+          "sha256": "486a52a36fa713875128833ab0f0cb8c23162ff68c0a0dccdfdefc6afd10ef66",
+          "bytes": 4374
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-normal-172/tests.json",
+          "sha256": "b0515114436d225e3d6230df751a5b6f2b2e63ff1301e8ee920718d780459b3b",
+          "bytes": 1042
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-normal-172/tree.json",
+          "sha256": "8a334e7c8d93cb03e6aa5758f5aca079c12f230ba724b9fc534df5f502010c91",
+          "bytes": 1816
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-normal-172/build.json",
+          "sha256": "ba3b6bd8c7407c59e80ae2b299e73da3b8f60e0ca8dd264aeac4916fabb8abac",
+          "bytes": 622
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-normal-172/stdout.log",
+          "sha256": "ea2b8a9abe9268d5426d8a9f1fce3c772e224824b6faa82cd5385b13048908b5",
+          "bytes": 647890
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-normal-172/sources-before.json",
+          "sha256": "7e07b0b078c0637b6f3329bd11abbcc1940a8e492e50629136163f2cfbed11b2",
+          "bytes": 68732
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-normal-172/sources-after.json",
+          "sha256": "7e07b0b078c0637b6f3329bd11abbcc1940a8e492e50629136163f2cfbed11b2",
+          "bytes": 68732
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-normal-172-conditions.json",
+          "sha256": "f0c85e57eb11abac5d8fb7677a7af0a7ccd15956c02cf75afb7d91b5fc4867ed",
+          "bytes": 3514
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-normal-172-preservation.json",
+          "sha256": "cae23cfba41ef6ce2f9c5ce6bf75f07e1213cad918dd59337c81643be600f236",
+          "bytes": 220
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-normal-172-source-preservation.json",
+          "sha256": "5698bb98929c760a34df12f8b96e6266e825e788cd14e80e3b7d8973b9d763d4",
+          "bytes": 2223
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-normal-172-fixture-before.json",
+          "sha256": "118371aa26cc24e5fe3574ea9e425daf0354306cd0461f16068c5faa2363ecb2",
+          "bytes": 1618
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-normal-172-fixture-after.json",
+          "sha256": "d9c73c6d8d8e95ac44e92529cf76a40dcd7dd18d3ca1ad1eb99dfa481d4cf121",
+          "bytes": 1618
+        }
+      ],
+      "actualStrictAudits": {
+        "testID": "MediaRequestControlFlowTests/testExistingRequestsPersonIntentFixedAllPauseAndRelaunch()",
+        "query": [
+          "/Applications/Xcode.app/Contents/Developer/usr/bin/xcresulttool",
+          "get",
+          "test-results",
+          "activities",
+          "--path",
+          "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-normal-172/result.xcresult",
+          "--test-id",
+          "MediaRequestControlFlowTests/testExistingRequestsPersonIntentFixedAllPauseAndRelaunch()",
+          "--compact"
+        ],
+        "queryExit": 0,
+        "beforeCount": 2,
+        "afterCount": 2,
+        "issueCallbackAttachmentCount": 0,
+        "pairs": [
+          {
+            "name": "normal-inspect-final-local-cancelled-controls",
+            "beforeUnixUTC": 1792875420.238,
+            "afterUnixUTC": 1792875422.552,
+            "beforeUUID": "260576A7-E6A7-4767-87F9-49CA50BEC192",
+            "afterUUID": "0E9A2B4F-0295-4BC5-81A0-335973E70336"
+          },
+          {
+            "name": "normal-inspect-final-paused-waiting-controls",
+            "beforeUnixUTC": 1792875458.27,
+            "afterUnixUTC": 1792875460.462,
+            "beforeUUID": "21837090-8F86-4672-9317-A4C93C47E7EE",
+            "afterUUID": "AE4383E5-61E6-4085-B76F-9971360F5E8C"
+          }
+        ],
+        "stdoutNamesMatchActivities": true
+      },
+      "nativeStateRows": [
+        {
+          "role": "local",
+          "capture": "rc-2a348f92-local",
+          "operation": "208be315-67f9-44e3-99a6-fae3c0a22b59",
+          "requestToken": "MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+          "rendition": null,
+          "intent": "cancelled",
+          "waits": [],
+          "transportRecord": "開始待ち; actual SDK termination/release unmeasured",
+          "actions": [
+            {
+              "line": 65,
+              "identifier": "library.request.pause.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+              "action": "pause",
+              "label": "この通信を停止",
+              "enabled": false,
+              "frame": [
+                32,
+                315,
+                338,
+                44
+              ],
+              "hittableInTree": null,
+              "minimum44WidthHeightObserved": true,
+              "hittableAtSequentialAssertControl": null,
+              "hittableEvidence": "Disabled: no hittable requirement/value asserted in the preserved source contract."
+            },
+            {
+              "line": 68,
+              "identifier": "library.request.cancel.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+              "action": "cancel",
+              "label": "この通信を取り消す",
+              "enabled": false,
+              "frame": [
+                32,
+                412,
+                338,
+                44
+              ],
+              "hittableInTree": null,
+              "minimum44WidthHeightObserved": true,
+              "hittableAtSequentialAssertControl": null,
+              "hittableEvidence": "Disabled: no hittable requirement/value asserted in the preserved source contract."
+            },
+            {
+              "line": 71,
+              "identifier": "library.request.resumeIntent.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+              "action": "resumeIntent",
+              "label": "停止を解除して待機",
+              "enabled": false,
+              "frame": [
+                32,
+                509,
+                338,
+                44
+              ],
+              "hittableInTree": null,
+              "minimum44WidthHeightObserved": true,
+              "hittableAtSequentialAssertControl": null,
+              "hittableEvidence": "Disabled: no hittable requirement/value asserted in the preserved source contract."
+            }
+          ],
+          "disabledReason": "この通信要求は本人取消済みです。"
+        },
+        {
+          "role": "waiting",
+          "capture": "rc-2a348f92-waiting",
+          "operation": "038412fc-677b-4d3d-b3b8-ebe297c985fe",
+          "requestToken": "MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+          "rendition": "41e005ab-344a-4af0-9422-6f3e9899d62d",
+          "intent": "paused",
+          "waits": [
+            "Wi-Fi条件",
+            "撮影中",
+            "認証"
+          ],
+          "transportRecord": "開始待ち; actual SDK termination/release unmeasured",
+          "actions": [
+            {
+              "line": 45,
+              "identifier": "library.request.pause.MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+              "action": "pause",
+              "label": "この通信を停止",
+              "enabled": false,
+              "frame": [
+                48,
+                84.7,
+                306,
+                44
+              ],
+              "hittableInTree": null,
+              "minimum44WidthHeightObserved": true,
+              "hittableAtSequentialAssertControl": null,
+              "hittableEvidence": "Disabled: no hittable requirement/value asserted in the preserved source contract."
+            },
+            {
+              "line": 48,
+              "identifier": "library.request.cancel.MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+              "action": "cancel",
+              "label": "この通信を取り消す",
+              "enabled": true,
+              "frame": [
+                48,
+                181.7,
+                306,
+                44
+              ],
+              "hittableInTree": null,
+              "minimum44WidthHeightObserved": true,
+              "hittableAtSequentialAssertControl": true,
+              "hittableEvidence": "DI19 source336–337 executes XCTAssertTrue/guard; PASS with no failure. Raw tree does not expose a hittable boolean."
+            },
+            {
+              "line": 50,
+              "identifier": "library.request.resumeIntent.MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+              "action": "resumeIntent",
+              "label": "停止を解除して待機",
+              "enabled": true,
+              "frame": [
+                48,
+                241.7,
+                306,
+                44
+              ],
+              "hittableInTree": null,
+              "minimum44WidthHeightObserved": true,
+              "hittableAtSequentialAssertControl": true,
+              "hittableEvidence": "DI19 source336–337 executes XCTAssertTrue/guard; PASS with no failure. Raw tree does not expose a hittable boolean."
+            }
+          ],
+          "disabledReason": "本人停止の記録があります。"
+        }
+      ],
+      "nativeFullText": {
+        "count": 13,
+        "allExactlyEqualExpected": true,
+        "rows": [
+          {
+            "uuid": "6CDA49CC-8907-49A7-BEE2-E21CADE91DE2",
+            "identifier": "library.itemTitle.rc-2a348f92-local",
+            "type": 48,
+            "frame": [
+              32,
+              382.3333333333333,
+              338,
+              21
+            ],
+            "enabled": true,
+            "label": "動画 rc-2a348f92-local",
+            "expected": "動画 rc-2a348f92-local",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/6CDA49CC-8907-49A7-BEE2-E21CADE91DE2.txt"
+          },
+          {
+            "uuid": "3A4424C1-EFF4-469B-AFE9-B054BEAEEB82",
+            "identifier": "library.request.identity.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+            "type": 48,
+            "frame": [
+              32,
+              463,
+              338,
+              21
+            ],
+            "enabled": true,
+            "label": "対象：動画 rc-2a348f92-local・原本",
+            "expected": "対象：動画 rc-2a348f92-local・原本",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/3A4424C1-EFF4-469B-AFE9-B054BEAEEB82.txt"
+          },
+          {
+            "uuid": "D4C4EEA8-6196-41C8-83F8-341E091A2F0B",
+            "identifier": "library.request.intent.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+            "type": 48,
+            "frame": [
+              32,
+              500,
+              338,
+              21
+            ],
+            "enabled": true,
+            "label": "本人の意思：取消の記録あり",
+            "expected": "本人の意思：取消の記録あり",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/D4C4EEA8-6196-41C8-83F8-341E091A2F0B.txt"
+          },
+          {
+            "uuid": "61210F1B-997B-4110-A79C-82076FB4E21E",
+            "identifier": "library.request.waits.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+            "type": 48,
+            "frame": [
+              32,
+              537,
+              338,
+              43
+            ],
+            "enabled": true,
+            "label": "待機条件：記録なし（通信の開始・再開を保証しません）",
+            "expected": "待機条件：記録なし（通信の開始・再開を保証しません）",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/61210F1B-997B-4110-A79C-82076FB4E21E.txt"
+          },
+          {
+            "uuid": "AB71DD1B-1C2E-44D8-8BD7-A3541F9CDD06",
+            "identifier": "library.request.transport.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+            "type": 48,
+            "frame": [
+              32,
+              596,
+              338,
+              43
+            ],
+            "enabled": true,
+            "label": "通信状態の記録：開始待ち。通信処理の終了・媒体の使用解放は別に確認が必要です。",
+            "expected": "通信状態の記録：開始待ち。通信処理の終了・媒体の使用解放は別に確認が必要です。",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/AB71DD1B-1C2E-44D8-8BD7-A3541F9CDD06.txt"
+          },
+          {
+            "uuid": "980FFAD6-ABD2-4590-8AEA-31A3B37060BA",
+            "identifier": "library.request.reason.pause.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+            "type": 48,
+            "frame": [
+              32,
+              375,
+              338,
+              21
+            ],
+            "enabled": true,
+            "label": "この通信要求は本人取消済みです。",
+            "expected": "この通信要求は本人取消済みです。",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/980FFAD6-ABD2-4590-8AEA-31A3B37060BA.txt"
+          },
+          {
+            "uuid": "8A9912CA-B80A-4BE2-8076-F9BDE3C9A186",
+            "identifier": "library.request.reason.cancel.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+            "type": 48,
+            "frame": [
+              32,
+              472,
+              338,
+              21
+            ],
+            "enabled": true,
+            "label": "この通信要求は本人取消済みです。",
+            "expected": "この通信要求は本人取消済みです。",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/8A9912CA-B80A-4BE2-8076-F9BDE3C9A186.txt"
+          },
+          {
+            "uuid": "B4F9F171-5E05-491F-A64C-7C1B9DDF0B97",
+            "identifier": "library.request.reason.resumeIntent.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+            "type": 48,
+            "frame": [
+              32,
+              569,
+              338,
+              21
+            ],
+            "enabled": true,
+            "label": "この通信要求は本人取消済みです。",
+            "expected": "この通信要求は本人取消済みです。",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/B4F9F171-5E05-491F-A64C-7C1B9DDF0B97.txt"
+          },
+          {
+            "uuid": "E23101CA-8DA0-4820-A1FB-C86D4617FA32",
+            "identifier": "library.request.identity.MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+            "type": 48,
+            "frame": [
+              48,
+              494.66666666666606,
+              306,
+              87
+            ],
+            "enabled": true,
+            "label": "対象：動画 rc-2a348f92-waiting・軽量版ID：41e005ab-344a-4af0-9422-6f3e9899d62d",
+            "expected": "対象：動画 rc-2a348f92-waiting・軽量版ID：41e005ab-344a-4af0-9422-6f3e9899d62d",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/E23101CA-8DA0-4820-A1FB-C86D4617FA32.txt"
+          },
+          {
+            "uuid": "82B2597F-B81E-4E45-AD46-C092E50CE720",
+            "identifier": "library.request.intent.MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+            "type": 48,
+            "frame": [
+              48,
+              597.6666666666661,
+              306,
+              21
+            ],
+            "enabled": true,
+            "label": "本人の意思：停止の記録あり",
+            "expected": "本人の意思：停止の記録あり",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/82B2597F-B81E-4E45-AD46-C092E50CE720.txt"
+          },
+          {
+            "uuid": "66EE902D-E2BA-4937-8A61-D02103662026",
+            "identifier": "library.request.waits.MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+            "type": 48,
+            "frame": [
+              48,
+              634.6666666666661,
+              306,
+              21
+            ],
+            "enabled": true,
+            "label": "待機条件：Wi-Fi条件、撮影中、認証",
+            "expected": "待機条件：Wi-Fi条件、撮影中、認証",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/66EE902D-E2BA-4937-8A61-D02103662026.txt"
+          },
+          {
+            "uuid": "4E1741DE-0717-4312-BD3C-73A56631648D",
+            "identifier": "library.request.transport.MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+            "type": 48,
+            "frame": [
+              48,
+              671.6666666666661,
+              306,
+              65
+            ],
+            "enabled": true,
+            "label": "通信状態の記録：開始待ち。通信処理の終了・媒体の使用解放は別に確認が必要です。",
+            "expected": "通信状態の記録：開始待ち。通信処理の終了・媒体の使用解放は別に確認が必要です。",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/4E1741DE-0717-4312-BD3C-73A56631648D.txt"
+          },
+          {
+            "uuid": "7AF3429F-65A0-4A8A-BD2D-158D20E8262B",
+            "identifier": "library.request.reason.pause.MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+            "type": 48,
+            "frame": [
+              48,
+              812.6666666666661,
+              306,
+              21
+            ],
+            "enabled": true,
+            "label": "本人停止の記録があります。",
+            "expected": "本人停止の記録があります。",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/7AF3429F-65A0-4A8A-BD2D-158D20E8262B.txt"
+          }
+        ]
+      },
+      "actualAuditTrees": [
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/0EA1EA26-1208-4278-B4AF-69C27270084A.txt",
+          "uuid": "0EA1EA26-1208-4278-B4AF-69C27270084A",
+          "navigationBars": [
+            {
+              "line": 10,
+              "title": "動画の詳細",
+              "frame": [
+                0,
+                62,
+                402,
+                54
+              ]
+            }
+          ],
+          "personControls": [
+            {
+              "line": 65,
+              "identifier": "library.request.pause.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+              "action": "pause",
+              "label": "この通信を停止",
+              "enabled": false,
+              "frame": [
+                32,
+                315,
+                338,
+                44
+              ],
+              "hittableInTree": null
+            },
+            {
+              "line": 68,
+              "identifier": "library.request.cancel.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+              "action": "cancel",
+              "label": "この通信を取り消す",
+              "enabled": false,
+              "frame": [
+                32,
+                412,
+                338,
+                44
+              ],
+              "hittableInTree": null
+            },
+            {
+              "line": 71,
+              "identifier": "library.request.resumeIntent.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+              "action": "resumeIntent",
+              "label": "停止を解除して待機",
+              "enabled": false,
+              "frame": [
+                32,
+                509,
+                338,
+                44
+              ],
+              "hittableInTree": null
+            }
+          ],
+          "role": "normal-inspect-final-local-cancelled-controls-accessibility-after-tree"
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/200BEC34-B6F2-42EE-BBC3-5A54AD94AA29.txt",
+          "uuid": "200BEC34-B6F2-42EE-BBC3-5A54AD94AA29",
+          "navigationBars": [
+            {
+              "line": 10,
+              "title": "ライブラリ",
+              "frame": [
+                0,
+                62,
+                402,
+                54
+              ]
+            }
+          ],
+          "personControls": [
+            {
+              "line": 45,
+              "identifier": "library.request.pause.MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+              "action": "pause",
+              "label": "この通信を停止",
+              "enabled": false,
+              "frame": [
+                48,
+                84.7,
+                306,
+                44
+              ],
+              "hittableInTree": null
+            },
+            {
+              "line": 48,
+              "identifier": "library.request.cancel.MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+              "action": "cancel",
+              "label": "この通信を取り消す",
+              "enabled": true,
+              "frame": [
+                48,
+                181.7,
+                306,
+                44
+              ],
+              "hittableInTree": null
+            },
+            {
+              "line": 50,
+              "identifier": "library.request.resumeIntent.MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+              "action": "resumeIntent",
+              "label": "停止を解除して待機",
+              "enabled": true,
+              "frame": [
+                48,
+                241.7,
+                306,
+                44
+              ],
+              "hittableInTree": null
+            }
+          ],
+          "role": "normal-inspect-final-paused-waiting-controls-accessibility-after-tree"
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/92BCA7B9-1DE3-4B2C-8CC2-D4B6BA0958C5.txt",
+          "uuid": "92BCA7B9-1DE3-4B2C-8CC2-D4B6BA0958C5",
+          "navigationBars": [
+            {
+              "line": 10,
+              "title": "ライブラリ",
+              "frame": [
+                0,
+                62,
+                402,
+                54
+              ]
+            }
+          ],
+          "personControls": [
+            {
+              "line": 45,
+              "identifier": "library.request.pause.MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+              "action": "pause",
+              "label": "この通信を停止",
+              "enabled": false,
+              "frame": [
+                48,
+                84.7,
+                306,
+                44
+              ],
+              "hittableInTree": null
+            },
+            {
+              "line": 48,
+              "identifier": "library.request.cancel.MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+              "action": "cancel",
+              "label": "この通信を取り消す",
+              "enabled": true,
+              "frame": [
+                48,
+                181.7,
+                306,
+                44
+              ],
+              "hittableInTree": null
+            },
+            {
+              "line": 50,
+              "identifier": "library.request.resumeIntent.MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+              "action": "resumeIntent",
+              "label": "停止を解除して待機",
+              "enabled": true,
+              "frame": [
+                48,
+                241.7,
+                306,
+                44
+              ],
+              "hittableInTree": null
+            }
+          ],
+          "role": "normal-inspect-final-paused-waiting-controls-accessibility-before-tree"
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/E1B934C8-446A-4238-B4EE-D452C1FB2297.txt",
+          "uuid": "E1B934C8-446A-4238-B4EE-D452C1FB2297",
+          "navigationBars": [
+            {
+              "line": 10,
+              "title": "動画の詳細",
+              "frame": [
+                0,
+                62,
+                402,
+                54
+              ]
+            }
+          ],
+          "personControls": [
+            {
+              "line": 65,
+              "identifier": "library.request.pause.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+              "action": "pause",
+              "label": "この通信を停止",
+              "enabled": false,
+              "frame": [
+                32,
+                315,
+                338,
+                44
+              ],
+              "hittableInTree": null
+            },
+            {
+              "line": 68,
+              "identifier": "library.request.cancel.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+              "action": "cancel",
+              "label": "この通信を取り消す",
+              "enabled": false,
+              "frame": [
+                32,
+                412,
+                338,
+                44
+              ],
+              "hittableInTree": null
+            },
+            {
+              "line": 71,
+              "identifier": "library.request.resumeIntent.MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+              "action": "resumeIntent",
+              "label": "停止を解除して待機",
+              "enabled": false,
+              "frame": [
+                32,
+                509,
+                338,
+                44
+              ],
+              "hittableInTree": null
+            }
+          ],
+          "role": "normal-inspect-final-local-cancelled-controls-accessibility-before-tree"
+        }
+      ],
+      "independentExpectedValues": {
+        "manifest": {
+          "bytes": 36279,
+          "device": 16777234,
+          "inode": 33066060,
+          "sha256": "08a0e2c9aeccc98b83eccc835c618decd7e9965c453ab63b7531f3b7aee3652c"
+        },
+        "nonce": "2a348f92-1908-4f90-b8ee-022db9af9292",
+        "schema": "fr-s28-media-request-control-ui-v1",
+        "simulator": "DF5792DA-974B-484E-AABE-CEB35BE81671",
+        "storeUUID": "E34D8008-74B0-4F93-9CCF-EAFF54292F61",
+        "targets": [
+          {
+            "capture": "rc-2a348f92-local",
+            "operation": "208be315-67f9-44e3-99a6-fae3c0a22b59",
+            "requestToken": "MjA4YmUzMTUtNjdmOS00NGUzLTk5YTYtZmFlM2MwYTIyYjU5",
+            "role": "local",
+            "startRevision": 5
+          },
+          {
+            "capture": "rc-2a348f92-waiting",
+            "operation": "038412fc-677b-4d3d-b3b8-ebe297c985fe",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtMmEzNDhmOTItd2FpdGluZw==.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "41e005ab-344a-4af0-9422-6f3e9899d62d",
+            "requestToken": "MDM4NDEyZmMtNjc3Yi00ZDNkLWIzYjgtZWJlMjk3Yzk4NWZl",
+            "role": "waiting",
+            "startRevision": 7
+          },
+          {
+            "capture": "rc-2a348f92-cancelled",
+            "operation": "86017ecc-3811-4895-ac0f-7001024809b7",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtMmEzNDhmOTItY2FuY2VsbGVk.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "83e379af-054d-4287-b12f-7c3228b897fd",
+            "requestToken": "ODYwMTdlY2MtMzgxMS00ODk1LWFjMGYtNzAwMTAyNDgwOWI3",
+            "role": "cancelled",
+            "startRevision": 12
+          },
+          {
+            "capture": "rc-2a348f92-completed",
+            "operation": "66805858-eeba-44aa-b0d5-5afcd8068491",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtMmEzNDhmOTItY29tcGxldGVk.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "31a8751e-7b9c-4d7d-a27b-a9e090eb8a09",
+            "requestToken": "NjY4MDU4NTgtZWViYS00NGFhLWIwZDUtNWFmY2Q4MDY4NDkx",
+            "role": "completed",
+            "startRevision": 15
+          },
+          {
+            "capture": "rc-2a348f92-ended",
+            "operation": "3cff1492-2d0a-4ab0-888a-842102855a27",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtMmEzNDhmOTItZW5kZWQ=.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "035e7902-065c-42f3-8bab-f510f8e4e93b",
+            "requestToken": "M2NmZjE0OTItMmQwYS00YWIwLTg4OGEtODQyMTAyODU1YTI3",
+            "role": "ended",
+            "startRevision": 18
+          }
+        ],
+        "variant": "normal"
+      },
+      "readonlyScopeAttachment": "Read-only inspection of the already consumed stage-six fixture: local cancelled and waiting paused controls only. The main runner owns writer/history verification. This phase does not scan parent/child history, re-establish receipt counts, tap person-control or metadata actions, or relaunch the App. Native SDK activity is not inventoried here.",
+      "runnerContentSizeCategoryReference": "UICTContentSizeCategoryL",
+      "runnerCategoryScope": "reference only; Simulator requested/observed native size and rendered point geometry are recorded separately.",
+      "sourceControlAssertions": {
+        "sourceLine": 323,
+        "width44Line": 332,
+        "height44Line": 333,
+        "enabledOnlyHittableLines": [
+          336,
+          337
+        ],
+        "completeFrameRevealHelperPreserved": true,
+        "allPassedDuringThisTest": true
+      },
+      "gestureScope": "Native Tap activities are only local title/back navigation. Other gesture activities are scrolling. No person-control or metadata Tap activity.",
+      "actualHistoryScanCompletionAttachments": 0,
+      "selectedAttachments": [
+        {
+          "role": "media-request-control-independent-expectations",
+          "activityUnixUTC": 1792875400.201,
+          "uuid": "F898CC81-01D3-4261-9FB3-076BB35C6A03",
+          "originalName": "media-request-control-independent-expectations_0_7AD017F7-7C7D-4186-8851-E733D114D5E2.txt",
+          "payloadId": "0~-sqRU8PCau-GFMjh9-2rQzQKt5kVCCuvt_ll81DCJ5GKmtRo9r9netCzBFt_3NLWjVrsZBdj3-Y2kckxfKxFNQ==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/F898CC81-01D3-4261-9FB3-076BB35C6A03.txt",
+          "sha256": "fbf13489774fe09049956c68d40b9a88b506ab698161f4331148d56dc87b67df",
+          "bytes": 2514
+        },
+        {
+          "role": "normal-inspect-final-paused-waiting-scope",
+          "activityUnixUTC": 1792875408.326,
+          "uuid": "4AA610EB-9CE4-4989-916A-26CCD00DFE66",
+          "originalName": "normal-inspect-final-paused-waiting-scope_0_A2193D9A-1097-435D-8258-5F90524E02ED.txt",
+          "payloadId": "0~9rh4BVfW_g76iwuCffqsgbrZGdodI3-Sg23j-v2pjQBAVfSVztJyqVVF21UnahyKLwicBn6ILZ99M8WBlBgtJQ==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/4AA610EB-9CE4-4989-916A-26CCD00DFE66.txt",
+          "sha256": "6bec13bcfe983d037d90bb03e3fea0ce85842c63524dfec3bafc7f35ca9796fa",
+          "bytes": 345
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875408.876,
+          "uuid": "6CDA49CC-8907-49A7-BEE2-E21CADE91DE2",
+          "originalName": "media-request-control-native-full-text_0_F667D09F-D895-4CBD-882F-302F6AB7D33E.txt",
+          "payloadId": "0~-5s4TKe5E5MkmlhhAFObej9E1MUhnyOk7PSpQgnp6XF8Fv977wH6S7JB8nCpfWCzPnWHNcC87H3tZzAv0DVSSg==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/6CDA49CC-8907-49A7-BEE2-E21CADE91DE2.txt",
+          "sha256": "4e725743be15af0a791acc7fb901c5d5abdc5a473c96f767ffaf21e39d2bd0c1",
+          "bytes": 195
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875414.116,
+          "uuid": "3A4424C1-EFF4-469B-AFE9-B054BEAEEB82",
+          "originalName": "media-request-control-native-full-text_0_ECC297A0-32DD-46FB-BB23-1737196B8AE8.txt",
+          "payloadId": "0~RH8eJuY6IdrzU2uF5LepvQIELGPJwAo-Q2FXyG2XGWghpB-G5h69_TU9aY6_4Ym7g8-XXQp7q9yL76ohYG_wLQ==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/3A4424C1-EFF4-469B-AFE9-B054BEAEEB82.txt",
+          "sha256": "9c30c7b5cb129780099f792563a7453af2fa1a72ae4cc47d0ed3b7fbd3019ab3",
+          "bytes": 257
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875414.434,
+          "uuid": "D4C4EEA8-6196-41C8-83F8-341E091A2F0B",
+          "originalName": "media-request-control-native-full-text_0_34BF115D-AF88-4AC3-9D6B-5636010D583B.txt",
+          "payloadId": "0~Gmnr0tjVAAVLgspXGOCs9xUwd1SDLqkj1dsfVwglZxZyfe7kM4x_av7hHQvVlHlgDiE9Uzkj9E5tVspP1bkHjw==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/D4C4EEA8-6196-41C8-83F8-341E091A2F0B.txt",
+          "sha256": "d7d2a005db6cfe12e0cbdbc5328647849680afbc58995cc142c8a3741c6d5f33",
+          "bytes": 249
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875414.752,
+          "uuid": "61210F1B-997B-4110-A79C-82076FB4E21E",
+          "originalName": "media-request-control-native-full-text_0_5562818B-78CA-4189-8233-3C1E546136AB.txt",
+          "payloadId": "0~mQi2RzucZqrRDHtafvlUxOqv5FjBQxSrPY2seLqMtrLE_L8wmH3LTIHHRly7y9w-4ikOhVAT7DFdwp3URGoxqg==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/61210F1B-997B-4110-A79C-82076FB4E21E.txt",
+          "sha256": "457cc1a8058011aa9e32bcf3bbcde20b299181598ac2268de87f5be8e52cf30f",
+          "bytes": 326
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875415.089,
+          "uuid": "AB71DD1B-1C2E-44D8-8BD7-A3541F9CDD06",
+          "originalName": "media-request-control-native-full-text_0_6250D281-1966-4F7E-A5FE-927D817260E4.txt",
+          "payloadId": "0~Yfj8gYqZTX8phJ2TMwkBRN4Legaeze25IffgeNercpz5UCZVJ45ksCthiOF4tMno44K7VGgTH22khQjt82zRDA==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/AB71DD1B-1C2E-44D8-8BD7-A3541F9CDD06.txt",
+          "sha256": "d6fb962416a4a2d36c3ea99aaebb87c1b906fe85128c8ab2dece8aeabfe79116",
+          "bytes": 408
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875418.525,
+          "uuid": "980FFAD6-ABD2-4590-8AEA-31A3B37060BA",
+          "originalName": "media-request-control-native-full-text_0_AB9A1173-DF96-4CDC-845A-B933436533F5.txt",
+          "payloadId": "0~tkPcfDo9uCDlXHGM__B8t_KOozJpeccCYnSSsrgTda7LuV7f8UKSAgivRf6DytJ0sPZzu_7w7OJAZy1OZbpLYQ==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/980FFAD6-ABD2-4590-8AEA-31A3B37060BA.txt",
+          "sha256": "ad0b698d20f70666454a1652c42a80f44c51ea907de3baaf7a4de8f74bb32c0a",
+          "bytes": 273
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875419.282,
+          "uuid": "8A9912CA-B80A-4BE2-8076-F9BDE3C9A186",
+          "originalName": "media-request-control-native-full-text_0_118E9C48-FCE5-4E98-B48F-4B6BDEF4623A.txt",
+          "payloadId": "0~mDVlE3Cx8FYGpgNDJYLLZCg_4ajUjp20rtQboPkJipKOEPVf63hvCPxX7B5D5mwC_VPLoxLW8mFddN-Pl-M0Pg==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/8A9912CA-B80A-4BE2-8076-F9BDE3C9A186.txt",
+          "sha256": "5b6ad579e50246740df697a707f00a7b6ea501d60726bb363cf089b8827ef91d",
+          "bytes": 274
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875420.125,
+          "uuid": "B4F9F171-5E05-491F-A64C-7C1B9DDF0B97",
+          "originalName": "media-request-control-native-full-text_0_4629D809-2A02-404F-A32A-03452B011576.txt",
+          "payloadId": "0~8YXI2CbIogD7ShKUCe1QOk7CFlMPjdxgXrDOn0QjXqz0b-U3NpMa8aD-pExZaqJDV5cTTf5k5HX2sGA9xmiikg==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/B4F9F171-5E05-491F-A64C-7C1B9DDF0B97.txt",
+          "sha256": "842d9500b95fe1f850c7c33a52a6d7af6163314bdb5a30a21f203a8c761d680f",
+          "bytes": 280
+        },
+        {
+          "role": "normal-inspect-final-local-cancelled-controls-accessibility-before",
+          "activityUnixUTC": 1792875420.238,
+          "uuid": "260576A7-E6A7-4767-87F9-49CA50BEC192",
+          "originalName": "normal-inspect-final-local-cancelled-controls-accessibility-before_0_70EC3266-577B-477A-A863-AAA960EB9265.png",
+          "payloadId": "0~4f1k_JcLAkL_OfGKW2L0XpZY_-kAyx8s2fAzrTPXqzBVRUDy_hM9QVZOEcW_-XmM9vV4Wt-2qDqWlVs9CX4HtA==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/260576A7-E6A7-4767-87F9-49CA50BEC192.png",
+          "sha256": "27d5dcfcff4b2f0e94d3385032ee72e56d1c178ad9f9ebef36cca17d20e67b08",
+          "bytes": 384839,
+          "pixelSize": [
+            1206,
+            2622
+          ]
+        },
+        {
+          "role": "normal-inspect-final-local-cancelled-controls-accessibility-before-tree",
+          "activityUnixUTC": 1792875420.379,
+          "uuid": "E1B934C8-446A-4238-B4EE-D452C1FB2297",
+          "originalName": "normal-inspect-final-local-cancelled-controls-accessibility-before-tree_0_84B54B57-50C6-41EB-AFCF-138050871DF7.txt",
+          "payloadId": "0~HVhFJ3E7cTRYCq6pP2qwzhodyAF-Ov3_zIgnTMBxzJ01Xc2VfvrO1tuMrSEaO4uzVAVq6xL92yWxWSfIHmN3Mg==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/E1B934C8-446A-4238-B4EE-D452C1FB2297.txt",
+          "sha256": "074ea4e8d286dab73e741ec1c36daf76b7d2367d124caf1ba1e3aeb475d504b5",
+          "bytes": 21279
+        },
+        {
+          "role": "normal-inspect-final-local-cancelled-controls-accessibility-after",
+          "activityUnixUTC": 1792875422.552,
+          "uuid": "0E9A2B4F-0295-4BC5-81A0-335973E70336",
+          "originalName": "normal-inspect-final-local-cancelled-controls-accessibility-after_0_D90D8CF6-A7EF-421E-9386-AE114A181736.png",
+          "payloadId": "0~4f1k_JcLAkL_OfGKW2L0XpZY_-kAyx8s2fAzrTPXqzBVRUDy_hM9QVZOEcW_-XmM9vV4Wt-2qDqWlVs9CX4HtA==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/0E9A2B4F-0295-4BC5-81A0-335973E70336.png",
+          "sha256": "27d5dcfcff4b2f0e94d3385032ee72e56d1c178ad9f9ebef36cca17d20e67b08",
+          "bytes": 384839,
+          "pixelSize": [
+            1206,
+            2622
+          ]
+        },
+        {
+          "role": "normal-inspect-final-local-cancelled-controls-accessibility-after-tree",
+          "activityUnixUTC": 1792875422.701,
+          "uuid": "0EA1EA26-1208-4278-B4AF-69C27270084A",
+          "originalName": "normal-inspect-final-local-cancelled-controls-accessibility-after-tree_0_8CB16D81-BB13-4F28-87F3-CCFE71C5AA43.txt",
+          "payloadId": "0~on95nSQ0shH4XkeSw1wzBGsflcx4H7GbZ1fLhJ9iLDGmiuNfU_EVuunepQ73QfPRtDCqnQvBr3HyquZ4S8t9cw==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/0EA1EA26-1208-4278-B4AF-69C27270084A.txt",
+          "sha256": "4d02d499cc91546bc3c8bb215f0961388b19c1f72419b07d61b6bb0e7cf50d8e",
+          "bytes": 21279
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875450.87,
+          "uuid": "E23101CA-8DA0-4820-A1FB-C86D4617FA32",
+          "originalName": "media-request-control-native-full-text_0_D8E8A193-7117-4F47-8910-32C110E53F8D.txt",
+          "payloadId": "0~4HxU-WRaQq2Qjhj6l413NYUvsANXkJifv17Pfr7-ES4ZNxpHPnpGcFwv3L26O_sr7o7Fe47KZIqvZH9l9m21mA==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/E23101CA-8DA0-4820-A1FB-C86D4617FA32.txt",
+          "sha256": "0e6979c679a4afa024f0a8a6922d6641ca7dfa830c379a6b96b031152923c997",
+          "bytes": 362
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875451.441,
+          "uuid": "82B2597F-B81E-4E45-AD46-C092E50CE720",
+          "originalName": "media-request-control-native-full-text_0_6AB07D3B-AB5F-4E3A-83BD-684749B5B58C.txt",
+          "payloadId": "0~Y7nxhb1zBAqmlIFOKGiZPOuIfFcC0IKwZOyMkG-ySlqg8J3iuGDpcsUuJyJsWtnc6A-k3zCMwiJ3i348U9uyig==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/82B2597F-B81E-4E45-AD46-C092E50CE720.txt",
+          "sha256": "e584f57c091b63b95ea8e153a4bf0e25924368dd7c4df0e76336ec368e47555b",
+          "bytes": 261
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875452.016,
+          "uuid": "66EE902D-E2BA-4937-8A61-D02103662026",
+          "originalName": "media-request-control-native-full-text_0_6B2EB6CF-3A84-4932-8969-E7C2FCB64AA0.txt",
+          "payloadId": "0~tuFFX2X8OveG-ASAfH-QNEooJAuaOI3u8XTGr3XGgFXIHNXHbs4LNCh_KvVzGPiw33ODtl2ioIBFDpWgJcQMUg==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/66EE902D-E2BA-4937-8A61-D02103662026.txt",
+          "sha256": "205eeb4d3de91501f8c25ba83686d59de1e1b0c97c4cba27489c60ba7e6d01a0",
+          "bytes": 276
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875452.596,
+          "uuid": "4E1741DE-0717-4312-BD3C-73A56631648D",
+          "originalName": "media-request-control-native-full-text_0_A8137D02-EB9D-455E-B702-B7850A4E48D8.txt",
+          "payloadId": "0~6RlAwpIIpZzI55QjChnR5i0wZQWVSMV3GRvVLqBR4f9OVLdzmkGfWZugrqZQmlTahvnQrxw7mwY9sFqP8Bs8rQ==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/4E1741DE-0717-4312-BD3C-73A56631648D.txt",
+          "sha256": "2d96449f62718882e311c0ab3454f02c80f0029d556d4951880e3cefa176745d",
+          "bytes": 420
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875453.909,
+          "uuid": "7AF3429F-65A0-4A8A-BD2D-158D20E8262B",
+          "originalName": "media-request-control-native-full-text_0_24273EFE-D6AE-4095-B340-22597BBB5ED3.txt",
+          "payloadId": "0~b2ApKmarDozxVuC7OOohR8wBd_NNOxr7DnnJVThrq3OR_eiM9b8fa7WyyAk2I7jo3o1hyRQwVr3lwetZofKdYA==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/7AF3429F-65A0-4A8A-BD2D-158D20E8262B.txt",
+          "sha256": "3c7437afa006b23081aeda964ab4a85bda38caf914ed7aed67eed3d1053ac277",
+          "bytes": 267
+        },
+        {
+          "role": "normal-inspect-final-paused-waiting-controls-accessibility-before",
+          "activityUnixUTC": 1792875458.27,
+          "uuid": "21837090-8F86-4672-9317-A4C93C47E7EE",
+          "originalName": "normal-inspect-final-paused-waiting-controls-accessibility-before_0_5422CB5A-5E63-4636-87EA-5A9CF93364BE.png",
+          "payloadId": "0~pS0bfiukxbC-Smr5t2nsy8QAw2zJqbRz5iYy-wvWEywzDuK8fr7ELPec9O9W23WY6VtBlkb-X_n2L5D-bjDfhw==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/21837090-8F86-4672-9317-A4C93C47E7EE.png",
+          "sha256": "889f2c777215b0510437ba3829f039b1180d295ca89594db6db80447512fb7fb",
+          "bytes": 388985,
+          "pixelSize": [
+            1206,
+            2622
+          ]
+        },
+        {
+          "role": "normal-inspect-final-paused-waiting-controls-accessibility-before-tree",
+          "activityUnixUTC": 1792875458.41,
+          "uuid": "92BCA7B9-1DE3-4B2C-8CC2-D4B6BA0958C5",
+          "originalName": "normal-inspect-final-paused-waiting-controls-accessibility-before-tree_0_78CEC2D4-3F7B-44CA-BD1B-13E3A6DAD49B.txt",
+          "payloadId": "0~_prDZxQDpHYpCkcrzV5AXQcLCNqwICxTVqtofPOBApMN1fTtLENs70VuFeOt8ZcCfNPMJ5ev0rkfo3L--i0wXw==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/92BCA7B9-1DE3-4B2C-8CC2-D4B6BA0958C5.txt",
+          "sha256": "5ca481da34e4d8d917f16c4b5deb40d2bc3d94ecc8d59d127525e0924b079bb1",
+          "bytes": 18133
+        },
+        {
+          "role": "normal-inspect-final-paused-waiting-controls-accessibility-after",
+          "activityUnixUTC": 1792875460.462,
+          "uuid": "AE4383E5-61E6-4085-B76F-9971360F5E8C",
+          "originalName": "normal-inspect-final-paused-waiting-controls-accessibility-after_0_4ED39690-6CC1-467E-920F-6C32402F1A8C.png",
+          "payloadId": "0~L0olI2j8qgzzd_bdNVuMFnaXYItLewxXMQhAXgU84l0KrDVJslKGUPb21-UlB2idzz-Q688dR6mujYpSVWbABw==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/AE4383E5-61E6-4085-B76F-9971360F5E8C.png",
+          "sha256": "fd3ee75358c46c0b212e6709c63c287c0922b6ecd70c1c0d8d8bdc001eb26a7f",
+          "bytes": 388984,
+          "pixelSize": [
+            1206,
+            2622
+          ]
+        },
+        {
+          "role": "normal-inspect-final-paused-waiting-controls-accessibility-after-tree",
+          "activityUnixUTC": 1792875460.602,
+          "uuid": "200BEC34-B6F2-42EE-BBC3-5A54AD94AA29",
+          "originalName": "normal-inspect-final-paused-waiting-controls-accessibility-after-tree_0_F329A018-247C-48C3-B1D8-3B5F8E8BBD28.txt",
+          "payloadId": "0~c-nQQ0T3c_PnbfI4I6_lxEEBKh7fTb_3ZUuN53vJAmuQIp6M9gB0tJ0cqMlbkIiUE1PYsuGX-5TXaex9yQT2yw==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/200BEC34-B6F2-42EE-BBC3-5A54AD94AA29.txt",
+          "sha256": "25e4f06f2299f96d38dbab7c7e639af040a0741bc1ab7a1e60214763ff53fce7",
+          "bytes": 18133
+        }
+      ]
+    },
+    "173": {
+      "name": "request-control-render-max-173",
+      "variant": "max",
+      "result": {
+        "exit_code": 0,
+        "started_at": "2026-10-24T20:54:41.521754+00:00",
+        "finished_at": "2026-10-24T20:59:59.274092+00:00",
+        "seconds": 317.7503900839947,
+        "source_fingerprint": "e99b46dda70b7bd46533752a3c139ae1453dc249d1e633b3c1413e583083832b",
+        "source_files": 395,
+        "sources_unchanged": true,
+        "changed_inputs": []
+      },
+      "tests": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "DB784948-3DA5-454A-9526-29C37B22AB84",
+              "deviceName": "FrameRelay Request Controls max 20261024 l0p333tn",
+              "modelName": "iPhone 18 Pro",
+              "osBuildNumber": "24A434",
+              "osVersion": "27.0",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 1,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "FrameRelay · Built with macOS 26.6.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1792875598.468,
+        "passedTests": 1,
+        "result": "Passed",
+        "runtimeWarnings": [],
+        "skippedTests": 0,
+        "startTime": 1792875282.417,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - FrameRelay",
+        "topInsights": [],
+        "totalTestCount": 1
+      },
+      "diagnostics": {
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "testDurationSeconds": [
+        207.3561190366745
+      ],
+      "phase": "inspectFinalPausedWaiting",
+      "derivedDirectory": "DerivedData-controls-readonly-max",
+      "all395CodeSignaturesMatchBindingAndEachOther": true,
+      "sourcePreservation": {
+        "before": {
+          "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+          "bytes": 2907110,
+          "device": 16777234,
+          "inode": 33015426
+        },
+        "after": {
+          "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+          "bytes": 2907110,
+          "device": 16777234,
+          "inode": 33015426
+        },
+        "unchanged": true,
+        "repositoryBefore": {
+          "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-render-candidate-01/source-snapshot",
+          "binding": "DI-SOURCE-20261025-19",
+          "bindingFile": {
+            "sha256": "d1d381f55cdedb43715d28feaa9e46a392491cfd2c97fbb8c5efa483e83464be",
+            "bytes": 125388,
+            "device": 16777234,
+            "inode": 33635392
+          },
+          "sourceManifestSHA256": "54f3dbe23b036f244d391e5fd8805872b0675f1d3c1ab841ac6e09a4fd5659e4",
+          "codeFingerprint": "e99b46dda70b7bd46533752a3c139ae1453dc249d1e633b3c1413e583083832b",
+          "codeFiles": 395,
+          "device": 16777234,
+          "inode": 33634816,
+          "boundFileIdentityFingerprint": "a766069063eb0ce37ea89f789fcc5a9363d62e5171a8ad5fd4f8e08325c829dc"
+        },
+        "repositoryAfter": {
+          "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-render-candidate-01/source-snapshot",
+          "binding": "DI-SOURCE-20261025-19",
+          "bindingFile": {
+            "sha256": "d1d381f55cdedb43715d28feaa9e46a392491cfd2c97fbb8c5efa483e83464be",
+            "bytes": 125388,
+            "device": 16777234,
+            "inode": 33635392
+          },
+          "sourceManifestSHA256": "54f3dbe23b036f244d391e5fd8805872b0675f1d3c1ab841ac6e09a4fd5659e4",
+          "codeFingerprint": "e99b46dda70b7bd46533752a3c139ae1453dc249d1e633b3c1413e583083832b",
+          "codeFiles": 395,
+          "device": 16777234,
+          "inode": 33634816,
+          "boundFileIdentityFingerprint": "a766069063eb0ce37ea89f789fcc5a9363d62e5171a8ad5fd4f8e08325c829dc"
+        },
+        "repositoryUnchanged": true,
+        "seedArtifactUnchanged": true,
+        "sourceMetadataUnchanged": true,
+        "existingHelpersUnchanged": true,
+        "phase": "inspectFinalPausedWaiting",
+        "derivedDirectory": "DerivedData-controls-readonly-max"
+      },
+      "fontSetting": {
+        "requested": "accessibility-extra-extra-extra-large",
+        "observed": "accessibility-extra-extra-extra-large",
+        "before": "large"
+      },
+      "preservation": {
+        "retainedHashesAndInodesUnchanged": true,
+        "missing": [],
+        "allowedUnlink": [],
+        "added": [],
+        "changed": [],
+        "allExpectedSyntheticUnlink": true,
+        "contentSizeRestored": "large",
+        "expectedRestore": "large"
+      },
+      "fixtureBeforeBase": "/Users/oyabu/Library/Developer/CoreSimulator/Devices/DB784948-3DA5-454A-9526-29C37B22AB84/data/Containers/Data/Application/0B9BD2DE-7C9D-40CE-8D80-037C64FEA465/Library/Application Support",
+      "fixtureAfterBase": "/Users/oyabu/Library/Developer/CoreSimulator/Devices/DB784948-3DA5-454A-9526-29C37B22AB84/data/Containers/Data/Application/092F1EC9-EC18-4FE6-B756-9C0CFD48778F/Library/Application Support",
+      "fixtureFileSignatures": {
+        "s28-media-request-control-external-6debb933-100f-4327-835f-5415010a47e7.mov": {
+          "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+          "bytes": 2907110,
+          "device": 16777234,
+          "inode": 33066938
+        },
+        "FrameRelayLibrary/synthetic-original-rc-6debb933-local.reservation": {
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "device": 16777234,
+          "inode": 33066936
+        },
+        "FrameRelayLibrary/synthetic-original-rc-6debb933-local.mov": {
+          "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+          "bytes": 2907110,
+          "device": 16777234,
+          "inode": 33066937
+        },
+        "FrameRelayLibrary/run.marker": {
+          "sha256": "6799d0120e8097713bc31b23b326bcf411279f0f144bd4b7f050229a025e301c",
+          "bytes": 30,
+          "device": 16777234,
+          "inode": 33066911
+        },
+        "FrameRelayLibrary/s28-media-request-control-seed.json": {
+          "sha256": "2f12ca7d2ab8d7a9f3de7f0d5d32373997b16125ca8deb913b00a384e92c5854",
+          "bytes": 36276,
+          "device": 16777234,
+          "inode": 33066939
+        },
+        "FrameRelayLibrary/request-control-source-6debb933-100f-4327-835f-5415010a47e7.mov": {
+          "sha256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+          "bytes": 2907110,
+          "device": 16777234,
+          "inode": 33066933
+        }
+      },
+      "expected": {
+        "manifest": {
+          "bytes": 36276,
+          "device": 16777234,
+          "inode": 33066939,
+          "sha256": "2f12ca7d2ab8d7a9f3de7f0d5d32373997b16125ca8deb913b00a384e92c5854"
+        },
+        "nonce": "6debb933-100f-4327-835f-5415010a47e7",
+        "schema": "fr-s28-media-request-control-ui-v1",
+        "simulator": "DB784948-3DA5-454A-9526-29C37B22AB84",
+        "storeUUID": "7F33F95F-8605-482E-8D55-7F3626050019",
+        "targets": [
+          {
+            "capture": "rc-6debb933-local",
+            "operation": "e1f7597a-d7e4-4778-b993-3c732d39b9b8",
+            "requestToken": "ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+            "role": "local",
+            "startRevision": 5
+          },
+          {
+            "capture": "rc-6debb933-waiting",
+            "operation": "9f303cc2-bb50-4534-85f7-cf5c051b4b75",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtNmRlYmI5MzMtd2FpdGluZw==.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "1baa4b4f-08da-4662-80fd-35b8f808806a",
+            "requestToken": "OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+            "role": "waiting",
+            "startRevision": 7
+          },
+          {
+            "capture": "rc-6debb933-cancelled",
+            "operation": "922fa31c-c764-4fcc-802f-21f50da6905a",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtNmRlYmI5MzMtY2FuY2VsbGVk.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "34345a08-fe32-4e21-ab01-ed60fbfb95c1",
+            "requestToken": "OTIyZmEzMWMtYzc2NC00ZmNjLTgwMmYtMjFmNTBkYTY5MDVh",
+            "role": "cancelled",
+            "startRevision": 12
+          },
+          {
+            "capture": "rc-6debb933-completed",
+            "operation": "8f05b883-b785-4e3c-a50d-53f6af9baa24",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtNmRlYmI5MzMtY29tcGxldGVk.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "3dc35da8-0fbf-4677-b71d-e535b17c9d97",
+            "requestToken": "OGYwNWI4ODMtYjc4NS00ZTNjLWE1MGQtNTNmNmFmOWJhYTI0",
+            "role": "completed",
+            "startRevision": 15
+          },
+          {
+            "capture": "rc-6debb933-ended",
+            "operation": "a788a8f0-c262-4014-8bbb-c26408ae2b6b",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtNmRlYmI5MzMtZW5kZWQ=.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "bfa014c6-2ad1-4f12-bc2f-1b10d3b282fe",
+            "requestToken": "YTc4OGE4ZjAtYzI2Mi00MDE0LThiYmItYzI2NDA4YWUyYjZi",
+            "role": "ended",
+            "startRevision": 18
+          }
+        ],
+        "variant": "max"
+      },
+      "manifest": {
+        "bytes": 36276,
+        "device": 16777234,
+        "inode": 33066939,
+        "sha256": "2f12ca7d2ab8d7a9f3de7f0d5d32373997b16125ca8deb913b00a384e92c5854"
+      },
+      "nativeTaps": [
+        {
+          "line": 2572,
+          "elapsedSeconds": 9.4,
+          "nativeActivity": "\"library.itemTitle.rc-6debb933-local\" StaticText"
+        },
+        {
+          "line": 2940,
+          "elapsedSeconds": 47.25,
+          "nativeActivity": "\"BackButton\" Button"
+        }
+      ],
+      "businessTaps": 0,
+      "metadataTaps": 0,
+      "navigationTaps": 2,
+      "swipeUpCount": 67,
+      "swipeDownCount": 0,
+      "nativeDragActivityCount": 0,
+      "evidenceFiles": [
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-max-173/result.json",
+          "sha256": "596331118e8519c318869a9eeebc6a81dce1ca0b02fce9ac30d8653ab2c42a0b",
+          "bytes": 6484
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-max-173/command.json",
+          "sha256": "ad3537e21e64de79cc230bd728f30a05d3bf78d707de6ae5e6d459027c78418d",
+          "bytes": 4359
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-max-173/tests.json",
+          "sha256": "4596d8e9f379bed3f1beb474c6e0db33e9e22d95f2f2d651c0381e77348756d8",
+          "bytes": 1039
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-max-173/tree.json",
+          "sha256": "13faf9f06946842cacf23e5da7a37fa012feec1ecb76909b1469afff002ca2ed",
+          "bytes": 1814
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-max-173/build.json",
+          "sha256": "49a068e121a7608aa91c61dd0336c323e627cfbe125b75ae103ae2bb6c6702df",
+          "bytes": 619
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-max-173/stdout.log",
+          "sha256": "6e3154f11b0bb701df99841908cf9ba1beb8cc4923b7601a98231131b0fefcf1",
+          "bytes": 680703
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-max-173/sources-before.json",
+          "sha256": "7e07b0b078c0637b6f3329bd11abbcc1940a8e492e50629136163f2cfbed11b2",
+          "bytes": 68732
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-max-173/sources-after.json",
+          "sha256": "7e07b0b078c0637b6f3329bd11abbcc1940a8e492e50629136163f2cfbed11b2",
+          "bytes": 68732
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-max-173-conditions.json",
+          "sha256": "7c2704a7ba78d7a20f6f5fff557ad2f5691b3fd7d4b15e1c3460e3c8ee1af070",
+          "bytes": 3563
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-max-173-preservation.json",
+          "sha256": "cae23cfba41ef6ce2f9c5ce6bf75f07e1213cad918dd59337c81643be600f236",
+          "bytes": 220
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-max-173-source-preservation.json",
+          "sha256": "0d56615c32b970208ed516662d0675b97a64a0a3f5cf999f975f5a8b88f00804",
+          "bytes": 2220
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-max-173-fixture-before.json",
+          "sha256": "a6451b6ffee8300ea14546a74f81cd69018feb95c7d34666382ae84dd9af20f5",
+          "bytes": 1618
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-max-173-fixture-after.json",
+          "sha256": "7a892db068ce0c0f3d92381c82df12601994314c05d9e8165f4b19b20af235cf",
+          "bytes": 1618
+        }
+      ],
+      "actualStrictAudits": {
+        "testID": "MediaRequestControlFlowTests/testExistingRequestsPersonIntentFixedAllPauseAndRelaunch()",
+        "query": [
+          "/Applications/Xcode.app/Contents/Developer/usr/bin/xcresulttool",
+          "get",
+          "test-results",
+          "activities",
+          "--path",
+          "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-max-173/result.xcresult",
+          "--test-id",
+          "MediaRequestControlFlowTests/testExistingRequestsPersonIntentFixedAllPauseAndRelaunch()",
+          "--compact"
+        ],
+        "queryExit": 0,
+        "beforeCount": 2,
+        "afterCount": 2,
+        "issueCallbackAttachmentCount": 0,
+        "pairs": [
+          {
+            "name": "max-inspect-final-local-cancelled-controls",
+            "beforeUnixUTC": 1792875435.707,
+            "afterUnixUTC": 1792875437.781,
+            "beforeUUID": "C61D798E-C323-4BD0-9AC4-E6E69476F6FC",
+            "afterUUID": "98D65568-78F5-4BF8-9A50-226452CBCF54"
+          },
+          {
+            "name": "max-inspect-final-paused-waiting-controls",
+            "beforeUnixUTC": 1792875594.784,
+            "afterUnixUTC": 1792875596.928,
+            "beforeUUID": "38A182A5-512D-46A3-A279-5EDFB8A1E982",
+            "afterUUID": "FB086345-D5D2-491C-85DA-696B87952EF7"
+          }
+        ],
+        "stdoutNamesMatchActivities": true
+      },
+      "nativeStateRows": [
+        {
+          "role": "local",
+          "capture": "rc-6debb933-local",
+          "operation": "e1f7597a-d7e4-4778-b993-3c732d39b9b8",
+          "requestToken": "ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+          "rendition": null,
+          "intent": "cancelled",
+          "waits": [],
+          "transportRecord": "開始待ち; actual SDK termination/release unmeasured",
+          "actions": [
+            {
+              "line": 65,
+              "identifier": "library.request.pause.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+              "action": "pause",
+              "label": "この通信を停止",
+              "enabled": false,
+              "frame": [
+                32,
+                -338,
+                338,
+                126
+              ],
+              "hittableInTree": null,
+              "minimum44WidthHeightObserved": true,
+              "hittableAtSequentialAssertControl": null,
+              "hittableEvidence": "Disabled: no hittable requirement/value asserted in the preserved source contract."
+            },
+            {
+              "line": 68,
+              "identifier": "library.request.cancel.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+              "action": "cancel",
+              "label": "この通信を取り消す",
+              "enabled": false,
+              "frame": [
+                32,
+                8,
+                338,
+                126
+              ],
+              "hittableInTree": null,
+              "minimum44WidthHeightObserved": true,
+              "hittableAtSequentialAssertControl": null,
+              "hittableEvidence": "Disabled: no hittable requirement/value asserted in the preserved source contract."
+            },
+            {
+              "line": 71,
+              "identifier": "library.request.resumeIntent.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+              "action": "resumeIntent",
+              "label": "停止を解除して待機",
+              "enabled": false,
+              "frame": [
+                32,
+                354,
+                338,
+                126
+              ],
+              "hittableInTree": null,
+              "minimum44WidthHeightObserved": true,
+              "hittableAtSequentialAssertControl": null,
+              "hittableEvidence": "Disabled: no hittable requirement/value asserted in the preserved source contract."
+            }
+          ],
+          "disabledReason": "この通信要求は本人取消済みです。"
+        },
+        {
+          "role": "waiting",
+          "capture": "rc-6debb933-waiting",
+          "operation": "9f303cc2-bb50-4534-85f7-cf5c051b4b75",
+          "requestToken": "OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+          "rendition": "1baa4b4f-08da-4662-80fd-35b8f808806a",
+          "intent": "paused",
+          "waits": [
+            "Wi-Fi条件",
+            "撮影中",
+            "認証"
+          ],
+          "transportRecord": "開始待ち; actual SDK termination/release unmeasured",
+          "actions": [
+            {
+              "line": 45,
+              "identifier": "library.request.pause.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+              "action": "pause",
+              "label": "この通信を停止",
+              "enabled": false,
+              "frame": [
+                48,
+                148,
+                306,
+                126
+              ],
+              "hittableInTree": null,
+              "minimum44WidthHeightObserved": true,
+              "hittableAtSequentialAssertControl": null,
+              "hittableEvidence": "Disabled: no hittable requirement/value asserted in the preserved source contract."
+            },
+            {
+              "line": 48,
+              "identifier": "library.request.cancel.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+              "action": "cancel",
+              "label": "この通信を取り消す",
+              "enabled": true,
+              "frame": [
+                48,
+                494,
+                306,
+                126
+              ],
+              "hittableInTree": null,
+              "minimum44WidthHeightObserved": true,
+              "hittableAtSequentialAssertControl": true,
+              "hittableEvidence": "DI19 source336–337 executes XCTAssertTrue/guard; PASS with no failure. Raw tree does not expose a hittable boolean."
+            },
+            {
+              "line": 50,
+              "identifier": "library.request.resumeIntent.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+              "action": "resumeIntent",
+              "label": "停止を解除して待機",
+              "enabled": true,
+              "frame": [
+                48,
+                636,
+                306,
+                126
+              ],
+              "hittableInTree": null,
+              "minimum44WidthHeightObserved": true,
+              "hittableAtSequentialAssertControl": true,
+              "hittableEvidence": "DI19 source336–337 executes XCTAssertTrue/guard; PASS with no failure. Raw tree does not expose a hittable boolean."
+            }
+          ],
+          "disabledReason": "本人停止の記録があります。"
+        }
+      ],
+      "nativeFullText": {
+        "count": 13,
+        "allExactlyEqualExpected": true,
+        "rows": [
+          {
+            "uuid": "7D728554-4F8F-49EA-8F09-5076CD175AF0",
+            "identifier": "library.itemTitle.rc-6debb933-local",
+            "type": 48,
+            "frame": [
+              32,
+              465.6666666666667,
+              338,
+              125.99999999999994
+            ],
+            "enabled": true,
+            "label": "動画 rc-6debb933-local",
+            "expected": "動画 rc-6debb933-local",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/7D728554-4F8F-49EA-8F09-5076CD175AF0.txt"
+          },
+          {
+            "uuid": "48D15220-3362-45EC-B3A8-25F781E6176E",
+            "identifier": "library.request.identity.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+            "type": 48,
+            "frame": [
+              32,
+              592.3333333333335,
+              338,
+              188
+            ],
+            "enabled": true,
+            "label": "対象：動画 rc-6debb933-local・原本",
+            "expected": "対象：動画 rc-6debb933-local・原本",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/48D15220-3362-45EC-B3A8-25F781E6176E.txt"
+          },
+          {
+            "uuid": "3D6EBD53-F5E5-47D7-B825-8667342B29CA",
+            "identifier": "library.request.intent.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+            "type": 48,
+            "frame": [
+              32,
+              796.3333333333335,
+              338,
+              188
+            ],
+            "enabled": true,
+            "label": "本人の意思：取消の記録あり",
+            "expected": "本人の意思：取消の記録あり",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/3D6EBD53-F5E5-47D7-B825-8667342B29CA.txt"
+          },
+          {
+            "uuid": "6B7538B1-E76F-44C3-BA5D-C4F06AA0492D",
+            "identifier": "library.request.waits.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+            "type": 48,
+            "frame": [
+              32,
+              319.3333333333335,
+              338,
+              312
+            ],
+            "enabled": true,
+            "label": "待機条件：記録なし（通信の開始・再開を保証しません）",
+            "expected": "待機条件：記録なし（通信の開始・再開を保証しません）",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/6B7538B1-E76F-44C3-BA5D-C4F06AA0492D.txt"
+          },
+          {
+            "uuid": "F0F178A5-5E8A-4C7E-AB3B-46E1635695CB",
+            "identifier": "library.request.transport.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+            "type": 48,
+            "frame": [
+              32,
+              647.3333333333335,
+              338,
+              436
+            ],
+            "enabled": true,
+            "label": "通信状態の記録：開始待ち。通信処理の終了・媒体の使用解放は別に確認が必要です。",
+            "expected": "通信状態の記録：開始待ち。通信処理の終了・媒体の使用解放は別に確認が必要です。",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/F0F178A5-5E8A-4C7E-AB3B-46E1635695CB.txt"
+          },
+          {
+            "uuid": "F12507B1-78CD-48E7-A7F5-DA4540E359FE",
+            "identifier": "library.request.reason.pause.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+            "type": 48,
+            "frame": [
+              32,
+              497.33333333333303,
+              338,
+              188
+            ],
+            "enabled": true,
+            "label": "この通信要求は本人取消済みです。",
+            "expected": "この通信要求は本人取消済みです。",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/F12507B1-78CD-48E7-A7F5-DA4540E359FE.txt"
+          },
+          {
+            "uuid": "404E74E3-AFDB-4B80-9ED7-A93670079368",
+            "identifier": "library.request.reason.cancel.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+            "type": 48,
+            "frame": [
+              32,
+              150,
+              338,
+              188
+            ],
+            "enabled": true,
+            "label": "この通信要求は本人取消済みです。",
+            "expected": "この通信要求は本人取消済みです。",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/404E74E3-AFDB-4B80-9ED7-A93670079368.txt"
+          },
+          {
+            "uuid": "578F7D18-7AF2-4253-B3C0-158B999854BD",
+            "identifier": "library.request.reason.resumeIntent.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+            "type": 48,
+            "frame": [
+              32,
+              496,
+              338,
+              188
+            ],
+            "enabled": true,
+            "label": "この通信要求は本人取消済みです。",
+            "expected": "この通信要求は本人取消済みです。",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/578F7D18-7AF2-4253-B3C0-158B999854BD.txt"
+          },
+          {
+            "uuid": "5E080AD3-1415-4183-B4D1-895444C7FD7F",
+            "identifier": "library.request.identity.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+            "type": 48,
+            "frame": [
+              48,
+              818.3333333333358,
+              306,
+              498
+            ],
+            "enabled": true,
+            "label": "対象：動画 rc-6debb933-waiting・軽量版ID：1baa4b4f-08da-4662-80fd-35b8f808806a",
+            "expected": "対象：動画 rc-6debb933-waiting・軽量版ID：1baa4b4f-08da-4662-80fd-35b8f808806a",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/5E080AD3-1415-4183-B4D1-895444C7FD7F.txt"
+          },
+          {
+            "uuid": "5D9EC41B-5728-4801-85F2-C2E39B5E9527",
+            "identifier": "library.request.intent.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+            "type": 48,
+            "frame": [
+              48,
+              651,
+              306,
+              188
+            ],
+            "enabled": true,
+            "label": "本人の意思：停止の記録あり",
+            "expected": "本人の意思：停止の記録あり",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/5D9EC41B-5728-4801-85F2-C2E39B5E9527.txt"
+          },
+          {
+            "uuid": "B57DF732-A42D-4A27-8DE6-70D59BD31D88",
+            "identifier": "library.request.waits.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+            "type": 48,
+            "frame": [
+              48,
+              174,
+              306,
+              188
+            ],
+            "enabled": true,
+            "label": "待機条件：Wi-Fi条件、撮影中、認証",
+            "expected": "待機条件：Wi-Fi条件、撮影中、認証",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/B57DF732-A42D-4A27-8DE6-70D59BD31D88.txt"
+          },
+          {
+            "uuid": "3BFCB444-3440-4063-8825-FA01C943ADCB",
+            "identifier": "library.request.transport.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+            "type": 48,
+            "frame": [
+              48,
+              378,
+              306,
+              436
+            ],
+            "enabled": true,
+            "label": "通信状態の記録：開始待ち。通信処理の終了・媒体の使用解放は別に確認が必要です。",
+            "expected": "通信状態の記録：開始待ち。通信処理の終了・媒体の使用解放は別に確認が必要です。",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/3BFCB444-3440-4063-8825-FA01C943ADCB.txt"
+          },
+          {
+            "uuid": "4A914185-D055-4FCA-952F-71B6A3B1FBDB",
+            "identifier": "library.request.reason.pause.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+            "type": 48,
+            "frame": [
+              48,
+              290,
+              306,
+              188
+            ],
+            "enabled": true,
+            "label": "本人停止の記録があります。",
+            "expected": "本人停止の記録があります。",
+            "exactMatch": true,
+            "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/4A914185-D055-4FCA-952F-71B6A3B1FBDB.txt"
+          }
+        ]
+      },
+      "actualAuditTrees": [
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/03A446C3-B5EE-4E1B-A3D4-A5206FAE71D8.txt",
+          "uuid": "03A446C3-B5EE-4E1B-A3D4-A5206FAE71D8",
+          "navigationBars": [
+            {
+              "line": 10,
+              "title": "ライブラリ",
+              "frame": [
+                0,
+                62,
+                402,
+                54
+              ]
+            }
+          ],
+          "personControls": [],
+          "role": "max-inspect-final-paused-waiting-controls-accessibility-after-tree"
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/4CA5C2D7-25C0-463C-8C33-927F5A680516.txt",
+          "uuid": "4CA5C2D7-25C0-463C-8C33-927F5A680516",
+          "navigationBars": [
+            {
+              "line": 10,
+              "title": "動画の詳細",
+              "frame": [
+                0,
+                62,
+                402,
+                54
+              ]
+            }
+          ],
+          "personControls": [
+            {
+              "line": 65,
+              "identifier": "library.request.pause.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+              "action": "pause",
+              "label": "この通信を停止",
+              "enabled": false,
+              "frame": [
+                32,
+                -338,
+                338,
+                126
+              ],
+              "hittableInTree": null
+            },
+            {
+              "line": 68,
+              "identifier": "library.request.cancel.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+              "action": "cancel",
+              "label": "この通信を取り消す",
+              "enabled": false,
+              "frame": [
+                32,
+                8,
+                338,
+                126
+              ],
+              "hittableInTree": null
+            },
+            {
+              "line": 71,
+              "identifier": "library.request.resumeIntent.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+              "action": "resumeIntent",
+              "label": "停止を解除して待機",
+              "enabled": false,
+              "frame": [
+                32,
+                354,
+                338,
+                126
+              ],
+              "hittableInTree": null
+            }
+          ],
+          "role": "max-inspect-final-local-cancelled-controls-accessibility-before-tree"
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/7242620A-683F-4A56-A2A6-BCA019589779.txt",
+          "uuid": "7242620A-683F-4A56-A2A6-BCA019589779",
+          "navigationBars": [
+            {
+              "line": 10,
+              "title": "ライブラリ",
+              "frame": [
+                0,
+                62,
+                402,
+                54
+              ]
+            }
+          ],
+          "personControls": [
+            {
+              "line": 45,
+              "identifier": "library.request.pause.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+              "action": "pause",
+              "label": "この通信を停止",
+              "enabled": false,
+              "frame": [
+                48,
+                148,
+                306,
+                126
+              ],
+              "hittableInTree": null
+            },
+            {
+              "line": 48,
+              "identifier": "library.request.cancel.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+              "action": "cancel",
+              "label": "この通信を取り消す",
+              "enabled": true,
+              "frame": [
+                48,
+                494,
+                306,
+                126
+              ],
+              "hittableInTree": null
+            },
+            {
+              "line": 50,
+              "identifier": "library.request.resumeIntent.OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+              "action": "resumeIntent",
+              "label": "停止を解除して待機",
+              "enabled": true,
+              "frame": [
+                48,
+                636,
+                306,
+                126
+              ],
+              "hittableInTree": null
+            }
+          ],
+          "role": "max-inspect-final-paused-waiting-controls-accessibility-before-tree"
+        },
+        {
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/74837DEF-1F93-4E4B-936D-EDFCEE37304C.txt",
+          "uuid": "74837DEF-1F93-4E4B-936D-EDFCEE37304C",
+          "navigationBars": [
+            {
+              "line": 10,
+              "title": "動画の詳細",
+              "frame": [
+                0,
+                62,
+                402,
+                54
+              ]
+            }
+          ],
+          "personControls": [
+            {
+              "line": 65,
+              "identifier": "library.request.pause.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+              "action": "pause",
+              "label": "この通信を停止",
+              "enabled": false,
+              "frame": [
+                32,
+                4387,
+                338,
+                126
+              ],
+              "hittableInTree": null
+            },
+            {
+              "line": 68,
+              "identifier": "library.request.cancel.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+              "action": "cancel",
+              "label": "この通信を取り消す",
+              "enabled": false,
+              "frame": [
+                32,
+                4733,
+                338,
+                126
+              ],
+              "hittableInTree": null
+            },
+            {
+              "line": 71,
+              "identifier": "library.request.resumeIntent.ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+              "action": "resumeIntent",
+              "label": "停止を解除して待機",
+              "enabled": false,
+              "frame": [
+                32,
+                5079,
+                338,
+                126
+              ],
+              "hittableInTree": null
+            }
+          ],
+          "role": "max-inspect-final-local-cancelled-controls-accessibility-after-tree"
+        }
+      ],
+      "independentExpectedValues": {
+        "manifest": {
+          "bytes": 36276,
+          "device": 16777234,
+          "inode": 33066939,
+          "sha256": "2f12ca7d2ab8d7a9f3de7f0d5d32373997b16125ca8deb913b00a384e92c5854"
+        },
+        "nonce": "6debb933-100f-4327-835f-5415010a47e7",
+        "schema": "fr-s28-media-request-control-ui-v1",
+        "simulator": "DB784948-3DA5-454A-9526-29C37B22AB84",
+        "storeUUID": "7F33F95F-8605-482E-8D55-7F3626050019",
+        "targets": [
+          {
+            "capture": "rc-6debb933-local",
+            "operation": "e1f7597a-d7e4-4778-b993-3c732d39b9b8",
+            "requestToken": "ZTFmNzU5N2EtZDdlNC00Nzc4LWI5OTMtM2M3MzJkMzliOWI4",
+            "role": "local",
+            "startRevision": 5
+          },
+          {
+            "capture": "rc-6debb933-waiting",
+            "operation": "9f303cc2-bb50-4534-85f7-cf5c051b4b75",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtNmRlYmI5MzMtd2FpdGluZw==.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "1baa4b4f-08da-4662-80fd-35b8f808806a",
+            "requestToken": "OWYzMDNjYzItYmI1MC00NTM0LTg1ZjctY2Y1YzA1MWI0Yjc1",
+            "role": "waiting",
+            "startRevision": 7
+          },
+          {
+            "capture": "rc-6debb933-cancelled",
+            "operation": "922fa31c-c764-4fcc-802f-21f50da6905a",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtNmRlYmI5MzMtY2FuY2VsbGVk.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "34345a08-fe32-4e21-ab01-ed60fbfb95c1",
+            "requestToken": "OTIyZmEzMWMtYzc2NC00ZmNjLTgwMmYtMjFmNTBkYTY5MDVh",
+            "role": "cancelled",
+            "startRevision": 12
+          },
+          {
+            "capture": "rc-6debb933-completed",
+            "operation": "8f05b883-b785-4e3c-a50d-53f6af9baa24",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtNmRlYmI5MzMtY29tcGxldGVk.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "3dc35da8-0fbf-4677-b71d-e535b17c9d97",
+            "requestToken": "OGYwNWI4ODMtYjc4NS00ZTNjLWE1MGQtNTNmNmFmOWJhYTI0",
+            "role": "completed",
+            "startRevision": 15
+          },
+          {
+            "capture": "rc-6debb933-ended",
+            "operation": "a788a8f0-c262-4014-8bbb-c26408ae2b6b",
+            "remoteToken": "OWEzYmExMDQtOTg1Zi00YTJkLTg3NWQtZDQ1ODI1OGI5YjZi.cmMtNmRlYmI5MzMtZW5kZWQ=.1.c2hhMjU2.MTUzZDIzNjAzMGM3NjQ4OGFhMTFkZmM3OTdhMTA3Yjc0NzQ5OTliYWU0NGYxNmJiODFlYWFmYWQzNjRlMTVjNw==.2907110",
+            "rendition": "bfa014c6-2ad1-4f12-bc2f-1b10d3b282fe",
+            "requestToken": "YTc4OGE4ZjAtYzI2Mi00MDE0LThiYmItYzI2NDA4YWUyYjZi",
+            "role": "ended",
+            "startRevision": 18
+          }
+        ],
+        "variant": "max"
+      },
+      "readonlyScopeAttachment": "Read-only inspection of the already consumed stage-six fixture: local cancelled and waiting paused controls only. The main runner owns writer/history verification. This phase does not scan parent/child history, re-establish receipt counts, tap person-control or metadata actions, or relaunch the App. Native SDK activity is not inventoried here.",
+      "runnerContentSizeCategoryReference": "UICTContentSizeCategoryAccessibilityXXXL",
+      "runnerCategoryScope": "reference only; Simulator requested/observed native size and rendered point geometry are recorded separately.",
+      "sourceControlAssertions": {
+        "sourceLine": 323,
+        "width44Line": 332,
+        "height44Line": 333,
+        "enabledOnlyHittableLines": [
+          336,
+          337
+        ],
+        "completeFrameRevealHelperPreserved": true,
+        "allPassedDuringThisTest": true
+      },
+      "gestureScope": "Native Tap activities are only local title/back navigation. Other gesture activities are scrolling. No person-control or metadata Tap activity.",
+      "actualHistoryScanCompletionAttachments": 0,
+      "selectedAttachments": [
+        {
+          "role": "media-request-control-independent-expectations",
+          "activityUnixUTC": 1792875390.804,
+          "uuid": "4ECA0BB9-8867-4359-8DD9-9E628117409B",
+          "originalName": "media-request-control-independent-expectations_0_4BE05377-7FEB-41F6-AF07-B68FA2FAD91D.txt",
+          "payloadId": "0~LDBr8uOsnnKR7AE0P3ZqOG8AcHqKkgTmUazEpWx85QxMkUoSwVmjwxlawEkcIbJHu0mgM-o3yJsAOJv_wA4HSQ==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/4ECA0BB9-8867-4359-8DD9-9E628117409B.txt",
+          "sha256": "3fc125bf1b38d7b1d32184875bffb1ed08b39cf8c5b5c698051ddd931d7babe5",
+          "bytes": 2527
+        },
+        {
+          "role": "max-inspect-final-paused-waiting-scope",
+          "activityUnixUTC": 1792875399.361,
+          "uuid": "4E498D59-8026-45A3-AFD7-C74D33BF31A5",
+          "originalName": "max-inspect-final-paused-waiting-scope_0_DF28C461-9167-43BF-B658-E328E7BCC5CC.txt",
+          "payloadId": "0~9rh4BVfW_g76iwuCffqsgbrZGdodI3-Sg23j-v2pjQBAVfSVztJyqVVF21UnahyKLwicBn6ILZ99M8WBlBgtJQ==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/4E498D59-8026-45A3-AFD7-C74D33BF31A5.txt",
+          "sha256": "6bec13bcfe983d037d90bb03e3fea0ce85842c63524dfec3bafc7f35ca9796fa",
+          "bytes": 345
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875399.964,
+          "uuid": "7D728554-4F8F-49EA-8F09-5076CD175AF0",
+          "originalName": "media-request-control-native-full-text_0_9F924708-512C-482D-8E27-3E3CE148A83A.txt",
+          "payloadId": "0~C9H5lTDW011BMmQNYO8kCGdfWw2wPjBqCJhlvAw1gWC9p-WaNU7i7xZeXp_yZcLojH72deUsqeGRdgnkNwav4A==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/7D728554-4F8F-49EA-8F09-5076CD175AF0.txt",
+          "sha256": "b46d50b1ab778e65411a66cca7b4765f4bf5b75c1254b4629b2b513693ffa12b",
+          "bytes": 209
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875416.065,
+          "uuid": "48D15220-3362-45EC-B3A8-25F781E6176E",
+          "originalName": "media-request-control-native-full-text_0_14810E10-100E-4740-A7AE-1C30D5CFDCAC.txt",
+          "payloadId": "0~86AZFFsNDloQ9RAFbwnwiBrOf7cE6nI7D8G6bK_b1rQ-kTs5bTLDNbyJJhsaRrG6T3sVyxNKYtWLS6mR05r_kw==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/48D15220-3362-45EC-B3A8-25F781E6176E.txt",
+          "sha256": "bb16601d6b974e3b329500201306e7f0430210beb9121a846a61d743238b8239",
+          "bytes": 270
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875416.387,
+          "uuid": "3D6EBD53-F5E5-47D7-B825-8667342B29CA",
+          "originalName": "media-request-control-native-full-text_0_0DA2E7DF-4EEF-4404-816E-F104D57710B1.txt",
+          "payloadId": "0~lyfKhooRnouNRxLAObOgwRoSTAQi6DF81Hyaq_QfKBQ0Z3qlo68Ub-59Vjf2Fce2gx28z0XxJisrBUn7ZVpoeg==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/3D6EBD53-F5E5-47D7-B825-8667342B29CA.txt",
+          "sha256": "bae9d3c8abb7f440e4cedadf8750afb6430fff16a95dee0f1e54a2e49b7e8202",
+          "bytes": 262
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875419.428,
+          "uuid": "6B7538B1-E76F-44C3-BA5D-C4F06AA0492D",
+          "originalName": "media-request-control-native-full-text_0_5395D1C6-34B5-4FC8-8DA2-A32905C942D5.txt",
+          "payloadId": "0~SyawZCCi1J5R-hjLqDTArU4lcyeWcmqfKPG6xEuju0AU7gZcfm9X9xG5yugFauPThtXgL4mtgS6euy37LeYnEQ==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/6B7538B1-E76F-44C3-BA5D-C4F06AA0492D.txt",
+          "sha256": "5da83531e53e0278f6d77ddbf6e064850caaf35cc3429d95be6c4e7dab900f8e",
+          "bytes": 339
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875419.788,
+          "uuid": "F0F178A5-5E8A-4C7E-AB3B-46E1635695CB",
+          "originalName": "media-request-control-native-full-text_0_7FF26C37-FA6E-4599-AE3D-80A0580C1CAC.txt",
+          "payloadId": "0~L8qo2eaTkzBFY4j_XR5uGCWS1SASlFWCzvsKGJBFy7KHmF-Ax67T6fobC-rMtRmoN1qVm6NkNJycDvc5bGhsnA==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/F0F178A5-5E8A-4C7E-AB3B-46E1635695CB.txt",
+          "sha256": "9358f29c5b6f787adbbf8eda6e3f2f492ac2e4b31a550fb3c14b5d66a04b7bab",
+          "bytes": 421
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875431.394,
+          "uuid": "F12507B1-78CD-48E7-A7F5-DA4540E359FE",
+          "originalName": "media-request-control-native-full-text_0_F8539992-96D6-464F-84D5-CF261B290194.txt",
+          "payloadId": "0~i_ORneCl3hI6mD6sccgdvAU6MQ_OV5dVi-1NRwrmsqA260M_eGEYkkcswpNx8UrvuNwBEsYqA0Ffc-vPoB3r3Q==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/F12507B1-78CD-48E7-A7F5-DA4540E359FE.txt",
+          "sha256": "018b9510b51a299b3ef9fa3d603c61f477614272320d28e0860414ecd150b946",
+          "bytes": 287
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875434.866,
+          "uuid": "404E74E3-AFDB-4B80-9ED7-A93670079368",
+          "originalName": "media-request-control-native-full-text_0_D2EB37B9-0C0B-41E7-AFDB-18B414BF97D0.txt",
+          "payloadId": "0~b4nj13JElhbT3wbuCMmi4ENfpN-yO6bkPYQ81W50a95Q9sftllVnw5NCTV9Kxfip_bgx0IvdiwVkXCPATFnZ1g==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/404E74E3-AFDB-4B80-9ED7-A93670079368.txt",
+          "sha256": "3e93fe1b072fb63f1f08f8bc2f5fd72a43a0d6d4d890edd7ca7479800c013fee",
+          "bytes": 275
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875435.62,
+          "uuid": "578F7D18-7AF2-4253-B3C0-158B999854BD",
+          "originalName": "media-request-control-native-full-text_0_77823146-E7E7-4061-96D8-41CD412C2E11.txt",
+          "payloadId": "0~_TMbsANTUnbR0d6cVJKlDxx2Opha1EiQbRD9bLrFJMZM_oRvxXleK5V-uXI5W4wTUVI8MWpQ-OhXiSigA389hg==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/578F7D18-7AF2-4253-B3C0-158B999854BD.txt",
+          "sha256": "4b7d1ecca72dd486fdeffb1c923274a813655c764d2c24435d3ded23e0bde571",
+          "bytes": 281
+        },
+        {
+          "role": "max-inspect-final-local-cancelled-controls-accessibility-before",
+          "activityUnixUTC": 1792875435.707,
+          "uuid": "C61D798E-C323-4BD0-9AC4-E6E69476F6FC",
+          "originalName": "max-inspect-final-local-cancelled-controls-accessibility-before_0_C627C9BB-25DD-403F-A7DC-8D27A54C4785.png",
+          "payloadId": "0~dAJ9IJ_vVNmVaRgYHakMEoT9An47tJSCfFVmWVm0KK4xfCAVKcvIopQ7sF6nhnNXYbc2n-NlutF2ZevGWpJ2FQ==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/C61D798E-C323-4BD0-9AC4-E6E69476F6FC.png",
+          "sha256": "a451f7872ef6398cd31cf2f80d181f144a2e1e35ad9b1f5adececab2336de752",
+          "bytes": 295678,
+          "pixelSize": [
+            1206,
+            2622
+          ]
+        },
+        {
+          "role": "max-inspect-final-local-cancelled-controls-accessibility-before-tree",
+          "activityUnixUTC": 1792875435.836,
+          "uuid": "4CA5C2D7-25C0-463C-8C33-927F5A680516",
+          "originalName": "max-inspect-final-local-cancelled-controls-accessibility-before-tree_0_5078EF4E-8DA5-4695-8128-9A5F07DF0209.txt",
+          "payloadId": "0~sxaFUXhSqVWad3Rzvxi3FbLKgU4vT4BOjIRcgMDrECoKWeV2V8CiucMfkgaZIUr4Z3p2rng4HHoVqQ6HW9ZoeQ==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/4CA5C2D7-25C0-463C-8C33-927F5A680516.txt",
+          "sha256": "87430969310bff4dd35f1cfda61c8f841321a91e046bec7abb2cfdb9ec14ca0d",
+          "bytes": 21428
+        },
+        {
+          "role": "max-inspect-final-local-cancelled-controls-accessibility-after",
+          "activityUnixUTC": 1792875437.781,
+          "uuid": "98D65568-78F5-4BF8-9A50-226452CBCF54",
+          "originalName": "max-inspect-final-local-cancelled-controls-accessibility-after_0_E65D51EF-B1D6-40CF-BC64-F1AD734AEB4E.png",
+          "payloadId": "0~SIyQYre9rDUQZehXrvJ_dBJU1ASpJVYsxOxL5W8giRnGS6L257Rfdn3Mp6B-SxSc5Dv2uSFlQUFubco4S3W2VA==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/98D65568-78F5-4BF8-9A50-226452CBCF54.png",
+          "sha256": "f520ba6b86b232b9b7a7592e8505cc064cf7e7e590dd8dc5d003db6899b32f32",
+          "bytes": 310764,
+          "pixelSize": [
+            1206,
+            2622
+          ]
+        },
+        {
+          "role": "max-inspect-final-local-cancelled-controls-accessibility-after-tree",
+          "activityUnixUTC": 1792875437.936,
+          "uuid": "74837DEF-1F93-4E4B-936D-EDFCEE37304C",
+          "originalName": "max-inspect-final-local-cancelled-controls-accessibility-after-tree_0_FEC5FF02-CB12-414C-9395-5B6AB10E1F2F.txt",
+          "payloadId": "0~Q2ovtx3SQLvzc3pNW5-WS_Qv19_VZrzK3C0rk67rWNfli5g94i_M8Ta7Ng7iSlwEXpgcr5M7ZG99dlfBrhZ6Ww==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/74837DEF-1F93-4E4B-936D-EDFCEE37304C.txt",
+          "sha256": "7799a8f8d74e630e74540de28f5ca639295735568fdb6faf0246f3c24fd7b9e7",
+          "bytes": 21412
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875582.342,
+          "uuid": "5E080AD3-1415-4183-B4D1-895444C7FD7F",
+          "originalName": "media-request-control-native-full-text_0_93BDF1A3-627C-4003-8ED4-9C7824DE1DDB.txt",
+          "payloadId": "0~_dVAxxGbNnV7UGz0K8WwfuInMpzvhtBlyjpzbKkV79c1nQ9Z8askXX_1_MbLxg2b1AionJRdbVHt2pI3hC5nIQ==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/5E080AD3-1415-4183-B4D1-895444C7FD7F.txt",
+          "sha256": "f7ad72334b1a54c37e6b04a3f90ab850d797d314315d1540e42b59b85189277f",
+          "bytes": 362
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875585.534,
+          "uuid": "5D9EC41B-5728-4801-85F2-C2E39B5E9527",
+          "originalName": "media-request-control-native-full-text_0_848AE1BB-210A-498B-888A-C0B1C5B29591.txt",
+          "payloadId": "0~LmrLu5kmjDt915fjdD5W-c57pWwYQn3uV4ba-pu9xtShg_vZ45uOuuTGZMPazV3lZjGg5xXVxADhaDt6uEbBKQ==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/5D9EC41B-5728-4801-85F2-C2E39B5E9527.txt",
+          "sha256": "b48a47ee4c5f3fd46171fdbe8d718bd0ad24161d6893377b3d51b9542fde85cd",
+          "bytes": 250
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875588.809,
+          "uuid": "B57DF732-A42D-4A27-8DE6-70D59BD31D88",
+          "originalName": "media-request-control-native-full-text_0_F2C934B3-1A0C-45B3-8C73-3A43AD5EF06E.txt",
+          "payloadId": "0~AkA8-yRMwKJYqCyaRSF-m7cqq4vVORBgOiNvwXqMw-4RCClroregdHthehItMKxpLTL6gwcRu1CZAyFrmPnnXg==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/B57DF732-A42D-4A27-8DE6-70D59BD31D88.txt",
+          "sha256": "f095b1a7ba6c7aca0ba9fbbe93cfeb412683d6dcb3d4c3c098ca7f9459ba7724",
+          "bytes": 265
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875589.31,
+          "uuid": "3BFCB444-3440-4063-8825-FA01C943ADCB",
+          "originalName": "media-request-control-native-full-text_0_7E1A751E-5B99-46C5-9271-925453BAC151.txt",
+          "payloadId": "0~PcWytXn9dUMhRZuzFzJG59eiZzLq4EUkkcs7xOnAuVHRj860ShWpfyelGqn8o2y9s8UIPJb6CyQiJSY-C_quwg==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/3BFCB444-3440-4063-8825-FA01C943ADCB.txt",
+          "sha256": "55a958ead754e2b8d183494c7c85ff7899c6f8c0298708979b067b834ae194fd",
+          "bytes": 409
+        },
+        {
+          "role": "media-request-control-native-full-text",
+          "activityUnixUTC": 1792875593.323,
+          "uuid": "4A914185-D055-4FCA-952F-71B6A3B1FBDB",
+          "originalName": "media-request-control-native-full-text_0_737D3664-0237-4F55-BD3D-D77B9D3AD18F.txt",
+          "payloadId": "0~JZd1Qpc7ue5rw2RypnMM0Y_GTOGfMym4ys-60YeqDvxAGPG4o_vUfSzcJ_mUd9WbNGoP-lq3inH5-zz5yiVx8Q==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/4A914185-D055-4FCA-952F-71B6A3B1FBDB.txt",
+          "sha256": "ce507225653e8e4e67de0da388b3f6bb6fff5582633c76bf6cacca7cf6b49403",
+          "bytes": 256
+        },
+        {
+          "role": "max-inspect-final-paused-waiting-controls-accessibility-before",
+          "activityUnixUTC": 1792875594.784,
+          "uuid": "38A182A5-512D-46A3-A279-5EDFB8A1E982",
+          "originalName": "max-inspect-final-paused-waiting-controls-accessibility-before_0_9F26BD88-64F3-47F4-BF12-4E26DB098AC9.png",
+          "payloadId": "0~_Xza5wEHUbK7fmwyzyzyYOq0DDSLZQ6YsDvjaR1TpB0wkZcNBqUsXDQEyKzaPVR8jPwJcYsmITn_vaBxjes72g==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/38A182A5-512D-46A3-A279-5EDFB8A1E982.png",
+          "sha256": "c9fe98468a8fc0a37923ebe31f34d09ddcfe024840fc191fa49ee6103f251803",
+          "bytes": 263087,
+          "pixelSize": [
+            1206,
+            2622
+          ]
+        },
+        {
+          "role": "max-inspect-final-paused-waiting-controls-accessibility-before-tree",
+          "activityUnixUTC": 1792875594.911,
+          "uuid": "7242620A-683F-4A56-A2A6-BCA019589779",
+          "originalName": "max-inspect-final-paused-waiting-controls-accessibility-before-tree_0_6DA569D4-DBA0-474C-8702-416C80A3A503.txt",
+          "payloadId": "0~L8FqvnRj0O_0tfTaU4togEmtai01PCBDnjWuJOARsay6LR6Rb5hLRbaarn5uiWvfR409PYjB5-E2E6iuxE-eMg==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/7242620A-683F-4A56-A2A6-BCA019589779.txt",
+          "sha256": "4eeaf8dbaf7f802a49abf16dc181df54aa29c89ad75f4f6f7e8fd1f9a540072b",
+          "bytes": 14390
+        },
+        {
+          "role": "max-inspect-final-paused-waiting-controls-accessibility-after",
+          "activityUnixUTC": 1792875596.928,
+          "uuid": "FB086345-D5D2-491C-85DA-696B87952EF7",
+          "originalName": "max-inspect-final-paused-waiting-controls-accessibility-after_0_EF177BDB-B7F6-42AA-9360-2E38AD40D526.png",
+          "payloadId": "0~duXhQiDiWMQ7CbUVPNcwYNE6iQAWhwKBtEtinoe0mKx5HRL1byktGPybdqNe9AhOmoIxke9DPifE2Qe446Hflw==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/FB086345-D5D2-491C-85DA-696B87952EF7.png",
+          "sha256": "367fcca15c7fca0cba51d6b82ecea55b7e62036b46f523f98a2e6254f2cef199",
+          "bytes": 320990,
+          "pixelSize": [
+            1206,
+            2622
+          ]
+        },
+        {
+          "role": "max-inspect-final-paused-waiting-controls-accessibility-after-tree",
+          "activityUnixUTC": 1792875597.036,
+          "uuid": "03A446C3-B5EE-4E1B-A3D4-A5206FAE71D8",
+          "originalName": "max-inspect-final-paused-waiting-controls-accessibility-after-tree_0_804037FF-C7DC-4BCE-9923-2F5EC70E46E3.txt",
+          "payloadId": "0~Z3TE31HEWvdwf21y3EVMjsFo6JYn5bOqEieHgON7d3mmUaDkbOIGYbaVWw2A7E72L7gqzQdYTFxUnXJ3gBeq1Q==",
+          "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/03A446C3-B5EE-4E1B-A3D4-A5206FAE71D8.txt",
+          "sha256": "32978b7fe35e61dc0b481d251a4a6754d9565950541e51c47e6372bd27c08a5b",
+          "bytes": 8018
+        }
+      ]
+    }
+  },
+  "limitedInheritance": {
+    "source": "DI18からDI19へ変更したのはUI test1fileのみ。残る499 inputs/394 code inputs、製品・Unit・project・docsは同一。",
+    "runtimeScope": "inspectFinalPausedWaitingだけを通常App初回launch後に実行。local cancelled詳細→waiting paused操作群の読取と各strict auditに限定。",
+    "precondition": "main提供の既済みstage6 fixtureを使用。前提のwriter6親10子をこのphaseで再検証していない。",
+    "retained149": {
+      "result": {
+        "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-max-tail-149/result.json",
+        "sha256": "72a544ab3f3768e9b65093ddc3dc70643a629a9addc466b3268e745e0d535eff",
+        "bytes": 7064
+      },
+      "handoff": {
+        "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-149-final-handoff.json",
+        "sha256": "c62c0a8ec543efa6aadab4dbc423814bba2f71810e871a60dc22013d4c6ab33b",
+        "bytes": 37173
+      },
+      "exitCode": 65,
+      "testFailed": 1,
+      "strictAudits": 11,
+      "contrastIssues": 1,
+      "sourceFingerprint": "29d181dd6b200876f7e52c462217c8e11d672aaa78e67bf862091dc44b2fdf47"
+    },
+    "interpretationJapanese": "現行DI19のこの2場面はnormal/MAXでstrict7 issue0という限定結果。旧149の全6操作flowをPASSへ変更せず、個別Contrast失敗要素の原因を特定/分離したとも扱わない。"
+  },
+  "unmeasuredScope": {
+    "exactFullHistoryScan": false,
+    "historyParentChildCountsRechecked": false,
+    "receiptsDecisionsStopsAndPendingAllRechecked": false,
+    "actualWriterOrIndependentSQLiteReopenPerformed": false,
+    "attempts": null,
+    "sessions": null,
+    "tasks": null,
+    "logicalReaders": null,
+    "mediaReaders": null,
+    "nativeSDKCallInventory": "notMeasured",
+    "networkCalls": null,
+    "keychainReads": null,
+    "photosSDKCalls": null,
+    "postAuditSameViewportControlReacquisition": false,
+    "postAuditAllTargetStateEqualityRechecked": false,
+    "wholeSixOperationFlowRerun": false,
+    "realCaptureSaveProducerOrNativePhotosExecutionProven": false
+  },
+  "imagesViewed": [
+    {
+      "run": "172",
+      "role": "normal-inspect-final-local-cancelled-controls-accessibility-before",
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/260576A7-E6A7-4767-87F9-49CA50BEC192.png"
+    },
+    {
+      "run": "172",
+      "role": "normal-inspect-final-local-cancelled-controls-accessibility-after",
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/0E9A2B4F-0295-4BC5-81A0-335973E70336.png"
+    },
+    {
+      "run": "172",
+      "role": "normal-inspect-final-paused-waiting-controls-accessibility-before",
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/21837090-8F86-4672-9317-A4C93C47E7EE.png"
+    },
+    {
+      "run": "172",
+      "role": "normal-inspect-final-paused-waiting-controls-accessibility-after",
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/172/AE4383E5-61E6-4085-B76F-9971360F5E8C.png"
+    },
+    {
+      "run": "173",
+      "role": "max-inspect-final-local-cancelled-controls-accessibility-before",
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/C61D798E-C323-4BD0-9AC4-E6E69476F6FC.png"
+    },
+    {
+      "run": "173",
+      "role": "max-inspect-final-local-cancelled-controls-accessibility-after",
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/98D65568-78F5-4BF8-9A50-226452CBCF54.png"
+    },
+    {
+      "run": "173",
+      "role": "max-inspect-final-paused-waiting-controls-accessibility-before",
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/38A182A5-512D-46A3-A279-5EDFB8A1E982.png"
+    },
+    {
+      "run": "173",
+      "role": "max-inspect-final-paused-waiting-controls-accessibility-after",
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax/173/FB086345-D5D2-491C-85DA-696B87952EF7.png"
+    }
+  ],
+  "observationsJapanese": [
+    "normalのbefore/afterは同じ対象操作群を含むAX snapshot。MAXのaudit afterではviewport/AX構成が別の位置へ移り、local操作群は画面外、waiting操作群はafter AX treeに含まれない。",
+    "44pt/有効状態/全文およびenabled controlのhittableは監査前の逐次assertControl実行時の結果と、対応するnative tree/fulltextを根拠にする。監査後も全buttonが同時にviewport内にあるという主張ではない。",
+    "disabled controlにはhittable=trueを要求していない既存契約を保持する。hittable値をtreeから新たに推定しない。",
+    "原本やSimulator/DBを担当agentが直接照会せず、mainが取得した保全sidecarと凍結Source/xcresultを照合した。"
+  ],
+  "separateNormalMaxFixturePhysicalIdentities": true,
+  "exportScope": {
+    "root": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-ax",
+    "perRunPayloads": 23,
+    "totalPayloads": 46,
+    "selection": "各runのaudit before/after PNG4・tree4、全文13、独立期待値1、読取範囲1のみ。全attachment無差別exportなし。"
+  },
+  "ownership": {
+    "sourceTestHelperDocsSteeringEdits": false,
+    "priorEvidenceEdits": false,
+    "simulatorOrDatabaseOperations": false,
+    "SDKOrTestExecutionByThisAgent": false,
+    "reseedRepairReplayOrKill": false,
+    "onlyNewFinalJSON": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-render-172-173-evidence-check.json"
+  }
+}

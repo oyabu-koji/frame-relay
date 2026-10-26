@@ -1,0 +1,66 @@
+{
+  "state": "directready, sequential after current BG/control/upload tasks",
+  "source": "strict_dispatch read-only report",
+  "contract": "PhotoLibraryAddAttempt.heldBeforeStart | completed(result), new guarded add(command,captureAuthorization) protocol requirement; default guarded and Native legacy add failclosed, no asynclegacy fallback",
+  "product": "new capture-start port required for product coordinator; same ProductRenditionFactory.captureAdmission, no independent empty gate as product default",
+  "wait": "retained liveTask/intent/usage/local media; subscribe-first capturechanges stream initialyield; onwake freshauthorization+exact mutation/source recheck; missing SDK provenance afterreopen staysunknown",
+  "synchronization": "CaptureMediaAdmission multiple observers; register/state/list-copy under NSLock; yield/resume/termination outside lock; preserve existing didChange sink",
+  "cancel": "atomic live per-operation predispatch/dispatched latch at final SDK action; knownnonstarted cancellation wakes task -> notStarted terminal/result exactcommit -> ownusage release; dispatched waits actualcompletion",
+  "native": "permission status and actorhop before final token consumption; only short synchronous performChanges registration call inside token.performIfCurrent; never put token in asynchronous changeBlock or run await/Task/redispatch under lock",
+  "tests": [
+    "allpermission/resolve/lookup/native-hop barrierholds/ABA/consumedtoken0SDK",
+    "holdwake sameintent/use exactly1start, overlappingholdasons, doublewake/no missedwake",
+    "knownnonstartcancel vs afterdispatch realcompletion/useFD retention",
+    "unknowncommit/reopenoldintent noautostart",
+    "authorizednewSim native stalepermit0SDK/asset/resourceunchanged, Nativelegacy0",
+    "newsyntheticnativepositive realcompletion/release/reopen; existing NativePhotoLibraryTestsexplicit start port/guarded directcall"
+  ],
+  "existingNativeSites": [
+    "ProductLibraryFactory:22/56",
+    "NativePhotoLibraryTests:20/107/180(+rawdiagnostic78-100 separate)",
+    "ProductPhotoSaveBatchTests:231"
+  ],
+  "fakeWitnesses": [
+    "PhotoSaveFixture:57",
+    "ProductPhotoSaveBatchFixture:67",
+    "ProductPhotoCompositionTests:169",
+    "BackgroundRemovalTerminalTests:357"
+  ],
+  "limits": "already accepted performChanges has no cancellation handle; this does not establish all Photos cancellation/all-media stop/formalproducer/devicequality",
+  "writesOrSDKByExplorer": false,
+  "sameWriterFinalStartRefinement": {
+    "source": "upload_metadata_contract read-only actual code and iOS27 header",
+    "required": true,
+    "gap": "history lookup precedes Native actorhop/authorization await; finalcapturetoken alone cannot see writer UUID/result/usage epoch/removal/invalidation drift",
+    "proposal": "default-refuse performPhotoSaveIfCurrent(committedIntent, short synchronous action), samewriterfresh document lock→capturetoken→peroperationpredispatch latch→synchronous performChanges registration",
+    "predicate": [
+      "exactnonnullUUID/actualintentmutation+receipt/latestrecord noresult-terminal-release",
+      "exacttemporaryrendition/date/dir-fileidentity/fullcoverage/verifiedcontent/nonreclaim",
+      "exactuse intemporaryusages+logicalmediaReaders andcurrentwriter epoch",
+      "currentreg/currentrendition/no invalidation or unresolvedremovalreservation"
+    ],
+    "doNotAdd": [
+      "physicaloriginal existence",
+      "localOriginalBinding",
+      "resolvedRemoval != removed"
+    ],
+    "sdkHeader": "PHPhotoLibrary NS_SWIFT_SENDABLE; handlers arbitrary serialqueue; source invocation synchronous; compile newconfiguration stillunverified",
+    "openAudit": "twoCoordinator sameintent precommit race singleSDK claim/resolveownerguard readOnly followup pending",
+    "scope": "held liveintent/use stays; processreopen existingintent unknown/noauto; acceptedPhotoKit cannotcancel, completion+FD+terminal/use held",
+    "sharedClaimAudit": {
+      "result": "needed; currentguards do notguarantee acrosscoordinators",
+      "facts": [
+        "running/tasks perinstance; originalintent idempotentcommit does notmakeSDKidempotent",
+        "temporarybusy excludes onlyuntilfinishPhotoMedia; finishoccursbeforeresultcommit",
+        "readersActive currentlymaps .notAttempted invalidMedia andmaymisclassifyotherownerSDK"
+      ],
+      "proposal": "shared processregistry keyedstoreUUID+rawUTF8operation+fullinput reservesuniqueclaim beforefirstawait/prepare/commit; otherowner getsinProgress/unknown withoutresult/terminal/release; sameowner capabilityconsumedonce atwriter→capture→sharedlatch native registration",
+      "restart": "emptyregistry neverauthorizesexistingintent; keepunknown/noauto rule",
+      "tests": [
+        "two coordinators sameaction/store/temp whilefirstSDKcompletion held→oneSDK/secondwrites0",
+        "afterfirstFDclose beforefirstresultcommit held→sameoneSDK/secondnotAttemptedterminalrelease0"
+      ],
+      "runtimeReproduction": "notyet"
+    }
+  }
+}

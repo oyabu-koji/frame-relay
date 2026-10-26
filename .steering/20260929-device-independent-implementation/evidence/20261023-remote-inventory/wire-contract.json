@@ -1,0 +1,46 @@
+{
+  "purpose": "Authenticated saved-original metadata discovery for a new registration; not local original binding, formal rendition, current filesystem existence, confirmation or ACK proof",
+  "method": "GET",
+  "path": "/frame-relay/v1/uploads/inventory",
+  "auth": [
+    "existing bootstrap Bearer",
+    "X-FrameRelay-Registration-Secret for current destination/registration/generation"
+  ],
+  "query": {
+    "destination_id": "canonical lowercase UUID",
+    "registration_id": "canonical lowercase UUID",
+    "registration_generation": "positive canonical signed-63-bit decimal string",
+    "limit": "canonical decimal string, 1..32; client sends 32",
+    "cursor": "optional ASCII opaque canonical cursor, max640; absent for first page"
+  },
+  "response": {
+    "destination_id": "exact current request",
+    "registration_id": "exact current request",
+    "registration_generation": "exact current request",
+    "request_cursor": "exact cursor or null",
+    "items": [
+      {
+        "capture_id": "nonblank opaque UTF8, byte/case/whitespace preservation; max2048UTF8 for this bounded inventory only",
+        "content_generation": "positive canonical UInt64 decimal string",
+        "sha256": "64 lowercase hex",
+        "byte_count": "positive canonical UInt64 decimal string"
+      }
+    ],
+    "next_cursor": "opaque ASCII max640 or null"
+  },
+  "response_bytes_limit": 262144,
+  "items_limit": 32,
+  "server_pagination": "Exact immutable session UUID order; cursor canonical unpadded base64url JSON bound to version/current destination/registration/generation/limit/last session; reject aliases and missing boundary. Same-cursor retry remains a read.",
+  "server_eligibility": "same destination, completed binding and exact valid saved evidence/asset/job/claim. Incomplete uploads absent; corrupted completed/evidence or oversized identity/page rejects whole page. No media FD/publication authority.",
+  "client_rules": [
+    "one explicit action fetches one page; explicit continuation",
+    "validate current connection/registration/storeUUID before and after awaits/commit",
+    "journal page observation through same writer; store exact request/current registration/response and cursor",
+    "remote-only projection remains separate from local RecordingStoreEntry; no bind or local reference fabrication",
+    "preserve same-capture different-content conflicts and no automatic matching",
+    "missing capture date remains unknown",
+    "empty/missing page never removes prior local or observed records",
+    "no media request, automatic download, old confirmation restoration or old ACK substitution"
+  ],
+  "acceptance": "non-device partial S28 only; remote producer/store/UI integration and tests pending"
+}

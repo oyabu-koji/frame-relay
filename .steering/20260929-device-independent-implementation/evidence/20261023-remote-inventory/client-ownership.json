@@ -1,0 +1,39 @@
+{
+  "task": "S28 remote inventory journal/native metadata/normal remote-only catalog",
+  "worker": "inventory_client",
+  "allowed": [
+    "FrameRelay/Domain/Media/RemoteInventory.swift",
+    "FrameRelay/Application/Ports/RemoteInventoryPorts.swift",
+    "FrameRelay/Application/MediaOperations/RemoteInventoryCoordinator.swift",
+    "FrameRelay/Platform/Remote/RemoteInventoryWire.swift",
+    "FrameRelay/Platform/Remote/URLSessionRemoteInventoryRemote.swift",
+    "FrameRelay/Platform/LocalStore/RemoteInventoryStoreProjection.swift",
+    "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+    "FrameRelay/Domain/Operations/BackendCommit.swift",
+    "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+    "FrameRelay/Application/Library/LibrarySnapshot.swift",
+    "FrameRelay/Application/Library/LibraryStoreReader.swift",
+    "FrameRelay/Features/Library/LibraryView.swift",
+    "FrameRelay/Features/Connection/ConnectionModel.swift",
+    "FrameRelay/Features/Connection/ConnectionView.swift",
+    "FrameRelay/Composition/ProductComposition.swift",
+    "FrameRelayTests/Integration/Storage/RemoteInventoryStoreTests.swift",
+    "FrameRelayTests/Integration/Remote/RemoteInventoryTests.swift",
+    "FrameRelayTests/Integration/Remote/RemoteInventoryHTTPFixtureTests.swift",
+    "FrameRelayTests/Integration/Composition/ProductRemoteInventorySeedTests.swift",
+    "FrameRelayUITests/Flows/RemoteInventoryFlowTests.swift"
+  ],
+  "handoff": "new registration App5/Support/newUnit2 frozen at new-registration-unit-32. cleanup_connection now writes only new seed/UI files.",
+  "excluded": "existing P2 playback/AX helper/snapshot evidence/requirements/project/server/guards; no fake local recording binding or old confirmation/ACK adoption",
+  "main_UI_handoff_after48": {
+    "file": "FrameRelayUITests/Flows/RemoteInventoryFlowTests.swift",
+    "scope": "add strict sync explanation/button scroll and fixed footer/content assertions + one full audit; existing assertions/audits unchanged",
+    "App": "frozen with inventory_client completion"
+  },
+  "main_focus_handoff_after56": {
+    "file": "FrameRelay/Features/Connection/ConnectionView.swift",
+    "scope": "six focus bindings + keyboard dismissal on actual user drag only; no model/credential/store/network change",
+    "verification": "max58/normal59/post60/initial61/final62/67 passed",
+    "status": "all App/Unit/UI frozen and ownership released"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "task": "S28 manifest metadata persistence and projection",
+  "status": "done: manifest metadata projection part, stage01",
+  "owner": "worker manifest_projection",
+  "files": [
+    "FrameRelay/Application/Ports/PublicationPorts.swift",
+    "FrameRelay/Domain/Operations/BackendCommit.swift",
+    "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+    "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+    "FrameRelay/Platform/LocalStore/RecordingStoreDocument.swift",
+    "FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift",
+    "FrameRelay/Application/MediaOperations/BackendStatusSynchronizationCoordinator.swift",
+    "FrameRelay/Application/Library/LibrarySnapshot.swift",
+    "FrameRelay/Application/Library/LibraryStoreReader.swift",
+    "FrameRelay/Features/Library/LibraryView.swift",
+    "FrameRelay/Domain/Media/PublicationManifestObservation.swift",
+    "FrameRelay/Platform/LocalStore/PublicationManifestStoreProjection.swift",
+    "FrameRelayTests/Application/PublicationManifestSynchronizationTests.swift",
+    "FrameRelayTests/Integration/Storage/PublicationManifestStoreTests.swift",
+    "FrameRelayTests/Application/LibraryPublicationProjectionTests.swift"
+  ],
+  "main": [
+    "tasklist.md",
+    "new evidence",
+    "configuration and test execution",
+    "final diff"
+  ],
+  "constraints": [
+    "既存未commit保全/限定加算",
+    "他者の変更を戻さない",
+    "確認authority/失効guard/schema7互換保持",
+    "原本/Photos/Keychain/旧証跡/既存fixture非変更",
+    "独立validation非実行"
+  ],
+  "additional_test_owner": {
+    "worker": "publication_ui",
+    "files": [
+      "FrameRelayTests/Integration/Composition/ProductPublicationSeedTests.swift",
+      "FrameRelayUITests/Flows/PublicationFlowTests.swift"
+    ],
+    "scope": "same S28 manifest subtask; fresh dedicated synthetic root only, main executes"
+  },
+  "additional_http_test_owner": {
+    "worker": "publication_ui",
+    "file": "FrameRelayTests/Integration/Composition/ProductStatusSynchronizationTests.swift",
+    "scope": "only 11 assertions in StatusSynchronizationHTTPFixtureTests.metadataOnlyPageAndManifestUseCoordinator; old JSON/attachment/conditions preserved"
+  }
+}

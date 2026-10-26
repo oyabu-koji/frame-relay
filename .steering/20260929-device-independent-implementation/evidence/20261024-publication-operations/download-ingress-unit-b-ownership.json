@@ -1,0 +1,67 @@
+{
+  "feature": "same download ingress UnitB authenticobservations/guardedverifiedimport/drain",
+  "state": "in-progress after A9 frozen inDI23;182 runsreadonly copy",
+  "files": [
+    "FrameRelay/Domain/Operations/BackgroundDownloadImport.swift",
+    "FrameRelay/Domain/Operations/BackendCommit.swift",
+    "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+    "FrameRelay/Application/Ports/BackgroundDownloadImportPorts.swift",
+    "FrameRelay/Platform/LocalStore/BackgroundDownloadStoreProjection.swift",
+    "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+    "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift",
+    "FrameRelay/Platform/LocalStore/TemporaryMediaStoreProjection.swift",
+    "FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift",
+    "FrameRelay/Platform/LocalStore/BackgroundMediaStoreProjection.swift",
+    "FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift",
+    "FrameRelay/Application/Ports/OriginalRemovalPorts.swift",
+    "FrameRelay/Application/Ports/BackgroundInvalidationPorts.swift",
+    "FrameRelayTests/Domain/BackgroundDownloadImportTests.swift",
+    "FrameRelayTests/Integration/Storage/BackgroundDownloadImportStoreTests.swift",
+    "FrameRelay/Platform/LocalStore/MediaPersonControlStoreProjection.swift",
+    "FrameRelay/Application/MediaIO/BackgroundDownloadImport.swift",
+    "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift",
+    "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift",
+    "FrameRelayTests/Integration/Remote/BackgroundDownloadIngressDrainTests.swift"
+  ],
+  "owners": {
+    "/root/manifest_projection": [
+      "FrameRelay/Domain/Operations/BackgroundDownloadImport.swift",
+      "FrameRelay/Domain/Operations/BackendCommit.swift",
+      "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+      "FrameRelay/Application/Ports/BackgroundDownloadImportPorts.swift",
+      "FrameRelay/Platform/LocalStore/BackgroundDownloadStoreProjection.swift",
+      "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+      "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift",
+      "FrameRelay/Platform/LocalStore/TemporaryMediaStoreProjection.swift",
+      "FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift",
+      "FrameRelay/Platform/LocalStore/BackgroundMediaStoreProjection.swift",
+      "FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift",
+      "FrameRelay/Application/Ports/OriginalRemovalPorts.swift",
+      "FrameRelay/Application/Ports/BackgroundInvalidationPorts.swift",
+      "FrameRelayTests/Domain/BackgroundDownloadImportTests.swift",
+      "FrameRelayTests/Integration/Storage/BackgroundDownloadImportStoreTests.swift",
+      "FrameRelay/Platform/LocalStore/MediaPersonControlStoreProjection.swift"
+    ],
+    "/root/original_upload_app": [
+      "FrameRelay/Application/MediaIO/BackgroundDownloadImport.swift",
+      "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift",
+      "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift",
+      "FrameRelayTests/Integration/Remote/BackgroundDownloadIngressDrainTests.swift"
+    ]
+  },
+  "base": "DI-SOURCE-20261025-23/515/e7491f7c0d503437f94a207b7caf8be241a75736cc8063e1456c97cad70ac0f5",
+  "inputs": [
+    "download-ingress-unit-b-core-contract.json",
+    "download-ingress-original-independence-addendum.json",
+    "download-ingress-receipt-causality.json"
+  ],
+  "constraints": [
+    "A9readOnlyexceptBexplicitCoordinator",
+    "T issuedbeforeP,plannedIntentFP/actualbegin+lease; actualprepared requiredresponse+later",
+    "personresume onlyexactmanagedTpostTnarrowexception; preTfutureCnotpartB",
+    "no serverreceipt invention/newsourcevariant/oldJSONchange",
+    "defaultguardedfinalrefuses/genericverifiedbypassblocked/newonly",
+    "notalone/nootherrevert,mainexecutions/docs/steering"
+  ],
+  "createdUTC": "2026-10-24T22:45:22.912789+00:00"
+}

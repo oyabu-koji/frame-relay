@@ -1,0 +1,256 @@
+{
+  "contract": "fr-publication-v1",
+  "status": "review-candidate",
+  "base_path": "/frame-relay/v1/publication",
+  "authentication": [
+    "Authorization: Bearer <existing bootstrap token>",
+    "X-FrameRelay-Registration-Secret: <existing registration secret>"
+  ],
+  "encoding": {
+    "objects": "All listed fields required; unknown fields, duplicate JSON keys, non-finite numbers and invalid UTF-8 rejected. No normalization of opaque identities.",
+    "integers": "All wire counts, generations, offsets and revisions are canonical unsigned decimal strings, no leading zero except 0. UInt64 maximum. Server-generated SQLite revisions/generations are bounded to Int64 maximum and fail before exhaustion.",
+    "opaque_id": "Nonempty UTF-8 string, at most 1024 UTF-8 bytes, no NUL. Used unchanged. Only server-generated artifact IDs become filenames. Opaque distribution/transport/attempt IDs in HTTP headers use canonical base64url of UTF-8 without padding; response Distribution-ID uses that same encoding. UUID rendition IDs and decimal generation/hash headers are literal ASCII.",
+    "range": "Half-open [lower_bound, upper_bound); HTTP Range is bytes=lower_bound-(upper_bound-1). Full requests have range=null. Multiple/suffix/open-ended ranges rejected.",
+    "receipt": "Explicit schema mapped into Swift values after exact identity/revision validation; not synthesized Swift enum Codable. A receipt is a historical commit, never a lasting GET permission.",
+    "response_bound": "Publication client maximum 262144 bytes (256KiB); invalidation endpoint emits at most 196608 UTF-8 encoded bytes. A single worst-case escaped invalidation (bounded opaque fields plus server UUIDs/decimal counters) fits; oversize first items fail explicitly rather than return a nonprogressing page."
+  },
+  "types": {
+    "registration": {
+      "destination_id": "opaque_id",
+      "registration_id": "opaque_id",
+      "generation": "positive decimal"
+    },
+    "content": {
+      "algorithm": "sha256",
+      "digest": "64 lowercase hex",
+      "byte_count": "positive decimal"
+    },
+    "original": {
+      "capture_id": "opaque_id",
+      "content_generation": "decimal",
+      "content": "content"
+    },
+    "rendition": {
+      "original": "original",
+      "input_log_identity": "opaque_id",
+      "transform_asset_identity": "opaque_id",
+      "transform_asset_version": "opaque_id",
+      "output_configuration_identity": "opaque_id",
+      "conversion_version": "opaque_id",
+      "rendition_id": "Server-generated canonical lowercase hyphenated UUID; this is not a constraint on all Domain opaque IDs",
+      "delivery_content": "content",
+      "publication_generation": "positive decimal"
+    },
+    "gate": {
+      "operation_id": "opaque_id",
+      "attempt_id": "opaque_id",
+      "access_generation": "decimal"
+    },
+    "range": {
+      "lower_bound": "decimal",
+      "upper_bound": "positive decimal"
+    },
+    "distribution_receipt": {
+      "operation_id": "opaque_id",
+      "rendition": "rendition",
+      "registration": "registration",
+      "previous_revision": "decimal",
+      "committed_revision": "previous_revision + 1"
+    },
+    "invalidation": {
+      "invalidation_id": "opaque_id",
+      "rendition": "rendition",
+      "registration": "registration",
+      "invalidation_generation": "positive decimal"
+    },
+    "local_commit": {
+      "previous_revision": "decimal",
+      "committed_revision": "previous_revision + 1"
+    },
+    "confirmation": {
+      "operation_id": "opaque_id",
+      "playback_session_id": "opaque_id",
+      "distribution": "distribution_receipt",
+      "invalidation_generation": "decimal",
+      "observation": "played",
+      "local_commit": "local_commit"
+    },
+    "acknowledgement": {
+      "invalidation": "invalidation",
+      "local_commit": "local_commit"
+    },
+    "media_type": "video/mp4 or video/quicktime; verified artifact container, not S26 output selection or codec/quality acceptance"
+  },
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/manifest",
+      "request": {
+        "schema_version": "fr-publication-v1",
+        "registration": "registration",
+        "original": "original"
+      },
+      "result": {
+        "current": "rendition or null",
+        "revision": "decimal",
+        "invalidation_generation": "decimal",
+        "replacement_pending": "boolean",
+        "media_type": "media_type when current exists, otherwise null"
+      },
+      "effect": "Read only. Does not add a recipient or construct a distribution receipt."
+    },
+    {
+      "method": "POST",
+      "path": "/distributions",
+      "request": {
+        "schema_version": "fr-publication-v1",
+        "operation_id": "opaque_id",
+        "registration": "registration",
+        "rendition": "rendition",
+        "gate": "gate",
+        "purpose": "source or read",
+        "kind": "full or range or resume",
+        "range": "range or null",
+        "source_operation_id": "opaque_id or null"
+      },
+      "result": {
+        "receipt": "distribution_receipt",
+        "media_type": "media_type of this exact immutable rendition"
+      },
+      "effect": "source requires kind=full, range=null, source_operation_id=null; commits the first receipt before RetrieveMediaCommand exists. read references a committed source for the same rendition/registration/gate and uses a fresh operation for each actual GET. Required recipients are committed with either acceptance. Exact replay returns the same receipt; changed payload is conflict."
+    },
+    {
+      "method": "POST",
+      "path": "/operations/lookup",
+      "request": {
+        "schema_version": "fr-publication-v1",
+        "registration": "registration",
+        "kind": "distribution or confirmation or acknowledgement",
+        "operation_id": "opaque_id"
+      },
+      "result": {
+        "original_request": "Exact accepted request, not lookup request",
+        "original_result": "Immutable original endpoint result"
+      },
+      "effect": "Envelope request echoes the lookup request. ACK operation_id equals acknowledgement.invalidation.invalidation_id; lookup uniqueness is kind=acknowledgement plus registration. No additional ACK operation is invented. Missing operation is 404 publication_operation_not_executed."
+    },
+    {
+      "method": "GET",
+      "path": "/media/{server-generated-rendition-id}",
+      "headers": {
+        "X-FrameRelay-Distribution-ID": "read distribution operation_id",
+        "X-FrameRelay-Transport-ID": "gate.operation_id",
+        "X-FrameRelay-Attempt-ID": "gate.attempt_id",
+        "X-FrameRelay-Access-Generation": "gate.access_generation",
+        "Range": "Exact single range, absent only for kind=full",
+        "Accept-Encoding": "identity"
+      },
+      "query": {
+        "destination_id": "registration.destination_id",
+        "registration_id": "registration.registration_id",
+        "registration_generation": "registration.generation"
+      },
+      "response": "200 full or 206 exact range; Content-Type equals persisted artifact media_type and manifest/distribution media_type; Content-Length and Content-Range for 206; no transformation; Cache-Control no-store",
+      "identity_headers": {
+        "X-FrameRelay-Wire-Version": "fr-publication-v1",
+        "X-FrameRelay-Distribution-ID": "exact operation_id",
+        "X-FrameRelay-Rendition-ID": "exact rendition_id",
+        "X-FrameRelay-Publication-Generation": "exact publication_generation",
+        "X-FrameRelay-Content-SHA256": "delivery_content.digest",
+        "X-FrameRelay-Content-Bytes": "delivery_content.byte_count"
+      },
+      "effect": "Open/read/hash same FD outside writer, then recheck exact request, current publication, registration, invalidation, artifact and authority in a short transaction; consume ticket once and commit admission before any bytes. Reused ticket including URLSession internal replay is 409 with zero media bytes. Lost/partial response requires a new read distribution and all checks again; no automatic retry in the transport adapter."
+    },
+    {
+      "method": "POST",
+      "path": "/confirmations",
+      "request": {
+        "schema_version": "fr-publication-v1",
+        "registration": "registration",
+        "confirmation": "confirmation"
+      },
+      "result": {
+        "operation_id": "confirmation.operation_id",
+        "accepted": true
+      },
+      "effect": "Sync an existing local explicit-user confirmation commit; do not create confirmation from server byte counts or status sync. Require exact source receipt and current, noninvalidated rendition. Historical replay does not restore current validity."
+    },
+    {
+      "method": "POST",
+      "path": "/invalidations",
+      "request": {
+        "schema_version": "fr-publication-v1",
+        "registration": "registration",
+        "after_invalidation_id": "null or opaque_id",
+        "limit": "canonical positive decimal, 1..8"
+      },
+      "result": {
+        "invalidations": [
+          "invalidation"
+        ],
+        "next_after": "null or last returned invalidation_id"
+      },
+      "effect": "Read only; each pending replacement derives required registrations from all recipients of previous rendition, including recipients added while waiting. Binary invalidation_id keyset order, strictly after cursor. Each poll starts with null. Count is at most limit and complete UTF-8 JSON envelope is at most 196608 bytes (192KiB). A short page can have next_after; continue whenever nonnull. Empty page always has null cursor. Server sends the exact bytes used for this bound. Concurrent lower-ID additions are found by the next poll from null. Page completion never means all ACKs."
+    },
+    {
+      "method": "POST",
+      "path": "/acknowledgements",
+      "request": {
+        "schema_version": "fr-publication-v1",
+        "registration": "registration",
+        "acknowledgement": "acknowledgement"
+      },
+      "result": {
+        "invalidation_id": "acknowledgement.invalidation.invalidation_id",
+        "accepted": true
+      },
+      "effect": "Require matching existing invalidation/recipient/registration and local tombstone commit receipt. Local all-reader stop/release precedes this outbox delivery. New registrations never replace old ACKs. Same acknowledgement replay is stable; different local receipt/payload rejected. Lookup operation_id is invalidation.invalidation_id, scoped by registration; original_request/original_result are returned unchanged."
+    }
+  ],
+  "envelopes": {
+    "success": {
+      "schema_version": "fr-publication-v1",
+      "request": "complete validated request",
+      "result": "endpoint result"
+    },
+    "error": {
+      "schema_version": "fr-publication-v1",
+      "code": "stable reason without credentials/payload",
+      "retryable": "boolean"
+    },
+    "http_errors": {
+      "401": "missing/malformed bearer or registration secret",
+      "403": "registration authentication mismatch",
+      "404": "operation or rendition absent",
+      "409": "exact payload conflict, stale publication/revision, invalidated, consumed ticket or awaiting ACK",
+      "422": "invalid exact schema/range",
+      "503": "database/file unavailable, production proof not implemented or result unknown"
+    }
+  },
+  "sqlite": {
+    "migration": "004_publication; 001-003 unchanged, independent FR migration ledger",
+    "tables": [
+      "fr_publication_heads",
+      "fr_publication_artifacts",
+      "fr_publication_replacements",
+      "fr_publication_operations",
+      "fr_publication_recipients",
+      "fr_get_admissions",
+      "fr_invalidation_acks"
+    ],
+    "initial": "current=NULL; no fabricated previous rendition or ACK. Artifact/pointer/receipt commit together with expected revision.",
+    "replacement": "Keep V1 pointer. Required set is all immutable recipients of V1. New distribution adds recipient in same commit. Final publication rechecks exact candidate/revision/all required ACKs in one transaction. No timeout, old-registration replacement or legacy pointer update.",
+    "identity": "candidate generation, publication generation, invalidation generation, revision and transport attempt are distinct; typed operation identity plus full canonical payload must match on replay. Registered operations use (kind, registration_id, operation_id); GET admissions use (registration_id, distribution_operation_id). Internal publication operations have empty registration scope. Equal opaque operation IDs in different registrations do not interfere.",
+    "confirmation": "Retain exact local record in operation ledger; server acceptance and currently valid confirmation are different observations. Never reinterpret local revision as publication revision."
+  },
+  "authority_boundary": {
+    "production": "ProductionPublicationAuthority unconditionally reports publication_proof_not_implemented until S26 formal proof/validator is connected. candidate_ready, is_log=0 or boolean edits cannot authorize publication or reads. Every artifact read is authority checked, including an existing fixture-populated DB.",
+    "test": "Only a tests-owned factory explicitly supplies FixturePublicationAuthority. Persist proof_kind=technical_fixture and complete fixture provenance. No environment switch, production API or default factory accepts it.",
+    "real_wire_test": "Use the same fr-publication-v1 wire and real iOS codec. The separately reviewed fixture listener is loopback-only, uses disposable DB/media and independent secret, and records fixture authority/source identities in its evidence. Canonical wire success is publication-order/transport evidence, not Rec.709 or product-quality success. Production routers never construct the fixture authority."
+  },
+  "artifact_boundary": "Copy candidate into a distinct inode, create-only sealed server-named path; close every writer, fsync and independently reread. App writers cannot replace/write/alias/reclaim sealed artifacts. Keep one read FD across whole hash, short admission commit and streaming. Metadata/permission/same-FD do not prevent arbitrary external in-place writes: reject detected pre-send changes and abort on detected later changes without claiming already-sent bytes retractable. Artifact filenames use server UUID.media and do not claim a container. Container media_type is independently checked from the sealed FD; technical fixture HTTP uses real QuickTime/PCM.",
+  "open_items": [
+    "S26 production proof schema/validator remains unimplemented and denies access",
+    "Test factory/listener exact ownership and isolation must be reviewed before execution"
+  ]
+}

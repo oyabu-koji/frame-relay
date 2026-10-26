@@ -1,0 +1,126 @@
+{
+  "name": "request-control-observe-normal-124",
+  "command": [
+    "xcodebuild",
+    "-project",
+    "FrameRelay.xcodeproj",
+    "-scheme",
+    "FrameRelay",
+    "-configuration",
+    "Debug",
+    "-destination",
+    "platform=iOS Simulator,id=DF5792DA-974B-484E-AABE-CEB35BE81671",
+    "-derivedDataPath",
+    "/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData-controls-clean",
+    "-resultBundlePath",
+    "/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-observe-normal-124/result.xcresult",
+    "-disableAutomaticPackageResolution",
+    "-parallel-testing-enabled",
+    "NO",
+    "-collect-test-diagnostics",
+    "never",
+    "-only-testing:FrameRelayTests/ProductMediaRequestControlSeedTests/verifyConsumedPersonControlPrefixFilesAndIndependentSQLiteReopen()",
+    "test"
+  ],
+  "environment_overrides": {
+    "TEST_RUNNER_FR_MEDIA_REQUEST_CONTROL_NONCE": "2a348f92-1908-4f90-b8ee-022db9af9292",
+    "TEST_RUNNER_FR_MEDIA_REQUEST_CONTROL_SIMULATOR_UDID": "DF5792DA-974B-484E-AABE-CEB35BE81671",
+    "TEST_RUNNER_FR_MEDIA_REQUEST_CONTROL_VARIANT": "normal",
+    "TEST_RUNNER_FR_MEDIA_REQUEST_CONTROL_PHASE": "observe",
+    "TEST_RUNNER_FR_MEDIA_REQUEST_CONTROL_VERIFY": "1",
+    "TEST_RUNNER_FR_MEDIA_REQUEST_CONTROL_MANIFEST_BYTES": "36279",
+    "TEST_RUNNER_FR_MEDIA_REQUEST_CONTROL_MANIFEST_DEVICE": "16777234",
+    "TEST_RUNNER_FR_MEDIA_REQUEST_CONTROL_MANIFEST_INODE": "33066060",
+    "TEST_RUNNER_FR_MEDIA_REQUEST_CONTROL_MANIFEST_SHA256": "08a0e2c9aeccc98b83eccc835c618decd7e9965c453ab63b7531f3b7aee3652c"
+  },
+  "cwd": "/Users/oyabu/dev/rep/FrameRelay",
+  "started_at": "2026-10-24T15:09:57.677443+00:00",
+  "source_fingerprint": "4134034e24bdcd996d750f49054a7ba9c13e5a1c9c3218fa5789dc49c2891206",
+  "source_files": 358,
+  "snapshot": "/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/sources/4134034e24bdcd996d750f49054a7ba9c13e5a1c9c3218fa5789dc49c2891206",
+  "exit_code": 65,
+  "seconds": 4.695467957993969,
+  "finished_at": "2026-10-24T15:10:02.373154+00:00",
+  "sources_unchanged": true,
+  "changed_inputs": [],
+  "build": {
+    "actionTitle": "Testing project FrameRelay with scheme FrameRelay",
+    "analyzerWarningCount": 0,
+    "analyzerWarnings": [],
+    "destination": {
+      "architecture": "arm64",
+      "deviceId": "DF5792DA-974B-484E-AABE-CEB35BE81671",
+      "deviceName": "FrameRelay Request Controls normal 20261024 l0p333tn",
+      "modelName": "iPhone 18 Pro",
+      "osBuildNumber": "24A434",
+      "osVersion": "27.0",
+      "platform": "iOS Simulator"
+    },
+    "endTime": 1792854602.015,
+    "errorCount": 0,
+    "errors": [],
+    "startTime": 1792854598.28,
+    "status": "succeeded",
+    "warningCount": 0,
+    "warnings": []
+  },
+  "tests": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "DF5792DA-974B-484E-AABE-CEB35BE81671",
+          "deviceName": "FrameRelay Request Controls normal 20261024 l0p333tn",
+          "modelName": "iPhone 18 Pro",
+          "osBuildNumber": "24A434",
+          "osVersion": "27.0",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "passedTests": 0,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "FrameRelay · Built with macOS 26.6.2",
+    "expectedFailures": 0,
+    "failedTests": 1,
+    "finishTime": 1792854602.015,
+    "passedTests": 0,
+    "result": "Failed",
+    "runtimeWarnings": [],
+    "skippedTests": 0,
+    "startTime": 1792854598.28,
+    "statistics": [],
+    "testFailures": [
+      {
+        "failureText": "Expectation failed: manifest.sourceCopy.path == services.run.url.appendingPathComponent(\"request-control-source-\" + manifest.nonce + \".mov\").path\n        && manifest.originalFile.path == services.run.url.appendingPathComponent(manifest.binding.reference.rawValue + \".mov\").path\n        && manifest.reservation.path == services.run.url.appendingPathComponent(manifest.binding.reference.rawValue + \".reservation\").path && manifest.sentinel.path == requestControlSentinel(services, nonce: manifest.nonce).path\nmanifest.sourceCopy.path == services.run.url.appendingPathComponent(\"request-control-source-\" + manifest.nonce + \".mov\").path\n        && manifest.originalFile.path == services.run.url.appendingPathComponent(manifest.binding.reference.rawValue + \".mov\").path\n        && manifest.reservation.path == services.run.url.appendingPathComponent(manifest.binding.reference.rawValue + \".reservation\").path → false\nmanifest.sentinel.path == requestControlSentinel(services, nonce: manifest.nonce).path → <not evaluated>",
+        "targetName": "FrameRelayTests",
+        "testIdentifier": 1,
+        "testIdentifierString": "ProductMediaRequestControlSeedTests/verifyConsumedPersonControlPrefixFilesAndIndependentSQLiteReopen()",
+        "testIdentifierURL": "test://com.apple.xcode/FrameRelay/FrameRelayTests/ProductMediaRequestControlSeedTests/verifyConsumedPersonControlPrefixFilesAndIndependentSQLiteReopen()",
+        "testName": "verifyConsumedPersonControlPrefixFilesAndIndependentSQLiteReopen()"
+      }
+    ],
+    "title": "Test - FrameRelay",
+    "topInsights": [],
+    "totalTestCount": 1
+  },
+  "counts": {
+    "nodes": {
+      "('Test Plan', 'Failed')": 1,
+      "('Unit test bundle', 'Failed')": 1,
+      "('Test Suite', 'Failed')": 1,
+      "('Test Case', 'Failed')": 1,
+      "('Failure Message', '')": 1
+    },
+    "expanded": {
+      "Failed": 1
+    },
+    "skipped": []
+  }
+}

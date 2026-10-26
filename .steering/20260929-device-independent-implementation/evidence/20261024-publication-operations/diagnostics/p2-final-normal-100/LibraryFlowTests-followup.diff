@@ -1,0 +1,13 @@
+--- FrameRelayUITests/Flows/LibraryFlowTests.swift@100
++++ FrameRelayUITests/Flows/LibraryFlowTests.swift@101
+@@ -310,6 +310,10 @@
+             speech.append(try service.moveForward().utterance)
+             if historySpeechChecks(speech).allSatisfy({ $0.present }) { break }
+         }
++        let checks = historySpeechChecks(speech).map { "\($0.name)=\($0.present)" }.joined(separator: "\n")
++        let attachment = XCTAttachment(string: checks + "\n" + speech.joined(separator: "\n"))
++        attachment.name = "history-submission-VoiceOver-before-assertions"
++        attachment.lifetime = .keepAlways; add(attachment)
+         for check in historySpeechChecks(speech) {
+             XCTAssertTrue(check.present, "VoiceOver must retain " + check.name)
+         }

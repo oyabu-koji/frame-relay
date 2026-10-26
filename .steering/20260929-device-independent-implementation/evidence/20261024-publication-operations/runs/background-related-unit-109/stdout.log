@@ -1,0 +1,1150 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination "platform=iOS Simulator,id=64ADDF12-3B84-40E9-BC0A-922CEC02E77A" -derivedDataPath /private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData -resultBundlePath /private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/background-related-unit-109/result.xcresult -disableAutomaticPackageResolution -parallel-testing-enabled NO -collect-test-diagnostics never "-only-testing:FrameRelayTests/BackgroundInvalidationTests" "-only-testing:FrameRelayTests/ProductBackgroundInvalidationTests" "-only-testing:FrameRelayTests/BackgroundInvalidationTerminalTests" "-only-testing:FrameRelayTests/BackgroundEventDrainTests" "-only-testing:FrameRelayTests/BackgroundMediaSessionTests" "-only-testing:FrameRelayTests/BackgroundMediaStoreTests" "-only-testing:FrameRelayTests/BackgroundMediaTaskTests" "-only-testing:FrameRelayTests/OriginalRemovalTransportFenceTests" "-only-testing:FrameRelayTests/BackendStatusSynchronizationCoordinatorTests" "-only-testing:FrameRelayTests/ProductBackgroundCompositionTests" "-only-testing:FrameRelayTests/ProductHistoricalRemovalTests" "-only-testing:FrameRelayTests/ProductRemovalCompositionTests" "-only-testing:FrameRelayTests/BackgroundCaptureResumeTests" "-only-testing:FrameRelayTests/PhotoInvalidationBoundaryTests" test
+
+2026-10-24 22:07:39.448 xcodebuild[34769:61565264] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+Writing result bundle at path:
+	/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/background-related-unit-109/result.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (3 targets)
+    Target 'FrameRelayUITests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelayTests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelay' in project 'FrameRelay' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: 307077fd3ee4f6569687178917cb8a57
+Build description path: /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/XCBuildData/307077fd3ee4f6569687178917cb8a57.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/oyabu/dev/rep/FrameRelay/FrameRelay.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist -producttype com.apple.product-type.application -genpkginfo /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/assetcatalog_generated_info.plist -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist
+
+SwiftDriver FrameRelayTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelayTests -Onone @/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -sdk-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_const_extract_protocols.json -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-generated-files.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-own-target-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-all-target-headers.hmap -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-project-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources-normal/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist
+
+SwiftCompile normal arm64 Compiling\ BackgroundInvalidationTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/BackgroundInvalidationTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/BackgroundInvalidationTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile BackgroundInvalidationTests.swift
+
+SwiftCompile normal arm64 Compiling\ ProductBackgroundCompositionTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/ProductBackgroundCompositionTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/ProductBackgroundCompositionTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductBackgroundCompositionTests.swift
+
+SwiftCompile normal arm64 Compiling\ ProductBackgroundInvalidationTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/ProductBackgroundInvalidationTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/ProductBackgroundInvalidationTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductBackgroundInvalidationTests.swift
+
+SwiftCompile normal arm64 Compiling\ BackgroundCaptureResumeTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Remote/BackgroundCaptureResumeTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Remote/BackgroundCaptureResumeTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile BackgroundCaptureResumeTests.swift
+
+SwiftCompile normal arm64 Compiling\ ProductHistoricalRemovalTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/ProductHistoricalRemovalTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/ProductHistoricalRemovalTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile ProductHistoricalRemovalTests.swift
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ FrameRelayTests (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+
+SwiftCompile normal arm64 Compiling\ OriginalCleanupTransportFenceTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/OriginalCleanupTransportFenceTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/OriginalCleanupTransportFenceTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile OriginalCleanupTransportFenceTests.swift
+
+SwiftCompile normal arm64 Compiling\ OriginalRemovalTransportFenceTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/OriginalRemovalTransportFenceTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/OriginalRemovalTransportFenceTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile OriginalRemovalTransportFenceTests.swift
+
+SwiftCompile normal arm64 Compiling\ BackgroundEventDrainTests.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Remote/BackgroundEventDrainTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Remote/BackgroundEventDrainTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile BackgroundEventDrainTests.swift
+
+SwiftDriverJobDiscovery normal arm64 Compiling BackgroundCaptureResumeTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling OriginalCleanupTransportFenceTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ProductBackgroundCompositionTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling OriginalRemovalTransportFenceTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ProductHistoricalRemovalTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling BackgroundEventDrainTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ProductBackgroundInvalidationTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Compiling BackgroundInvalidationTests.swift (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for FrameRelayTests (in target 'FrameRelayTests' from project 'FrameRelay')
+
+SwiftDriver\ Compilation\ Requirements FrameRelayTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelayTests -Onone @/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -sdk-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_const_extract_protocols.json -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-generated-files.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-own-target-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-all-target-headers.hmap -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-project-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources-normal/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver\ Compilation FrameRelayTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelayTests -Onone @/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex -sdk-module-cache-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_const_extract_protocols.json -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-generated-files.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-own-target-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-all-target-headers.hmap -Xcc -iquote -Xcc /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests-project-headers.hmap -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources-normal/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources/arm64 -Xcc -I/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+Copy /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftsourceinfo (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftsourceinfo /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Copy /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayTests.swiftmodule/arm64-apple-ios-simulator.abi.json /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.abi.json (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.abi.json /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayTests.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Ld /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests normal (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios27.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -filelist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.LinkFileList -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -bundle_loader /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay -Xlinker -object_path_lto -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftmodule -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib -Xlinker -no_adhoc_codesign -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests
+
+ExtractAppIntentsMetadata (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name FrameRelayTests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 27.0 --bundle-identifier com.oyabu.FrameRelayTests --output /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest --target-triple arm64-apple-ios27.0-simulator --binary-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests --dependency-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_dependency_info.dat --stringsdata-file /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.SwiftFileList --metadata-file-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests.DependencyMetadataFileList --static-metadata-file-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests.DependencyStaticMetadataFileList --swift-const-vals-list /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-24 22:07:44.398 appintentsmetadataprocessor[34818:61565656] Starting appintentsmetadataprocessor export
+2026-10-24 22:07:44.399 appintentsmetadataprocessor[34818:61565656] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+CodeSign /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest
+
+CodeSign /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib
+
+CodeSign /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib
+/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib: replacing existing signature
+
+CodeSign /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app
+
+Validate /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-validationUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app -shallow-bundle -infoplist-subpath Info.plist
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/ProductTypeInfoPlistAdditions.plist -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/FrameRelayUITests --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData/SDKExplicitPrecompiledModules
+
+2026-10-24 22:07:46.336595+0900 FrameRelay[34827:61565896] [XPCErrors] non-launching port is incompatible with service identifier "com.apple.PointerUI.pointeruid.default-service"
+2026-10-24 22:07:46.337376+0900 FrameRelay[34827:61565896] [API] cannot add handler to 0 from 0 - dropping
+2026-10-24 22:07:46.337746+0900 FrameRelay[34827:61565896] [API] cannot add handler to 0 from 0 - dropping
+2026-10-24 22:07:46.502823+0900 FrameRelay[34827:61565896] [API] cannot add handler to 0 from 0 - dropping
+2026-10-24 22:07:46.502938+0900 FrameRelay[34827:61565896] [API] cannot add handler to 0 from 0 - dropping
+Test Suite 'Selected tests' started at 2026-10-24 22:07:46.582.
+Test Suite 'FrameRelayTests.xctest' started at 2026-10-24 22:07:46.582.
+Test Suite 'FrameRelayTests.xctest' passed at 2026-10-24 22:07:46.582.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 22:07:46.582.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64-apple-ios17.0-simulator
+◇ Suite BackendStatusSynchronizationCoordinatorTests started.
+◇ Test explicitMetadataOperationPersistsPublicationWithoutConfirmationOrMedia() started.
+✔ Test explicitMetadataOperationPersistsPublicationWithoutConfirmationOrMedia() passed after 0.069 seconds.
+◇ Test onePagePerActionRetainsFailuresContinuesOtherVideosAndRepollsFromNull() started.
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 3 and pages_to_free 0
+✔ Test onePagePerActionRetainsFailuresContinuesOtherVideosAndRepollsFromNull() passed after 0.298 seconds.
+◇ Test malformedCursorCannotCreateAnAutomaticPaginationLoop() started.
+✔ Test malformedCursorCannotCreateAnAutomaticPaginationLoop() passed after 0.025 seconds.
+◇ Test missingPublicationReplyUsesOriginalMutationRatherThanRebasing(afterCommit:) started.
+◇ Test case passing 1 argument afterCommit → false to missingPublicationReplyUsesOriginalMutationRatherThanRebasing(afterCommit:) started.
+​◇ Test case passing 1 argument afterCommit → true to missingPublicationReplyUsesOriginalMutationRatherThanRebasing(afterCommit:) started.
+​✔ Test missingPublicationReplyUsesOriginalMutationRatherThanRebasing(afterCommit:) with 2 test cases passed after 0.082 seconds.
+◇ Test registrationChangeDuringAwaitCannotApplyTheOldResponse() started.
+✔ Test registrationChangeDuringAwaitCannotApplyTheOldResponse() passed after 0.021 seconds.
+◇ Test opaqueUnicodeMismatchIsLocalToThatVideo() started.
+✔ Test opaqueUnicodeMismatchIsLocalToThatVideo() passed after 0.035 seconds.
+◇ Test existingConfirmationOutboxIsDeliveredWithoutCreatingAnotherAction() started.
+✔ Test existingConfirmationOutboxIsDeliveredWithoutCreatingAnotherAction() passed after 0.041 seconds.
+◇ Test invalidatedV1CanRemainPublishedAtTheSameRevisionWhileReplacementWaits() started.
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test invalidatedV1CanRemainPublishedAtTheSameRevisionWhileReplacementWaits() passed after 0.094 seconds.
+◇ Test manifestAloneCannotInvalidateTheCurrentConfirmation() started.
+✔ Test manifestAloneCannotInvalidateTheCurrentConfirmation() passed after 0.039 seconds.
+◇ Test itemIDsIncludeExactContentAndGeneration() started.
+✔ Test itemIDsIncludeExactContentAndGeneration() passed after 0.001 seconds.
+◇ Test captureBeginningDuringRequestStopsLaterWorkWithoutWaitingForAcknowledgement() started.
+✔ Test captureBeginningDuringRequestStopsLaterWorkWithoutWaitingForAcknowledgement() passed after 0.018 seconds.
+✔ Suite BackendStatusSynchronizationCoordinatorTests passed after 0.728 seconds.
+◇ Suite BackgroundCaptureResumeTests started.
+◇ Test holdAfterCoordinatorFinalIssuanceRejectsTheActionOnTheSDKExecutor(phase:endBeforeDispatch:) started.
+◇ Test case passing 2 arguments phase → .recording, endBeforeDispatch → false to holdAfterCoordinatorFinalIssuanceRejectsTheActionOnTheSDKExecutor(phase:endBeforeDispatch:) started.
+2026-10-24 22:07:47.465724+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:47.514294+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments phase → .recording, endBeforeDispatch → true to holdAfterCoordinatorFinalIssuanceRejectsTheActionOnTheSDKExecutor(phase:endBeforeDispatch:) started.
+2026-10-24 22:07:47.734806+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:47.735389+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments phase → .saving, endBeforeDispatch → false to holdAfterCoordinatorFinalIssuanceRejectsTheActionOnTheSDKExecutor(phase:endBeforeDispatch:) started.
+2026-10-24 22:07:47.884122+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:47.884611+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments phase → .saving, endBeforeDispatch → true to holdAfterCoordinatorFinalIssuanceRejectsTheActionOnTheSDKExecutor(phase:endBeforeDispatch:) started.
+2026-10-24 22:07:48.032478+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:48.032980+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments phase → .recovery, endBeforeDispatch → false to holdAfterCoordinatorFinalIssuanceRejectsTheActionOnTheSDKExecutor(phase:endBeforeDispatch:) started.
+2026-10-24 22:07:48.185902+0900 FrameRelay[34827:61566000] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:48.186606+0900 FrameRelay[34827:61566000] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments phase → .recovery, endBeforeDispatch → true to holdAfterCoordinatorFinalIssuanceRejectsTheActionOnTheSDKExecutor(phase:endBeforeDispatch:) started.
+2026-10-24 22:07:48.340057+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:48.340705+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​✔ Test holdAfterCoordinatorFinalIssuanceRejectsTheActionOnTheSDKExecutor(phase:endBeforeDispatch:) with 6 test cases passed after 1.154 seconds.
+◇ Test idleCoordinatorPassesOneAuthorizationToOneInjectedDispatch() started.
+2026-10-24 22:07:48.494468+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:48.495107+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test idleCoordinatorPassesOneAuthorizationToOneInjectedDispatch() passed after 0.081 seconds.
+✔ Suite BackgroundCaptureResumeTests passed after 1.235 seconds.
+◇ Suite BackgroundEventDrainTests started.
+◇ Test normalAdmissionRefusesBeforeAttemptLeaseCopyAndSDKFactories() started.
+2026-10-24 22:07:48.574070+0900 FrameRelay[34827:61566014] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:48.574692+0900 FrameRelay[34827:61566014] [] (Fig) signalled err=-12900 at <>:2705
+✔ Test normalAdmissionRefusesBeforeAttemptLeaseCopyAndSDKFactories() passed after 0.039 seconds.
+◇ Test completionWaitsForTerminalCommitRealSourceCloseAndOwnLeaseRelease() started.
+2026-10-24 22:07:48.615981+0900 FrameRelay[34827:61566001] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:48.616929+0900 FrameRelay[34827:61566001] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test completionWaitsForTerminalCommitRealSourceCloseAndOwnLeaseRelease() passed after 0.131 seconds.
+◇ Test terminalBeforeAttachDrainsAfterExactCommitWithoutReplayOrReaderLeak() started.
+2026-10-24 22:07:48.748237+0900 FrameRelay[34827:61566001] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:48.749339+0900 FrameRelay[34827:61566001] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test terminalBeforeAttachDrainsAfterExactCommitWithoutReplayOrReaderLeak() passed after 0.119 seconds.
+◇ Test lostTerminalReplyRetainsExactLookupAndWithholdsFinishUntilConfirmed() started.
+2026-10-24 22:07:48.866983+0900 FrameRelay[34827:61566000] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:48.867500+0900 FrameRelay[34827:61566000] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test lostTerminalReplyRetainsExactLookupAndWithholdsFinishUntilConfirmed() passed after 0.119 seconds.
+◇ Test controlsKeepCompoundWaitsAndDoNotTreatCancelAcknowledgementAsTerminal() started.
+2026-10-24 22:07:48.986363+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:48.987563+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 9 and pages_to_free 1
+✔ Test controlsKeepCompoundWaitsAndDoNotTreatCancelAcknowledgementAsTerminal() passed after 0.201 seconds.
+◇ Test recoveryPreservesAttachGapsDuplicatesUnknownMissingAndNumericReuse() started.
+2026-10-24 22:07:49.187629+0900 FrameRelay[34827:61566000] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:49.188721+0900 FrameRelay[34827:61566000] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test recoveryPreservesAttachGapsDuplicatesUnknownMissingAndNumericReuse() passed after 0.106 seconds.
+◇ Test uniqueEnumeratedDescriptionDoesNotAdoptCreateAttachGap() started.
+2026-10-24 22:07:49.291838+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:49.292472+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test uniqueEnumeratedDescriptionDoesNotAdoptCreateAttachGap() passed after 0.114 seconds.
+◇ Test captureStopWaitsForAllActualLocalBoundariesAndPreservesPersonAndWiFi(cancelled:) started.
+◇ Test case passing 1 argument cancelled → false to captureStopWaitsForAllActualLocalBoundariesAndPreservesPersonAndWiFi(cancelled:) started.
+2026-10-24 22:07:49.408632+0900 FrameRelay[34827:61566000] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:49.409243+0900 FrameRelay[34827:61566000] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 10 and pages_to_free 2
+​◇ Test case passing 1 argument cancelled → true to captureStopWaitsForAllActualLocalBoundariesAndPreservesPersonAndWiFi(cancelled:) started.
+2026-10-24 22:07:49.595603+0900 FrameRelay[34827:61566001] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:49.596134+0900 FrameRelay[34827:61566001] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 10 and pages_to_free 2
+​✔ Test captureStopWaitsForAllActualLocalBoundariesAndPreservesPersonAndWiFi(cancelled:) with 2 test cases passed after 0.393 seconds.
+◇ Test lostStoppedReplyIsLookedUpAfterLeaseReleaseWithoutSecondMutation() started.
+2026-10-24 22:07:49.801114+0900 FrameRelay[34827:61566001] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:49.801669+0900 FrameRelay[34827:61566001] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test lostStoppedReplyIsLookedUpAfterLeaseReleaseWithoutSecondMutation() passed after 0.158 seconds.
+◇ Test restartEmptyAdmissionDoesNotClearExistingCaptureWaitsOrOtherControlAxes() started.
+2026-10-24 22:07:49.958832+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:49.959533+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test restartEmptyAdmissionDoesNotClearExistingCaptureWaitsOrOtherControlAxes() passed after 0.080 seconds.
+◇ Test captureNeverInventsStopForInflightCopyOrCreateAttachGap(stage:) started.
+◇ Test case passing 1 argument stage → "copy" to captureNeverInventsStopForInflightCopyOrCreateAttachGap(stage:) started.
+2026-10-24 22:07:50.041469+0900 FrameRelay[34827:61566000] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:50.042012+0900 FrameRelay[34827:61566000] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument stage → "attach" to captureNeverInventsStopForInflightCopyOrCreateAttachGap(stage:) started.
+2026-10-24 22:07:50.104792+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:50.105249+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​✔ Test captureNeverInventsStopForInflightCopyOrCreateAttachGap(stage:) with 2 test cases passed after 0.213 seconds.
+◇ Test reopenedConfirmedStopNeedsNoSourceAdoptionButCannotUseAnotherAttempt(sameAttempt:) started.
+◇ Test case passing 1 argument sameAttempt → true to reopenedConfirmedStopNeedsNoSourceAdoptionButCannotUseAnotherAttempt(sameAttempt:) started.
+2026-10-24 22:07:50.253328+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:50.253862+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 8 and pages_to_free 1
+​◇ Test case passing 1 argument sameAttempt → false to reopenedConfirmedStopNeedsNoSourceAdoptionButCannotUseAnotherAttempt(sameAttempt:) started.
+2026-10-24 22:07:50.392524+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:50.393011+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 8 and pages_to_free 1
+​✔ Test reopenedConfirmedStopNeedsNoSourceAdoptionButCannotUseAnotherAttempt(sameAttempt:) with 2 test cases passed after 0.280 seconds.
+◇ Test actualLocalTerminalDoesNotOverwriteCompletedRequest() started.
+2026-10-24 22:07:50.532374+0900 FrameRelay[34827:61566000] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:50.532855+0900 FrameRelay[34827:61566000] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test actualLocalTerminalDoesNotOverwriteCompletedRequest() passed after 0.104 seconds.
+◇ Test recoveredOldContextTerminalNeverAdoptsSourceOrChangesNewRegistration() started.
+2026-10-24 22:07:50.637004+0900 FrameRelay[34827:61566014] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:50.637516+0900 FrameRelay[34827:61566014] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test recoveredOldContextTerminalNeverAdoptsSourceOrChangesNewRegistration() passed after 0.116 seconds.
+✔ Suite BackgroundEventDrainTests passed after 2.178 seconds.
+◇ Suite BackgroundInvalidationTerminalTests started.
+​➜ Test nativeResumeRefusalCancellationClosesOwnFDThenLaterNormalPollAcksWithoutSending() skipped.
+​✔ Suite BackgroundInvalidationTerminalTests passed after 0.001 seconds.
+◇ Suite BackgroundInvalidationTests started.
+◇ Test cancellationPollCannotAckEvenWhenTerminalOwnerCloseAndStoppedWinTheAwaitRace() started.
+2026-10-24 22:07:50.754544+0900 FrameRelay[34827:61566000] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:50.755063+0900 FrameRelay[34827:61566000] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test cancellationPollCannotAckEvenWhenTerminalOwnerCloseAndStoppedWinTheAwaitRace() passed after 0.326 seconds.
+◇ Test actualReservationStopsKnownUploadWithoutChangingPersonIntentAndOnlyLaterObservationSucceeds() started.
+2026-10-24 22:07:51.081834+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:51.082346+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test actualReservationStopsKnownUploadWithoutChangingPersonIntentAndOnlyLaterObservationSucceeds() passed after 0.313 seconds.
+◇ Test eachActualTerminalBoundaryWithholdsObservationUntilTheStoppedCommit() started.
+2026-10-24 22:07:51.393774+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:51.394263+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test eachActualTerminalBoundaryWithholdsObservationUntilTheStoppedCommit() passed after 0.331 seconds.
+◇ Test wrongReservationIdentityCannotCancelTheKnownSDKOwner(mode:) started.
+◇ Test case passing 1 argument mode → "epoch" to wrongReservationIdentityCannotCancelTheKnownSDKOwner(mode:) started.
+2026-10-24 22:07:51.725987+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:51.726472+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument mode → "id-alias" to wrongReservationIdentityCannotCancelTheKnownSDKOwner(mode:) started.
+2026-10-24 22:07:51.853769+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:51.854265+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument mode → "registration" to wrongReservationIdentityCannotCancelTheKnownSDKOwner(mode:) started.
+2026-10-24 22:07:51.983732+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:51.984202+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument mode → "generation" to wrongReservationIdentityCannotCancelTheKnownSDKOwner(mode:) started.
+2026-10-24 22:07:52.112328+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:52.112805+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument mode → "original" to wrongReservationIdentityCannotCancelTheKnownSDKOwner(mode:) started.
+2026-10-24 22:07:52.241669+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:52.242171+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument mode → "store-uuid" to wrongReservationIdentityCannotCancelTheKnownSDKOwner(mode:) started.
+2026-10-24 22:07:52.371611+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:52.372098+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument mode → "attempt" to wrongReservationIdentityCannotCancelTheKnownSDKOwner(mode:) started.
+2026-10-24 22:07:52.496297+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:52.496761+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​✔ Test wrongReservationIdentityCannotCancelTheKnownSDKOwner(mode:) with 7 test cases passed after 0.900 seconds.
+◇ Test untrustedFreshSDKInventoryNeverAuthorizesCancellationOrAnAck(mode:) started.
+◇ Test case passing 1 argument mode → "unknown" to untrustedFreshSDKInventoryNeverAuthorizesCancellationOrAnAck(mode:) started.
+2026-10-24 22:07:52.626926+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:52.628527+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument mode → "reused" to untrustedFreshSDKInventoryNeverAuthorizesCancellationOrAnAck(mode:) started.
+2026-10-24 22:07:52.767825+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:52.768301+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument mode → "wrong-kind" to untrustedFreshSDKInventoryNeverAuthorizesCancellationOrAnAck(mode:) started.
+2026-10-24 22:07:52.906842+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:52.907441+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument mode → "duplicate" to untrustedFreshSDKInventoryNeverAuthorizesCancellationOrAnAck(mode:) started.
+2026-10-24 22:07:53.046677+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:53.047918+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument mode → "missing" to untrustedFreshSDKInventoryNeverAuthorizesCancellationOrAnAck(mode:) started.
+2026-10-24 22:07:53.184907+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:53.185361+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​✔ Test untrustedFreshSDKInventoryNeverAuthorizesCancellationOrAnAck(mode:) with 5 test cases passed after 0.695 seconds.
+◇ Test unknownStoppedCommitNeedsItsExactLookupAndDoesNotRepeatSourceFinish() started.
+2026-10-24 22:07:53.322518+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:53.322988+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test unknownStoppedCommitNeedsItsExactLookupAndDoesNotRepeatSourceFinish() passed after 0.413 seconds.
+◇ Test reopenedOwnerRefusesLiveSourceButObservesFullyClosedHistoryWithoutAdoptingItsOldEpochLease() started.
+2026-10-24 22:07:53.736554+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:53.737030+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test reopenedOwnerRefusesLiveSourceButObservesFullyClosedHistoryWithoutAdoptingItsOldEpochLease() passed after 0.288 seconds.
+◇ Test anAttachedSDKTaskStillInsideTheStartGapStaysUnresolved() started.
+2026-10-24 22:07:54.025404+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:54.025872+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test anAttachedSDKTaskStillInsideTheStartGapStaysUnresolved() passed after 0.121 seconds.
+◇ Test aCopyAlreadyInFlightCannotBecomeAStopProofOrAcquireANewSDKOwner() started.
+2026-10-24 22:07:54.146975+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:54.147441+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test aCopyAlreadyInFlightCannotBecomeAStopProofOrAcquireANewSDKOwner() passed after 0.065 seconds.
+◇ Test preparedDownloadIsRejectedWithoutAdoptingItsOldMediaReader() started.
+✔ Test preparedDownloadIsRejectedWithoutAdoptingItsOldMediaReader() passed after 0.034 seconds.
+✔ Suite BackgroundInvalidationTests passed after 3.493 seconds.
+​➜ Suite BackgroundMediaSessionTests skipped.
+​​➜ Test emptySessionEnumeratesAndBuffersActualInvalidationBeforeConsumerStarts() skipped.
+​​➜ Test suspendedUploadAndDownloadEnumerateCancelAndActuallyCompleteWithoutResume() skipped.
+​◇ Suite BackgroundMediaStoreTests started.
+◇ Test exactEventsReopenWithoutPromotingRemoteOrReleasingReaders(candidate:) started.
+◇ Test case passing 1 argument candidate → .atomicFile to exactEventsReopenWithoutPromotingRemoteOrReleasingReaders(candidate:) started.
+2026-10-24 22:07:54.246340+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:54.247237+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 1 argument candidate → .sqlite to exactEventsReopenWithoutPromotingRemoteOrReleasingReaders(candidate:) started.
+2026-10-24 22:07:54.363374+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:54.363840+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 6 and pages_to_free 1
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 7 and pages_to_free 1
+​✔ Test exactEventsReopenWithoutPromotingRemoteOrReleasingReaders(candidate:) with 2 test cases passed after 0.255 seconds.
+◇ Test everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+◇ Test case passing 2 arguments candidate → .atomicFile, point → BackgroundStoreInterruption(index: 0, afterCommit: false) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:54.503167+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:54.504620+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, point → BackgroundStoreInterruption(index: 0, afterCommit: true) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:54.553152+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:54.553642+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, point → BackgroundStoreInterruption(index: 1, afterCommit: false) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:54.598890+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:54.599372+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, point → BackgroundStoreInterruption(index: 1, afterCommit: true) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:54.642819+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:54.643287+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, point → BackgroundStoreInterruption(index: 2, afterCommit: false) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:54.691891+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:54.692338+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, point → BackgroundStoreInterruption(index: 2, afterCommit: true) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:54.740043+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:54.740502+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, point → BackgroundStoreInterruption(index: 3, afterCommit: false) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:54.794469+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:54.794934+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, point → BackgroundStoreInterruption(index: 3, afterCommit: true) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:54.846444+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:54.846922+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, point → BackgroundStoreInterruption(index: 4, afterCommit: false) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:54.904406+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:54.904878+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, point → BackgroundStoreInterruption(index: 4, afterCommit: true) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:54.960783+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:54.961214+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, point → BackgroundStoreInterruption(index: 5, afterCommit: false) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:55.023417+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:55.023868+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, point → BackgroundStoreInterruption(index: 5, afterCommit: true) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:55.084839+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:55.085284+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .sqlite, point → BackgroundStoreInterruption(index: 0, afterCommit: false) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:55.159488+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:55.159979+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments candidate → .sqlite, point → BackgroundStoreInterruption(index: 0, afterCommit: true) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:55.215997+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:55.216506+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments candidate → .sqlite, point → BackgroundStoreInterruption(index: 1, afterCommit: false) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:55.279753+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:55.280614+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments candidate → .sqlite, point → BackgroundStoreInterruption(index: 1, afterCommit: true) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:55.341916+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:55.342392+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments candidate → .sqlite, point → BackgroundStoreInterruption(index: 2, afterCommit: false) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:55.411281+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:55.411827+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments candidate → .sqlite, point → BackgroundStoreInterruption(index: 2, afterCommit: true) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:55.477559+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:55.478736+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments candidate → .sqlite, point → BackgroundStoreInterruption(index: 3, afterCommit: false) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:55.550955+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:55.551723+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments candidate → .sqlite, point → BackgroundStoreInterruption(index: 3, afterCommit: true) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:55.622726+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:55.623548+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments candidate → .sqlite, point → BackgroundStoreInterruption(index: 4, afterCommit: false) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:55.701250+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:55.702095+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments candidate → .sqlite, point → BackgroundStoreInterruption(index: 4, afterCommit: true) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:55.778488+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:55.780268+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 6 and pages_to_free 1
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+​◇ Test case passing 2 arguments candidate → .sqlite, point → BackgroundStoreInterruption(index: 5, afterCommit: false) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:55.870928+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:55.871727+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments candidate → .sqlite, point → BackgroundStoreInterruption(index: 5, afterCommit: true) to everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) started.
+2026-10-24 22:07:55.957314+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:55.957844+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 7 and pages_to_free 1
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 6 and pages_to_free 1
+​✔ Test everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:) with 24 test cases passed after 1.543 seconds.
+◇ Test lateExactTerminalAndClosureStayWithTheOldRegistration(candidate:) started.
+◇ Test case passing 1 argument candidate → .atomicFile to lateExactTerminalAndClosureStayWithTheOldRegistration(candidate:) started.
+2026-10-24 22:07:56.042056+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:56.043081+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 1 argument candidate → .sqlite to lateExactTerminalAndClosureStayWithTheOldRegistration(candidate:) started.
+2026-10-24 22:07:56.116197+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:56.116673+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​✔ Test lateExactTerminalAndClosureStayWithTheOldRegistration(candidate:) with 2 test cases passed after 0.149 seconds.
+◇ Test exactLiveLeaseSurvivesAccessAdvanceButDuplicateOSBindingsDoNot(candidate:) started.
+◇ Test case passing 1 argument candidate → .atomicFile to exactLiveLeaseSurvivesAccessAdvanceButDuplicateOSBindingsDoNot(candidate:) started.
+2026-10-24 22:07:56.191838+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:56.193105+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 1 argument candidate → .sqlite to exactLiveLeaseSurvivesAccessAdvanceButDuplicateOSBindingsDoNot(candidate:) started.
+2026-10-24 22:07:56.293761+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:56.294224+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 9 and pages_to_free 1
+​✔ Test exactLiveLeaseSurvivesAccessAdvanceButDuplicateOSBindingsDoNot(candidate:) with 2 test cases passed after 0.209 seconds.
+◇ Test resumeRechecksCurrentRequestAndExactLease(candidate:blocker:) started.
+◇ Test case passing 2 arguments candidate → .atomicFile, blocker → "pause" to resumeRechecksCurrentRequestAndExactLease(candidate:blocker:) started.
+2026-10-24 22:07:56.401155+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:56.401772+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, blocker → "saving" to resumeRechecksCurrentRequestAndExactLease(candidate:blocker:) started.
+2026-10-24 22:07:56.455562+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:56.456046+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, blocker → "released" to resumeRechecksCurrentRequestAndExactLease(candidate:blocker:) started.
+2026-10-24 22:07:56.506896+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:56.507402+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .sqlite, blocker → "pause" to resumeRechecksCurrentRequestAndExactLease(candidate:blocker:) started.
+2026-10-24 22:07:56.563065+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:56.563669+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments candidate → .sqlite, blocker → "saving" to resumeRechecksCurrentRequestAndExactLease(candidate:blocker:) started.
+2026-10-24 22:07:56.632282+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:56.632866+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 2 arguments candidate → .sqlite, blocker → "released" to resumeRechecksCurrentRequestAndExactLease(candidate:blocker:) started.
+2026-10-24 22:07:56.701057+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:56.701541+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​✔ Test resumeRechecksCurrentRequestAndExactLease(candidate:blocker:) with 6 test cases passed after 0.356 seconds.
+◇ Test storeGuardAndFullMutationLookupRejectMissingOrChangedAuthority(candidate:) started.
+◇ Test case passing 1 argument candidate → .atomicFile to storeGuardAndFullMutationLookupRejectMissingOrChangedAuthority(candidate:) started.
+2026-10-24 22:07:56.757648+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:56.758446+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 1 argument candidate → .sqlite to storeGuardAndFullMutationLookupRejectMissingOrChangedAuthority(candidate:) started.
+2026-10-24 22:07:56.812218+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:56.812702+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​✔ Test storeGuardAndFullMutationLookupRejectMissingOrChangedAuthority(candidate:) with 2 test cases passed after 0.109 seconds.
+◇ Test downloadKeepsFixedRangeAndRequiresTheCurrentMediaEpochOnlyForNewResume(candidate:) started.
+◇ Test case passing 1 argument candidate → .atomicFile to downloadKeepsFixedRangeAndRequiresTheCurrentMediaEpochOnlyForNewResume(candidate:) started.
+2026-10-24 22:07:56.867484+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:56.868004+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 1 argument candidate → .sqlite to downloadKeepsFixedRangeAndRequiresTheCurrentMediaEpochOnlyForNewResume(candidate:) started.
+2026-10-24 22:07:56.965243+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:56.965710+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 9 and pages_to_free 1
+​✔ Test downloadKeepsFixedRangeAndRequiresTheCurrentMediaEpochOnlyForNewResume(candidate:) with 2 test cases passed after 0.202 seconds.
+◇ Test preBackgroundDocumentsRemainEmptyAndUnmodifiedOnRead(candidate:schema:) started.
+◇ Test case passing 2 arguments candidate → .atomicFile, schema → 6 to preBackgroundDocumentsRemainEmptyAndUnmodifiedOnRead(candidate:schema:) started.
+​◇ Test case passing 2 arguments candidate → .atomicFile, schema → 7 to preBackgroundDocumentsRemainEmptyAndUnmodifiedOnRead(candidate:schema:) started.
+​◇ Test case passing 2 arguments candidate → .sqlite, schema → 6 to preBackgroundDocumentsRemainEmptyAndUnmodifiedOnRead(candidate:schema:) started.
+​◇ Test case passing 2 arguments candidate → .sqlite, schema → 7 to preBackgroundDocumentsRemainEmptyAndUnmodifiedOnRead(candidate:schema:) started.
+​✔ Test preBackgroundDocumentsRemainEmptyAndUnmodifiedOnRead(candidate:schema:) with 4 test cases passed after 0.027 seconds.
+✔ Suite BackgroundMediaStoreTests passed after 2.854 seconds.
+◇ Suite BackgroundMediaTaskTests started.
+◇ Test immutableContextRoundTripsWithoutConfusingOSAndMacSessions() started.
+✔ Test immutableContextRoundTripsWithoutConfusingOSAndMacSessions() passed after 0.001 seconds.
+◇ Test stopRequestDoesNotProveSDKOrOwnerTermination() started.
+✔ Test stopRequestDoesNotProveSDKOrOwnerTermination() passed after 0.002 seconds.
+◇ Test delayedFactCannotChangeItsExactBindingOrSource(field:) started.
+◇ Test case passing 1 argument field → "session-generation" to delayedFactCannotChangeItsExactBindingOrSource(field:) started.
+​◇ Test case passing 1 argument field → "description" to delayedFactCannotChangeItsExactBindingOrSource(field:) started.
+​◇ Test case passing 1 argument field → "numeric-id" to delayedFactCannotChangeItsExactBindingOrSource(field:) started.
+​◇ Test case passing 1 argument field → "source" to delayedFactCannotChangeItsExactBindingOrSource(field:) started.
+​✔ Test delayedFactCannotChangeItsExactBindingOrSource(field:) with 4 test cases passed after 0.001 seconds.
+◇ Test decodedValuesStillRequireBoundaryValidation(field:) started.
+◇ Test case passing 1 argument field → "nonce" to decodedValuesStillRequireBoundaryValidation(field:) started.
+​◇ Test case passing 1 argument field → "fingerprint" to decodedValuesStillRequireBoundaryValidation(field:) started.
+​◇ Test case passing 1 argument field → "source-id" to decodedValuesStillRequireBoundaryValidation(field:) started.
+​◇ Test case passing 1 argument field → "source-size" to decodedValuesStillRequireBoundaryValidation(field:) started.
+​◇ Test case passing 1 argument field → "gate" to decodedValuesStillRequireBoundaryValidation(field:) started.
+​✔ Test decodedValuesStillRequireBoundaryValidation(field:) with 5 test cases passed after 0.001 seconds.
+◇ Test fixedDownloadRangeAndMediaLeaseAreIndependentOfUploadIdentity() started.
+✔ Test fixedDownloadRangeAndMediaLeaseAreIndependentOfUploadIdentity() passed after 0.001 seconds.
+✔ Suite BackgroundMediaTaskTests passed after 0.004 seconds.
+◇ Suite OriginalRemovalTransportFenceTests started.
+◇ Test concreteAndExistentialInventoryUseTheSameWriterWitness(candidate:) started.
+◇ Test case passing 1 argument candidate → .atomicFile to concreteAndExistentialInventoryUseTheSameWriterWitness(candidate:) started.
+2026-10-24 22:07:57.102100+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:57.102866+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:57.125267+0900 FrameRelay[34827:61566013] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:8216
+​◇ Test case passing 1 argument candidate → .sqlite to concreteAndExistentialInventoryUseTheSameWriterWitness(candidate:) started.
+2026-10-24 22:07:57.142368+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:57.142830+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:57.153226+0900 FrameRelay[34827:61566041] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:8216
+​✔ Test concreteAndExistentialInventoryUseTheSameWriterWitness(candidate:) with 2 test cases passed after 0.062 seconds.
+◇ Test hashWindowKeepsExactTargetHistory(candidate:change:) started.
+◇ Test case passing 2 arguments candidate → .atomicFile, change → "pause" to hashWindowKeepsExactTargetHistory(candidate:change:) started.
+2026-10-24 22:07:57.165466+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:57.166416+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:57.262287+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:57.262822+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, change → "aba" to hashWindowKeepsExactTargetHistory(candidate:change:) started.
+2026-10-24 22:07:57.527458+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:57.528061+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:57.620721+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:57.621251+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, change → "verification" to hashWindowKeepsExactTargetHistory(candidate:change:) started.
+2026-10-24 22:07:57.865285+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:57.865801+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:57.955562+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:57.956037+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, change → "registration" to hashWindowKeepsExactTargetHistory(candidate:change:) started.
+2026-10-24 22:07:58.195584+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:58.196093+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:58.285333+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:58.285829+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, change → "other" to hashWindowKeepsExactTargetHistory(candidate:change:) started.
+2026-10-24 22:07:58.530685+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:58.531233+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:58.625491+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:58.626029+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, change → "leaf" to hashWindowKeepsExactTargetHistory(candidate:change:) started.
+2026-10-24 22:07:58.867686+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:58.868310+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:58.962065+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:58.962734+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .sqlite, change → "pause" to hashWindowKeepsExactTargetHistory(candidate:change:) started.
+2026-10-24 22:07:59.195783+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:59.196263+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+2026-10-24 22:07:59.303143+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:59.303675+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 11 and pages_to_free 2
+​◇ Test case passing 2 arguments candidate → .sqlite, change → "aba" to hashWindowKeepsExactTargetHistory(candidate:change:) started.
+2026-10-24 22:07:59.563206+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:59.564472+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+2026-10-24 22:07:59.672763+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:59.673279+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 11 and pages_to_free 2
+​◇ Test case passing 2 arguments candidate → .sqlite, change → "verification" to hashWindowKeepsExactTargetHistory(candidate:change:) started.
+2026-10-24 22:07:59.939791+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:07:59.940257+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+2026-10-24 22:08:00.047762+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:00.048294+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 11 and pages_to_free 2
+​◇ Test case passing 2 arguments candidate → .sqlite, change → "registration" to hashWindowKeepsExactTargetHistory(candidate:change:) started.
+2026-10-24 22:08:00.304949+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:00.305416+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+2026-10-24 22:08:00.408193+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:00.408705+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 11 and pages_to_free 2
+​◇ Test case passing 2 arguments candidate → .sqlite, change → "other" to hashWindowKeepsExactTargetHistory(candidate:change:) started.
+2026-10-24 22:08:00.672692+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:00.673183+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+2026-10-24 22:08:00.779462+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:00.780106+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 11 and pages_to_free 2
+​◇ Test case passing 2 arguments candidate → .sqlite, change → "leaf" to hashWindowKeepsExactTargetHistory(candidate:change:) started.
+2026-10-24 22:08:01.068929+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:01.070009+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+2026-10-24 22:08:01.179590+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:01.180192+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 11 and pages_to_free 2
+​✔ Test hashWindowKeepsExactTargetHistory(candidate:change:) with 12 test cases passed after 4.252 seconds.
+◇ Test finalWriterGuardRebuildsInventoryAndPermitsIndependentRevision(candidate:change:) started.
+◇ Test case passing 2 arguments candidate → .atomicFile, change → "aba" to finalWriterGuardRebuildsInventoryAndPermitsIndependentRevision(candidate:change:) started.
+2026-10-24 22:08:01.417544+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:01.418561+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:01.511921+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:01.512424+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, change → "registration" to finalWriterGuardRebuildsInventoryAndPermitsIndependentRevision(candidate:change:) started.
+2026-10-24 22:08:01.735465+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:01.735940+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:01.826428+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:01.826897+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, change → "other" to finalWriterGuardRebuildsInventoryAndPermitsIndependentRevision(candidate:change:) started.
+2026-10-24 22:08:02.050349+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:02.050861+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:02.140679+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:02.141195+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, change → "leaf" to finalWriterGuardRebuildsInventoryAndPermitsIndependentRevision(candidate:change:) started.
+2026-10-24 22:08:02.363769+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:02.364255+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:02.454533+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:02.454992+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .sqlite, change → "aba" to finalWriterGuardRebuildsInventoryAndPermitsIndependentRevision(candidate:change:) started.
+2026-10-24 22:08:02.675731+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:02.676211+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+2026-10-24 22:08:02.782145+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:02.782667+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 11 and pages_to_free 2
+​◇ Test case passing 2 arguments candidate → .sqlite, change → "registration" to finalWriterGuardRebuildsInventoryAndPermitsIndependentRevision(candidate:change:) started.
+2026-10-24 22:08:03.030899+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:03.031365+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+2026-10-24 22:08:03.139304+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:03.139859+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 11 and pages_to_free 2
+​◇ Test case passing 2 arguments candidate → .sqlite, change → "other" to finalWriterGuardRebuildsInventoryAndPermitsIndependentRevision(candidate:change:) started.
+2026-10-24 22:08:03.387381+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:03.387842+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+2026-10-24 22:08:03.489825+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:03.490360+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 11 and pages_to_free 2
+​◇ Test case passing 2 arguments candidate → .sqlite, change → "leaf" to finalWriterGuardRebuildsInventoryAndPermitsIndependentRevision(candidate:change:) started.
+2026-10-24 22:08:03.729175+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:03.729659+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+2026-10-24 22:08:03.831613+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:03.832136+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 11 and pages_to_free 2
+​✔ Test finalWriterGuardRebuildsInventoryAndPermitsIndependentRevision(candidate:change:) with 8 test cases passed after 2.642 seconds.
+◇ Test callerCannotOmitTasksOrReuseAnEpochAndNewAttempt(candidate:) started.
+◇ Test case passing 1 argument candidate → .atomicFile to callerCannotOmitTasksOrReuseAnEpochAndNewAttempt(candidate:) started.
+2026-10-24 22:08:04.059882+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:04.060611+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 1 argument candidate → .sqlite to callerCannotOmitTasksOrReuseAnEpochAndNewAttempt(candidate:) started.
+2026-10-24 22:08:04.322409+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:04.322866+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​✔ Test callerCannotOmitTasksOrReuseAnEpochAndNewAttempt(candidate:) with 2 test cases passed after 0.551 seconds.
+◇ Test reservedWriterRejectsNewAttemptAndTaskFactories(candidate:) started.
+◇ Test case passing 1 argument candidate → .atomicFile to reservedWriterRejectsNewAttemptAndTaskFactories(candidate:) started.
+2026-10-24 22:08:04.611828+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:04.613383+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 1 argument candidate → .sqlite to reservedWriterRejectsNewAttemptAndTaskFactories(candidate:) started.
+2026-10-24 22:08:04.882543+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:04.883013+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​✔ Test reservedWriterRejectsNewAttemptAndTaskFactories(candidate:) with 2 test cases passed after 0.551 seconds.
+◇ Test canonicalInventoryRetainsOpaqueUTF8() started.
+2026-10-24 22:08:05.167134+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:05.167618+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test canonicalInventoryRetainsOpaqueUTF8() passed after 0.117 seconds.
+◇ Test allHistoricalRequestsNeedTheirOwnReceipt(candidate:omitReceipt:) started.
+◇ Test case passing 2 arguments candidate → .atomicFile, omitReceipt → false to allHistoricalRequestsNeedTheirOwnReceipt(candidate:omitReceipt:) started.
+2026-10-24 22:08:05.280290+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:05.281326+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .atomicFile, omitReceipt → true to allHistoricalRequestsNeedTheirOwnReceipt(candidate:omitReceipt:) started.
+2026-10-24 22:08:05.820850+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:05.821408+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 2 arguments candidate → .sqlite, omitReceipt → false to allHistoricalRequestsNeedTheirOwnReceipt(candidate:omitReceipt:) started.
+2026-10-24 22:08:06.365848+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:06.366353+0900 FrameRelay[34827:61566003] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 9 and pages_to_free 1
+​◇ Test case passing 2 arguments candidate → .sqlite, omitReceipt → true to allHistoricalRequestsNeedTheirOwnReceipt(candidate:omitReceipt:) started.
+2026-10-24 22:08:06.959137+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:06.959624+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 9 and pages_to_free 1
+​✔ Test allHistoricalRequestsNeedTheirOwnReceipt(candidate:omitReceipt:) with 4 test cases passed after 2.255 seconds.
+✔ Suite OriginalRemovalTransportFenceTests passed after 10.433 seconds.
+◇ Suite PhotoInvalidationBoundaryTests started.
+◇ Test durableUnknownPhotoResultSurvivesExactUsageReleaseAndRootClosureBeforeCallerRelease() started.
+2026-10-24 22:08:07.536034+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:07.538102+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 2 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+S31_PHOTO_RELEASE_ORDER callback=completed callerCancelled=true root=closed exactUse=durably-released ack=committed baseRelease=Optional(FrameRelay.BackendOutcome<FrameRelay.TemporaryMediaID>.succeeded(FrameRelay.TemporaryMediaID(rawValue: "s31-photo-copy"))) caller=succeeded
+✔ Test durableUnknownPhotoResultSurvivesExactUsageReleaseAndRootClosureBeforeCallerRelease() passed after 0.235 seconds.
+◇ Test photoCallbackMustEndBeforeEveryScopeAndInvalidationCanCommit(outcome:cancelCaller:) started.
+◇ Test case passing 2 arguments outcome → .succeeded(localIdentifier: Optional(FrameRelay.PhotoAssetIdentifier(rawValue: "s31-terminal-success"))), cancelCaller → false to photoCallbackMustEndBeforeEveryScopeAndInvalidationCanCommit(outcome:cancelCaller:) started.
+2026-10-24 22:08:07.776587+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:07.778545+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 2 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+​◇ Test case passing 2 arguments outcome → .succeeded(localIdentifier: Optional(FrameRelay.PhotoAssetIdentifier(rawValue: "s31-terminal-success"))), cancelCaller → true to photoCallbackMustEndBeforeEveryScopeAndInvalidationCanCommit(outcome:cancelCaller:) started.
+2026-10-24 22:08:07.997299+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:07.998512+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 2 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+​◇ Test case passing 2 arguments outcome → .failed(FrameRelay.PhotoLibraryFailure.rejected), cancelCaller → false to photoCallbackMustEndBeforeEveryScopeAndInvalidationCanCommit(outcome:cancelCaller:) started.
+2026-10-24 22:08:08.238755+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:08.240076+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 2 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+​◇ Test case passing 2 arguments outcome → .failed(FrameRelay.PhotoLibraryFailure.rejected), cancelCaller → true to photoCallbackMustEndBeforeEveryScopeAndInvalidationCanCommit(outcome:cancelCaller:) started.
+2026-10-24 22:08:08.453411+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:08.454562+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 2 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+​◇ Test case passing 2 arguments outcome → .unknown(localIdentifier: nil), cancelCaller → false to photoCallbackMustEndBeforeEveryScopeAndInvalidationCanCommit(outcome:cancelCaller:) started.
+2026-10-24 22:08:08.664266+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:08.666557+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 2 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+​◇ Test case passing 2 arguments outcome → .unknown(localIdentifier: nil), cancelCaller → true to photoCallbackMustEndBeforeEveryScopeAndInvalidationCanCommit(outcome:cancelCaller:) started.
+2026-10-24 22:08:08.878306+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:08.880095+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 2 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+​◇ Test case passing 2 arguments outcome → .unknown(localIdentifier: Optional(FrameRelay.PhotoAssetIdentifier(rawValue: "s31-terminal-unknown"))), cancelCaller → false to photoCallbackMustEndBeforeEveryScopeAndInvalidationCanCommit(outcome:cancelCaller:) started.
+2026-10-24 22:08:09.089808+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:09.092671+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 2 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+​◇ Test case passing 2 arguments outcome → .unknown(localIdentifier: Optional(FrameRelay.PhotoAssetIdentifier(rawValue: "s31-terminal-unknown"))), cancelCaller → true to photoCallbackMustEndBeforeEveryScopeAndInvalidationCanCommit(outcome:cancelCaller:) started.
+2026-10-24 22:08:09.310421+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:09.311535+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 2 and pages_to_free 0
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+​✔ Test photoCallbackMustEndBeforeEveryScopeAndInvalidationCanCommit(outcome:cancelCaller:) with 8 test cases passed after 1.750 seconds.
+✔ Suite PhotoInvalidationBoundaryTests passed after 1.985 seconds.
+◇ Suite ProductBackgroundCompositionTests started.
+◇ Test captureBoundarySharesNormalFactoryAdmissionWithoutCreatingMediaOrRegistration() started.
+✔ Test captureBoundarySharesNormalFactoryAdmissionWithoutCreatingMediaOrRegistration() passed after 0.008 seconds.
+◇ Test completionRunsOnMainActorOncePerDrainedBatchIncludingLateHandler() started.
+✔ Test completionRunsOnMainActorOncePerDrainedBatchIncludingLateHandler() passed after 0.006 seconds.
+◇ Test openingDelayAndUnknownSessionKeepCompletionPending() started.
+✔ Test openingDelayAndUnknownSessionKeepCompletionPending() passed after 0.018 seconds.
+◇ Test handlerOpensSameProductWriterWithoutAnyUIAppearanceAndUnknownFactoryCalls() started.
+✔ Test handlerOpensSameProductWriterWithoutAnyUIAppearanceAndUnknownFactoryCalls() passed after 0.011 seconds.
+◇ Test separateCompositionRootsDoNotBindToFirstGlobalBackgroundStore() started.
+✔ Test separateCompositionRootsDoNotBindToFirstGlobalBackgroundStore() passed after 0.021 seconds.
+◇ Test storeOpenFailureKeepsOSHandlerAndDoesNotInstantiateSDKOrSource() started.
+✔ Test storeOpenFailureKeepsOSHandlerAndDoesNotInstantiateSDKOrSource() passed after 0.005 seconds.
+◇ Test knownSessionIsReusedAcrossPreparationAndBackgroundHandlerWithoutAdoptingOldSource() started.
+2026-10-24 22:08:09.598319+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:09.598793+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test knownSessionIsReusedAcrossPreparationAndBackgroundHandlerWithoutAdoptingOldSource() passed after 0.119 seconds.
+✔ Suite ProductBackgroundCompositionTests passed after 0.192 seconds.
+◇ Suite ProductBackgroundInvalidationTests started.
+◇ Test normalStatusCancelsSharedOwnerThenNextExplicitPollAcksWhileAnotherVideoContinues() started.
+2026-10-24 22:08:09.719236+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:09.719717+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:09.755283+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:09.755828+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 12 and pages_to_free 2
+✔ Test normalStatusCancelsSharedOwnerThenNextExplicitPollAcksWhileAnotherVideoContinues() passed after 1.574 seconds.
+◇ Test freshFactoryRefusesAnUnknownLiveSourceAndOnlyObservesItAfterAllDurableTerminals() started.
+2026-10-24 22:08:11.295596+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:11.296985+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+✔ Test freshFactoryRefusesAnUnknownLiveSourceAndOnlyObservesItAfterAllDurableTerminals() passed after 0.283 seconds.
+◇ Test wrapperRequiresTheActualPendingReservationBeforeCallingAnyBackgroundOrPlayerPort() started.
+2026-10-24 22:08:11.577523+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:11.577995+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+✔ Test wrapperRequiresTheActualPendingReservationBeforeCallingAnyBackgroundOrPlayerPort() passed after 0.049 seconds.
+✔ Suite ProductBackgroundInvalidationTests passed after 1.908 seconds.
+◇ Suite ProductHistoricalRemovalTests started.
+◇ Test unregisteredNeverStartedInventorySealAndNormalDiscardNeedNoSDKFactory() started.
+2026-10-24 22:08:11.626754+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:11.627224+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:11.637696+0900 FrameRelay[34827:61566041] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+✔ Test unregisteredNeverStartedInventorySealAndNormalDiscardNeedNoSDKFactory() passed after 0.106 seconds.
+◇ Test normalCompositionRequiresExplicitRiskAndProjectsHistoricalDiscardAfterReopen() started.
+2026-10-24 22:08:11.733266+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:11.733733+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:11.789104+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:11.789966+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 5 and pages_to_free 1
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 11 and pages_to_free 2
+✔ Test normalCompositionRequiresExplicitRiskAndProjectsHistoricalDiscardAfterReopen() passed after 0.664 seconds.
+◇ Test activeUnknownNeverStopsAutomaticallyAndOnlyFreshExactReleaseReopensAdmission() started.
+2026-10-24 22:08:12.399509+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:12.400072+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test activeUnknownNeverStopsAutomaticallyAndOnlyFreshExactReleaseReopensAdmission() passed after 0.365 seconds.
+◇ Test everyUnconfirmedTerminalBoundaryKeepsOriginalAndAdmissionClosed(point:) started.
+◇ Test case passing 1 argument point → "terminal" to everyUnconfirmedTerminalBoundaryKeepsOriginalAndAdmissionClosed(point:) started.
+2026-10-24 22:08:12.763626+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:12.764162+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument point → "source" to everyUnconfirmedTerminalBoundaryKeepsOriginalAndAdmissionClosed(point:) started.
+2026-10-24 22:08:12.922107+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:12.922635+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument point → "lease" to everyUnconfirmedTerminalBoundaryKeepsOriginalAndAdmissionClosed(point:) started.
+2026-10-24 22:08:13.077398+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:13.078618+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument point → "stopped" to everyUnconfirmedTerminalBoundaryKeepsOriginalAndAdmissionClosed(point:) started.
+2026-10-24 22:08:13.240851+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:13.241375+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument point → "lookup" to everyUnconfirmedTerminalBoundaryKeepsOriginalAndAdmissionClosed(point:) started.
+2026-10-24 22:08:13.400783+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:13.401729+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​✔ Test everyUnconfirmedTerminalBoundaryKeepsOriginalAndAdmissionClosed(point:) with 5 test cases passed after 0.804 seconds.
+◇ Test reopenedUnknownSourceAndOldLeaseStayUnreleased() started.
+2026-10-24 22:08:13.568866+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:13.569440+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+✔ Test reopenedUnknownSourceAndOldLeaseStayUnreleased() passed after 0.132 seconds.
+◇ Test unfinishedCopyAndAttachmentGapStayUnknownWithoutAutomaticStop(point:) started.
+◇ Test case passing 1 argument point → "copy" to unfinishedCopyAndAttachmentGapStayUnknownWithoutAutomaticStop(point:) started.
+2026-10-24 22:08:13.701537+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:13.702641+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+​◇ Test case passing 1 argument point → "attach" to unfinishedCopyAndAttachmentGapStayUnknownWithoutAutomaticStop(point:) started.
+2026-10-24 22:08:13.761560+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:13.762139+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​✔ Test unfinishedCopyAndAttachmentGapStayUnknownWithoutAutomaticStop(point:) with 2 test cases passed after 0.170 seconds.
+◇ Test unknownOrReusedSDKInventoryNeverAuthorizesRemoval(kind:) started.
+◇ Test case passing 1 argument kind → "unknown" to unknownOrReusedSDKInventoryNeverAuthorizesRemoval(kind:) started.
+2026-10-24 22:08:13.871718+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:13.872319+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument kind → "reused" to unknownOrReusedSDKInventoryNeverAuthorizesRemoval(kind:) started.
+2026-10-24 22:08:14.012159+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.013175+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​◇ Test case passing 1 argument kind → "duplicate" to unknownOrReusedSDKInventoryNeverAuthorizesRemoval(kind:) started.
+2026-10-24 22:08:14.153318+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.153933+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+​✔ Test unknownOrReusedSDKInventoryNeverAuthorizesRemoval(kind:) with 3 test cases passed after 0.422 seconds.
+✔ Suite ProductHistoricalRemovalTests passed after 2.666 seconds.
+◇ Suite ProductRemovalCompositionTests started.
+◇ Test ordinaryCompositionDiscardsOneUntransferredOriginalAndProjectsItsExactResult() started.
+2026-10-24 22:08:14.294819+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.295386+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.308023+0900 FrameRelay[34827:61566041] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+2026-10-24 22:08:14.317703+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.318244+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.331144+0900 FrameRelay[34827:61566002] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 6 and pages_to_free 1
+✔ Test ordinaryCompositionDiscardsOneUntransferredOriginalAndProjectsItsExactResult() passed after 0.165 seconds.
+◇ Test dialogKeepsExactBindingAndSelection(changeBinding:) started.
+◇ Test case passing 1 argument changeBinding → false to dialogKeepsExactBindingAndSelection(changeBinding:) started.
+2026-10-24 22:08:14.460152+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.460697+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.472684+0900 FrameRelay[34827:61566041] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+2026-10-24 22:08:14.482060+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.482598+0900 FrameRelay[34827:61566009] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.495204+0900 FrameRelay[34827:61566015] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+​◇ Test case passing 1 argument changeBinding → true to dialogKeepsExactBindingAndSelection(changeBinding:) started.
+2026-10-24 22:08:14.519028+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.519613+0900 FrameRelay[34827:61566005] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.531253+0900 FrameRelay[34827:61566005] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+2026-10-24 22:08:14.540622+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.541144+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.552996+0900 FrameRelay[34827:61566015] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+​✔ Test dialogKeepsExactBindingAndSelection(changeBinding:) with 2 test cases passed after 0.116 seconds.
+◇ Test captureAdmissionIsCheckedBeforeStopAfterStopAndBeforeExecution(denyAt:) started.
+◇ Test case passing 1 argument denyAt → 1 to captureAdmissionIsCheckedBeforeStopAfterStopAndBeforeExecution(denyAt:) started.
+2026-10-24 22:08:14.575809+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.576414+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:14.587638+0900 FrameRelay[34827:61566013] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+2026-10-24 22:08:14.638423+0900 FrameRelay[34827:61569144] [] <<<< Boss >>>> signalled err=-12371 at <>:9015
+2026-10-24 22:08:14.689056+0900 FrameRelay[34827:61566005] [plugin] AddInstanceForFactory: No factory registered for id <CFUUID 0x119114c40> F8BB1C28-BAE8-11D6-9C31-00039315CD46
+2026-10-24 22:08:14.710170+0900 FrameRelay[34827:61568323] [EnhanceDialogueProcessor] EnhanceDialogueProcessor.cpp:658   EnhanceDialogueProcessor has no tuning for unrecognized device type
+2026-10-24 22:08:14.710230+0900 FrameRelay[34827:61568323] [EnhanceDialogueProcessor] EnhanceDialogueProcessor.cpp:268   EnhanceDialogueProcessor() - Product does not have valid tuning at ''
+2026-10-24 22:08:14.710281+0900 FrameRelay[34827:61568323] [EnhanceDialogueProcessor] EnhanceDialogueProcessor.cpp:658   EnhanceDialogueProcessor has no tuning for unrecognized device type
+2026-10-24 22:08:14.710317+0900 FrameRelay[34827:61568323] [EnhanceDialogueProcessor] EnhanceDialogueProcessor.cpp:268   EnhanceDialogueProcessor() - Product does not have valid tuning at ''
+2026-10-24 22:08:14.789306+0900 FrameRelay[34827:61568323] [AQ]        LoudnessManager.mm:1767  ReadPListFile: unable to open stream for LoudnessManager plist
+2026-10-24 22:08:14.789370+0900 FrameRelay[34827:61568323] [AQ]        LoudnessManager.mm:1268  GetHardwarePlatformKey: cannot get acoustic ID
+2026-10-24 22:08:14.789432+0900 FrameRelay[34827:61568323] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:14.789482+0900 FrameRelay[34827:61568323] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:14.799834+0900 FrameRelay[34827:61568323] [] <<<< IQ-Table >>>> signalled err=-12780 at <>:689
+S34_REMOVAL_PLAYBACK capture=capture-admission beforeStop={phase=playing issue=none bytes=0 release=notExecuted} outcome=succeeded(FrameRelay.OriginalPlaybackProgress(source: FrameRelay.OriginalPlaybackSource(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "1DAB7E68-EF0B-43CA-97D5-3A5A79A2206F"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "capture-admission"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "9c7da2e62a8f8269919c7b97b33735d164fb43c5c51370926ca9bda914c17804")), operation: FrameRelay.MediaOperationID(rawValue: "52D834E9-71AA-417C-8DA8-00DC3578FB38"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 1), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "82899212-F705-45FA-A42A-54CC1D1C3AB7"))), session: FrameRelay.PlaybackSessionID(rawValue: "ADB7C287-4CFC-4E51-9F03-BFDAEB37E175"), elapsedSeconds: 0.05230292)) afterRelease=succeeded(FrameRelay.ReadReleaseReceipt(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "1DAB7E68-EF0B-43CA-97D5-3A5A79A2206F"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "capture-admission"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "9c7da2e62a8f8269919c7b97b33735d164fb43c5c51370926ca9bda914c17804")), operation: FrameRelay.MediaOperationID(rawValue: "52D834E9-71AA-417C-8DA8-00DC3578FB38"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 1), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "82899212-F705-45FA-A42A-54CC1D1C3AB7"))))
+​◇ Test case passing 1 argument denyAt → 2 to captureAdmissionIsCheckedBeforeStopAfterStopAndBeforeExecution(denyAt:) started.
+2026-10-24 22:08:15.180086+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:15.180654+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:15.192184+0900 FrameRelay[34827:61566005] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+2026-10-24 22:08:15.252233+0900 FrameRelay[34827:61569144] [] <<<< Boss >>>> signalled err=-12371 at <>:9015
+2026-10-24 22:08:15.253082+0900 FrameRelay[34827:61568324] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:15.253140+0900 FrameRelay[34827:61568324] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:15.261147+0900 FrameRelay[34827:61569246] [] <<<< IQ-Table >>>> signalled err=-12780 at <>:689
+S34_REMOVAL_PLAYBACK capture=capture-admission beforeStop={phase=playing issue=none bytes=0 release=notExecuted} outcome=succeeded(FrameRelay.OriginalPlaybackProgress(source: FrameRelay.OriginalPlaybackSource(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "5404B283-5EB7-4715-9E9C-E7F77254306A"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "capture-admission"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "ffa17fc5de0f0eb0033a0b7612194e34a10eb6a55eff10b4d78cbd67f87a4a88")), operation: FrameRelay.MediaOperationID(rawValue: "3EA37FD9-6775-49A3-8222-1CAE772D303A"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 1), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "A46B9374-1800-4A21-BD45-DADED20D81E9"))), session: FrameRelay.PlaybackSessionID(rawValue: "297BB95D-0CED-4ACF-98EB-D28106A6DD93"), elapsedSeconds: 0.008912502)) afterRelease=succeeded(FrameRelay.ReadReleaseReceipt(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "5404B283-5EB7-4715-9E9C-E7F77254306A"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "capture-admission"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "ffa17fc5de0f0eb0033a0b7612194e34a10eb6a55eff10b4d78cbd67f87a4a88")), operation: FrameRelay.MediaOperationID(rawValue: "3EA37FD9-6775-49A3-8222-1CAE772D303A"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 1), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "A46B9374-1800-4A21-BD45-DADED20D81E9"))))
+​◇ Test case passing 1 argument denyAt → 3 to captureAdmissionIsCheckedBeforeStopAfterStopAndBeforeExecution(denyAt:) started.
+2026-10-24 22:08:15.568801+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:15.569393+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:15.581833+0900 FrameRelay[34827:61566003] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+2026-10-24 22:08:15.645192+0900 FrameRelay[34827:61568324] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:15.645267+0900 FrameRelay[34827:61568324] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:15.653555+0900 FrameRelay[34827:61568324] [] <<<< IQ-Table >>>> signalled err=-12780 at <>:689
+S34_REMOVAL_PLAYBACK capture=capture-admission beforeStop={phase=playing issue=none bytes=0 release=notExecuted} outcome=succeeded(FrameRelay.OriginalPlaybackProgress(source: FrameRelay.OriginalPlaybackSource(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "6C354E6D-6E9F-463F-A5F1-08C43DAB320C"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "capture-admission"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "ffa17fc5de0f0eb0033a0b7612194e34a10eb6a55eff10b4d78cbd67f87a4a88")), operation: FrameRelay.MediaOperationID(rawValue: "1927D204-F9E4-4F25-9E91-170E79F2943D"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 1), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "6AED7F6C-AFCE-4E72-B685-3081030E4AC7"))), session: FrameRelay.PlaybackSessionID(rawValue: "5A7DD99D-F82C-41A0-8863-DBF7C047486B"), elapsedSeconds: 0.000933294)) afterRelease=succeeded(FrameRelay.ReadReleaseReceipt(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "6C354E6D-6E9F-463F-A5F1-08C43DAB320C"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "capture-admission"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "ffa17fc5de0f0eb0033a0b7612194e34a10eb6a55eff10b4d78cbd67f87a4a88")), operation: FrameRelay.MediaOperationID(rawValue: "1927D204-F9E4-4F25-9E91-170E79F2943D"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 1), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "6AED7F6C-AFCE-4E72-B685-3081030E4AC7"))))
+​✔ Test captureAdmissionIsCheckedBeforeStopAfterStopAndBeforeExecution(denyAt:) with 3 test cases passed after 1.377 seconds.
+◇ Test removalAndInvalidationReleaseOnlyTheirOwnSealAndReobserveCurrentAccess(invalidationFirst:) started.
+◇ Test case passing 1 argument invalidationFirst → false to removalAndInvalidationReleaseOnlyTheirOwnSealAndReobserveCurrentAccess(invalidationFirst:) started.
+2026-10-24 22:08:15.956467+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:15.957027+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:15.968539+0900 FrameRelay[34827:61566005] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+2026-10-24 22:08:16.075820+0900 FrameRelay[34827:61569144] [] <<<< Boss >>>> signalled err=-12371 at <>:9015
+2026-10-24 22:08:16.076663+0900 FrameRelay[34827:61568324] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:16.076721+0900 FrameRelay[34827:61568324] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:16.084740+0900 FrameRelay[34827:61569149] [] <<<< IQ-Table >>>> signalled err=-12780 at <>:689
+S34_REMOVAL_PLAYBACK capture=seal-interleaving beforeStop={phase=playing issue=none bytes=0 release=notExecuted} outcome=succeeded(FrameRelay.OriginalPlaybackProgress(source: FrameRelay.OriginalPlaybackSource(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "F4EB2765-D756-4DC7-BC5A-2FC047AA64D2"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "seal-interleaving"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "ffa17fc5de0f0eb0033a0b7612194e34a10eb6a55eff10b4d78cbd67f87a4a88")), operation: FrameRelay.MediaOperationID(rawValue: "66F8F4B8-DEBE-4182-836A-52A927FD9D05"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 2), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "D45EF5BF-F491-4E4C-B39C-425502A5A240"))), session: FrameRelay.PlaybackSessionID(rawValue: "4C3A923E-934E-42DF-AC3D-D2F2920D4C9E"), elapsedSeconds: 0.007790336)) afterRelease=succeeded(FrameRelay.ReadReleaseReceipt(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "F4EB2765-D756-4DC7-BC5A-2FC047AA64D2"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "seal-interleaving"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "ffa17fc5de0f0eb0033a0b7612194e34a10eb6a55eff10b4d78cbd67f87a4a88")), operation: FrameRelay.MediaOperationID(rawValue: "66F8F4B8-DEBE-4182-836A-52A927FD9D05"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 2), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "D45EF5BF-F491-4E4C-B39C-425502A5A240"))))
+​◇ Test case passing 1 argument invalidationFirst → true to removalAndInvalidationReleaseOnlyTheirOwnSealAndReobserveCurrentAccess(invalidationFirst:) started.
+2026-10-24 22:08:16.389241+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:16.389793+0900 FrameRelay[34827:61566013] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:16.401200+0900 FrameRelay[34827:61566042] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+2026-10-24 22:08:16.506614+0900 FrameRelay[34827:61569327] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:16.506681+0900 FrameRelay[34827:61569327] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:16.514943+0900 FrameRelay[34827:61567268] [] <<<< IQ-Table >>>> signalled err=-12780 at <>:689
+S34_REMOVAL_PLAYBACK capture=seal-interleaving beforeStop={phase=playing issue=none bytes=0 release=notExecuted} outcome=succeeded(FrameRelay.OriginalPlaybackProgress(source: FrameRelay.OriginalPlaybackSource(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "6E6733CC-454B-4A9C-A43D-83239A381347"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "seal-interleaving"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "69e2e37f26876d7c122614a540db7d7b9f7eba4dce4adcc17f05679cba8ed754")), operation: FrameRelay.MediaOperationID(rawValue: "917C5215-2403-4699-BEBD-D74111DA54FA"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 2), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "8B5BF315-748E-45EE-826B-9E0A75A00C36"))), session: FrameRelay.PlaybackSessionID(rawValue: "DC70C519-CA45-4BD1-B7FE-82D783D9D1B1"), elapsedSeconds: 0.003996502)) afterRelease=succeeded(FrameRelay.ReadReleaseReceipt(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "6E6733CC-454B-4A9C-A43D-83239A381347"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "seal-interleaving"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "69e2e37f26876d7c122614a540db7d7b9f7eba4dce4adcc17f05679cba8ed754")), operation: FrameRelay.MediaOperationID(rawValue: "917C5215-2403-4699-BEBD-D74111DA54FA"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 2), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "8B5BF315-748E-45EE-826B-9E0A75A00C36"))))
+​✔ Test removalAndInvalidationReleaseOnlyTheirOwnSealAndReobserveCurrentAccess(invalidationFirst:) with 2 test cases passed after 0.866 seconds.
+◇ Test removalReleaseRequiresItsExactOwnerAndFreshCommonObservation() started.
+2026-10-24 22:08:16.821236+0900 FrameRelay[34827:61566042] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:16.821799+0900 FrameRelay[34827:61566042] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:16.833645+0900 FrameRelay[34827:61566042] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 4 and pages_to_free 0
+2026-10-24 22:08:16.906020+0900 FrameRelay[34827:61569326] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:16.906085+0900 FrameRelay[34827:61569326] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:16.914535+0900 FrameRelay[34827:61569326] [] <<<< IQ-Table >>>> signalled err=-12780 at <>:689
+S34_REMOVAL_PLAYBACK capture=fresh-seal beforeStop={phase=playing issue=none bytes=0 release=notExecuted} outcome=succeeded(FrameRelay.OriginalPlaybackProgress(source: FrameRelay.OriginalPlaybackSource(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "5FDF13E3-E755-4FB9-9E99-3548715C587D"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "fresh-seal"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "69e2e37f26876d7c122614a540db7d7b9f7eba4dce4adcc17f05679cba8ed754")), operation: FrameRelay.MediaOperationID(rawValue: "F251165E-4D3E-4FD3-B749-898C6FF1B131"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 2), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "5F6EEA13-05A9-4E35-BBA6-82BD101D95C0"))), session: FrameRelay.PlaybackSessionID(rawValue: "D7CF1FE1-D7D6-43E3-B5B6-277B553D54A7"), elapsedSeconds: 0.050842377)) afterRelease=succeeded(FrameRelay.ReadReleaseReceipt(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "5FDF13E3-E755-4FB9-9E99-3548715C587D"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "fresh-seal"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "69e2e37f26876d7c122614a540db7d7b9f7eba4dce4adcc17f05679cba8ed754")), operation: FrameRelay.MediaOperationID(rawValue: "F251165E-4D3E-4FD3-B749-898C6FF1B131"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 2), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "5F6EEA13-05A9-4E35-BBA6-82BD101D95C0"))))
+✔ Test removalReleaseRequiresItsExactOwnerAndFreshCommonObservation() passed after 0.446 seconds.
+◇ Test explicitCheckClosesOnlyItsUnprocessedChildAndNeverRetriesUnlink(stage:) started.
+◇ Test case passing 1 argument stage → .batch to explicitCheckClosesOnlyItsUnprocessedChildAndNeverRetriesUnlink(stage:) started.
+2026-10-24 22:08:17.278634+0900 FrameRelay[34827:61566042] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:17.279344+0900 FrameRelay[34827:61566042] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:17.294165+0900 FrameRelay[34827:61566002] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+2026-10-24 22:08:17.304813+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:17.305297+0900 FrameRelay[34827:61566015] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:17.316761+0900 FrameRelay[34827:61566003] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+2026-10-24 22:08:17.397674+0900 FrameRelay[34827:61569327] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:17.397749+0900 FrameRelay[34827:61569327] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:17.405955+0900 FrameRelay[34827:61569327] [] <<<< IQ-Table >>>> signalled err=-12780 at <>:689
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 6 and pages_to_free 1
+S34_REMOVAL_PLAYBACK capture=check-a beforeStop={phase=playing issue=none bytes=0 release=notExecuted} outcome=succeeded(FrameRelay.OriginalPlaybackProgress(source: FrameRelay.OriginalPlaybackSource(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "DCF01E98-0F54-4BB6-BE5E-CF0DCE5AA99A"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "check-a"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "1c9dcfaa4edf1407a71e9ab8ed443a8eb788fb4968476b3934152e05ca4508df")), operation: FrameRelay.MediaOperationID(rawValue: "4DC23A5A-5CD1-4A00-86E2-4F0E7CCECDA1"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 1), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "215841CF-50D6-4112-9FBE-EB096A93069C"))), session: FrameRelay.PlaybackSessionID(rawValue: "CCB433E1-A26D-423D-8ABB-8619C4411BA7"), elapsedSeconds: 0.002493003)) afterRelease=succeeded(FrameRelay.ReadReleaseReceipt(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "DCF01E98-0F54-4BB6-BE5E-CF0DCE5AA99A"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "check-a"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "1c9dcfaa4edf1407a71e9ab8ed443a8eb788fb4968476b3934152e05ca4508df")), operation: FrameRelay.MediaOperationID(rawValue: "4DC23A5A-5CD1-4A00-86E2-4F0E7CCECDA1"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 1), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "215841CF-50D6-4112-9FBE-EB096A93069C"))))
+​◇ Test case passing 1 argument stage → .reserve to explicitCheckClosesOnlyItsUnprocessedChildAndNeverRetriesUnlink(stage:) started.
+2026-10-24 22:08:17.722029+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:17.723410+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:17.738852+0900 FrameRelay[34827:61566042] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:8216
+2026-10-24 22:08:17.749571+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:17.750098+0900 FrameRelay[34827:61566002] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:17.761589+0900 FrameRelay[34827:61566002] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 6 and pages_to_free 1
+2026-10-24 22:08:17.869441+0900 FrameRelay[34827:61569145] [] <<<< Boss >>>> signalled err=-12371 at <>:9015
+2026-10-24 22:08:17.870469+0900 FrameRelay[34827:61569246] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:17.870524+0900 FrameRelay[34827:61569246] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:17.878447+0900 FrameRelay[34827:61569246] [] <<<< IQ-Table >>>> signalled err=-12780 at <>:689
+S34_REMOVAL_PLAYBACK capture=check-a beforeStop={phase=playing issue=none bytes=0 release=notExecuted} outcome=succeeded(FrameRelay.OriginalPlaybackProgress(source: FrameRelay.OriginalPlaybackSource(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "D81144FD-97CA-4125-938A-E9AA30BCA76E"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "check-a"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "1c9dcfaa4edf1407a71e9ab8ed443a8eb788fb4968476b3934152e05ca4508df")), operation: FrameRelay.MediaOperationID(rawValue: "960B4D0F-CA34-4AA6-B5AC-C5B5D983CADF"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 1), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "51162097-EC58-409A-BCE6-D3A0015F285D"))), session: FrameRelay.PlaybackSessionID(rawValue: "5929E02A-CFEF-4020-9530-24C1DC1B4C80"), elapsedSeconds: 0.001913753)) afterRelease=succeeded(FrameRelay.ReadReleaseReceipt(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "D81144FD-97CA-4125-938A-E9AA30BCA76E"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "check-a"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "1c9dcfaa4edf1407a71e9ab8ed443a8eb788fb4968476b3934152e05ca4508df")), operation: FrameRelay.MediaOperationID(rawValue: "960B4D0F-CA34-4AA6-B5AC-C5B5D983CADF"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 1), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "51162097-EC58-409A-BCE6-D3A0015F285D"))))
+​✔ Test explicitCheckClosesOnlyItsUnprocessedChildAndNeverRetriesUnlink(stage:) with 2 test cases passed after 0.915 seconds.
+◇ Test explicitCheckClosesUnprocessedChildWhileItsReservationIsInFlight() started.
+2026-10-24 22:08:18.185133+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:18.186682+0900 FrameRelay[34827:61566041] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-24 22:08:18.198810+0900 FrameRelay[34827:61566041] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+2026-10-24 22:08:18.275590+0900 FrameRelay[34827:61569246] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:18.275652+0900 FrameRelay[34827:61569246] [AQ]        LoudnessManager.mm:1222  IsHardwareSupported: no plist loaded, returning false
+2026-10-24 22:08:18.284138+0900 FrameRelay[34827:61569246] [] <<<< IQ-Table >>>> signalled err=-12780 at <>:689
+S34_REMOVAL_PLAYBACK capture=check-during-start beforeStop={phase=playing issue=none bytes=0 release=notExecuted} outcome=succeeded(FrameRelay.OriginalPlaybackProgress(source: FrameRelay.OriginalPlaybackSource(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "EDCA508A-7C8B-4D38-959B-678385BB4049"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "check-during-start"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "4b70a22464909de066bed3151b5c6042a14a8ca89120651dc5c7e4d8c2aaaa43")), operation: FrameRelay.MediaOperationID(rawValue: "6F74BBCB-202F-4E6B-A82F-CB0E8923AAD1"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 1), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "D3D896BC-A2F0-42AC-A396-B6D2E6063E1D"))), session: FrameRelay.PlaybackSessionID(rawValue: "42FE9E85-1230-44D8-8587-4BC2ABAFD230"), elapsedSeconds: 0.002800003)) afterRelease=succeeded(FrameRelay.ReadReleaseReceipt(lease: FrameRelay.OriginalReadLease(id: FrameRelay.ReadLeaseID(rawValue: "EDCA508A-7C8B-4D38-959B-678385BB4049"), original: FrameRelay.OriginalContent(capture: FrameRelay.CaptureID(rawValue: "check-during-start"), generation: FrameRelay.ContentGeneration(rawValue: 1), content: FrameRelay.ContentIdentity(byteCount: 17543, algorithm: "sha256", digest: "4b70a22464909de066bed3151b5c6042a14a8ca89120651dc5c7e4d8c2aaaa43")), operation: FrameRelay.MediaOperationID(rawValue: "6F74BBCB-202F-4E6B-A82F-CB0E8923AAD1"), accessGeneration: FrameRelay.AccessGeneration(rawValue: 1), epoch: FrameRelay.ReaderReconciliationEpoch(rawValue: "D3D896BC-A2F0-42AC-A396-B6D2E6063E1D"))))
+✔ Test explicitCheckClosesUnprocessedChildWhileItsReservationIsInFlight() passed after 0.403 seconds.
+✔ Suite ProductRemovalCompositionTests passed after 4.290 seconds.
+✔ Test run with 86 tests in 14 suites passed after 31.974 seconds.
+2026-10-24 22:08:18.871 xcodebuild[34769:61565264] [MT] IDETestOperationsObserverDebug: 34.278 elapsed -- Testing started completed.
+2026-10-24 22:08:18.871 xcodebuild[34769:61565264] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-24 22:08:18.871 xcodebuild[34769:61565264] [MT] IDETestOperationsObserverDebug: 34.278 sec, +34.278 sec -- end
+
+Test session results, code coverage, and logs:
+	/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/background-related-unit-109/result.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

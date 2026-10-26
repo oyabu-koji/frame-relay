@@ -1,0 +1,253 @@
+{
+  "kind": "限定read-only契約案。独立implementation validationでも実装開始の許可でもない",
+  "created_UTC": "2026-10-24T21:34:11.380771+00:00",
+  "baseline": {
+    "id": "DI-SOURCE-20261025-20",
+    "inputs": 503,
+    "code_inputs": 398,
+    "sha256": "5b57a0995fb601ed91ffea948a70d99d7bbf54e3394a26a35963e332342bbc90",
+    "sourceSnapshot": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-chunk-local-candidate-01/source-snapshot",
+    "selected_inputs": {
+      "FrameRelay/Application/Ports/BackgroundMediaPorts.swift": {
+        "sha256": "9e36606de5bf6b1660846c1687451cdf0109707710ad9feafbe30bf2ec44398c",
+        "bytes": 3328
+      },
+      "FrameRelay/Domain/Operations/BackgroundMediaTask.swift": {
+        "sha256": "36000d5e4b48f205827bcf782db1928e14329466ef7696879f40b5d72248dbe2",
+        "bytes": 9514
+      },
+      "FrameRelay/Platform/Network/BackgroundMediaSession.swift": {
+        "sha256": "a9f7d4c3abd73ad9a21774fb592657fc3ee0f15746564197c503ef87e03f4ffd",
+        "bytes": 20585
+      },
+      "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift": {
+        "sha256": "18e559569ed7ad526d1de0a598889ab066e632b543a9bcc3e567cfb5fe6b8395",
+        "bytes": 72800
+      },
+      "FrameRelay/Application/Recovery/BackgroundMediaRecovery.swift": {
+        "sha256": "cb489fb6b6f4f8ea9bd5c0142bc09c3e0b9dc8b705c5c5dd4f7f3ee3412f5661",
+        "bytes": 4072
+      },
+      "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift": {
+        "sha256": "1b5d0d3cbb98f287805ab2a6fbbb452cefd4294fd23a42b23e8e42eec1c047b2",
+        "bytes": 42692
+      },
+      "FrameRelay/Platform/LocalStore/TemporaryMediaStoreProjection.swift": {
+        "sha256": "440f5953fb892b690e4df3db26c63b3405d4b201452c0deca35f33fd5fb8a609",
+        "bytes": 6376
+      },
+      "FrameRelay/Application/MediaIO/RenditionTemporaryRetrieval.swift": {
+        "sha256": "63a239c1fc5e8cbfd211d0e3bbeec1fea29a8063b57275df52e2024b2288cfb4",
+        "bytes": 1755
+      },
+      "FrameRelay/Platform/Network/PublicationHTTPBinding.swift": {
+        "sha256": "98a6e6c028b4f79342eae62cc21b4751b4edbffd8a5c532745782f052aa01089",
+        "bytes": 9038
+      },
+      "FrameRelay/Domain/Media/PublicationManifestObservation.swift": {
+        "sha256": "011845a01877dd556cc4e2c12a38841fe0b0dca52e0121bfbb9525398bb438bd",
+        "bytes": 3194
+      },
+      "FrameRelay/Platform/LocalStore/PublicationManifestStoreProjection.swift": {
+        "sha256": "f58c80536fdcf2671d58f1c7a6815efc03ecdd650d3c97015d69f3f32581b91a",
+        "bytes": 3221
+      },
+      "FrameRelay/Platform/LocalStore/BackgroundMediaStoreProjection.swift": {
+        "sha256": "1589c8bdd26e4a338527d52e251d37c81e36ac91f5fbef3a9dd55e92cd8ea1ed",
+        "bytes": 4273
+      },
+      "FrameRelay/Application/Ports/MediaOperationStorePort.swift": {
+        "sha256": "dcb186b2133e49a1490ab717474c77361d77b7eef2f4de33e7da56eeb5bad26b",
+        "bytes": 10695
+      },
+      "FrameRelay/Platform/OriginalStore/ManagedOriginalReadHandle.swift": {
+        "sha256": "2ea7c2b39ea9037b8397fab71ea1350aa760cd9505e4ac19889c50a9e2e6bd45",
+        "bytes": 8036
+      }
+    }
+  },
+  "current_document_observations": {
+    "docs/architecture.md": "a72548440138345345f89d023b74fa6c8b59410c83ca0f061a37fc91f7bdcf19",
+    "docs/functional-design.md": "e5a42346e843fa013de55c6e7c1ae7a2b94417284bb5633b54f9e15d49c076c8",
+    "docs/development-guidelines.md": "f94109fd9216d4b09928bc1039157f0008be9ed87d84def6107281f385ecf029",
+    "docs/repository-structure.md": "c707fa511ec8dcd35e9c2a7dcf36abdc3d0a8eef65435ecc319f05267509a506",
+    ".steering/20260929-device-independent-implementation/requirements.md": "5ee0dfd1d99fe51756846b6aac9be553f0bbe95ee3944b47b603b10712d30ad8",
+    ".steering/20260929-device-independent-implementation/design.md": "503fb3c4135d825c6c4519cfd5844fcf8a6e81164021fb00cdb4e2cb11bebb9e",
+    ".steering/20260929-device-independent-implementation/tasklist.md": "4ea8e713dc923a6184f128a166086398f01e31e4f1315aee49bee5466df985fb"
+  },
+  "prior_report": {
+    "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/download-ingress-readiness-20261025.json",
+    "sha256": "d456de506d2affa32d0bf76eccf2460414d3439815163bf5d3f550fe044e19aa"
+  },
+  "conclusion": "既知creationだけのcallback FD固定、同FD bounded処理、実terminal/ownFDclose、guarded verified importは純コードとして実装可能。通常strict/native正resume・正式producer・通常full-download planには依存させない。一方それらの成立は主張しない。共有fileのChunkB freeze後に最終diffを受領してから所有を移管する。",
+  "scope": [
+    "full rendition単位の初期import。partial Rangeをfull successへしない。既存streamingの全量取得不要性は変更しない",
+    "同processで明示registerし実SDKcreateへbindしたownerだけ。reopen/旧source/列挙一致からのFD・lease採用は禁止",
+    "callbackはprivate system URLを一度だけO_NOFOLLOW open/fstatする。保存・streamへのURL送出・再open・全copy/hashをしない",
+    "すべての新規破壊的negativeは新専用合成rootだけ。既存原本/Photos/Keychain/fixture/証跡を修復・再seed・削除しない"
+  ],
+  "proposed_types": {
+    "BackgroundDownloadMetadata": "Codableのcompact不変値。store UUID/context/taskID、同じOriginalContentを含む完全rendition、current registration、transport lease/epoch、invalidation generation、contentType、信頼できるcapturedAtとrecord由来参照、manifest/publication/distributionの実commit参照、full request kind、request fingerprint。snapshot/完全mutation再帰を埋め込まない。",
+    "CommittedBackgroundDownloadMetadata": "登録専用の実receiptを伴う同writer観測。全metadata値を同writerで歴史recordへexact joinする。pure manifest観測やupload session receiptだけで作らない。",
+    "BackgroundDownloadArtifactReference": "Equatable/Sendableの小値 {id: UUID, ownerGeneration: UUID, binding: BackgroundMediaTaskBinding}。eventにはこれだけ。FD/URL/large metadata/class closureを含めない。",
+    "BackgroundDownloadSourceFacts": "SDK ephemeral FD専用のdev/inode/size/mtime/ctime/linkCount観測。原本用OriginalFileFingerprintは一切緩めない。initial regular/nlink1、後段は同FDのnlink1→0に限定したunlink扱いを別判定し、size/mtime/identity・最終全hashを維持。怪しい遷移/変化は失敗。",
+    "BackgroundDownloadPinnedSource": "private final class/actor capability。registryがFDとmetadata boxを保持。reference id/owner generation/exact bindingから同ownerが一度だけ取得。数値FD自体はauthorityにしない。",
+    "BackgroundDownloadAbortSeal": "NSLock/Mutexの単回状態 pending/working/stopRequested/finalizing/closed。stopは即時flagを更新するがactive read中にFDをcloseして再利用競合を起こさない。worker/closeは実join。",
+    "BackgroundDownloadSourceClosure": "exact artifact/binding、worker joins、own FD close事実。SDKterminalとは別値。actual close失敗では作れない。",
+    "BackgroundDownloadImportSelection": "source metadata/pin/SDKterminal/ownerClosedの実journal参照、出力temporary id/usage/dir-file identity/full deliveryContent。大payloadをindirect/boxへ分離。"
+  },
+  "API_sketches": [
+    "nonisolated protocol BackgroundDownloadIngressPinningPort: Sendable { func bindKnownCreation(_ intent: BackgroundMediaTaskIntent, binding: BackgroundMediaTaskBinding) -> Bool; func pinKnownCallback(binding: BackgroundMediaTaskBinding, location: URL, response: HTTPURLResponse) -> BackgroundDownloadPinResult; func requestStop(_ binding: BackgroundMediaTaskBinding) }  // responseとlocationは同期呼出内だけ、event/journalへ保存しない。登録は事前にasyncで確定済み。",
+    "actor ManagedDownloadIngress { func register(_ value: CommittedBackgroundDownloadMetadata) async throws -> PreparedDownloadSink; func take(_ ref: BackgroundDownloadArtifactReference) async throws -> BackgroundDownloadPinnedSource; func stopAndClose(_ ref: BackgroundDownloadArtifactReference) async -> BackgroundDownloadSourceClosure? } // 同期pin stateを所有する内部Sendable cellは別小helper。",
+    "PinnedSource.read(offset: UInt64, maximumLength: Int) async throws -> Data // 1...65536・同FD pread・前後fstat・stop検査。単一worker以外にFileHandleを返さない。",
+    "PinnedSource.finishAndClose() async throws -> BackgroundDownloadSourceClosure // read/copy tasks実join後にclose。重複closeは同じactual観測へjoin。SDK成功は推定しない。",
+    "TemporaryBackgroundDownloadImportPort.verify(_ usage: TemporaryMediaUsage, importedFrom: BackgroundDownloadImportSelection, stop: BackgroundDownloadAbortSeal) async throws -> TemporaryMediaReceipt // 既存verifyのhash helperを再利用するguarded overload。旧無fence verifyへfallbackしない。",
+    "MediaOperationStorePort.commitBackgroundDownloadImport(_ mutation: BackendStoreMutation, check: @Sendable () -> DownloadImportFinalizeDisposition) async -> BackendCommitResult // default fail-closed。writer transaction内でexact入力/実receipt/current scopeを再判定し、短いcheckでcapture/import latch勝者を確定してからatomic新import記録+temporary.verifiedを保存する。check内await/hash/redispatch/writer再入なし。"
+  ],
+  "metadata_real_joins": [
+    {
+      "point": "prepare/register before actual task creation",
+      "join": "fresh samewriter UUID/current committed registration/intent、exact logical originalとcurrent rendition/invalidation、現transport leaseとepoch。同じ対象のstored manifest観測と既採用publication/confirmation stateを区別し、実per-GET distribution receiptを別に照合する。pure manifestだけから媒体権限を作らない。capturedAtは保存recordの元値を参照しnilは拒否、今の日時を補わない。",
+      "reference": "DI20 PublicationManifestStoreProjection:46-48はmetadata非authorityを維持、PublicationHTTPBinding:20-45はmanifest→adopted publication→source receiptを区別。"
+    },
+    {
+      "point": "actual didFinishDownloadingTo callback",
+      "join": "creations内にexact binding/session generation/taskDescription/source-kindが1件だけ存在し、事前登録metadataとintentが一致。actual downloadTask.responseのURL/status/MIME/Content-Length/Content-Range/full wire version/distribution ID/rendition ID/publication generation/SHA/bytes/no-storeを期待値へ照合する。source receiptをread ticketへ再利用しない。HTTP object/URLは外へ保持しない。",
+      "reference": "DI20 PublicationHTTPBinding:59-84の実response identity照合を新download用小helperへ再利用/抽出。whole background fingerprintのquery/custom header拒否は新専用mapping経路で扱い、旧fingerprintを緩めない。"
+    },
+    {
+      "point": "after bounded read and before verified commit",
+      "join": "登録metadata/pin観測/actual SDK terminal/own source closureの元receiptをexact lookupし、UUID・登録・current rendition・失効/削除予約・epoch・target temporary identity/use・全coverageとfull deliveryContentを同writerで再照合。read ticketとcallback応答のIDを同じoperationへjoinする。unknown mutationは元revision/payloadのexact lookupだけ。"
+    },
+    {
+      "point": "UploadMetadataとの差",
+      "join": "UploadMetadataの原本session POST/GET bindingはdownloadの配布/取得許可ではない。流用するのはexact receipt/compact参照/同期writer guardの方式だけ。"
+    }
+  ],
+  "ordered_flow": [
+    {
+      "step": 1,
+      "action": "ChunkB最終freeze/diffを受領。新owner/filelistを確定。通常strict refusalがattempt/lease/sink/SDK creation前で閉じる現順序を維持。"
+    },
+    {
+      "step": 2,
+      "action": "既知のtask intent+transport leaseを入力にmetadata registerを同writerへcommit。actual source/current registration/epoch/日時/媒体hash/実read distributionの各参照が揃わなければ登録/SDK/URL pinへ進めない。通常plan builder自体をこのunitの完成扱いにしない。"
+    },
+    {
+      "step": 3,
+      "action": "native suspended creation直後、actual bindingを登録slotへ同期bind。bind失敗でも実作成taskを忘れず未知として保持し、cancel/actualterminalを処理する。二重作成/adoptは禁止。"
+    },
+    {
+      "step": 4,
+      "action": "callbackでknown creation+actualresponseを照合してreadonly source FDだけをpin、fstat、small artifactRefをeventへemitして戻る。callback内source read/hash/copyは0。"
+    },
+    {
+      "step": 5,
+      "action": "serial consumerはrefを同process registryで一度take。fresh scope再読後、trusted capturedAt/contentTypeを使いtemporary.create(command,id,usageID,capturedAt,contentType)を一度実行する。戻るreceiptはverifiedContent nil。transport leaseと新temporary usage leaseは別に保持する。"
+    },
+    {
+      "step": 6,
+      "action": "retained workerが同FDを<=65536Bずつpreadしてhashし、temporary.store(bytes, exact range, usage)を順次await。各read/write/await後にstopとscopeを確認。出力は既存private root/owner.lock/leaf identityを使用。全量Dataやcallbackcopyは作らない。coverageが揃ってもこの時点はunverified。"
+    },
+    {
+      "step": 7,
+      "action": "全size/digestがexact rendition.deliveryContentと一致したらworkerをjoinしsource FDをactual close。actual SDK didCompleteのcompletedを別途await/receipt確定する。失敗/cancelled/未終端/旧ownerではverifyへ進めない。event consumerはartifact処理中にlater terminal eventを読める設計とし、自分がblockしたqueue内terminal待ちを作らない。"
+    },
+    {
+      "step": 8,
+      "action": "SDK actualterminalとsource closeの両方を同bindingで記録し、download ownerClosedを元intentへ確定。元transport leaseをactual releaseする。target temporary usageは保持し、他consumer/readersは解放しない。"
+    },
+    {
+      "step": 9,
+      "action": "guarded verify overloadが出力全量を64KiBで独立再hashし、停止検査・前後fingerprint・実verify FD closeを完了。単回finalize許可を使いwriter→capture→import latchで勝者を短く確定する。writerはmetadata/provenance/current scopeを再判定し、新import実receiptとtemporary.verifiedを同atomic commitへ加算。generic旧temporary.verified receiptを偽装しない。"
+    },
+    {
+      "step": 10,
+      "action": "exact commit/lookup後だけcurrent receiptを読み出す。consumerへのhandoffは新temporary useを維持して行い、原本保存検証/Rec709正式producer/確認/ACK/Photos成功は生成しない。"
+    }
+  ],
+  "deadlock_requirement": "既存coordinator.drainはprocess(event)完了まで次eventへ進まない。artifact handlerでSDK terminalを直接awaitすると後続taskTerminalを自分でblockする。handlerはsource capabilityとretained workerをinstallしてreturnし、terminal eventを通し、その後join/finalizeをdrainが管理する。finishedEvents/OS handlerもpending artifact worker/commitを追跡するが、OS handler完了自体を媒体成功/全owner停止へ昇格しない。",
+  "verify_API_requirement": "既存TemporaryMediaWritingPort.verifyはDI20でhash→generic verified commit、RenditionTemporaryRetrievalはverify→reader.close。安全な新download経路は既存create/storeとverify helperを使うが、旧verifyをそのまま呼ばない。新guarded verify/finalizeにはactualterminal/sourceclosureとexact current writer predicateが必須。hash/copyをwriter/capture lock内に置かない。finalizationがhold/stopより先に勝つ時点ではmedia FD/workerが全て終了済みで、残りはmetadata commitだけ。stopが先ならverified0。",
+  "stop_abort_rules": [
+    "REC/person stopはSDK cancelのdelegate enqueueより先に共有stop flagを同期更新。workerはread前後・store await後・最終hash各block/commit直前で確認する。",
+    "停止はactive read/copy/verification taskをcancelして実joinした後に、自分のsource FD/出力helper FDをactual close。別Taskがpread中にFDだけcloseして番号再利用を起こさない。",
+    "未import artifactではfull bytesが既にあってもstop勝ちならverified記録0。partial/private filesのunknownを保持し、新しいcleanup policyは追加しない。既存のexactなown usage解放/回収は確定条件だけで行い、unknown commit/useは推測解放しない。",
+    "SDK terminalがまだならsource FD close済みでもtransport leaseを保持して実terminalを待つ。actual cancelled terminalは媒体成功/remote notExecutedではない。",
+    "capture hold解除/再launchを理由に旧artifact FD/URL/private leafを採用しない。新processの空registryは旧source閉鎖証拠にならない。",
+    "UUID/登録/失効/削除予約が変わった後のterminal/FDcloseは元contextの終端事実として保持可能だが、current temporary verified importは拒否する。",
+    "元OriginalContent全値と取得renditionをexact比較する。byteのhash対象はdeliveryContentであり元Log内容のdigestへ置換しない。実原本とsentinelはテスト前後hash/inode比較し非改変を維持。"
+  ],
+  "minimal_units": [
+    {
+      "unit": "A:同期pinと同FD owner",
+      "files": [
+        "new FrameRelay/Domain/Operations/BackgroundDownloadIngress.swift",
+        "new FrameRelay/Application/Ports/BackgroundDownloadIngressPorts.swift",
+        "new FrameRelay/Platform/TemporaryMedia/ManagedDownloadIngress.swift",
+        "FrameRelay/Application/Ports/BackgroundMediaPorts.swift (small artifactRef eventのみ)",
+        "FrameRelay/Platform/Network/BackgroundMediaSession.swift (known creation/callback pinのみ)",
+        "new FrameRelayTests/Domain/BackgroundDownloadIngressTests.swift",
+        "new FrameRelayTests/Integration/Storage/ManagedDownloadIngressTests.swift",
+        "FrameRelayTests/Integration/Remote/BackgroundMediaSessionTests.swift (実非resume拒否/cancelのみ)"
+      ],
+      "done_scope": "同FD payload保持/停止・未知拒否のcomponent。実SDK受信/verified temporary/通常取得は未完。"
+    },
+    {
+      "unit": "B:同writer temporary importと終端drain",
+      "files": [
+        "new FrameRelay/Application/MediaIO/BackgroundDownloadImport.swift",
+        "new FrameRelay/Platform/LocalStore/BackgroundDownloadStoreProjection.swift",
+        "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift (download live capability/pending worker/terminal join)",
+        "FrameRelay/Application/Ports/MediaOperationStorePort.swift (new indirect change/guarded commit requirement failclosed)",
+        "FrameRelay/Domain/Operations/BackendCommit.swift (authentic registration/pin/import keysとnamespace)",
+        "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift (atomic replay/join/exact mutation)",
+        "FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift (samewriter final guard callback)",
+        "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift",
+        "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift (guarded verify helper/stop)",
+        "FrameRelay/Application/Ports/RenditionMediaPorts.swift (guarded import subprotocol/overload)",
+        "FrameRelay/Application/Recovery/BackgroundMediaRecovery.swift (新download refをold採用しない差分だけ)",
+        "new FrameRelayTests/Integration/Storage/BackgroundDownloadImportStoreTests.swift",
+        "new FrameRelayTests/Integration/Remote/BackgroundDownloadIngressDrainTests.swift"
+      ],
+      "done_scope": "fixture由来入力と注入terminalを明記したlocal import/drain。通常full plan/実SDK受信/strict/native正resume/正式producerは未完。"
+    },
+    {
+      "unit": "後続C（今回unit外）",
+      "condition": "normal full-GET read ticket/request plan producer、通常Composition/consumer起動、strict/native正resume、実SDK didFinishDownloadingTo正受信と実回線/背景/REC/品質は別に接続・検証する。A/B成功で完了化しない。"
+    }
+  ],
+  "memory_and_compatibility": [
+    "event enumはsmall artifactRefだけでEquatable/Sendable維持。class capabilityはeventへ置かず同process registryでjoin、ownerGeneration違い拒否。",
+    "new large journal caseはindirect。登録planはcompact参照だけ、full snapshot/BackendStoreMutation/完全recordの再帰的埋込み禁止。heapのlive jobへmetadata/pending taskを固定する。",
+    "predicateとreplayは小helperに分け、巨大enum payloadの同時stack配置・Testing macro内巨大temporaryを避ける。",
+    "whole upload/download legacy encoding/fingerprint/receipt、ChunkBのuploadChunk caseを保つ。共有fileはChunkB後に差分統合し、旧失敗/skip/source bindingを上書きしない。"
+  ],
+  "required_tests": {
+    "A_synthetic": [
+      "pin callback時read/hash/copy0、return後source unlink nlink0でも同FDをboundedread。source pathname replacementを追わない。",
+      "unknown/reopened creation、description/numeric ID再利用、owner generation/context/registration/rendition mismatch、二重callback/takeを拒否。",
+      "symlink/nonregular/hardlink/size/mtime変化、truncation・in-place内容変更・hash不一致、nlink/ctimeの非許可遷移拒否。原本fingerprint nlink1拒否は旧試験で不変。",
+      "stop-before-pin、pin中、read block間、store await中、verify前/中/commit直前。actualclose/join/FD再利用競合/owned handle0、unknown partial保持。"
+    ],
+    "B_store_drain": [
+      "full metadata/実receipt/current UUID/reg/rendition/epoch/record日時の各join mismatch。pure manifest/source ticket/upload metadataだけで成功不可。",
+      "HTTP URL/status/MIME/range/content length/各wire identityの欠落・異値・extra rangeとサイズ/hash不一致はverified0。",
+      "artifactevent→actualterminal→ownFDclose→verified importの必要順序。terminal先着/late callback/duplicate events、worker中finishEvents、unknown commit/reopenexact。",
+      "source FD closeだけ/SDK terminalだけ/cancel要求だけ/空registryだけではverified/lease解放不可。",
+      "stop勝ちverified0、全read/close後finalize勝ちはmetadataだけcommit。停止が別operation/本人intentを変更しない。",
+      "温存source/temp/original/sentinel hash+inode、実reader/usage全表と再open、generic legacy .temporary encoding/replay/old assertions保持。"
+    ],
+    "actual_SDK_nontransmission": [
+      "一意session・新合成rootの実suspended downloadを作成、列挙/byte0、native resume notExecuted、actualcancel didComplete/invalidation。artifact/import/verified0を確認。",
+      "この試験では正didFinishDownloadingToへ到達しない。合成callback/helper成功を実SDK受信成功へ数えない。"
+    ],
+    "not_run": "本調査では一切実行していない"
+  },
+  "direct_missing_conditions": [
+    "A/BのAPIとwriter新caseは提案段階。ChunkB最終freeze/diff受領・mainの所有移管後に実装する。",
+    "信頼できる元capturedAtと新full-read配布receiptが無い個別対象はregister/import不可。unknown日時を補わず、既存local日時をexact参照できる範囲から試す。",
+    "現在のsource/per-range PublicationHTTPBindingをnormal full-download許可へ流用しない。full-read request producer未成立は後続Cに残す。",
+    "SDK unlink後FDの実可用性・real response mappingは正の実SDK受信試験前は未確認、仕様上可能なpinに対する失敗はunknown側へ倒す。",
+    "strict native正resume/正式producer/全媒体/実機品質/PRD受入の未完了を維持。"
+  ]
+}

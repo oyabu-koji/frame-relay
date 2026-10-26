@@ -1,0 +1,11 @@
+--- 115/FrameRelayTests/Integration/Composition/ProductRenditionCompositionTests.swift
++++ current/FrameRelayTests/Integration/Composition/ProductRenditionCompositionTests.swift
+@@ -137,7 +137,7 @@
+         guard case .succeeded(let photoUse) = await a.owner.temporary.acquireUsage(f.media, purpose: .photoHandoff,
+             usageID: .init(rawValue: UUID().uuidString)) else { throw BackendContractError.unavailable }
+         let photo = try await a.owner.temporary.stateFor(f.media).receipt(for: photoUse)
+-        let photos = PhotoSaveLibrary()
++        let photos = PhotoSaveLibrary.make()
+         await photos.configure(add: .authorized, outcome: .unknown(localIdentifier: nil))
+         let save = PhotoSaveCoordinator(store: f.services.store, identity: f.identity,
+             temporaryMedia: a.owner.temporary, library: photos)

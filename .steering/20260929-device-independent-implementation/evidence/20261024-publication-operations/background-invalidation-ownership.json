@@ -1,0 +1,50 @@
+{
+  "task": "S23/S27/S28/S49 known live background upload termination -> normal invalidation status poll",
+  "status": "done: normal status known-live stop/closed-history observation part, stage04",
+  "worker": "manifest_projection (runtime fixes only; original implementation publication_ui frozen after capacity error)",
+  "files": [
+    "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift",
+    "FrameRelay/Composition/ProductBackgroundMediaFactory.swift",
+    "FrameRelay/Composition/ProductStatusSynchronization.swift",
+    "FrameRelay/Composition/ProductComposition.swift",
+    "FrameRelay/Application/Ports/BackgroundInvalidationPorts.swift",
+    "FrameRelayTests/Application/BackgroundInvalidationTests.swift",
+    "FrameRelayTests/Integration/Composition/ProductBackgroundInvalidationTests.swift",
+    "FrameRelayTests/Integration/Remote/BackgroundInvalidationTerminalTests.swift"
+  ],
+  "baseline": "DI-SOURCE-20261024-03",
+  "before": {
+    "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift": "6aae3af69d4724366e003f5de42031a76ae5a13bb2bf7dec8fb9f46e7d671b45",
+    "FrameRelay/Composition/ProductBackgroundMediaFactory.swift": "de9c3d366f0d98de480ae230c65b35c9023a581a346286a23906fa1ac70a77d9",
+    "FrameRelay/Composition/ProductStatusSynchronization.swift": "a913b7163b393047f54e9dd1e3fcb126413e6bbc0b8cf657e9d04a06a11e0017",
+    "FrameRelay/Composition/ProductComposition.swift": "d6c084395c4629e23c08475a18f4fa72d326bfc56302579fbeb3d9fd45f20a2a",
+    "FrameRelay/Application/Ports/BackgroundInvalidationPorts.swift": null,
+    "FrameRelayTests/Application/BackgroundInvalidationTests.swift": null,
+    "FrameRelayTests/Integration/Composition/ProductBackgroundInvalidationTests.swift": null,
+    "FrameRelayTests/Integration/Remote/BackgroundInvalidationTerminalTests.swift": null
+  },
+  "constraints": [
+    "one writing task only; other workers exist and edits must not be reverted",
+    "main commands/evidence/steering; docs assigned separately",
+    "no forged removal seal; exact actual invalidation reservation/storeUUID/epoch/reg and fresh inventory/journal guards",
+    "first cancel poll always ACK0; later explicit poll actual SDK terminal/own FD/lease/stopped proof",
+    "unknown/old/alias/reused/attachgap/download fail closed; native positive resume refusal retained",
+    "new synthetic custom UUID root on64AD, never modify/repair/reseed/delete old/defaultP2 fixture/Photos/Keychain",
+    "no automatic independent validation"
+  ],
+  "narrowMainIntegrationOwnership": {
+    "file": "FrameRelayTests/Application/BackgroundInvalidationTests.swift",
+    "reason": "worker completed2narrow compilefixes before final response capacity error; main reviews/freezes/retests",
+    "other7Frozen": true
+  },
+  "runtimeFixOwnership": {
+    "worker": "manifest_projection",
+    "files": [
+      "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift",
+      "FrameRelayTests/Application/BackgroundInvalidationTests.swift",
+      "FrameRelayTests/Integration/Composition/ProductBackgroundInvalidationTests.swift"
+    ],
+    "reason": "107 newCore4failure/newComposition3failure; no guard/assertion relaxation; rest frozen"
+  },
+  "allCodeOwnershipReleased": true
+}

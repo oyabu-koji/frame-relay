@@ -1,0 +1,26 @@
+{
+  "contractFile": "chunk-producer-implementation-contract.json",
+  "sha256": "794a9c1a420fcab4c5c6adffbd54d600e8ab13f0781a56d0a6987a382cb405d9",
+  "meaning": "Earlier read-only design. Product writing subsequently authorized only in chunk-producer-unit-a-ownership.json; UnitB still pending explicit transfer.",
+  "UnitAOwnership": {
+    "feature": "S23/S28 bounded upload chunk producer",
+    "state": "in-progress UnitA only; UnitB not started",
+    "owner": "/root/original_upload_app",
+    "files": [
+      "FrameRelay/Domain/Operations/UploadChunk.swift",
+      "FrameRelay/Platform/TemporaryMedia/ManagedUploadSource.swift",
+      "FrameRelayTests/Domain/UploadChunkTests.swift",
+      "FrameRelayTests/Integration/Storage/ManagedUploadChunkSourceTests.swift"
+    ],
+    "constraints": [
+      "not alone; preserve other edits",
+      "no SDK/oldfixture/Keychain/Photos actions",
+      "main owns tests, evidence, steering",
+      "UnitB ownership must be separate and explicit"
+    ],
+    "contract": "chunk-producer-implementation-contract.json",
+    "startedUTC": "2026-10-24T20:59:54.648955+00:00"
+  },
+  "currentSourceBeforeA": "DI-SOURCE-20261025-19/500/54f3dbe23b036f244d391e5fd8805872b0675f1d3c1ab841ac6e09a4fd5659e4",
+  "createdUTC": "2026-10-24T21:06:21.591202+00:00"
+}

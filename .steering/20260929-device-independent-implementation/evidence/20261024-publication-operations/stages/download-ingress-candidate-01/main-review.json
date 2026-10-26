@@ -1,0 +1,166 @@
+{
+  "reviewer": "main",
+  "independentValidation": false,
+  "status": "scoped UnitA done for non-device boundary; user-requested pause for independent review; all steering incomplete",
+  "source": {
+    "id": "DI-SOURCE-20261025-23",
+    "source_manifest_sha256": "e7491f7c0d503437f94a207b7caf8be241a75736cc8063e1456c97cad70ac0f5",
+    "code_input_fingerprint": "ad82f8b3de6577c0e071d5e6e28cf987af079edeef48dcf6a4b98952b3a1808a",
+    "input_counts": {
+      "steering input": 2,
+      "server support": 97,
+      "stable document": 6,
+      "App/Unit/UI/project": 410,
+      "total": 515
+    }
+  },
+  "ownership": "Source22→23 exactly9 A code/test files plus4 owned stable docs; B12WIP archived/unapplied and live all515 match23",
+  "checks": [
+    "Actual prepared receipt validated by load/lookup/load same UUID/revision and exact proposal resource context; resource correlation grants no media authority",
+    "Actual known native suspended creation binds only one slot; sync callback has response/header/URL exact guards, O_NOFOLLOW+fstat only; private URL never leaves callback",
+    "Opaque same-process cap, take-once, worker singleflight, <=64KiB pread and independent fullhash, SDK-only unlink fact transition without relaxing OriginalFileFingerprint",
+    "Revoke before stop/cancel/join actual worker and close; unknown close retained and never counted as FD0; same owner terminal required for unpinned closure, in-flight pin joined",
+    "Native opt-in183 proves only one never-resumed download actualcancel/terminal/unpinned localclosed/sessioninvalidated; artifact0/verified0/transportlease retained, root retained",
+    "Normal product defaults nil ingress and strict resume refusal unchanged; new event retains opaque artifact without awaiting futureterminal on same serial loop; finishEvents is not media drain",
+    "Reviewed final9 A input ownership, native/session/coordinator diff from22 and actual test source, checked B freeze/restore all515 and prior evidence/HEAD/index scope"
+  ],
+  "findings": {
+    "DL-PIN-CLOSE-01": "Fixed prior toDI23: pin failure close checkpoint/actualclose failure retains unknown FileHandle and seals slot; unpinned closure refuses. Checkpoint never receives handle and cannot replace successful actualclose."
+  },
+  "execution": {
+    "download-ingress-related-182": {
+      "exit_code": 0,
+      "sources_unchanged": true,
+      "code_fingerprint": "ad82f8b3de6577c0e071d5e6e28cf987af079edeef48dcf6a4b98952b3a1808a",
+      "tests": 110,
+      "passed": 108,
+      "skipped": 2,
+      "expanded": {
+        "Passed": 317,
+        "Skipped": 2
+      },
+      "diagnostics": {
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      }
+    },
+    "download-ingress-native-183": {
+      "exit_code": 0,
+      "sources_unchanged": true,
+      "code_fingerprint": "ad82f8b3de6577c0e071d5e6e28cf987af079edeef48dcf6a4b98952b3a1808a",
+      "tests": 1,
+      "passed": 1,
+      "skipped": 0,
+      "expanded": {
+        "Passed": 1
+      },
+      "diagnostics": {
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      }
+    },
+    "download-ingress-build-184": {
+      "exit_code": 0,
+      "sources_unchanged": true,
+      "code_fingerprint": "ad82f8b3de6577c0e071d5e6e28cf987af079edeef48dcf6a4b98952b3a1808a",
+      "tests": null,
+      "passed": null,
+      "skipped": null,
+      "expanded": null,
+      "diagnostics": {
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      }
+    },
+    "checkpoint-full-unit-185": {
+      "exit_code": 0,
+      "sources_unchanged": true,
+      "code_fingerprint": "ad82f8b3de6577c0e071d5e6e28cf987af079edeef48dcf6a4b98952b3a1808a",
+      "tests": 940,
+      "passed": 884,
+      "skipped": 56,
+      "failed": 0,
+      "expanded": {
+        "Passed": 1762,
+        "Skipped": 56
+      },
+      "meaningful_expanded_passed_excluding_one_empty_template": 1761,
+      "skipped_cases": [
+        "BackgroundDownloadIngressSessionTests/nativeSuspendedDownloadCancelsWithoutPinImportOrLeaseRelease()",
+        "BackgroundInvalidationTerminalTests/nativeResumeRefusalCancellationClosesOwnFDThenLaterNormalPollAcksWithoutSending()",
+        "BackgroundMediaSessionTests/emptySessionEnumeratesAndBuffersActualInvalidationBeforeConsumerStarts()",
+        "BackgroundMediaSessionTests/suspendedUploadAndDownloadEnumerateCancelAndActuallyCompleteWithoutResume()",
+        "BackgroundRemovalTerminalTests/suspendedUploadActuallyTerminatesBeforeOrdinaryRiskDiscard()",
+        "BackgroundUploadChunkSessionTests/suspendedTypedChunkActuallyCancelsAndDrainsItsOwnedFDAndLeaseBeforeStopped()",
+        "LegacyServerPlaybackProbeTests/actualHTTPRejectsMissingTokenAndReturnsTheFixedShortRange()",
+        "LegacyServerPlaybackProbeTests/actualPlayerAdvancesThenSDKLoaderAndNetworkReachTerminal()",
+        "NativePhotoLibraryTests/realCoordinatorPersistsIndependentTerminalAndRetiresReaderWithCorrectCopyRetention()",
+        "NativePhotoLibraryTests/diagnoseSameMovieBytesAtMovieAndLegacyExtensionlessPaths()",
+        "NativePhotoLibraryTests/realAdditionKeepsSourceUntilCallbackAndExactLookupPreservesDateAndAudio()",
+        "NativePhotoLibraryTests/deniedAddOnlyDoesNotInvokeAnAdditionAndReadLookupStaysUnavailable()",
+        "PhotoSaveFinalStartNativeTests/dedicatedNativeRefusalsPreserveEveryAssetThenOneNewActionCompletesAndReopens()",
+        "ProductCleanupSeedTests/seedFreshDedicatedNormalRoot()",
+        "ProductCleanupSeedTests/verifyUIBatchRealFilesAndUntouchedEvidenceAfterReopen()",
+        "ProductLibrarySeedTests/seedNormalAppContainer()",
+        "ProductLibrarySeedTests/verifySeedIdentityAndReleasedReadersAfterUI()",
+        "ProductLocalRenditionSeedTests/seedFreshNormalAndMaximumPairsOnce()",
+        "ProductLocalRenditionSeedTests/verifyConsumedCopiesAndRetainedOriginalsAfterUI()",
+        "ProductMediaRequestControlSeedTests/seedFivePreSDKRequestsOnceOnDedicatedEmptyProductRoot()",
+        "ProductMediaRequestControlSeedTests/verifyConsumedPersonControlPrefixFilesAndIndependentSQLiteReopen()",
+        "ProductNewRegistrationSeedTests/seedEmptyDedicatedRootWithPreservedSyntheticForeignCredentials()",
+        "ProductNewRegistrationSeedTests/verifyNegativeUIKeepsForeignBytesAndCurrentStoreUnchanged()",
+        "ProductOriginalUploadAcceptanceSeedTests/seedThreeSavedBindingsOnceWithoutAcceptingARequest()",
+        "ProductOriginalUploadAcceptanceSeedTests/verifyConsumedPrefixImmutableReceiptsEveryFileAndIndependentWriterReopen()",
+        "ProductPhotoSaveBatchSeedTests/inspectDedicatedPhotoLibraryWithoutOpeningProductRoot()",
+        "ProductPhotoSaveBatchSeedTests/seedDedicatedSourcesOnceWithManualNormalOrQueuedMaximumEntry()",
+        "ProductPhotoSaveBatchSeedTests/verifyActualPhotosResultsExactJoinsAndPreservedBaselineAfterUI()",
+        "ProductPhotoSaveBatchTests/dedicatedNativePhotoKitOneAdditionThroughProductBatch()",
+        "ProductPublicationSeedTests/seedFreshDedicatedNormalRoot()",
+        "ProductPublicationSeedTests/verifyAfterUIAndIndependentStoreReopen()",
+        "ProductRemoteInventorySeedTests/seedDedicatedNormalRoot()",
+        "ProductRemoteInventorySeedTests/verifyNormalRootAfterUIAndReopen()",
+        "ProductRemovalSeedTests/seedDedicatedNormalRoot()",
+        "ProductRemovalSeedTests/verifyDedicatedUIResultAndUntouchedData()",
+        "ProductStatusSynchronizationSeedTests/seedDedicatedRegisteredRoot()",
+        "ProductStatusSynchronizationSeedTests/verifyDedicatedRegisteredRoot()",
+        "StatusSynchronizationHTTPFixtureTests/metadataOnlyPageAndManifestUseCoordinator()",
+        "ProductUploadMetadataSeedTests/seedOneSavedOriginalQueuedRequestAndCurrentNamespaceCredentialsOnce()",
+        "ProductUploadMetadataSeedTests/verifyConsumedPrefixExactReceiptsCredentialsFilesAndIndependentWriterReopen()",
+        "PublicationHTTPFixtureTests/canonicalPlaybackConfirmationInvalidationAndReplacement()",
+        "RegistrationServerProbeTests/testRegistrationCommitAndReopenUsesSameIdentity()",
+        "RegistrationServerProbeTests/testLostResponseAndLocalCommitRecovery()",
+        "RegistrationServerProbeTests/testWrongDestinationAndSecretAreRejected()",
+        "RegistrationTransportProbeTests/testRedirectIsRefusedAndSessionTerminates()",
+        "RegistrationTransportProbeTests/testOversizeMetadataIsBoundedAndSessionTerminates()",
+        "RegistrationTransportProbeTests/testCancellationAfterResponseTerminatesTaskAndSession()",
+        "RemoteInventoryHTTPFixtureTests/discoverOriginalsAcrossRegistrationsAndReopen()",
+        "RenditionHTTPFixtureTests/authenticatedStreamingAdvancesBeforeFullFileAndActuallyTerminates()",
+        "RenditionHTTPFixtureTests/rejectsMalformedFixedRangeAndWaitsForTerminal(mode:)",
+        "RenditionHTTPFixtureTests/exactRangeGateChangeAndStopDuringResponse()",
+        "RenditionHTTPFixtureTests/authenticationFailureAndGateLossDuringResponseDoNotDeliverBytes()",
+        "RenditionHTTPFixtureTests/httpRetrievalVerifiesWholeFileBeforePhotoUse()",
+        "RenditionFixtureGenerationTests/generateDisposableMovieAndManifest()",
+        "UploadMetadataRemoteTests/isolatedActualHTTPCreateAndPausedCancelledKnownSessionGETOnly()",
+        "UploadMetadataRemoteTests/isolatedNativeHTTPRefusalBoundsCancellationAndActualTerminals(fault:)"
+      ],
+      "diagnostics": {
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "runtimeWarnings": []
+    }
+  },
+  "documentation": "download-ingress-doc-review-01.json findings0/111 relative links/no missing",
+  "limits": [
+    "No actual successful network download callback, actual artifact pin/hash/verified import, normal fullread plan, new actual readticket producer or media lease release. Synthetic storage positives stay synthetic.",
+    "No native strict positive dispatch/resume, all-media drain, formal production conversion or device-quality acceptance",
+    "B actualresponse/local sourceclosure/guardedimport/lease terminal unfinished, WIP uncompiled and unapplied; C plan not started",
+    "No independent implementation validation automatically; allS28/S31/S34/S49 and fullsteering/PRD remain incomplete"
+  ],
+  "createdUTC": "2026-10-24T23:02:40.763614+00:00",
+  "finalizedUTC": "2026-10-24T23:06:16.318554+00:00"
+}

@@ -1,0 +1,24 @@
+{
+  "context": {
+    "simulator": "2C248402-1209-4C43-BA34-B33ECDCDCA3C",
+    "nonce": "1efa9fba-d608-49b3-8297-6f022bb20cf2",
+    "name": "FrameRelay Native Controls Cleanup 20261024 l0p333tn",
+    "created_UTC": "2026-10-24T09:49:50.248704+00:00",
+    "new_empty_device": true,
+    "purpose": "Regression of native generic action -> review/cancel/reconfirm/actual unlink on this new disposable synthetic root only"
+  },
+  "requested": "large",
+  "observed": "large",
+  "before": "large",
+  "only": [
+    "FrameRelayUITests/CleanupFlowTests/testFixedMultipleCleanupCancellationResultsAndRelaunch"
+  ],
+  "env": [
+    "FR_CLEANUP_UI=1",
+    "FR_CLEANUP_SEED_TOKEN=1efa9fba-d608-49b3-8297-6f022bb20cf2"
+  ],
+  "allowedSyntheticOriginalUnlink": [
+    "FrameRelayLibrary/synthetic-original-s34c-1efa9fba-d608-49b3-8297-6f022bb20cf2-a.mov",
+    "FrameRelayLibrary/synthetic-original-s34c-1efa9fba-d608-49b3-8297-6f022bb20cf2-b.mov"
+  ]
+}

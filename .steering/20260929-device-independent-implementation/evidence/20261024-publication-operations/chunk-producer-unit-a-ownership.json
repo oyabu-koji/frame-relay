@@ -1,0 +1,19 @@
+{
+  "feature": "S23/S28 bounded upload chunk producer",
+  "state": "in-progress UnitA only; UnitB not started",
+  "owner": "/root/original_upload_app",
+  "files": [
+    "FrameRelay/Domain/Operations/UploadChunk.swift",
+    "FrameRelay/Platform/TemporaryMedia/ManagedUploadSource.swift",
+    "FrameRelayTests/Domain/UploadChunkTests.swift",
+    "FrameRelayTests/Integration/Storage/ManagedUploadChunkSourceTests.swift"
+  ],
+  "constraints": [
+    "not alone; preserve other edits",
+    "no SDK/oldfixture/Keychain/Photos actions",
+    "main owns tests, evidence, steering",
+    "UnitB ownership must be separate and explicit"
+  ],
+  "contract": "chunk-producer-implementation-contract.json",
+  "startedUTC": "2026-10-24T20:59:54.648955+00:00"
+}

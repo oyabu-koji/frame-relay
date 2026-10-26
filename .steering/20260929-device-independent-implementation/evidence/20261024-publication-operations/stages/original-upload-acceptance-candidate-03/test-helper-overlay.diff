@@ -1,0 +1,27 @@
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-02/source-snapshot/FrameRelay/Features/Library/LibraryView.swift b/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-141-fixed-LibraryView.swift
+index 41647a9..72537f4 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-02/source-snapshot/FrameRelay/Features/Library/LibraryView.swift
++++ b/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/original-upload-141-fixed-LibraryView.swift
+@@ -95,9 +95,11 @@ struct LibraryView: View {
+                                 .buttonStyle(LibraryActionButtonStyle())
+                                 .accessibilityIdentifier("library.item.\(item.id.rawValue)")
+                                 if !showsHistory {
+-                                    Toggle("この動画を選択", isOn: Binding(
++                                    Toggle(isOn: Binding(
+                                         get: { model.selected.contains(item.id) },
+-                                        set: { model.select(item.id, selected: $0) }))
++                                        set: { model.select(item.id, selected: $0) })) {
++                                            LibraryWrappingText(text: "この動画を選択")
++                                        }
+                                     .accessibilityLabel("\(item.title)を選択")
+                                     .accessibilityIdentifier("library.select.\(item.id.rawValue)")
+                                 }
+@@ -142,6 +144,8 @@ struct LibraryView: View {
+             }
+             .background(Color(uiColor: .systemGroupedBackground))
+             .navigationTitle(showsHistory ? "破棄の履歴" : "ライブラリ")
++            .toolbarBackground(Color(uiColor: .systemBackground), for: .navigationBar)
++            .toolbarBackgroundVisibility(.visible, for: .navigationBar)
+             .toolbar {
+                 if let showConnection {
+                     Button("Mac miniとの接続", systemImage: "network") { showConnection() }

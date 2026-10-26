@@ -1,0 +1,133 @@
+{
+  "name": "p2-final-normal-100",
+  "command": [
+    "xcodebuild",
+    "-project",
+    "FrameRelay.xcodeproj",
+    "-scheme",
+    "FrameRelay",
+    "-configuration",
+    "Debug",
+    "-destination",
+    "platform=iOS Simulator,id=64ADDF12-3B84-40E9-BC0A-922CEC02E77A",
+    "-derivedDataPath",
+    "/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData",
+    "-resultBundlePath",
+    "/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/p2-final-normal-100/result.xcresult",
+    "-disableAutomaticPackageResolution",
+    "-parallel-testing-enabled",
+    "NO",
+    "-collect-test-diagnostics",
+    "never",
+    "-only-testing:FrameRelayUITests/LibraryFlowTests/testAccessibilityHistoryAfterPlaybackHandoff",
+    "-only-testing:FrameRelayUITests/LibraryFlowTests/testAccessibilityLibraryAndDetail",
+    "-only-testing:FrameRelayUITests/LibraryFlowTests/testAccessibilityStoppedPlayer",
+    "-only-testing:FrameRelayUITests/LibraryFlowTests/testHistoryAndSubmissionTextLayoutAtCurrentContentSize",
+    "-only-testing:FrameRelayUITests/LibraryFlowTests/testListDetailSelectionHistoryAndRetainedStateAfterRelaunch",
+    "-only-testing:FrameRelayUITests/LibraryFlowTests/testOriginalPlaybackProgressStopBackgroundAndRestart",
+    "-only-testing:FrameRelayUITests/LibraryFlowTests/testVoiceOverReadsHistoryAndPlaybackSubmission",
+    "-only-testing:FrameRelayUITests/LibraryFlowTests/testVoiceOverReadsLibraryStateAndActions",
+    "test"
+  ],
+  "environment_overrides": {},
+  "cwd": "/Users/oyabu/dev/rep/FrameRelay",
+  "started_at": "2026-10-24T11:36:26.016514+00:00",
+  "source_fingerprint": "e0024dc948bb4d81d6a84543310eae4f2f4bbf5dd1b90464fa831d446870cab9",
+  "source_files": 344,
+  "snapshot": "/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/sources/e0024dc948bb4d81d6a84543310eae4f2f4bbf5dd1b90464fa831d446870cab9",
+  "exit_code": 65,
+  "seconds": 492.77313504205085,
+  "finished_at": "2026-10-24T11:44:38.789057+00:00",
+  "sources_unchanged": true,
+  "changed_inputs": [],
+  "build": {
+    "actionTitle": "Testing project FrameRelay with scheme FrameRelay",
+    "analyzerWarningCount": 0,
+    "analyzerWarnings": [],
+    "destination": {
+      "architecture": "arm64",
+      "deviceId": "64ADDF12-3B84-40E9-BC0A-922CEC02E77A",
+      "deviceName": "FrameRelay P2 Regression 20261024 l0p333tn",
+      "modelName": "iPhone 18 Pro",
+      "osBuildNumber": "24A434",
+      "osVersion": "27.0",
+      "platform": "iOS Simulator"
+    },
+    "endTime": 1792842278.166,
+    "errorCount": 0,
+    "errors": [],
+    "startTime": 1792841787.508,
+    "status": "succeeded",
+    "warningCount": 0,
+    "warnings": []
+  },
+  "tests": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "64ADDF12-3B84-40E9-BC0A-922CEC02E77A",
+          "deviceName": "FrameRelay P2 Regression 20261024 l0p333tn",
+          "modelName": "iPhone 18 Pro",
+          "osBuildNumber": "24A434",
+          "osVersion": "27.0",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 2,
+        "passedTests": 6,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "FrameRelay · Built with macOS 26.6.2",
+    "expectedFailures": 0,
+    "failedTests": 2,
+    "finishTime": 1792842278.166,
+    "passedTests": 6,
+    "result": "Failed",
+    "runtimeWarnings": [],
+    "skippedTests": 0,
+    "startTime": 1792841787.508,
+    "statistics": [],
+    "testFailures": [
+      {
+        "failureText": "Contrast failed",
+        "targetName": "FrameRelayUITests",
+        "testIdentifier": 2,
+        "testIdentifierString": "LibraryFlowTests/testAccessibilityLibraryAndDetail()",
+        "testIdentifierURL": "test://com.apple.xcode/FrameRelay/FrameRelayUITests/LibraryFlowTests/testAccessibilityLibraryAndDetail",
+        "testName": "testAccessibilityLibraryAndDetail()"
+      },
+      {
+        "failureText": "XCTAssertTrue failed - VoiceOver must retain history removal",
+        "targetName": "FrameRelayUITests",
+        "testIdentifier": 7,
+        "testIdentifierString": "LibraryFlowTests/testVoiceOverReadsHistoryAndPlaybackSubmission()",
+        "testIdentifierURL": "test://com.apple.xcode/FrameRelay/FrameRelayUITests/LibraryFlowTests/testVoiceOverReadsHistoryAndPlaybackSubmission",
+        "testName": "testVoiceOverReadsHistoryAndPlaybackSubmission()"
+      }
+    ],
+    "title": "Test - FrameRelay",
+    "topInsights": [],
+    "totalTestCount": 8
+  },
+  "counts": {
+    "nodes": {
+      "('Test Plan', 'Failed')": 1,
+      "('UI test bundle', 'Failed')": 1,
+      "('Test Suite', 'Failed')": 1,
+      "('Test Case', 'Passed')": 6,
+      "('Test Case', 'Failed')": 2,
+      "('Failure Message', '')": 2
+    },
+    "expanded": {
+      "Passed": 6,
+      "Failed": 2
+    },
+    "skipped": []
+  }
+}

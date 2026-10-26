@@ -1,0 +1,131 @@
+{
+  "name": "upload-metadata-seed-normal-157",
+  "command": [
+    "xcodebuild",
+    "-project",
+    "FrameRelay.xcodeproj",
+    "-scheme",
+    "FrameRelay",
+    "-configuration",
+    "Debug",
+    "-destination",
+    "platform=iOS Simulator,id=7AD9895F-23EB-4FB2-B2A0-A92F4D7E431F",
+    "-derivedDataPath",
+    "/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/DerivedData-metadata-ui",
+    "-resultBundlePath",
+    "/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/upload-metadata-seed-normal-157/result.xcresult",
+    "-disableAutomaticPackageResolution",
+    "-parallel-testing-enabled",
+    "NO",
+    "-collect-test-diagnostics",
+    "never",
+    "-only-testing:FrameRelayTests/ProductUploadMetadataSeedTests/seedOneSavedOriginalQueuedRequestAndCurrentNamespaceCredentialsOnce()",
+    "test"
+  ],
+  "environment_overrides": {
+    "TEST_RUNNER_FR_UPLOAD_METADATA_NONCE": "6c947a54-5a1a-438b-8080-96db9ef62f80",
+    "TEST_RUNNER_FR_UPLOAD_METADATA_SIMULATOR_UDID": "7AD9895F-23EB-4FB2-B2A0-A92F4D7E431F",
+    "TEST_RUNNER_FR_UPLOAD_METADATA_VARIANT": "normal",
+    "TEST_RUNNER_FR_UPLOAD_METADATA_PHASE": "seed",
+    "TEST_RUNNER_FR_UPLOAD_METADATA_SEED": "1",
+    "TEST_RUNNER_FR_UPLOAD_METADATA_CLOSED_HTTPS_ORIGIN": "https://127.0.0.1:51875",
+    "TEST_RUNNER_FR_UPLOAD_METADATA_CLOSED_HTTPS_HELD": "1",
+    "TEST_RUNNER_FR_UPLOAD_METADATA_PORT_KEEPER_ID": "12667470-2db3-4f9d-bc26-b3b919e691ae",
+    "TEST_RUNNER_FR_UPLOAD_METADATA_PORT_KEEPER_PID": "37193",
+    "TEST_RUNNER_FR_UPLOAD_METADATA_SOURCE_PATH": "/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/request-control-synthetic-source.mov",
+    "TEST_RUNNER_FR_UPLOAD_METADATA_SOURCE_SHA256": "153d236030c76488aa11dfc797a107b7474999bae44f16bb81eaafad364e15c7",
+    "TEST_RUNNER_FR_UPLOAD_METADATA_SOURCE_BYTES": "2907110",
+    "TEST_RUNNER_FR_UPLOAD_METADATA_SOURCE_DEVICE": "16777234",
+    "TEST_RUNNER_FR_UPLOAD_METADATA_SOURCE_INODE": "33015426"
+  },
+  "cwd": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-03/source-snapshot",
+  "started_at": "2026-10-24T19:16:38.080081+00:00",
+  "source_fingerprint": "56b2c680ae6fdcb47f7171036a25a35a88bdbc21b2d3ad8b277318318fadaa26",
+  "source_files": 389,
+  "snapshot": "/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/sources/56b2c680ae6fdcb47f7171036a25a35a88bdbc21b2d3ad8b277318318fadaa26",
+  "exit_code": 65,
+  "seconds": 152.62046150001697,
+  "finished_at": "2026-10-24T19:19:10.702443+00:00",
+  "sources_unchanged": true,
+  "changed_inputs": [],
+  "build": {
+    "actionTitle": "Testing project FrameRelay with scheme FrameRelay",
+    "analyzerWarningCount": 0,
+    "analyzerWarnings": [],
+    "destination": {
+      "architecture": "arm64",
+      "deviceId": "7AD9895F-23EB-4FB2-B2A0-A92F4D7E431F",
+      "deviceName": "FrameRelay Upload Metadata normal 20261025 l0p333tn",
+      "modelName": "iPhone 18 Pro",
+      "osBuildNumber": "24A434",
+      "osVersion": "27.0",
+      "platform": "iOS Simulator"
+    },
+    "endTime": 1792869549.99,
+    "errorCount": 0,
+    "errors": [],
+    "startTime": 1792869405.379,
+    "status": "succeeded",
+    "warningCount": 0,
+    "warnings": []
+  },
+  "tests": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "7AD9895F-23EB-4FB2-B2A0-A92F4D7E431F",
+          "deviceName": "FrameRelay Upload Metadata normal 20261025 l0p333tn",
+          "modelName": "iPhone 18 Pro",
+          "osBuildNumber": "24A434",
+          "osVersion": "27.0",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "passedTests": 0,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "FrameRelay · Built with macOS 26.6.2",
+    "expectedFailures": 0,
+    "failedTests": 1,
+    "finishTime": 1792869549.99,
+    "passedTests": 0,
+    "result": "Failed",
+    "runtimeWarnings": [],
+    "skippedTests": 0,
+    "startTime": 1792869405.379,
+    "statistics": [],
+    "testFailures": [
+      {
+        "failureText": "Expectation failed: path.hasPrefix(\"/\") && path.hasSuffix(MetadataSeedConstants.sourceSuffix) && URL(fileURLWithPath: path).standardizedFileURL.path == path\npath.hasPrefix(\"/\") && path.hasSuffix(MetadataSeedConstants.sourceSuffix) → true\nURL(fileURLWithPath: path).standardizedFileURL.path == path → false",
+        "targetName": "FrameRelayTests",
+        "testIdentifier": 1,
+        "testIdentifierString": "ProductUploadMetadataSeedTests/seedOneSavedOriginalQueuedRequestAndCurrentNamespaceCredentialsOnce()",
+        "testIdentifierURL": "test://com.apple.xcode/FrameRelay/FrameRelayTests/ProductUploadMetadataSeedTests/seedOneSavedOriginalQueuedRequestAndCurrentNamespaceCredentialsOnce()",
+        "testName": "seedOneSavedOriginalQueuedRequestAndCurrentNamespaceCredentialsOnce()"
+      }
+    ],
+    "title": "Test - FrameRelay",
+    "topInsights": [],
+    "totalTestCount": 1
+  },
+  "counts": {
+    "nodes": {
+      "('Test Plan', 'Failed')": 1,
+      "('Unit test bundle', 'Failed')": 1,
+      "('Test Suite', 'Failed')": 1,
+      "('Test Case', 'Failed')": 1,
+      "('Failure Message', '')": 1
+    },
+    "expanded": {
+      "Failed": 1
+    },
+    "skipped": []
+  }
+}

@@ -40,6 +40,10 @@ nonisolated struct MediaRequest: Equatable, Sendable, Codable {
     private(set) var playbackEnded = false
     private(set) var hasReconciled = false
     private(set) var lastObservation: RemoteObservationGeneration?
+    /// Optional for old Codable payloads. An external cancellation is neither
+    /// this person's cancel intent nor permission to execute a fresh attempt.
+    private(set) var uploadMetadataHold: UploadMetadataHold? = nil
+    private(set) var uploadMetadataPending: RemoteObservationGeneration? = nil
 
     init(operation: MediaOperationID, target: MediaTarget, purpose: MediaPurpose,
          registration: RegistrationIdentity, expectedStartRevision: UInt64) {
@@ -52,6 +56,7 @@ nonisolated struct MediaRequest: Equatable, Sendable, Codable {
 
     var canRun: Bool {
         guard startCommitted, intent == .running, waits.isEmpty, !playbackEnded,
+              uploadMetadataHold == nil, uploadMetadataPending == nil,
               transport != .completed, transport != .active, transport != .stopRequested,
               hasReconciled else { return false }
         switch remote {
@@ -62,6 +67,24 @@ nonisolated struct MediaRequest: Equatable, Sendable, Codable {
 
     mutating func acceptStartCommit(_ receipt: BackendCommitReceipt) throws {
         guard receipt.matches(.request(operation, target, registration), revision: expectedStartRevision) else {
+            throw BackendContractError.notCommitted
+        }
+        startCommitted = true
+    }
+
+    /// The new fixed acceptance has its own real receipt. It never borrows a
+    /// legacy .batch/.request receipt or changes the initial queue's other axes.
+    mutating func acceptOriginalUploadAcceptanceCommit(_ receipt: BackendCommitReceipt,
+        plan: OriginalUploadAcceptancePlan) throws {
+        try plan.validate()
+        guard receipt.matches(.originalUploadAcceptance(plan.request.parent), revision: expectedStartRevision),
+              OriginalUploadAcceptanceValueValidation.exact(receipt.key, BackendCommitKey.originalUploadAcceptance(plan.request.parent)),
+              OriginalUploadAcceptanceValueValidation.exact(registration, plan.request.registration.server.registration),
+              plan.request.targets.contains(where: {
+                  OriginalUploadAcceptanceValueValidation.exact($0.operation, operation)
+                      && OriginalUploadAcceptanceValueValidation.exact(MediaTarget.original($0.binding.original), target)
+              }), self == MediaRequest(operation: operation, target: target, purpose: .upload,
+                  registration: registration, expectedStartRevision: expectedStartRevision) else {
             throw BackendContractError.notCommitted
         }
         startCommitted = true
@@ -140,6 +163,57 @@ nonisolated struct MediaRequest: Equatable, Sendable, Codable {
         if let knownSession = value.context.session { session = knownSession }
         remote = value.result
         hasReconciled = true
+    }
+
+    mutating func markAwaitingUploadMetadata(_ committed: CommittedUploadMetadataQuery) throws {
+        let query = committed.query
+        guard committed.isCommitted, query.request.matches(self),
+              lastObservation.map({ query.generation.rawValue > $0.rawValue }) ?? true,
+              uploadMetadataPending.map({ query.generation.rawValue > $0.rawValue }) ?? true else {
+            throw BackendContractError.staleGeneration
+        }
+        uploadMetadataPending = query.generation
+        hasReconciled = false
+    }
+
+    mutating func applyUploadMetadata(_ observation: UploadMetadataObservation) throws {
+        try observation.validate()
+        let query = observation.query.query
+        guard query.request.matches(self),
+              uploadMetadataPending == query.generation,
+              lastObservation.map({ query.generation.rawValue > $0.rawValue }) ?? true,
+              session == nil || UploadMetadataValidation.exact(session, Optional(observation.response.binding.session)) else {
+            throw BackendContractError.staleGeneration
+        }
+        switch observation.response {
+        case .created(let binding):
+            if case .succeeded = remote { throw BackendContractError.wrongStage }
+            session = binding.session; lastObservation = query.generation
+            remote = .unknown; hasReconciled = false
+        case .status(let status):
+            guard UploadMetadataValidation.exact(session, Optional(status.binding.session)) else { throw BackendContractError.identityMismatch }
+            if status.state == .cancelled {
+                session = status.binding.session; lastObservation = query.generation; hasReconciled = true
+                if case .succeeded = remote {} else { remote = .unknown }
+                uploadMetadataHold = .serverCancelled
+            } else {
+                let result: BackendOutcome<EvidenceID>
+                switch status.state {
+                case .receiving, .finalizing: result = .inProgress
+                case .failed: result = .failed(.rejected)
+                case .completed:
+                    guard let evidence = observation.verificationEvidence else { throw BackendContractError.notCommitted }
+                    result = .succeeded(evidence.id)
+                case .cancelled: throw BackendContractError.invalidValue
+                }
+                try reconcile(.init(context: .init(operation: operation, registration: registration, target: target,
+                    session: status.binding.session), observation: query.generation, result: result))
+                hasReconciled = true
+            }
+        }
+        uploadMetadataPending = nil
+        // Intent, environmental waits, attempt and local transport are owned by
+        // their original producers. Metadata never reports a local SDK stop.
     }
 }
 

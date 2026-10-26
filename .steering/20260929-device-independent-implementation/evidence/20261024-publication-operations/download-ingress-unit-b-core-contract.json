@@ -1,0 +1,277 @@
+{
+  "schema": "fr-download-ingress-unit-b-core-contract-v1",
+  "created_UTC": "2026-10-24T22:26:54.337342+00:00",
+  "status": "read-only proposal; not implemented; product writing not authorized",
+  "base": {
+    "id": "DI-SOURCE-20261025-22",
+    "inputs": 509,
+    "snapshot": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-chunk-candidate-02/source-snapshot",
+    "source_manifest_sha256": "efa5779d61b6ff7110428ad5f46cfbc79314ccf55efa9cab6ec79b122417983b"
+  },
+  "inputs": [
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/download-ingress-implementation-contract.json",
+      "sha256": "84ea512186b0eb4b2df8dbe0b1b09bc009f06beadc65f1c0b95396c456f01fe3"
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/download-ingress-receipt-causality.json",
+      "sha256": "45682cd43230fe6d9c25b791245d3fb4e523f1d7c6a458cc22b0e4f85310cac9"
+    },
+    {
+      "path": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/download-ingress-unit-a-ownership.json",
+      "sha256": "8a926ddf9ca3b4d178940c73d3af4b1e025dd9993be34b11b3926e53adb05f29"
+    }
+  ],
+  "causality_correction_ja": "最新causalityを正本とする。GET前のDistributionReceiptは実commit済みcontrol-plane read ticket発行、actual GET admission/byte受信ではない。actual GET responseは新server BackendCommitReceiptを返さない。Bの4段階観測は全て端末LOCAL同writerの実receiptで、server distribution key/revisionを偽造しない。Aのexpected/pin/actualprepared対応はresource pinだけでpermission/metadata authorityを作らない。",
+  "conclusion_ja": "新indirect backgroundDownload内のissuedTicket/response/sourceClosed/importedを同writerへ加算する。callback後の実responseを新LOCAL keyへ保存し、finalだけticket/response/actualterminal/actualFDclosure/全hash/元calendar日時/current UUID-reg-rendition-epochをexactjoinし、同一commitでTemporary.verifiedとimport観測を保存する。旧Bg.ownerClosed booleanだけや空registryからの成功は不可。現normalfullplan/実SDK正受信/positive strictは未成立。",
+  "actual_A_API_observed": {
+    "state": "Owner-reported and read from in-progress A files; not a final freeze/compile claim. Core must recompare A freeze before implementation.",
+    "proposal": "BackgroundDownloadExpectedProposal.init(intent: BackgroundMediaTaskIntent, responseURL: URL, contentType: String, capturedAt: Date?, captureRecord: CaptureOriginalReference?, distributionOperation: MediaOperationID, readTicket: DistributionReceipt? = nil) throws; nonCodable all let; rendition/responseURLFingerprint/distributionHeader/validate(). Missing date/ticket is allowed for pin only.",
+    "prepared": "KnownPreparedDownloadReference: Codable flat storeIdentity,command,taskID,commit; init(_ event: StoredBackgroundMediaTaskEvent) throws; validate(for intent:) throws; mutation(for intent:) throws. This existing prepared fact does not authorize metadata/import.",
+    "artifact": "BackgroundDownloadArtifactReference: Codable {id:UUID,ownerGeneration:UUID,binding:BackgroundMediaTaskBinding}",
+    "response": "BackgroundDownloadResponseFacts: Codable {urlFingerprint,status,contentType,contentLength,wireVersion,distributionHeader,renditionID,publicationGeneration,content,cacheControl,contentRangeAbsent,contentEncoding,transferEncodingAbsent}; validate() requires full200/Rangeabsent/TransferEncodingabsent; contentEncoding only absent|identity. Missing flags must not be inferred.",
+    "source_facts": "BackgroundDownloadSourceFacts: Equatable/Sendable, nonCodable; device,inode,size,modifiedSeconds,modifiedNanoseconds,changedSeconds,changedNanoseconds,linkCount. permitsSDKUnlinkTransition accepts only same-FD nlink1->0 with size/mtime/identity preserved; original fingerprint contract unchanged.",
+    "source_closure": "BackgroundDownloadSourceClosure: Equatable/Sendable nonCodable {reference,workersJoined,handlesClosed}; distinct from SDK terminal.",
+    "unpinned_closure": "BackgroundDownloadUnpinnedClosure: Equatable/Sendable nonCodable {ownerGeneration,binding,pinsSealed,workersJoined,handlesClosed}. Issued only for same known terminal/binding slot, after in-flight pin joins, no source/artifact/unresolved handle. Empty/reopened/old binding refuses.",
+    "manager": "ManagedDownloadIngress.registerExpected(_:prepared:store:) async throws ->PreparedDownloadSink; take(_:) throws ->BackgroundDownloadPinnedSource; stopAndClose(_:) async throws ->SourceClosure; closeUnpinnedCreation(binding:) async throws ->UnpinnedClosure; resources(); ownerGeneration; pinningPort.",
+    "pinned_source": "actor BackgroundDownloadPinnedSource: nonisolated let reference,proposal,prepared,response,initialFacts,stop; read(offset:maximumLength:) async throws ->Data (<=65536), hashFull() async throws ->ContentIdentity, finishAndClose() async throws ->SourceClosure; recordedClosure.",
+    "native_port": "BackgroundDownloadIngressPinningPort.bindKnownCreation / pinKnownCallback / requestStop / observeKnownTerminal; unavailable implementation refuses. observeKnownTerminal seals later pins and does not abort existing worker by itself.",
+    "pin_close_finding": "DL-PIN-CLOSE-01 is in progress in A: pin-open then failed close retains unknownPinHandle in the same slot, seals further use, refuses UnpinnedClosure, and never blindly recloses a possibly reused FD. B may consume only actual A closure values, never source==nil or metrics==0 as proof.",
+    "observed_mutable_hashes": [
+      {
+        "path": "FrameRelay/Domain/Operations/BackgroundDownloadIngress.swift",
+        "sha256_at_read": "c6af1d7cf5c2c99aff5f442643123c29f9a1d2652dc9603234a0e7f269366d1f"
+      },
+      {
+        "path": "FrameRelay/Application/Ports/BackgroundDownloadIngressPorts.swift",
+        "sha256_at_read": "afba3f8eef37e9182d06eebf5ba6fa9af51b7a7dd1bfa375d8bfb672e0d286d2"
+      },
+      {
+        "path": "FrameRelay/Platform/TemporaryMedia/ManagedDownloadIngress.swift",
+        "sha256_at_read": "d9676d762869f912ef1a54a4457a32ec368cbb30f457380101b9dd2268848ff1"
+      }
+    ]
+  },
+  "proposed_local_Domain_and_keys": {
+    "new_file": "FrameRelay/Domain/Operations/BackgroundDownloadImport.swift (B proposal, not current A file)",
+    "stage": "nonisolated enum BackgroundDownloadObservationStage: String, Codable { case issuedTicket, response, sourceClosed, imported }",
+    "change": "nonisolated indirect enum BackgroundDownloadStoreChange: Equatable,Sendable,Codable { case issuedTicket(BackgroundDownloadReadTicketObservation); case response(BackgroundDownloadResponseObservation); case sourceClosed(BackgroundDownloadSourceCloseObservation); case imported(BackgroundDownloadImportObservation) }",
+    "backend_change": "BackendStoreChange: indirect case backgroundDownload(BackgroundDownloadStoreChange). Nested body remains boxed to avoid expanding every BackendStoreChange stack copy.",
+    "backend_key": "BackendCommitKey.backgroundDownload(MediaOperationID /*command*/, BackgroundDownloadObservationStage, BackgroundMediaTaskID, String /*full-body fingerprint*/); BackendCommitIdentity.backgroundDownload(MediaOperationID). One new LOCAL key has four explicit stages; same command cannot be reused for another stage/body.",
+    "stored": "StoredBackgroundDownloadObservation {change,commit,expectedStoreIdentity}; mutation reconstructs the original actual new case/revision/UUID. isCommitted validates stage, body fingerprint and real key/revision; actual authority additionally requires samewriter projection and exact lookup.",
+    "ref": "BackgroundDownloadObservationReference: Codable flat storeIdentity,command,stage,taskID,fingerprint,previousRevision,committedRevision; init(_ saved: StoredBackgroundDownloadObservation) throws / expectedKey / commit / validate / matches(saved). No full mutation/snapshot/response recursively embedded.",
+    "task_ref": "BackgroundDownloadTaskFactReference: Codable compact storeIdentity,command,taskID,stage(prepared|attached|terminal|ownerClosed),bodyFingerprint,previousRevision,committedRevision; joins full actual StoredBackgroundMediaTaskEvent. A KnownPreparedDownloadReference is compared against the real prepared payload, never accepted from its weak key alone.",
+    "request_DTO": "BackgroundDownloadReadTicketRequest: new Codable flat copy of the exact full PublicationDistributionRequest semantics: read operation, BackgroundMediaRequestContext/gate, rendition, source operation, fixed purpose=read/kind=full/range=nil. init(_ request: PublicationDistributionRequest, context:) throws validates all joins. Existing PublicationDistributionRequest/MediaGateLease are nonCodable and remain unchanged.",
+    "ticket_observation": "BackgroundDownloadReadTicketObservation {command,storeIdentity,full DeviceRegistration,preparedRef,intentFingerprint,fullReadRequest,sourceReceipt,issuedReadReceipt,mediaType,expectedResponseURLFingerprint,captureDateRef,targetOriginal}. Both server receipts keep their actual .distribution key/revisions; source/read IDs must be distinct. This records full/read ticket issuance only, not actual GET acceptance.",
+    "response_observation": "BackgroundDownloadResponseObservation {command,storeIdentity,ticketRef,preparedRef,attachedRef,artifactRef,actual BackgroundDownloadResponseFacts,initialSourceFactsMirror,expectedCapturedAt,captureDateRef,targetMediaID,targetUsageID}. Received only from same-process take(ref) capability, not reconstructed from proposal/snapshot. Fresh target IDs are reserved before temporary.create.",
+    "closure_observation": "BackgroundDownloadSourceCloseObservation {command,storeIdentity,preparedRef,attachedRef,terminalRef,closure: BackgroundDownloadLocalClosure}. LocalClosure is a new indirect Codable mirror enum artifact(reference,workersJoined,handlesClosed,initial/final facts if measured,optional full source content) | unpinned(ownerGeneration,binding,pinsSealed,workersJoined,handlesClosed). It is built only from A actual SourceClosure/UnpinnedClosure; no closure from empty registry or unknown close.",
+    "import_observation": "BackgroundDownloadImportObservation {command,storeIdentity,ticketRef,responseRef,sourceClosedRef,terminalRef,ownerClosedRef,transportLeaseReleaseRef,target media/use/rendition/registration/capturedAt/contentType/leaf/dir-file identity/fullCoverage,sourceFullContent,targetFullContent,targetFingerprint,captureDateRef}. No URL/FD/secret/body/full snapshot is serialized.",
+    "fingerprint": "Native CryptoKit SHA256 over fixed version + deterministic sorted-key UTF8 canonical body including full store UUID, all stage fields and referenced actual receipts. Preserve raw Unicode bytes, finite dates, ordered arrays and nil distinctions; no unordered Set. Exclude only this event’s own result receipt to avoid self-reference; artifact/binding/media IDs participate in the whole-body digest.",
+    "no_new_source_variant": "Keep .download/.upload/.uploadChunk source JSON and BackgroundMediaOwnerClosure old flags/payload unchanged. The new local sourceClosed receipt supplies artifact/noartifact provenance without retrofitting an old boolean-only closure.",
+    "snapshot_property": "MediaStoreProjection.backgroundDownloadObservations and BackendStoreSnapshot.backgroundDownloadObservations: [StoredBackgroundDownloadObservation] = []; one boxed event array, not four full-payload arrays. No existing encoded journal or source gains a snapshot field."
+  },
+  "writer_phase_guards": {
+    "issuedTicket": [
+      "Actual current store UUID/full committed registration/registration intent+receipt, one exact current download/playback request+attempt, full .download(range:nil) source, exact transport lease and current media epoch, adopted current publication/invalidation generation and no unresolved removal/invalidation. Pure manifest alone is insufficient.",
+      "Join actual prepared event/body/receipt; fullReadRequest purpose read, kind full, range nil and nonnil distinct source operation; server source/read receipt identities/keys current rendition/registration exact. Preserve server revisions as a different axis from local writer revisions.",
+      "Receipt alone has no purpose field. Trusted existing remote.distribute/lookupDistribution must supply this exact full request/result; its envelope echoes full request and lookup echoes original_request. A proposal readTicket/source ticket alone cannot prove read/full semantics. Positive component tests explicitly inject this remote result; normal full-read producer remains future C.",
+      "Require finite recorded calendar capturedAt and exact local record reference/actual save binding/token/receipt when date is used for import. Never derive Date from acceptedAt monotonic clock or now. Missing or remote-only unknown date holds only that import branch. Do not require the original bytes to still exist merely to use immutable date metadata."
+    ],
+    "response": [
+      "Join actual ticket local ref and original prepared/attached events with exact real mutations/receipts; artifact binding/session generation/numeric task ID/taskDescription and ownerGeneration match the same process capability.",
+      "Validate all mandatory A response facts: expected URL fingerprint, full200, MIME, declared length/delivery bytes, range absent, allowed identity/no encoding, no transfer encoding, exact wire/distribution/rendition/publication generation/SHA/no-store. A pin success is not sufficient without these exact actual facts.",
+      "Require target MediaID/UsageID fresh across previous responses/temp state. Reserve the target media ID before output creation. Unknown response commit retains original expectedRevision/body and does not create output or choose another target."
+    ],
+    "sourceClosed": [
+      "Actual prepared and attached payloads plus actual SDK terminal event for the exact same binding must already exist. It may record terminal/closure after current registration/version/intent changes, as old-context termination facts; it grants no current import permission.",
+      "SourceClosure must be from A actual join/close and exact artifact ref/owner. UnpinnedClosure must be from A known-terminal sealed slot after all pin work joins and no unresolved handle; source=nil/empty registry/bool flags alone refuse. DL-PIN-CLOSE-01 failure produces no sourceClosed record.",
+      "Require sourceClosed before existing backgroundTask.ownerClosed. For new managed downloads ownerClosed joins the exact local closure and source context, flags cannot replace it. Legacy ownerClosed records remain replayable but cannot be retroactively adopted into a new qualified closure/fence/import."
+    ],
+    "imported": [
+      "Join all actual local ticket/response/sourceClosed/prepared/attached/SDK terminal/ownerClosed records via exact refs and actual payloads, full raw UTF8 identity, current UUID/full DeviceRegistration/current request attempt/full rendition/adopted publication and invalidation generation; no unresolved removal/invalidation.",
+      "SDK terminal must be completed; local source workers joined/FD actual closed; source full content independently equals rendition.deliveryContent. No-artifact, cancelled/failed/unknown terminal, source-close alone or SDK terminal alone refuses.",
+      "Transport media lease has an actual originalJournal.releaseMedia after ownerClosed and is absent; output temporary usage/lease remains active in BOTH temporary state and logical mediaReaders/current media epoch. Do not confuse source transport lease and output temporary use.",
+      "Target complete coverage and independent full output hash equal deliveryContent; exact output MIME/date/reference/leaf/directory/file/usage/owner and no reclaim/reclaimed state. A caller cannot substitute original Log hash for rendition delivery hash.",
+      "Live guard rechecks original RecordingIntent.capturedAt through the actual saved record/binding/receipt; finite original calendar date exact, no nil completion. Historic replay uses immutable record facts available then, not future current recordings/registration.",
+      "After all file hashing and verify helper FD closure, short writer physical check uses retained root/lock descriptors + lstat/fstatat identity/size/mtime/ctime and one-shot witness. No read/hash/open/await/redispatch/writer reentry under final writer/capture/import locks.",
+      "Apply internal temporary.verified state and append new import observation in ONE actual backgroundDownload imported commit. Do not synthesize a .temporary commit receipt or a server .distribution receipt."
+    ]
+  },
+  "atomic_commit_API_proposal": {
+    "store_port": "MediaOperationStorePort.commitBackgroundDownloadImport(_ mutation: BackendStoreMutation, witness: BackgroundDownloadImportFileWitness, authorize: @Sendable () -> BackgroundDownloadFinalizeDisposition) async -> BackendCommitResult; default .rejected(.unsupportedVersion), no generic commit/verify fallback.",
+    "temporary_port": "new BackgroundDownloadTemporaryImportPort: TemporaryMediaWritingPort { func verifyBackgroundDownload(_ usage: TemporaryMediaUsage, selection: BackgroundDownloadImportSelection, authorization: BackgroundDownloadImportAuthorization) async throws ->TemporaryMediaReceipt }. ManagedTemporaryMedia implements a new guarded overload; old verify body remains unchanged for old media.",
+    "witness": "New nonCodable live borrowed root/owner.lock descriptor + strict OriginalFileFingerprint/dir-file identity witness for the output. New overload hashes in <=65536B blocks with stop checks and closes its actual verify FD before constructing witness. Owner retains root/lock FDs; witness grants no close/reopen rights and is revoked on owner closure. Input SDK SourceFacts nlink0 policy never weakens original/output fingerprint.",
+    "authorization": "New BackgroundDownloadImportAuthorization binds shared app captureAdmission authorization and same-operation/artifact/owner one-shot import latch to the exact full mutation digest. Can reuse CaptureMediaResumeAuthorization.performIfCurrent for the short local latch transition; it is not Wi-Fi/SDKresume permission. No new empty CaptureMediaAdmission is implicitly created.",
+    "lock_order": "normal writer transaction -> current capture authorization -> shared import latch -> short synchronous finalizing transition. Hash/read/copy/sourceFDclose/SDK terminal waits completed outside locks. No Task allocation, continuation/yield/callback, await, redispatch, reader open or reentry in action.",
+    "generic_commit_bypass": "Generic store.commit of imported stage must failclosed. Document live applyBackend takes an ephemeral authenticated-final flag default false; only concrete guarded final method sets it after fresh predicate + physical witness + capture/latch. Historical applyBackendChange replays the actual new receipt/body without a live permit or I/O.",
+    "temporary_bypass": "Response reserves a fresh tempID/usageID and immutable date/type/rendition association before temporary.create. Generic create/acquire for that ID must match the reservation; generic .temporary.verified for ANY new response-reserved ID is rejected. Only atomic imported internal branch may mark verified. Legacy temp IDs with no new reservation keep old rules/encoding.",
+    "loss_and_capture_race": "Definite CAS conflict before authorization may re-evaluate with same immutable facts. Unknown/unavailable after attempted commit retains original revision/payload/ref/permit and reconciles exact lookup only. A latch winner followed by disk/lock failure is unknown, not reset to a fresh unstarted operation. Stop wins -> verified0; finalize wins only after all media FDs/workers ended, so later capture sees metadata-only completion. Oldowner/reused permit/ABA cannot become fresh authorization.",
+    "witness_lifetime": "The retained import task holds the actual temporary/scope owner through the guarded return or pending exact lookup. Stop revokes the import latch then joins; it never concurrently closes borrowed root/lock descriptors during final checks or reuses numeric FDs. The final latch determines which side wins; no additional filesystem owner is created."
+  },
+  "historical_replay_and_namespace": [
+    "Schema7 additive only. Stored observations rebuild from the merged actual historical prefix; future ticket/response/closure/stop/release/registration may not validate an earlier event. Later current changes may not invalidate a previously valid event. Samewriter final live epoch and physical witness checks apply only to fresh import commit, not old replay.",
+    "All new key/body/UUID refs and commit+lookup use byte-exact envelope. Existing download prepared/attached/ownerClosed payloads are compared against actual full stored event, including body fingerprint. Qualified B-managed download backgroundTask lookups gain scoped exact protection; whole upload/uploadChunk existing behavior stays.",
+    "One command identity across all four stages, no parent/child payload reuse or normalized UTF8 alias. Own new namespace guard checks introductions in both directions against person parent/children, upload acceptance parent/children, queued Photos parent/children, metadata query+reserved observe, legacy batch nested request operations, requests and backendCommands.",
+    "Only outer command is introduced by each new observation. Task IDs/prepared commands, source/read ticket operations, source/temporary leases and prior refs are references in their own typed namespaces, not new commands.",
+    "Temporary IDs are reserved for the fixed response target and cannot be retargeted/reused after failure. Unknown pending mutation cannot be rebased or replaced with a new owner/current date/rendition.",
+    "OriginalRemovalTransportInventory journal includes the full new actual observation events for the exact original; canonical inventory fingerprint therefore detects ABA/missing/replaced history without embedding a full snapshot into a source."
+  ],
+  "download_stop_and_fence": [
+    "Keep legacy whole-upload single-task and Chunk22 all-chunk branches. Add all-qualified-full-download branch only when each historical task has matching actual sourceClosed local observation, SDK terminal, Bg ownerClosed, actual per-attempt stopped journal, and exact lease absence/fresh OS enumeration from the sealed producer.",
+    "Noartifact cancelled suspended task may obtain local stop proof only through A closeUnpinnedCreation known-slot terminal/pin-sealed/actual-close witness. It has no response/import/verified proof and does not manufacture remote notExecuted.",
+    "Return one stop per exact task/attempt, current request attempt equals newest task, older tasks use their own context. Both removal and invalidation fence loops join receipt.attempt to that task (preserve CHUNK-STOP-ATTEMPT-02). Missing old closure/stop, S2 borrowed for task1, unknown source, duplicate task/description/ID or mixed legacy unqualified download stays unknown.",
+    "Actual SDK terminal, local FD/source closure, transport lease release, output temporary-use release and server distribution result remain separate axes. Local stopped does not settle unknown remote distribution, manufacture an ACK, close another use or establish all-media quiescence.",
+    "After reopen record display/lookup only: no source URL/FD/leaf/empty registry adoption, no automatic SDK start/lease release/closure. Old boolean ownerClosed without local sourceClosed stays unqualified."
+  ],
+  "stack_and_compatibility": [
+    "One new indirect BackendStoreChange and indirect nested stage bodies. Compact refs only in cross-stage records; no recursively embedded mutation/snapshot/full stored observation or callback closure.",
+    "Phase-specific @inline(never) helpers for prefix extraction, ticket join, response join, local closure join and final current predicate. Ephemeral immutable heap views hold array references. Do not flatten huge associated values or construct several full snapshots on one synchronous frame.",
+    "Preserve DI22 upload/uploadChunk JSON/fingerprints/serial ordering, old .download source JSON and ownerClosed flags, old .temporary replay/Codable and Photos/P2. No stacksize/compiler flag change or guard weakening.",
+    "OriginalFileFingerprint remains nlink1 strict; only A SDK-pinned SourceFacts may observe single same-FD unlink1->0. No original/file search, repair, reseed, unlink or oldowner cleanup is introduced."
+  ],
+  "core_ownership_candidate": [
+    {
+      "path": "FrameRelay/Domain/Operations/BackgroundDownloadImport.swift",
+      "change": "new boxed local observation body, Codable request/closure mirrors, stage/ref/fingerprint; no server receipt invention"
+    },
+    {
+      "path": "FrameRelay/Domain/Operations/BackendCommit.swift",
+      "change": "one authentic LOCAL backgroundDownload(command,stage,taskID,full-body fingerprint) key and command identity"
+    },
+    {
+      "path": "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+      "change": "new indirect backgroundDownload change, default-refusing guarded final commit, defaultempty snapshot observation array"
+    },
+    {
+      "path": "FrameRelay/Application/Ports/BackgroundDownloadImportPorts.swift",
+      "change": "new guarded temporary-import subprotocol, ephemeral output file witness and capture/import-latch authorization"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/BackgroundDownloadStoreProjection.swift",
+      "change": "new phase-specific metadata/actual fact join, namespace, live final predicate and historical projection"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+      "change": "disposable observation array, apply/lookup/exact mutation routing, authenticated live final branch vs historical replay"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift",
+      "change": "new typed observation/body/ref validation"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/TemporaryMediaStoreProjection.swift",
+      "change": "newresponse-reserved tempID exact create/use association and generic verified bypass refusal; atomic import-only allowance"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift",
+      "change": "actual same-writer guarded atomic commit and short descriptor/capture/latch final check"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/BackgroundMediaStoreProjection.swift",
+      "change": "new managed download ownerClosed exact local sourceClosed-before-ownerClosed join; old source payload/legacy replay untouched"
+    },
+    {
+      "path": "FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift",
+      "change": "new observation events included in exact original transport inventory journal"
+    },
+    {
+      "path": "FrameRelay/Application/Ports/OriginalRemovalPorts.swift",
+      "change": "known-download all-attempt candidate/fence with real local sourceClosed + exact attempts and all leases/SDK owners"
+    },
+    {
+      "path": "FrameRelay/Application/Ports/BackgroundInvalidationPorts.swift",
+      "change": "same newdownload per-attempt stop/closure fact join; preserve Chunk22 protections"
+    },
+    {
+      "path": "FrameRelayTests/Domain/BackgroundDownloadImportTests.swift",
+      "change": "new value/fingerprint/ref/legacy-encoding tests"
+    },
+    {
+      "path": "FrameRelayTests/Integration/Storage/BackgroundDownloadImportStoreTests.swift",
+      "change": "new both-disk atomic/guard/race/history/reopen tests using dedicated synthetic roots only"
+    }
+  ],
+  "App_B_future_ownership_not_granted": [
+    {
+      "path": "FrameRelay/Application/MediaIO/BackgroundDownloadImport.swift",
+      "change": "new retained worker and import/drain driver with A capabilities, no fullplan constructor"
+    },
+    {
+      "path": "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift",
+      "change": "after A freeze: known source/temp owner registries, artifact worker install-return, terminal/finishedEvents/drain/REC stop join and qualified ownerClosed/release"
+    },
+    {
+      "path": "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift",
+      "change": "guarded independent verify, stop checks, output witness and no oldverify fallback; existing retention/root/Photos fix preserved"
+    },
+    {
+      "path": "FrameRelayTests/Integration/Remote/BackgroundDownloadIngressDrainTests.swift",
+      "change": "new synthetic callback/actual writer/drain ordering tests; native noartifact cancel optin remains separately scoped"
+    }
+  ],
+  "read_only_expected_or_later_paths": [
+    {
+      "path": "FrameRelay/Domain/Operations/BackgroundMediaTask.swift",
+      "reason": "four new local observation stages carry artifact/noartifact provenance without modifying legacy source/ownerClosure payload"
+    },
+    {
+      "path": "FrameRelay/Application/Recovery/BackgroundMediaRecovery.swift",
+      "reason": "existing download kind/journal observation already works; new local records do not authorize adoption/replay. Reopen tests must prove unchanged behavior"
+    },
+    {
+      "path": "FrameRelay/Application/Ports/RenditionMediaPorts.swift",
+      "reason": "new guarded subprotocol is in new import ports file; old verify/read API need not change"
+    },
+    {
+      "path": "FrameRelay/Application/MediaIO/CaptureMediaAdmission.swift",
+      "reason": "reuse existing single-use current authorization; no changes unless actual implementation reveals a required missing capability"
+    },
+    {
+      "path": "FrameRelay/Composition/ProductBackgroundMediaFactory.swift / ProductRenditionFactory.swift / ProductComposition.swift",
+      "reason": "normal fullplan/product initiation is later C. Component B injects the same app lifetime temporary/scope owner; no second owner for an existing root, no implicit constructor/relaunch producer. If actual product stop registry wiring requires a file, main must assign it separately."
+    },
+    {
+      "path": "A9 files",
+      "reason": "consume only actual frozen A API after freeze; do not edit during this preparation or silently change pin/closure semantics"
+    }
+  ],
+  "necessary_tests": {
+    "Domain": [
+      "all stage/ref/body fingerprints bind UUID, full actual prior receipts, artifact/owner/binding/date/target; changing any field or normalized UTF8 alias cannot borrow key/commit",
+      "local response/sourceClosed/import keys never masquerade as server .distribution or generic .temporary keys; read source/range/resume or identical source/read ID cannot become full read ticket",
+      "date finite/recorded calendar date only; nil/monotonic acceptedAt cannot construct trusted date; old Codable vectors and nil/default behavior preserved"
+    ],
+    "both_disks": [
+      "positive injected full-ticket and actual A synthetic callback -> local response -> actual A source close + synthetic SDKterminal input -> BgownerClosed/releaseMedia -> independent output hash -> ONE atomic localimport+temporaryverified -> reopen exact; explicit fixture scope, not HTTP/SDK receive proof",
+      "source ticket only, missing read/full request, bad receipt, no actual response, wrong mandatory header/range/encoding/MIME/URL fingerprint/bytes/hash, unknown original date or changed recording/ref all give verified0",
+      "real new import key accepted only through guarded method; generic imported commit and generic temporary.verified for reserved mediaID refuse, oldtemporary generic verify remains accepted",
+      "current UUID/fullreg/requestattempt/rendition/publication/invalidation/removal/mediaepoch/tempuse/bothlogicalreader/dirfile mismatch refuses; original physical absence alone is not a new date-metadata failure",
+      "actual terminal-only/closure-only/legacy Bgflags/empty or reopened registry/noartifact unknownPinHandle do not create qualified closure, release or verified",
+      "CsourceClosed must follow actual SDKterminal and precede BgownerClosed; lease release follows ownerClosed. Future records cannot repair earlier invalid replay; later registration/person/query state does not invalidate historical valid phases",
+      "unknown before/after each response/closure/import commit keeps exact original envelope, no replacement/retarget/rebase/new date; definite CAS conflict before latch re-evaluation remains distinct",
+      "shared writer/capture/import latch races: stop-before-final verified0; final-before-stop occurs only all mediaFDclosed, diskfailure after latch unknown; reusedpermit/wrongowner/ABA refuse",
+      "fullhash matches deliveryContent, never Log original content; output same-inode content update/named inode/root/owner.lock replacement/closed witness rejects; root/original/sentinel hashes+identity retained",
+      "all download attempts/operations have exact sourceClosed + their own stop receipt. Remove oldest closure/stop and leave S2 -> both fences refuse; mixed unqualified legacy download stays unknown"
+    ],
+    "drain_and_A_boundaries": [
+      "artifact handler installs retained worker then returns to serial stream; actual terminal first/last/duplicate and finishedEvents during worker cannot deadlock or imply whole-owner closure",
+      "SDK cancelled/failed stops worker before awaits; read/copy/verify tasks join before close, no FD reuse close race; own temp use retained/released only by exact known commit, no retention policy change",
+      "DL-PIN-CLOSE-01 close failure leaves unresolved handle and no UnpinnedClosure/sourceClosed/BgownerClosed/lease release/fence; pinless actual cancel success is separate",
+      "technical native suspended download creation->native resume unavailable->actual cancel terminal permits known noartifact closure only, bytes0/artifact0/import0/verified0. It does not test positive didFinishDownloadingTo or GET acceptance"
+    ],
+    "execution_owner": "main only after A freeze and explicit disjoint B ownership/source binding; no tests created or executed in this preparation"
+  },
+  "not_confirmed": [
+    "All proposed B Domain/Port/store/guard/fence/tests are unimplemented and uncompiled",
+    "A mutable API/hash must be rechecked at final freeze; DL-PIN-CLOSE-01 tests and nativecomponent results not yet inherited",
+    "actual SDK positive download/callback/unlink lifecycle not proven; injected positive callback/ticket/terminal remains synthetic scope",
+    "normal full-read ticket/request plan producer, product consumer initiation, native positive strict/resume, formal rendition producer, all-media stop/ACK and device/quality acceptance remain incomplete"
+  ],
+  "authorization": {
+    "only_new_write": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261024-l0p333tn/download-ingress-unit-b-core-contract.json",
+    "product_test_docs_steering_changes": 0,
+    "build_test_sdk_simulator_fixture_keychain_operations": 0,
+    "independent_validation": false,
+    "prior_reports_modified": false
+  }
+}

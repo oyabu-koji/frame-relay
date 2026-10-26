@@ -1,0 +1,63 @@
+{
+  "devices" : [
+    {
+      "architecture" : "arm64",
+      "deviceId" : "DF5792DA-974B-484E-AABE-CEB35BE81671",
+      "deviceName" : "FrameRelay Request Controls normal 20261024 l0p333tn",
+      "modelName" : "iPhone 18 Pro",
+      "osBuildNumber" : "24A434",
+      "osVersion" : "27.0",
+      "platform" : "iOS Simulator"
+    }
+  ],
+  "testNodes" : [
+    {
+      "children" : [
+        {
+          "children" : [
+            {
+              "children" : [
+                {
+                  "children" : [
+                    {
+                      "name" : "Expectation failed: manifest.sourceCopy.path == services.run.url.appendingPathComponent(\"request-control-source-\" + manifest.nonce + \".mov\").path\n        && manifest.originalFile.path == services.run.url.appendingPathComponent(manifest.binding.reference.rawValue + \".mov\").path\n        && manifest.reservation.path == services.run.url.appendingPathComponent(manifest.binding.reference.rawValue + \".reservation\").path && manifest.sentinel.path == requestControlSentinel(services, nonce: manifest.nonce).path\nmanifest.sourceCopy.path == services.run.url.appendingPathComponent(\"request-control-source-\" + manifest.nonce + \".mov\").path\n        && manifest.originalFile.path == services.run.url.appendingPathComponent(manifest.binding.reference.rawValue + \".mov\").path\n        && manifest.reservation.path == services.run.url.appendingPathComponent(manifest.binding.reference.rawValue + \".reservation\").path → false\nmanifest.sentinel.path == requestControlSentinel(services, nonce: manifest.nonce).path → <not evaluated>",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Composition/ProductMediaRequestControlSeedTests.swift",
+                        "lineNumber" : 421
+                      }
+                    }
+                  ],
+                  "duration" : "0.034s",
+                  "durationInSeconds" : 0.03390765190124512,
+                  "name" : "verifyConsumedPersonControlPrefixFilesAndIndependentSQLiteReopen()",
+                  "nodeIdentifier" : "ProductMediaRequestControlSeedTests/verifyConsumedPersonControlPrefixFilesAndIndependentSQLiteReopen()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/FrameRelay/FrameRelayTests/ProductMediaRequestControlSeedTests/verifyConsumedPersonControlPrefixFilesAndIndependentSQLiteReopen()",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                }
+              ],
+              "name" : "ProductMediaRequestControlSeedTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/FrameRelay/FrameRelayTests/ProductMediaRequestControlSeedTests",
+              "nodeType" : "Test Suite",
+              "result" : "Failed"
+            }
+          ],
+          "name" : "FrameRelayTests",
+          "nodeIdentifierURL" : "test://com.apple.xcode/FrameRelay/FrameRelayTests",
+          "nodeType" : "Unit test bundle",
+          "result" : "Failed"
+        }
+      ],
+      "name" : "FrameRelay",
+      "nodeType" : "Test Plan",
+      "result" : "Failed"
+    }
+  ],
+  "testPlanConfigurations" : [
+    {
+      "configurationId" : "1",
+      "configurationName" : "Test Scheme Action"
+    }
+  ]
+}

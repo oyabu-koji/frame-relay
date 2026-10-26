@@ -1,0 +1,11 @@
+{
+  "id": "CHUNK-GET-ORDER-01",
+  "origin": "main implementation diff review, not independent validation",
+  "problem": "S<observation G alone accepts GET reserved/dispatched before previous attempt stopped when response is committed late",
+  "requiredOrder": "C(ownerClosed)<R(actuallease release)<S(stopped)<Q(new actualGET reservationcommit)<G(observecommit)<A(beginAttempt)<P(prepared)",
+  "reason": "Production metadata dispatch requires actual durable query before SDK start. Requiring Q>S conservatively rules out pre-stop stale response; the observation arrival alone does not.",
+  "state": "Core shared guard modified; bothdisk delayed Q<S<G negative and newQ>S positive tests pending",
+  "owners": "Core8 only; App tests use shared guard; Doc4 order corrected; old frozen read-only contract unmodified",
+  "limits": "Does not authorize SDK media resume or durable chunk receipt/wholeverification",
+  "createdUTC": "2026-10-24T21:25:39.350621+00:00"
+}
