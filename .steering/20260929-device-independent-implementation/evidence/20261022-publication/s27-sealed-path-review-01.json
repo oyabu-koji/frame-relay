@@ -1,0 +1,38 @@
+{
+  "action": "main read-only source and stdlib path comparison; no backend import or I/O",
+  "finding": "_not_sealed uses raw prefix but parent normalizes dot/repeated separators through PurePosixPath. App helpers can reach sealed namespace under alternate spelling. Fix before S27 execution.",
+  "cases": [
+    {
+      "input": "publications//frame-relay/123.media",
+      "raw_sealed_guard_rejects": false,
+      "parent_parts": [
+        "publications",
+        "frame-relay",
+        "123.media"
+      ],
+      "same_managed_namespace": true
+    },
+    {
+      "input": "./publications/frame-relay/123.media",
+      "raw_sealed_guard_rejects": false,
+      "parent_parts": [
+        "publications",
+        "frame-relay",
+        "123.media"
+      ],
+      "same_managed_namespace": true
+    },
+    {
+      "input": "publications/./frame-relay/123.media",
+      "raw_sealed_guard_rejects": false,
+      "parent_parts": [
+        "publications",
+        "frame-relay",
+        "123.media"
+      ],
+      "same_managed_namespace": true
+    }
+  ],
+  "proposed_fix": "Check normalized PurePosixPath parts to reject the sealed namespace and root before mutation; preserve no-follow and traversal rejection. Extend immutable helper test to cover writer/publish source and target/remove aliases, keeping explicit node inventory or refreshing expected counts if declarations change.",
+  "additional_case_review": "Reserve ASCII namespace case variants conservatively as well; macOS test volume may resolve Publications/Frame-Relay to the same directory. Do not depend on case-sensitive filesystem behavior."
+}

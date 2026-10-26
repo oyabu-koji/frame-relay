@@ -1,0 +1,18 @@
+from pathlib import Path
+import json,hashlib,shutil,sys
+r=Path(__file__).parent;rev,label,app_manifest=sys.argv[1:4];base=Path('/private/tmp/fr-di-20261015-s27/S27');prep=base/('metadata-http-preparation-'+rev);runtime=base/('runtime-metadata-only-'+rev)
+parent=json.loads((prep/'supervisor/result.json').read_text());runner=json.loads((runtime/'result.json').read_text());listener=json.loads((runtime/'listener-results.json').read_text());wrapper=json.loads((runtime/'wrapper-result.json').read_text());assert parent['passed'] is True and all(parent['http_observation'].values());assert parent['all_actual_exits_observed'] and not parent['signals_sent'] and parent['secret_absent_after_exit'] and not parent['parent_deleted_secret_after_exit'];assert len(listener['requests'])==2 and all(x['media_bytes_emitted']==0 for x in listener['requests']);assert [x['endpoint'] for x in listener['requests']]==['invalidations','manifest'];assert wrapper['metadata_evidence']['passed'];assert wrapper['test_verification']['summary_counts']=={'expectedFailures':0,'failedTests':0,'passedTests':1,'skippedTests':0,'totalTestCount':1};assert runner['guard']['denials']==[] and runner['guard']['sqlite_connections_alive_before_explicit_close']==0;assert runner['remaining_created_threads_before_guard_finish']==[]
+out=r/(label+'-evidence');out.mkdir();copies=[]
+def copy(p,to):
+ to.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(p,to);copies.append({'path':str(to.relative_to(out)),'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'size':p.stat().st_size})
+for p in prep.iterdir():
+ if p.is_file() and p.suffix in ('.json','.txt','.log'):copy(p,out/'preparation'/p.name)
+for sub in ['source-snapshot','supervisor']:
+ for p in (prep/sub).rglob('*'):
+  if p.is_file():copy(p,out/'preparation'/p.relative_to(prep))
+for name in ['result.json','listener-results.json','wrapper-result.json','test-summary.json','test-tests.json','build-results.json','xcodebuild-redacted.log','effective-settings-redacted.json','import-origins.json','audit.jsonl','listener-events.jsonl','listener-ready.json']:copy(runtime/name,out/'runtime'/name)
+for p in (runtime/'metadata-attachments').iterdir():
+ if p.is_file():copy(p,out/'runtime/metadata-attachments'/p.name)
+(out/'copy-manifest.json').write_text(json.dumps(copies,indent=2)+'\n');current=json.loads((r/app_manifest).read_text());ch=json.loads((prep/'checkpoint.json').read_text());assert len(current)==len(ch['app_sources']);assert all(ch['app_sources'][n]['sha256']==h for n,h in current.items());assert all(hashlib.sha256(Path(n).read_bytes()).hexdigest()==h for n,h in current.items())
+review={'passed':True,'app_manifest':app_manifest,'app_input_count':len(current),'backend_snapshot_files':len(ch['backend_snapshot']),'HTTP_source_files':len(ch['source_files']),'preparation_source_snapshot':str(prep/'source-snapshot'),'checkpoint_sha256':hashlib.sha256((prep/'checkpoint.json').read_bytes()).hexdigest(),'SDK_actual_passed':1,'skip':0,'HTTP_requests':2,'media_bytes':0,'new_confirmation':0,'new_ACK':0,'all_observations':parent['http_observation'],'owner_close_before_guard_finish':parent['owner_close_before_guard_finish'],'all_actual_exits_observed':parent['all_actual_exits_observed'],'child_exits':parent['children'],'signals':parent['signals_sent'],'secret_absent':parent['secret_absent_after_exit'],'sdk_task_session_counts_observed':False,'copied_evidence_files':len(copies),'limitations':'metadata technical fixture only; full S28/re-registration/media/formal proof/device remain incomplete'}
+(r/(label+'-main-review.json')).write_text(json.dumps(review,ensure_ascii=False,indent=2)+'\n');print(json.dumps(review,ensure_ascii=False))

@@ -1,0 +1,62 @@
+{
+  "observed": "2026-10-20",
+  "commands": [
+    {
+      "command": [
+        "xcode-select",
+        "-p"
+      ],
+      "exitCode": 0,
+      "output": "/Applications/Xcode.app/Contents/Developer"
+    },
+    {
+      "command": [
+        "xcodebuild",
+        "-version"
+      ],
+      "exitCode": 0,
+      "output": "Xcode 27.0\nBuild version 27A266a"
+    },
+    {
+      "command": [
+        "xcrun",
+        "swift",
+        "--version"
+      ],
+      "exitCode": 0,
+      "output": "swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx26.0"
+    },
+    {
+      "command": [
+        "xcrun",
+        "simctl",
+        "create",
+        "FrameRelay S31 20261020",
+        "com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro",
+        "com.apple.CoreSimulator.SimRuntime.iOS-27-0"
+      ],
+      "exitCode": 0,
+      "output": "7FD88306-1CFD-4181-83E6-ED765F8830B0"
+    },
+    {
+      "command": [
+        "xcrun",
+        "simctl",
+        "boot",
+        "7FD88306-1CFD-4181-83E6-ED765F8830B0"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "xcrun",
+        "simctl",
+        "bootstatus",
+        "7FD88306-1CFD-4181-83E6-ED765F8830B0",
+        "-b"
+      ],
+      "exitCode": 0,
+      "terminal": "Finished; elapsed 18 seconds"
+    }
+  ]
+}

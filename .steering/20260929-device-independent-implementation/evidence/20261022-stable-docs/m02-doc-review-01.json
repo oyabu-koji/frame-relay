@@ -1,0 +1,26 @@
+{
+  "task": "M02",
+  "reviewer": "doc_reviewer /root/stable_docs_review",
+  "candidate_sha256": "176221a044767203a5242f98a46a5252ae3395f6496533b02520b5b241872b99",
+  "findings": [
+    {
+      "priority": "P2",
+      "file": "docs/functional-design.md",
+      "locations": [
+        "S5:324",
+        "T13:427"
+      ],
+      "problem": "再登録の確定契約が機能遷移とT13へ反映されていない",
+      "sources": [
+        "docs/product-requirements.md:292-293",
+        "docs/ideas/20260928-backend-integration.md:165 (BI-10)"
+      ],
+      "required": "登録別ACK/旧登録代用禁止/応答不能の該当差替のみ無期限保留/新登録通常利用継続/旧確認非復元/容量整理対象のみ再確認/全履歴再確認や一律再転送・生成・写真再保存非条件"
+    }
+  ],
+  "other_findings": 0,
+  "unchanged_start_end": true,
+  "diff_check": 0,
+  "read_only": true,
+  "build_test": false
+}

@@ -1,0 +1,80 @@
+{
+  "status": "main code and removal UI/raw I/O reviewed; CF regression still running",
+  "inputs": 260,
+  "source_final": "s34-candidate-08",
+  "changed_existing_from_S33": [
+    "FrameRelay/Application/Ports/OriginalRemovalPorts.swift",
+    "FrameRelayTests/Support/OriginalRemovalFixture.swift",
+    "FrameRelay/Application/Library/LibraryCommands.swift",
+    "FrameRelay/Application/Library/LibrarySnapshot.swift",
+    "FrameRelay/Application/Library/LibraryStoreReader.swift",
+    "FrameRelay/Application/MediaIO/RenditionScopeRegistry.swift",
+    "FrameRelay/Application/Ports/OriginalPlaybackPort.swift",
+    "FrameRelay/Composition/ProductComposition.swift",
+    "FrameRelay/Composition/ProductLibraryFactory.swift",
+    "FrameRelay/Features/Library/LibraryModel.swift",
+    "FrameRelay/Features/Library/LibraryView.swift",
+    "FrameRelay/Platform/Playback/AVOriginalPlayback.swift",
+    "FrameRelayTests/Integration/Storage/LibraryStoreReaderTests.swift",
+    "FrameRelayUITests/Flows/LibraryFlowTests.swift"
+  ],
+  "new": [
+    "FrameRelay/Application/Library/LibraryRemovalCommands.swift",
+    "FrameRelay/Composition/ProductRemovalTermination.swift",
+    "FrameRelayTests/Integration/Composition/ProductRemovalCompositionTests.swift",
+    "FrameRelayTests/Integration/Composition/ProductRemovalSeedTests.swift",
+    "FrameRelayUITests/Flows/RemovalFlowTests.swift"
+  ],
+  "unit04": {
+    "passed_declarations": 470,
+    "passed_expanded": 726,
+    "skipped": 23,
+    "meaningful_passed": 725
+  },
+  "generic_iOS_build04": "succeeded; App/Unit/project inputs unchanged by final UI-only correction",
+  "UI08": "one passed; real popover cancellation, exact risk confirmation, normal composition unlink, per-target result, normal/history classification and same batch after relaunch",
+  "raw_VERIFY09": "one passed/one seed skip; 4 exact bindings, discard and cleanup files absent, pending reserved unchanged, keep/pending/external hashes equal, all original/media readers zero",
+  "review_points": [
+    "Exact fixed dialog target/content/ref held across selection/refresh; new submissions recheck current target",
+    "No cleanup/Photos false start; cleanup remains unavailable without prior transport SDK terminal producer",
+    "Removal and invalidation seals separate; common epoch validation separate from player access epoch",
+    "Only resolved and cross-checked actual discard moves to history; reserved/unprocessed unknown/not-executed stay conservative",
+    "Explicit result reconciliation observes files only; reader/refresh/relaunch never retry unlink",
+    "Audit handlers unchanged and no destructive action on original shared CF seed"
+  ],
+  "visual_review": [
+    "UI05 full risk message and native popover; UI08 relaunch exact durable success/original-removal labels readable"
+  ],
+  "baseline_scope": {
+    "baseline_count": 8910,
+    "changed": [
+      ".steering/20260929-device-independent-implementation/tasklist.md",
+      "FrameRelay/Application/Library/LibraryCommands.swift",
+      "FrameRelay/Application/Library/LibrarySnapshot.swift",
+      "FrameRelay/Application/Library/LibraryStoreReader.swift",
+      "FrameRelay/Application/MediaIO/RenditionScopeRegistry.swift",
+      "FrameRelay/Application/Ports/OriginalPlaybackPort.swift",
+      "FrameRelay/Application/Ports/OriginalStorePort.swift",
+      "FrameRelay/Composition/ProductComposition.swift",
+      "FrameRelay/Composition/ProductLibraryFactory.swift",
+      "FrameRelay/Features/Library/LibraryModel.swift",
+      "FrameRelay/Features/Library/LibraryView.swift",
+      "FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift",
+      "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+      "FrameRelay/Platform/LocalStore/OriginalStoreDocument.swift",
+      "FrameRelay/Platform/OriginalStore/ManagedOriginalAccess.swift",
+      "FrameRelay/Platform/OriginalStore/ManagedOriginalReadHandle.swift",
+      "FrameRelay/Platform/OriginalStore/ManagedOriginalStore.swift",
+      "FrameRelay/Platform/Playback/AVOriginalPlayback.swift",
+      "FrameRelayTests/Integration/Storage/LibraryStoreReaderTests.swift",
+      "FrameRelayUITests/Flows/LibraryFlowTests.swift"
+    ],
+    "missing": []
+  },
+  "limitations": [
+    "normal multiple cleanup transport termination incomplete S23",
+    "normal Photos/new save/multiple operations and formal Rec.709 producer not connected",
+    "P2 strict audits unresolved; CF regression pending",
+    "real device DV-17 unexecuted"
+  ]
+}

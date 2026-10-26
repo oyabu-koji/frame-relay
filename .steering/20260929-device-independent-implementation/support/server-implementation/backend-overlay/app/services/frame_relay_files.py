@@ -10,11 +10,15 @@ from app.repositories.frame_relay_storage import StorageError
 
 
 BLOCK = 1024 * 1024
+SEALED_ROOT = ("publications", "frame-relay")
 SEALED_PREFIX = "publications/frame-relay/"
 
 
 def _not_sealed(relative):
-    if str(relative).startswith(SEALED_PREFIX):
+    # Match the same dot/separator normalization as parent(), including the
+    # namespace root. Reserve ASCII case aliases on case-insensitive volumes.
+    parts = PurePosixPath(relative).parts
+    if tuple(component.lower() for component in parts[:2]) == SEALED_ROOT:
         raise StorageError("publication_artifact_is_sealed")
 
 

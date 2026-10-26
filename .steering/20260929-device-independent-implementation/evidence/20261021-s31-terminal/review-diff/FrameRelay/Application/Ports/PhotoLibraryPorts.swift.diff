@@ -1,0 +1,14 @@
+--- baseline/FrameRelay/Application/Ports/PhotoLibraryPorts.swift
++++ FrameRelay/Application/Ports/PhotoLibraryPorts.swift
+@@ -37,9 +37,10 @@
+     func lookup(_ identifier: PhotoAssetIdentifier) async -> PhotoLibraryLookupResult
+ }
+ 
+-/// Reclaims only the exact persisted successful photo usage, after proving the
++/// Reclaims only an exact persisted successful or terminal photo usage, proving the
+ /// old SDK owner has terminated and the original temporary root is held. It must
+ /// never release unrelated usages or replay an unknown Photos addition.
+ nonisolated protocol PhotoTemporaryUsageRecoveryPort: Sendable {
+     func recoverSuccessfulPhotoUsage(_ record: PhotoRegistrationRecord) async -> BackendOutcome<TemporaryMediaID>
++    func recoverTerminalPhotoUsage(_ record: PhotoRegistrationRecord) async -> BackendOutcome<TemporaryMediaID>
+ }

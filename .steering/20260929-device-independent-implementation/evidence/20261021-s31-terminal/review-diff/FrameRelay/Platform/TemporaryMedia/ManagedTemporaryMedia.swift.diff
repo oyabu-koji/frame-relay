@@ -1,0 +1,214 @@
+--- baseline/FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift
++++ FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift
+@@ -19,6 +19,7 @@
+     private var busy: Set<TemporaryMediaID> = []
+     private var handles: [MediaUsageID: OpenUse] = [:]
+     private var photoConsumers: Set<MediaUsageID> = []
++    private var finishedPhotoUsages: Set<MediaUsageID> = []
+     private var photoLifetime: ManagedTemporaryMedia?
+     private var integrityFailures: Set<TemporaryMediaID> = []
+     private var closedHandles = 0
+@@ -147,6 +148,14 @@
+     }
+ 
+     func releaseUsage(_ usage: TemporaryMediaUsage) async -> BackendOutcome<TemporaryMediaID> {
++        if usage.purpose == .photoHandoff {
++            guard case .loaded(let snapshot) = await leases.mediaStore.load() else { return .unknown }
++            if let record = snapshot.photoRegistrations.last(where: { $0.registration.intent.usage == usage }) {
++                if record.usageTerminal != nil { return await recoverTerminalPhotoUsage(record) }
++                if case .succeeded? = record.outcome { return await recoverSuccessfulPhotoUsage(record) }
++                return .unknown
++            }
++        }
+         guard busy.insert(usage.media).inserted else { return .inProgress }
+         defer { busy.remove(usage.media) }
+         do {
+@@ -241,45 +250,95 @@
+         handles.removeValue(forKey: usage.id); photoConsumers.remove(usage.id)
+         if photoConsumers.isEmpty { photoLifetime = nil }
+         guard samePath else { throw BackendContractError.identityMismatch }
++        finishedPhotoUsages.insert(usage.id)
++    }
++
++    func photoUsageTerminal(_ registration: CommittedPhotoRegistrationIntent,
++                            termination: PhotoUsageTermination) async throws -> PhotoUsageTerminal {
++        let intent = registration.intent
++        guard busy.insert(intent.media).inserted else { throw BackendContractError.readersActive }
++        defer { busy.remove(intent.media) }
++        let state = try await stateFor(intent.media)
++        let use = try await requireUse(intent.usage, state: state, allowInvalidated: true)
++        guard registration.isCommitted, registration.mediaUse == use,
++              registration.directoryIdentity == directoryIdentity,
++              state.directoryIdentity == registration.directoryIdentity,
++              state.fileIdentity == registration.fileIdentity,
++              !photoConsumers.contains(intent.usage.id), handles[intent.usage.id] == nil,
++              !hasUnassignedHandles, !integrityFailures.contains(state.id) else { throw BackendContractError.identityMismatch }
++        if termination == .sdkCompleted {
++            guard finishedPhotoUsages.contains(intent.usage.id) else { throw BackendContractError.readersActive }
++        }
++        try validateFileIdentity(state)
++        return try .init(registration: registration, termination: termination)
+     }
+ 
+     /// The kernel root lock excludes an older live file owner. A successful
+     /// record is accepted only after rereading and exact lookup under the same
+     /// writer; it releases that photo use, never all old-epoch readers.
+     func recoverSuccessfulPhotoUsage(_ proposed: PhotoRegistrationRecord) async -> BackendOutcome<TemporaryMediaID> {
++        await recoverPhotoUsage(proposed, requiringTerminal: false)
++    }
++
++    func recoverTerminalPhotoUsage(_ proposed: PhotoRegistrationRecord) async -> BackendOutcome<TemporaryMediaID> {
++        await recoverPhotoUsage(proposed, requiringTerminal: true)
++    }
++
++    private func recoverPhotoUsage(_ proposed: PhotoRegistrationRecord,
++                                  requiringTerminal: Bool) async -> BackendOutcome<TemporaryMediaID> {
+         let intent = proposed.registration.intent
+         guard intent.rendition.original == original else { return .notExecuted }
+         guard busy.insert(intent.media).inserted else { return .inProgress }
+         defer { busy.remove(intent.media) }
+         do {
+-            try await admit()
+             try requireRoot()
+             let store = leases.mediaStore
+             guard case .loaded(let snapshot) = await store.load(),
+                   let record = snapshot.photoRegistrations.first(where: { $0.registration.intent == intent }),
+                   record.registration == proposed.registration, record.results == proposed.results,
+-                  let success = record.results.last, case .succeeded = success.result.outcome,
++                  record.usageTerminal == proposed.usageTerminal,
+                   let state = snapshot.temporaryMedia.first(where: { $0.id == intent.media }),
+                   state.rendition.original == original, state.directoryIdentity == directoryIdentity,
+                   record.registration.directoryIdentity == directoryIdentity,
+                   state.fileIdentity == record.registration.fileIdentity,
+                   !photoConsumers.contains(intent.usage.id), handles[intent.usage.id] == nil,
+-                  !integrityFailures.contains(state.id) else { return .unknown }
++                  !hasUnassignedHandles, !integrityFailures.contains(state.id) else { return .unknown }
++            if let expected = record.registration.expectedStoreIdentity {
++                guard snapshot.storeIdentity == expected else { return .unknown }
++            }
+             guard case .committed(let intentCommit) = await store.lookupCommit(record.registration.mutation),
+                   intentCommit == record.registration.commit else { return .unknown }
+-            guard case .committed(let successCommit) = await store.lookupCommit(success.mutation),
+-                  successCommit == success.commit else { return .unknown }
++            if requiringTerminal {
++                guard let terminal = record.usageTerminal,
++                      case .committed(let terminalCommit) = await store.lookupCommit(terminal.mutation),
++                      terminalCommit == terminal.commit else { return .unknown }
++            } else {
++                guard let success = record.results.last, case .succeeded = success.result.outcome,
++                      case .committed(let successCommit) = await store.lookupCommit(success.mutation),
++                      successCommit == success.commit else { return .unknown }
++            }
++            // Successful cleanup additionally confirms the exact result. A
++            // terminal alone releases the reader, never an uncertain copy.
++            if let success = record.results.last, case .succeeded = success.result.outcome {
++                guard case .committed(let resultCommit) = await store.lookupCommit(success.mutation),
++                      resultCommit == success.commit else { return .unknown }
++            }
++            if !state.reclaiming, !state.reclaimed { try validateFileIdentity(state) }
+             if state.releasedUsages.contains(record.registration.mediaUse) {
+                 if let release = record.usageRelease {
+                     guard case .committed(let receipt) = await store.lookupCommit(release.mutation), receipt == release.commit else { return .unknown }
+                 }
+-                try await finishReclamation(state)
++                if let release = record.terminalUsageRelease {
++                    guard case .committed(let receipt) = await store.lookupCommit(release.mutation), receipt == release.commit else { return .unknown }
++                }
++                try await reclaimIfEligible(state)
+                 photoRecoveryMutations.removeValue(forKey: intent.operation)
+                 return .succeeded(state.id)
+             }
+             guard state.usages.contains(record.registration.mediaUse), !state.reclaimed, !state.reclaiming else { return .unknown }
+-            try validateFileIdentity(state)
+-            let release = try PhotoUsageRelease(record: record)
++            let change: PhotoRegistrationChange = requiringTerminal
++                ? .releaseTerminalUsage(try PhotoTerminalUsageRelease(record: record))
++                : .releaseUsage(try PhotoUsageRelease(record: record))
+             for _ in 0..<3 {
+                 let mutation: BackendStoreMutation
+                 if let retained = photoRecoveryMutations[intent.operation] {
+@@ -287,7 +346,7 @@
+                 } else {
+                     guard case .loaded(let current) = await store.load() else { return .unknown }
+                     mutation = .init(expectedRevision: current.revision,
+-                        change: .photo(command: .init(rawValue: UUID().uuidString), value: .releaseUsage(release)),
++                        change: .photo(command: .init(rawValue: UUID().uuidString), value: change),
+                         expectedStoreIdentity: record.registration.expectedStoreIdentity)
+                     photoRecoveryMutations[intent.operation] = mutation
+                     let result = await store.commit(mutation)
+@@ -302,7 +361,8 @@
+                 let latest = try await stateFor(state.id)
+                 guard latest.releasedUsages.contains(record.registration.mediaUse),
+                       !latest.usages.contains(record.registration.mediaUse) else { return .unknown }
+-                try await finishReclamation(latest)
++                finishedPhotoUsages.remove(intent.usage.id)
++                try await reclaimIfEligible(latest)
+                 return .succeeded(state.id)
+             }
+             return .unknown
+@@ -396,6 +456,7 @@
+     private func finishReclamation(_ state: TemporaryMediaState) async throws {
+         guard state.reclaiming, !state.reclaimed else { return }
+         guard state.usages.isEmpty, !integrityFailures.contains(state.id) else { throw BackendContractError.readersActive }
++        guard !(try await retainsPhotoCopy(state.id)) else { throw BackendContractError.readersActive }
+         try requireRoot()
+         var info = stat()
+         if fstatat(directory.fileDescriptor, state.leaf, &info, AT_SYMLINK_NOFOLLOW) == 0 {
+@@ -403,6 +464,17 @@
+             guard unlinkat(directory.fileDescriptor, state.leaf, 0) == 0 else { throw BackendContractError.unavailable }
+         } else if errno != ENOENT { throw BackendContractError.unavailable }
+         try await persist(.reclaimed(state.id))
++    }
++
++    private func retainsPhotoCopy(_ id: TemporaryMediaID) async throws -> Bool {
++        guard case .loaded(let snapshot) = await leases.mediaStore.load() else { throw BackendContractError.unavailable }
++        return PhotoRegistrationRecord.retainsCopy(id, in: snapshot.photoRegistrations)
++    }
++
++    private func reclaimIfEligible(_ state: TemporaryMediaState) async throws {
++        guard state.usages.isEmpty, !state.reclaimed, !(try await retainsPhotoCopy(state.id)) else { return }
++        if !state.reclaiming { try await persist(.reclaim(state.id)) }
++        try await finishReclamation(try await stateFor(state.id))
+     }
+ 
+     private func closeOwner() async throws -> RenditionReadTerminal {
+@@ -413,14 +485,21 @@
+         var pendingPhotoUsage = false
+         for state in snapshot.temporaryMedia where state.rendition.original == original && state.directoryIdentity == directoryIdentity {
+             for record in state.usages {
++                if record.usage.purpose == .photoHandoff {
++                    guard let photo = snapshot.photoRegistrations.last(where: { $0.registration.mediaUse == record }) else {
++                        pendingPhotoUsage = true; continue
++                    }
++                    let released: BackendOutcome<TemporaryMediaID>
++                    if photo.usageTerminal != nil { released = await recoverTerminalPhotoUsage(photo) }
++                    else if case .succeeded? = photo.outcome { released = await recoverSuccessfulPhotoUsage(photo) }
++                    else { pendingPhotoUsage = true; continue }
++                    guard released == .succeeded(state.id) else { throw BackendContractError.unknownResult }
++                    continue
++                }
+                 guard record.owner == owner, record.lease.epoch == epoch else { throw BackendContractError.staleGeneration }
+-                // A finished SDK callback is not a successful Photos registration.
+-                // S31 explicitly releases this right after its success commit.
+-                if record.usage.purpose == .photoHandoff { pendingPhotoUsage = true; continue }
+                 guard case .succeeded = await releaseUsage(record.usage) else { throw BackendContractError.unknownResult }
+             }
+-            if state.usages.isEmpty, !state.reclaiming, !state.reclaimed { try await persist(.reclaim(state.id)) }
+-            try await finishReclamation(try await stateFor(state.id))
++            try await reclaimIfEligible(try await stateFor(state.id))
+         }
+         guard !pendingPhotoUsage, handles.isEmpty, allFileHandles.isEmpty, openedHandles == closedHandles,
+               epoch == (try await leases.currentEpoch()) else { throw BackendContractError.readersActive }
+@@ -554,4 +633,12 @@
+         let handle: FileHandle
+         let fingerprint: OriginalFileFingerprint
+     }
++
++    /// A helper FD whose close failed must not disappear behind a removed
++    /// consumer entry. Known handles owned by other consumers stay untouched.
++    private var hasUnassignedHandles: Bool {
++        allFileHandles.keys.contains { identifier in
++            !handles.values.contains { ObjectIdentifier($0.handle) == identifier }
++        }
++    }
+ }

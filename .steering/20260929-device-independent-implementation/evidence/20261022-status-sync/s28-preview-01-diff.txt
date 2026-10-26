@@ -1,0 +1,1593 @@
+--- before/FrameRelay/Application/Library/LibrarySnapshot.swift
++++ FrameRelay/Application/Library/LibrarySnapshot.swift
+@@ -116,7 +116,8 @@
+ nonisolated enum LibraryProjection {
+     static func item(_ recording: RecordingStoreEntry, file: OriginalFileObservation,
+                      state: OriginalPersistentState?,
+-                     photoRegistrations: [PhotoRegistrationRecord]? = nil) -> LibraryItem {
++                     photoRegistrations: [PhotoRegistrationRecord]? = nil,
++                     backend: BackendStoreSnapshot? = nil) -> LibraryItem {
+         let bindingMatches = state.map {
+             $0.binding.reference == recording.intent.original
+                 && $0.binding.original.capture == recording.intent.context.capture
+@@ -159,6 +160,7 @@
+         }
+         let photoRows = LibraryPhotoRegistration.project(photoRegistrations ?? [],
+             capture: recording.intent.context.capture)
++        let synchronized = backend.map { synchronizedStatuses(original: bound?.binding.original, backend: $0) } ?? [:]
+         let statuses = LibraryAxis.allCases.map { axis -> LibraryStatus in
+             let value: String
+             switch axis {
+@@ -189,13 +191,13 @@
+             case .invalidation:
+                 // A reservation is not a committed invalidation or an ACK.
+                 value = bound?.invalidation == nil
+-                    ? "確認の失効状態はまだ取得できません"
++                    ? synchronized[axis] ?? "確認の失効状態はまだ取得できません"
+                     : "失効処理の予約あり・結果の照合が必要です"
+-            case .transfer: value = "転送機能がまだ利用できないため状態を取得できません"
+-            case .verification: value = "Mac miniの保存検証記録はまだ取得できません"
+-            case .publication: value = "軽量版の公開状態はまだ取得できません"
+-            case .retrieval: value = "軽量版の取得状態はまだ確認できません"
+-            case .confirmation: value = "軽量版の確認記録はまだ取得できません"
++            case .transfer: value = synchronized[axis] ?? "転送機能がまだ利用できないため状態を取得できません"
++            case .verification: value = synchronized[axis] ?? "Mac miniの保存検証記録はまだ取得できません"
++            case .publication: value = synchronized[axis] ?? "軽量版の公開状態はまだ取得できません"
++            case .retrieval: value = synchronized[axis] ?? "軽量版の取得状態はまだ確認できません"
++            case .confirmation: value = synchronized[axis] ?? "軽量版の確認記録はまだ取得できません"
+             case .photos:
+                 value = photoRegistrations == nil ? "写真への保存記録はまだ取得できません"
+                     : photoRows.isEmpty ? "写真への登録記録なし"
+@@ -213,4 +215,77 @@
+                 || removalUnresolved || photoRows.contains(where: \.requiresReconciliation),
+             statuses: statuses, photoRegistrations: photoRows)
+     }
+-}
++
++    /// These labels describe the last durable facts, not live server reachability
++    /// or media availability. A failed poll never erases a valid local record.
++    private static func synchronizedStatuses(original: OriginalContent?, backend: BackendStoreSnapshot) -> [LibraryAxis: String] {
++        guard let original else { return [:] }
++        var result: [LibraryAxis: String] = [:]
++        guard let registration = backend.registrations.last, registration.isCommitted else {
++            result[.publication] = "公開版の保存記録なし・端末登録を確認してください"
++            result[.confirmation] = "有効な明示確認の保存記録なし"
++            result[.invalidation] = "失効の保存記録なし（未照合を含む）"
++            result[.retrieval] = "端末内の軽量版は未確認・オフライン再生は保証できません"
++            return result
++        }
++        let identity = registration.server.registration
++        let publication = backend.publications.last(where: {
++            PublicationStoreBoundary.exact($0.observation.registration, identity)
++                && PublicationStoreBoundary.exact($0.observation.rendition.original, original)
++                && $0.commit.matches(BackendStoreChange.publication($0.observation).key, revision: $0.commit.previousRevision)
++        })
++        let state = backend.confirmationStates.first(where: {
++            PublicationStoreBoundary.exact($0.registration, identity)
++                && PublicationStoreBoundary.exact($0.current.original, original)
++        })
++        result[.publication] = publication == nil ? "公開版の保存記録なし（未照合を含む）"
++            : "公開版の保存記録あり（最後に照合した版）"
++        if let state, let confirmation = state.validConfirmation,
++           PublicationStoreBoundary.exact(confirmation.intent.playback.distribution.registration, identity),
++           PublicationStoreBoundary.exact(confirmation.intent.playback.distribution.rendition, state.current) {
++            result[.confirmation] = "有効な明示確認の保存記録あり（現在の記録版）"
++        } else {
++            result[.confirmation] = state?.invalidation == nil ? "現在の記録版の明示確認なし"
++                : "確認は失効済み・有効な明示確認なし"
++        }
++        if let ack = backend.invalidations.last(where: {
++            PublicationStoreBoundary.exact($0.record.registration, identity)
++                && PublicationStoreBoundary.exact($0.record.rendition.original, original) && $0.isCommitted
++        }) {
++            let entry = BackendSyncEntry.invalidation(ack)
++            let delivered = backend.deliveries.contains(where: {
++                PublicationStoreBoundary.exact($0.entry, entry)
++                    && PublicationStoreBoundary.exact($0.registration, identity)
++                    && PublicationStoreBoundary.exact($0.response, BackendSyncResponse.invalidation(ack.record.id))
++            })
++            result[.invalidation] = delivered ? "失効保存済み・この登録のACK送達確認済み"
++                : "失効保存済み・この登録のACK送達は要照合"
++        } else { result[.invalidation] = "失効の保存記録なし（未照合を含む）" }
++        let temporary = backend.temporaryMedia.filter {
++            PublicationStoreBoundary.exact($0.registration, identity)
++                && PublicationStoreBoundary.exact($0.rendition.original, original) && !$0.reclaimed
++        }
++        result[.retrieval] = temporary.isEmpty ? "端末内の軽量版の取得記録なし・オフライン再生不可"
++            : "端末内の軽量版の取得記録あり・再生可否は実媒体の照合が必要"
++        let verification = backend.verifications.last(where: {
++            PublicationStoreBoundary.exact($0.expected.registration, identity)
++                && PublicationStoreBoundary.exact($0.expected.target, MediaTarget.original(original))
++        })
++        result[.verification] = verification?.isCommitted == true
++            && verification?.evidence.verifies(original, destination: identity.destination, supportedSchemas: ["fr-final-read-v1"]) == true
++            ? "最後の有効なMac mini保存検証の記録あり（現在の存在は未照合）"
++            : "有効なMac mini保存検証の保存記録なし"
++        let requests = backend.requests.filter {
++            PublicationStoreBoundary.exact($0.registration, identity)
++                && PublicationStoreBoundary.exact($0.target, MediaTarget.original(original))
++        }
++        if let request = requests.last {
++            if request.intent == .cancelled { result[.transfer] = "本人キャンセルの記録あり（Macの実結果とは別）" }
++            else if request.intent == .paused { result[.transfer] = "本人停止の記録あり" }
++            else if !request.waits.isEmpty { result[.transfer] = "転送の待機記録あり" }
++            else if request.transport == .completed { result[.transfer] = "端末の送信完了記録あり（保存検証とは別）" }
++            else { result[.transfer] = "開始済みの転送記録あり・結果は要照合" }
++        } else { result[.transfer] = "この登録からの転送開始記録なし" }
++        return result
++    }
++}
+--- before/FrameRelay/Application/Library/LibraryStoreReader.swift
++++ FrameRelay/Application/Library/LibraryStoreReader.swift
+@@ -47,7 +47,7 @@
+                 let photos = backend.photoRegistrations.filter {
+                     $0.registration.intent.key.capture == recording.intent.context.capture
+                 }
+-                var item = LibraryProjection.item(recording, file: file, state: state, photoRegistrations: photos)
++                var item = LibraryProjection.item(recording, file: file, state: state, photoRegistrations: photos, backend: backend)
+                 let operations = originals.removalBatches.flatMap { batch in
+                     batch.targets.filter { $0.target.original.capture == item.id }.map { row in
+                         LibraryRemovalOperation(batch: batch.batch.operation, purpose: batch.batch.purpose,
+--- before/FrameRelay/Application/MediaOperations/BackendStatusSynchronizationCoordinator.swift
++++ FrameRelay/Application/MediaOperations/BackendStatusSynchronizationCoordinator.swift
+@@ -0,0 +1,243 @@
++import Foundation
++
++/// One registration, one writer, and one retained poll cursor. No media factory
++/// is available here. Each explicit call reads at most one invalidation page;
++/// the finite original/outbox inventories are fixed before their respective pass.
++actor BackendStatusSynchronizationCoordinator {
++    private let boundary: StatusSynchronizationRegistrationBoundary
++    private let store: any MediaOperationStorePort & OriginalStorePort
++    private let remote: StatusSynchronizationRemote
++    private let invalidations: MediaInvalidationCoordinator
++    private let outbox: BackendOutboxCoordinator
++    private let admission: @MainActor @Sendable () -> Bool
++    private let didInvalidate: @Sendable (InvalidationAcknowledgement) async throws -> Void
++    private var running = false
++    private var after: InvalidationID?
++    private var unresolved: [InvalidationRecord] = []
++    private var pending: [BackendStoreMutation] = []
++
++    init(store: any MediaOperationStorePort & OriginalStorePort, identity: RegistrationStoreIdentity,
++         registration: DeviceRegistration, remote: any PublicationRemotePort,
++         invalidations: MediaInvalidationCoordinator,
++         admission: @escaping @MainActor @Sendable () -> Bool = { true },
++         didInvalidate: @escaping @Sendable (InvalidationAcknowledgement) async throws -> Void = { _ in }) {
++        self.store = store; self.invalidations = invalidations; self.admission = admission
++        self.didInvalidate = didInvalidate
++        let boundary = StatusSynchronizationRegistrationBoundary(store: store, identity: identity, registration: registration)
++        self.boundary = boundary
++        let guarded = StatusSynchronizationRemote(base: remote, boundary: boundary, admission: admission)
++        self.remote = guarded
++        outbox = BackendOutboxCoordinator(store: store, identity: identity, remote: guarded)
++    }
++
++    func synchronize() async -> StatusSynchronizationReport {
++        guard !running else { return .init(phase: .busy) }
++        running = true; defer { running = false }
++        do {
++            guard await admission() else { return .init(phase: .waitingForCapture, hasMore: after != nil) }
++            _ = try await boundary.load()
++            guard case .succeeded(let originals) = await store.loadOriginalState() else { throw BackendContractError.unavailable }
++            _ = try await boundary.load()
++            let known = originals.logicalOriginals.map(\.original)
++            for state in originals.logicalOriginals {
++                if let reservation = state.invalidation { retain(reservation.record) }
++            }
++            var partial = false
++            let page = await remote.invalidations(registration: boundary.registration.server.registration, after: after)
++            _ = try await boundary.load()
++            if case .succeeded(let value) = page, valid(value, after: after) {
++                value.records.forEach { retain($0) }
++                after = value.nextAfter
++            } else { partial = true }
++
++            // Keep unresolved records independently of pagination. A failure on
++            // an earlier page cannot disappear when a later page is requested.
++            let attempts = unresolved
++            for record in attempts {
++                guard await admission() else { partial = true; break }
++                _ = try await boundary.load()
++                guard exact(record.registration, boundary.registration.server.registration),
++                      known.contains(where: { exact($0, record.rendition.original) }) else { partial = true; continue }
++                let result = await invalidations.invalidate(record)
++                _ = try await boundary.load()
++                guard case .succeeded(let ack) = result, exact(ack.record, record) else { partial = true; continue }
++                do {
++                    try await didInvalidate(ack)
++                    _ = try await boundary.load()
++                    unresolved.removeAll { exact($0, record) }
++                } catch { partial = true }
++            }
++
++            var items: [StatusSynchronizationItem] = []
++            for original in known {
++                guard await admission() else {
++                    partial = true
++                    items.append(.init(original: original, disposition: .unresolved)); continue
++                }
++                _ = try await boundary.load()
++                let disposition = try await synchronize(original)
++                if disposition == .unresolved { partial = true }
++                items.append(.init(original: original, disposition: disposition))
++            }
++            guard await admission() else {
++                return .init(phase: .waitingForCapture, items: items, hasMore: after != nil,
++                             unresolvedInvalidations: unresolved.count)
++            }
++            _ = try await boundary.load()
++            let delivery = await outbox.synchronize()
++            let latest = try await boundary.load()
++            if case .succeeded = delivery {} else { partial = true }
++            for index in items.indices {
++                let original = items[index].original
++                if unresolved.contains(where: { exact($0.rendition.original, original) })
++                    || latest.outbox.contains(where: { exact(Self.original($0), original) }) {
++                    items[index] = .init(original: original, disposition: .unresolved)
++                    partial = true
++                }
++            }
++            return .init(phase: partial || after != nil || !unresolved.isEmpty ? .partial : .checked,
++                         items: items, hasMore: after != nil, unresolvedInvalidations: unresolved.count)
++        } catch {
++            return .init(phase: .unavailable, hasMore: after != nil, unresolvedInvalidations: unresolved.count)
++        }
++    }
++
++    private func synchronize(_ original: OriginalContent) async throws -> StatusSynchronizationDisposition {
++        let snapshot = try await boundary.load()
++        if let mutation = pending.first(where: {
++            if case .publication(let value) = $0.change { return exact(value.rendition.original, original) }
++            return false
++        }) {
++            // An unknown commit is never rebased, even when a newer manifest is
++            // available. Reuse its complete mutation and original revision.
++            let result = await PublicationStoreBoundary.reconcile(mutation, store: store)
++            let latest = try await boundary.load()
++            guard committed(result, mutation: mutation), case .publication(let value) = mutation.change,
++                  latest.publications.contains(where: { exact($0.observation, value) }) else { return .unresolved }
++            pending.removeAll { exact($0, mutation) }
++            return .recorded
++        }
++        let result = await remote.manifest(original: original, registration: boundary.registration.server.registration)
++        let latest = try await boundary.load()
++        guard case .succeeded(let manifest) = result else { return .unresolved }
++        let prior = latest.publications.last(where: {
++            exact($0.observation.registration, boundary.registration.server.registration)
++                && exact($0.observation.rendition.original, original)
++        })
++        guard let rendition = manifest.current else {
++            // The current journal has no command for a nil publication. Retain
++            // prior durable facts, and never turn absence into an invalidation.
++            return prior == nil ? .noPublishedRecord : .unresolved
++        }
++        guard exact(rendition.original, original), manifest.mediaType != nil else { return .unresolved }
++        if let prior {
++            guard manifest.revision >= prior.observation.observation.rawValue else { return .unresolved }
++            if exact(prior.observation.rendition, rendition),
++               prior.observation.invalidationGeneration == manifest.invalidationGeneration {
++                guard let state = latest.confirmationStates.first(where: {
++                    exact($0.registration, boundary.registration.server.registration) && exact($0.current.original, original)
++                }), exact(state.current, rendition), state.generation == manifest.invalidationGeneration else { return .unresolved }
++                return .unchanged
++            }
++        }
++        // Same mapping as PublicationHTTPBinding.open. Do not allocate a local
++        // generation or bypass the writer's receipt/ACK/publication guards.
++        guard manifest.revision > (prior?.observation.observation.rawValue ?? 0) else { return .unresolved }
++        guard await admission() else { return .unresolved }
++        let current = try await boundary.load()
++        guard current.revision >= snapshot.revision else { return .unresolved }
++        let observation = PublishedRenditionObservation(command: .init(rawValue: UUID().uuidString),
++            registration: boundary.registration.server.registration, rendition: rendition,
++            observation: .init(rawValue: manifest.revision), invalidationGeneration: manifest.invalidationGeneration)
++        let mutation = BackendStoreMutation(expectedRevision: current.revision, change: .publication(observation),
++                                            expectedStoreIdentity: boundary.identity)
++        pending.append(mutation)
++        let committedResult = await PublicationStoreBoundary.commit(mutation, store: store)
++        let confirmed = try await boundary.load()
++        guard committed(committedResult, mutation: mutation),
++              confirmed.publications.contains(where: { exact($0.observation, observation) }) else {
++            if case .rejected = committedResult { pending.removeAll { exact($0, mutation) } }
++            return .unresolved
++        }
++        pending.removeAll { exact($0, mutation) }
++        return .recorded
++    }
++
++    private func retain(_ record: InvalidationRecord) {
++        if !unresolved.contains(where: { exact($0, record) }) { unresolved.append(record) }
++    }
++    private func valid(_ page: PublicationInvalidationPage, after: InvalidationID?) -> Bool {
++        guard page.records.count <= 8 else { return false }
++        let ids = page.records.map { $0.id.rawValue }
++        guard zip(ids, ids.dropFirst()).allSatisfy({ $0.utf8.lexicographicallyPrecedes($1.utf8) }),
++              after == nil || ids.allSatisfy({ after!.rawValue.utf8.lexicographicallyPrecedes($0.utf8) }),
++              page.records.allSatisfy({ exact($0.registration, boundary.registration.server.registration) }) else { return false }
++        if let next = page.nextAfter { return page.records.last.map { exact($0.id, next) } ?? false }
++        return true
++    }
++    private func committed(_ result: BackendCommitResult, mutation: BackendStoreMutation) -> Bool {
++        guard case .committed(let receipt) = result else { return false }
++        return receipt.matches(mutation.change.key, revision: mutation.expectedRevision) && exact(receipt.key, mutation.change.key)
++    }
++    private func exact<T: Encodable>(_ lhs: T, _ rhs: T) -> Bool { PublicationStoreBoundary.exact(lhs, rhs) }
++    private static func original(_ entry: BackendSyncEntry) -> OriginalContent {
++        switch entry {
++        case .confirmation(let value): value.intent.playback.distribution.rendition.original
++        case .invalidation(let value): value.record.rendition.original
++        }
++    }
++}
++
++/// Snapshot checks are also used around the nested outbox/external awaits.
++nonisolated struct StatusSynchronizationRegistrationBoundary: Sendable {
++    let store: any MediaOperationStorePort
++    let identity: RegistrationStoreIdentity
++    let registration: DeviceRegistration
++    func load() async throws -> BackendStoreSnapshot {
++        let value = try await PublicationStoreBoundary.load(store, identity: identity)
++        guard registration.isCommitted,
++              let current = value.registrations.last(where: {
++                  $0.server.registration.destination == registration.server.registration.destination
++              }), PublicationStoreBoundary.exact(current, registration),
++              value.registrationIntents.contains(where: {
++                  PublicationStoreBoundary.exact($0.intent, registration.server.intent)
++                    && PublicationStoreBoundary.exact($0.commit, registration.intentCommit)
++              }) else { throw BackendContractError.identityMismatch }
++        return value
++    }
++}
++
++/// Deliberately refuses media distribution. Historical outbox entries keep
++/// their original registration and credentials; they are never re-addressed.
++actor StatusSynchronizationRemote: PublicationRemotePort {
++    private let base: any PublicationRemotePort
++    private let boundary: StatusSynchronizationRegistrationBoundary
++    private let admission: @MainActor @Sendable () -> Bool
++    init(base: any PublicationRemotePort, boundary: StatusSynchronizationRegistrationBoundary,
++         admission: @escaping @MainActor @Sendable () -> Bool) {
++        self.base = base; self.boundary = boundary; self.admission = admission
++    }
++    private func perform<T: Equatable & Sendable>(_ operation: () async -> BackendOutcome<T>) async -> BackendOutcome<T> {
++        do {
++            guard await admission(), !Task.isCancelled else { return .inProgress }
++            _ = try await boundary.load()
++            let result = await operation()
++            _ = try await boundary.load()
++            guard await admission(), !Task.isCancelled else { return .unknown }
++            _ = try await boundary.load()
++            return result
++        } catch { return .unknown }
++    }
++    func manifest(original: OriginalContent, registration: RegistrationIdentity) async -> BackendOutcome<PublicationManifest> {
++        guard PublicationStoreBoundary.exact(registration, boundary.registration.server.registration) else { return .unknown }
++        return await perform { await base.manifest(original: original, registration: registration) }
++    }
++    func invalidations(registration: RegistrationIdentity, after: InvalidationID?) async -> BackendOutcome<PublicationInvalidationPage> {
++        guard PublicationStoreBoundary.exact(registration, boundary.registration.server.registration) else { return .unknown }
++        return await perform { await base.invalidations(registration: registration, after: after) }
++    }
++    func send(_ entry: BackendSyncEntry) async -> BackendOutcome<BackendSyncResponse> { await perform { await base.send(entry) } }
++    func lookup(_ entry: BackendSyncEntry) async -> BackendOutcome<BackendSyncResponse> { await perform { await base.lookup(entry) } }
++    func distribute(_ request: PublicationDistributionRequest) async -> BackendOutcome<PublicationDistribution> { .failed(.rejected) }
++    func lookupDistribution(_ request: PublicationDistributionRequest) async -> BackendOutcome<PublicationDistribution> { .failed(.rejected) }
++}
+--- before/FrameRelay/Application/Ports/StatusSynchronizationPort.swift
++++ FrameRelay/Application/Ports/StatusSynchronizationPort.swift
+@@ -0,0 +1,45 @@
++import Foundation
++
++/// Presentation of one explicit, bounded metadata operation. Durable facts are
++/// always read back from the common writer; this report is not confirmation or
++/// permission to retrieve media.
++nonisolated enum StatusSynchronizationDisposition: Equatable, Sendable {
++    case recorded, unchanged, noPublishedRecord, unresolved
++
++    var text: String {
++        switch self {
++        case .recorded: "状態の記録を保存しました"
++        case .unchanged: "保存済みの状態と照合しました"
++        case .noPublishedRecord: "今回は公開版の情報がありません。媒体は取得していません"
++        case .unresolved: "状態の照合が必要です。保存済みの記録を保持しています"
++        }
++    }
++}
++
++nonisolated struct StatusSynchronizationItem: Equatable, Sendable, Identifiable {
++    let original: OriginalContent
++    let disposition: StatusSynchronizationDisposition
++    var id: CaptureID { original.capture }
++}
++
++nonisolated struct StatusSynchronizationReport: Equatable, Sendable {
++    enum Phase: Equatable, Sendable { case checked, partial, waitingForCapture, unavailable, busy }
++    let phase: Phase
++    var items: [StatusSynchronizationItem] = []
++    var hasMore = false
++    var unresolvedInvalidations = 0
++
++    var message: String {
++        switch phase {
++        case .checked: "今回の状態照合を終えました。ライブラリには保存済みの記録を表示します。"
++        case .partial: "状態照合は一部だけ終わっています。続きや未解決の記録を照合してください。"
++        case .waitingForCapture: "録画・保存を優先しています。終了後に状態を照合してください。"
++        case .unavailable: "登録と保存記録の対応を確認できません。前回の記録を保持しています。"
++        case .busy: "状態を照合中です。"
++        }
++    }
++}
++
++nonisolated protocol StatusSynchronizationPort: Sendable {
++    func synchronize(connection: RegistrationConnection, registration: DeviceRegistration) async -> StatusSynchronizationReport
++}
+--- before/FrameRelay/Composition/ProductComposition.swift
++++ FrameRelay/Composition/ProductComposition.swift
+@@ -4,26 +4,27 @@
+ @MainActor @Observable final class ProductComposition {
+     private let factory: ProductLibraryFactory
+     private let backgroundFactory: ProductBackgroundMediaFactory
+-    private let registrationFactory: @Sendable (any MediaOperationStorePort) -> RegistrationCoordinator
++    private let registrationFactory: (@Sendable (any MediaOperationStorePort) -> RegistrationCoordinator)?
++    private let statusSynchronizationFactory: (@Sendable (ProductLibraryServices, ProductMediaTermination) -> any StatusSynchronizationPort)?
+     private(set) var library: LibraryModel?
+     private(set) var playback: OriginalPlaybackModel?
+     private(set) var connection: ConnectionModel?
+     private(set) var capture: ProductCaptureCoordinator?
+     private(set) var mediaTermination: ProductMediaTermination?
++    private(set) var statusSynchronization: (any StatusSynchronizationPort)?
+     private(set) var isOpening = false
+     private(set) var openingIssue: String?
+     let exploration = ExplorationComposition.makeModel()
+ 
+     init(factory: ProductLibraryFactory = .shared,
+          backgroundFactory: ProductBackgroundMediaFactory? = nil,
+-         registrationFactory: @escaping @Sendable (any MediaOperationStorePort) -> RegistrationCoordinator = { store in
+-             let vault = KeychainRegistrationVault()
+-             return RegistrationCoordinator(store: store, vault: vault, remote: URLSessionRegistrationRemote(credentials: vault, store: store))
+-         }) {
++         registrationFactory: (@Sendable (any MediaOperationStorePort) -> RegistrationCoordinator)? = nil,
++         statusSynchronizationFactory: (@Sendable (ProductLibraryServices, ProductMediaTermination) -> any StatusSynchronizationPort)? = nil) {
+         self.factory = factory
+         self.backgroundFactory = backgroundFactory ?? (factory === ProductLibraryFactory.shared
+             ? .shared : ProductBackgroundMediaFactory(library: factory))
+         self.registrationFactory = registrationFactory
++        self.statusSynchronizationFactory = statusSynchronizationFactory
+     }
+ 
+     func open() async {
+@@ -56,7 +57,22 @@
+                 discard: DiscardCoordinator(store: services.store, termination: termination, execution: execution),
+                 execution: execution, termination: termination, admission: admission)
+             library = LibraryModel(reader: services.reader, commands: commands, photos: services.photoReconciliation, removals: commands)
+-            connection = ConnectionModel(coordinator: registrationFactory(services.store))
++            let registration: RegistrationCoordinator
++            if let registrationFactory {
++                registration = registrationFactory(services.store)
++                // Preserve dependency-injected registration tests. A custom
++                // registration never silently gains product Keychain access.
++                statusSynchronization = statusSynchronizationFactory?(services, media)
++            } else {
++                let vault = KeychainRegistrationVault()
++                registration = RegistrationCoordinator(store: services.store, vault: vault,
++                    remote: URLSessionRegistrationRemote(credentials: vault, store: services.store))
++                statusSynchronization = statusSynchronizationFactory?(services, media)
++                    ?? ProductStatusSynchronization(store: services.store, access: services.access, media: media,
++                        credentials: vault, admission: admission)
++            }
++            connection = ConnectionModel(coordinator: registration, statusSynchronization: statusSynchronization,
++                didSynchronize: { [weak self] in await self?.library?.refresh() })
+             openingIssue = nil
+             await library?.refresh()
+             await connection?.restore()
+--- before/FrameRelay/Composition/ProductStatusSynchronization.swift
++++ FrameRelay/Composition/ProductStatusSynchronization.swift
+@@ -0,0 +1,105 @@
++import Foundation
++
++/// App-lifetime owner of the metadata coordinators. Registration restoration
++/// and constructing this container perform no request and create no intent.
++actor ProductStatusSynchronization: StatusSynchronizationPort {
++    typealias RemoteFactory = @Sendable (RegistrationConnection, any RegistrationAuthorizationPort,
++        any MediaOperationStorePort, RegistrationStoreIdentity) -> any PublicationRemotePort
++    private let store: any MediaOperationStorePort & OriginalStorePort
++    private let access: ManagedOriginalAccess
++    private let media: ProductMediaTermination
++    private let credentials: any RegistrationAuthorizationPort
++    private let admission: @MainActor @Sendable () -> Bool
++    private let remoteFactory: RemoteFactory
++    private var sessions: [Session] = []
++    private var running = false
++
++    init(store: any MediaOperationStorePort & OriginalStorePort, access: ManagedOriginalAccess,
++         media: ProductMediaTermination, credentials: any RegistrationAuthorizationPort,
++         admission: @escaping @MainActor @Sendable () -> Bool,
++         remoteFactory: @escaping RemoteFactory = { connection, credentials, store, identity in
++             URLSessionPublicationRemote(connection: connection, credentials: credentials, store: store, identity: identity)
++         }) {
++        self.store = store; self.access = access; self.media = media; self.credentials = credentials
++        self.admission = admission; self.remoteFactory = remoteFactory
++    }
++
++    func synchronize(connection: RegistrationConnection, registration: DeviceRegistration) async -> StatusSynchronizationReport {
++        guard !running else { return .init(phase: .busy) }
++        running = true; defer { running = false }
++        do {
++            guard await admission() else { return .init(phase: .waitingForCapture) }
++            guard case .loaded(let initial) = await store.load(), let identity = initial.storeIdentity,
++                  PublicationStoreBoundary.exact(connection.destination, registration.server.registration.destination) else {
++                return .init(phase: .unavailable)
++            }
++            let boundary = StatusSynchronizationRegistrationBoundary(store: store, identity: identity, registration: registration)
++            _ = try await boundary.load()
++            let coordinator: BackendStatusSynchronizationCoordinator
++            if let existing = sessions.first(where: {
++                $0.identity == identity && PublicationStoreBoundary.exact($0.registration, registration)
++                    && PublicationStoreBoundary.exact($0.connection.destination, connection.destination)
++                    && $0.connection.endpoint.origin.absoluteString.utf8.elementsEqual(connection.endpoint.origin.absoluteString.utf8)
++            }) { coordinator = existing.coordinator }
++            else {
++                let external = ProductStatusInvalidationTermination(boundary: boundary, media: media, admission: admission)
++                let invalidations = MediaInvalidationCoordinator(store: store, identity: identity, ordering: access,
++                    scopes: media.scopes, external: external)
++                coordinator = BackendStatusSynchronizationCoordinator(store: store, identity: identity, registration: registration,
++                    remote: remoteFactory(connection, credentials, store, identity), invalidations: invalidations,
++                    admission: admission, didInvalidate: { [media] ack in try await media.resume(after: ack) })
++                sessions.append(.init(identity: identity, connection: connection, registration: registration, coordinator: coordinator))
++            }
++            let result = await coordinator.synchronize()
++            _ = try await boundary.load()
++            return result
++        } catch { return .init(phase: .unavailable) }
++    }
++
++    private struct Session {
++        let identity: RegistrationStoreIdentity
++        let connection: RegistrationConnection
++        let registration: DeviceRegistration
++        let coordinator: BackendStatusSynchronizationCoordinator
++    }
++}
++
++/// The current product external producer owns the original player. It cannot
++/// attest to an old upload source or background SDK owner. Even a prepared
++/// intent without an attached task is retained as unresolved for that video.
++///
++/// The coordinator commits reserveInvalidation BEFORE calling this wrapper.
++/// That reservation fences acquire/acquireMedia and background prepared/resume
++/// in the same writer. A copy already in flight owns a durable reader lease;
++/// an attached task already owns a durable prepared intent. Neither can enter
++/// unnoticed between this inventory and the final invalidation commit.
++actor ProductStatusInvalidationTermination: PublicationExternalTerminationPort {
++    private let boundary: StatusSynchronizationRegistrationBoundary
++    private let media: ProductMediaTermination
++    private let admission: @MainActor @Sendable () -> Bool
++    init(boundary: StatusSynchronizationRegistrationBoundary, media: ProductMediaTermination,
++         admission: @escaping @MainActor @Sendable () -> Bool) {
++        self.boundary = boundary; self.media = media; self.admission = admission
++    }
++    private func check(_ original: OriginalContent) async throws {
++        guard await admission(), !Task.isCancelled else { throw BackendContractError.unavailable }
++        let snapshot = try await boundary.load()
++        // Conservative equality here also refuses canonically equivalent but
++        // byte-distinct historical owners; it never grants an identity match.
++        guard !snapshot.backgroundTasks.contains(where: { $0.intent.context.target.original == original }),
++              OriginalRemovalTransportHistory.neverStarted(original, backend: snapshot) else {
++            throw BackendContractError.readersActive
++        }
++    }
++    func stopAndObserve(original: OriginalContent, epoch: ReaderReconciliationEpoch) async throws {
++        try await check(original)
++        try await media.stopAndObserve(original: original, epoch: epoch)
++        try await check(original)
++    }
++    func observeTerminal(original: OriginalContent, epoch: ReaderReconciliationEpoch) async throws -> EvidenceID {
++        try await check(original)
++        let result = try await media.observeTerminal(original: original, epoch: epoch)
++        try await check(original)
++        return result
++    }
++}
+--- before/FrameRelay/Features/Connection/ConnectionModel.swift
++++ FrameRelay/Features/Connection/ConnectionModel.swift
+@@ -3,21 +3,42 @@
+ 
+ @MainActor @Observable final class ConnectionModel {
+     private let coordinator: RegistrationCoordinator
++    private let statusSynchronization: (any StatusSynchronizationPort)?
++    private let didSynchronize: @MainActor @Sendable () async -> Void
+     private(set) var state: RegistrationState = .needsConnection
+     private(set) var isWorking = false
+     private(set) var hasLoaded = false
+     private(set) var permitsInitialInput = false
++    private(set) var synchronizationReport: StatusSynchronizationReport?
+     var origin = ""
+     var destination = ""
+     var bearer = ""
+ 
+-    init(coordinator: RegistrationCoordinator) { self.coordinator = coordinator }
++    init(coordinator: RegistrationCoordinator, statusSynchronization: (any StatusSynchronizationPort)? = nil,
++         didSynchronize: @escaping @MainActor @Sendable () async -> Void = {}) {
++        self.coordinator = coordinator; self.statusSynchronization = statusSynchronization
++        self.didSynchronize = didSynchronize
++    }
++
++    var supportsStatusSynchronization: Bool { statusSynchronization != nil }
++    var canSynchronize: Bool {
++        if case .registered = state { return statusSynchronization != nil && !isWorking }
++        return false
++    }
++    func synchronizeStatus() async {
++        guard canSynchronize, let statusSynchronization, case .registered(let connection, let registration) = state else { return }
++        isWorking = true
++        defer { isWorking = false }
++        synchronizationReport = await statusSynchronization.synchronize(connection: connection, registration: registration)
++        await didSynchronize()
++    }
+ 
+     func restore() async {
+         guard !isWorking else { return }
+         isWorking = true
+         defer { isWorking = false; hasLoaded = true }
+         state = await coordinator.restore()
++        synchronizationReport = nil
+         permitsInitialInput = await coordinator.permitsInitialInput()
+     }
+     func register() async {
+--- before/FrameRelay/Features/Connection/ConnectionView.swift
++++ FrameRelay/Features/Connection/ConnectionView.swift
+@@ -16,6 +16,25 @@
+                     Section("端末登録") {
+                         Text("登録世代 \(registration.server.registration.generation.rawValue)")
+                             .accessibilityIdentifier("connection.registered")
++                    }
++                    if model.supportsStatusSynchronization {
++                        Section("状態の同期") {
++                            Text("公開版と保存済みの確認・失効記録を照合します。動画は送受信しません。")
++                                .fixedSize(horizontal: false, vertical: true)
++                            Button(model.synchronizationReport?.hasMore == true ? "続きの状態を照合" : "状態だけを同期") {
++                                Task { await model.synchronizeStatus() }
++                            }
++                            .disabled(!model.canSynchronize)
++                            .accessibilityIdentifier("connection.synchronize")
++                            if let report = model.synchronizationReport {
++                                Text(report.message).fixedSize(horizontal: false, vertical: true)
++                                    .accessibilityIdentifier("connection.synchronization.state")
++                                ForEach(report.items) { item in
++                                    Text("動画 \(item.original.capture.rawValue)：\(item.disposition.text)")
++                                        .fixedSize(horizontal: false, vertical: true)
++                                }
++                            }
++                        }
+                     }
+                 } else if case .needsRegistration = model.state {
+                     Button("保存した情報で登録を続ける") { Task { await model.registerSavedConnection() } }
+--- before/FrameRelayTests/Application/BackendStatusSynchronizationCoordinatorTests.swift
++++ FrameRelayTests/Application/BackendStatusSynchronizationCoordinatorTests.swift
+@@ -0,0 +1,323 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@Suite(.serialized) @MainActor struct BackendStatusSynchronizationCoordinatorTests {
++    @Test func explicitMetadataOperationPersistsPublicationWithoutConfirmationOrMedia() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run, names: ["status-a", "status-b"])
++            let next = statusRendition(f.renditions[0].original, version: 2)
++            f.remote.setManifest(next, revision: 2)
++            let coordinator = f.coordinator()
++            #expect(f.remote.manifestCalls.isEmpty && f.remote.afters.isEmpty)
++            let report = await coordinator.synchronize()
++            #expect(report.phase == .checked && report.items.count == 2)
++            let snapshot = try await mediaSnapshot(f.store)
++            #expect(snapshot.publications.count == 3)
++            #expect(snapshot.confirmationStates.first?.current == next)
++            #expect(snapshot.confirmations.isEmpty && snapshot.outbox.isEmpty)
++            #expect(f.remote.mediaCalls == 0 && f.remote.sent.isEmpty)
++            #expect(f.remote.afters.count == 1 && f.remote.afters[0] == nil)
++        }
++    }
++
++    @Test func onePagePerActionRetainsFailuresContinuesOtherVideosAndRepollsFromNull() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run, names: ["page-a", "page-b"])
++            let a = statusInvalidation(f.renditions[0], registration: f.registration.server.registration, id: "a")
++            let b = statusInvalidation(f.renditions[1], registration: f.registration.server.registration, id: "b")
++            f.external.available = false
++            f.remote.pages = [.succeeded(.init(records: [a], nextAfter: a.id)),
++                              .unknown, .succeeded(.init(records: [b], nextAfter: nil)),
++                              .succeeded(.init(records: [a], nextAfter: nil))]
++            let coordinator = f.coordinator()
++            let first = await coordinator.synchronize()
++            #expect(first.phase == .partial && first.hasMore && first.unresolvedInvalidations == 1)
++            #expect(first.items.first(where: { $0.original == b.rendition.original })?.disposition == .unchanged)
++            let failedPage = await coordinator.synchronize()
++            #expect(failedPage.hasMore && failedPage.unresolvedInvalidations == 1)
++            let third = await coordinator.synchronize()
++            #expect(third.phase == .partial && !third.hasMore && third.unresolvedInvalidations == 2)
++            #expect(f.remote.afters == [nil, a.id, a.id])
++            #expect(try await mediaSnapshot(f.store).invalidations.isEmpty)
++            f.external.available = true
++            f.remote.setManifest(f.renditions[0], revision: 2, generation: 1)
++            f.remote.setManifest(f.renditions[1], revision: 2, generation: 1)
++            let final = await coordinator.synchronize()
++            #expect(f.remote.afters.count == 4 && f.remote.afters[3] == nil)
++            #expect(final.phase == .checked && final.unresolvedInvalidations == 0)
++            #expect(try await mediaSnapshot(f.store).invalidations.count == 2)
++            #expect(try await mediaSnapshot(f.store).outbox.isEmpty)
++            #expect(f.remote.sent.count == 2 && f.remote.mediaCalls == 0)
++        }
++    }
++
++    @Test func malformedCursorCannotCreateAnAutomaticPaginationLoop() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run)
++            f.remote.pages = [.succeeded(.init(records: [], nextAfter: .init(rawValue: "unrelated-cursor")))]
++            let report = await f.coordinator().synchronize()
++            #expect(report.phase == .partial && !report.hasMore)
++            #expect(f.remote.afters.count == 1)
++            #expect(f.remote.sent.isEmpty && f.remote.mediaCalls == 0)
++        }
++    }
++
++    @Test(arguments: [false, true])
++    func missingPublicationReplyUsesOriginalMutationRatherThanRebasing(afterCommit: Bool) async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run)
++            let next = statusRendition(f.renditions[0].original, version: 2)
++            f.remote.setManifest(next, revision: 2)
++            f.store.losePublication = true; f.store.afterCommit = afterCommit; f.store.hideLookup = true
++            let coordinator = f.coordinator()
++            #expect(await coordinator.synchronize().phase == .partial)
++            let originalMutation = try #require(f.store.mutations.last)
++            _ = try await mediaCommit(f.store.base, .publication(mediaPublication(next,
++                registration: f.registration.server.registration, observation: 10)))
++            // A newer response must not replace the unresolved payload.
++            f.remote.setManifest(statusRendition(next.original, version: 3), revision: 20)
++            #expect(await coordinator.synchronize().phase == .partial)
++            #expect(f.store.mutations == [originalMutation])
++            #expect(f.store.lookups.last == originalMutation)
++            #expect(f.remote.manifestCalls.count == 1)
++            if afterCommit {
++                f.store.hideLookup = false
++                let recovered = await coordinator.synchronize()
++                #expect(recovered.items.first?.disposition == .recorded)
++                #expect(f.store.mutations == [originalMutation])
++            }
++        }
++    }
++
++    @Test func registrationChangeDuringAwaitCannotApplyTheOldResponse() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run)
++            f.remote.setManifest(statusRendition(f.renditions[0].original, version: 2), revision: 2)
++            f.remote.onManifest = { _ in
++                _ = try? await mediaRegister(f.store.base, registration: .init(destination: f.registration.server.registration.destination,
++                    id: .init(rawValue: "replacement-registration"), generation: .init(rawValue: 2)))
++            }
++            let result = await f.coordinator().synchronize()
++            #expect(result.phase == .unavailable)
++            #expect(try await mediaSnapshot(f.store).publications.count == 1)
++            #expect(f.store.mutations.isEmpty && f.remote.sent.isEmpty)
++        }
++    }
++
++    @Test func opaqueUnicodeMismatchIsLocalToThatVideo() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run, names: ["\u{e9}", "independent"])
++            let original = f.renditions[0].original
++            let alias = OriginalContent(capture: .init(rawValue: "e\u{301}"), generation: original.generation, content: original.content)
++            f.remote.manifests[0].1 = .succeeded(.init(current: statusRendition(alias, version: 2), revision: 2,
++                invalidationGeneration: .init(rawValue: 0), replacementPending: false, mediaType: "video/quicktime"))
++            let next = statusRendition(f.renditions[1].original, version: 2)
++            f.remote.setManifest(next, revision: 2)
++            let report = await f.coordinator().synchronize()
++            #expect(report.phase == .partial)
++            #expect(report.items.map(\.disposition) == [.unresolved, .recorded])
++            #expect(try await mediaSnapshot(f.store).publications.count == 3)
++            #expect(try await mediaSnapshot(f.store).confirmationStates.last?.current == next)
++        }
++    }
++
++    @Test func existingConfirmationOutboxIsDeliveredWithoutCreatingAnotherAction() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run)
++            let token = try publicationToken(f.renditions[0], registration: f.registration.server.registration)
++            let confirmation = MediaConfirmationCoordinator(store: f.store, identity: f.identity)
++            guard case .succeeded(let record) = await confirmation.confirm(token, action: .init(rawValue: "already-explicit")) else {
++                throw BackendContractError.notCommitted
++            }
++            f.remote.loseSendReply = true
++            let result = await f.coordinator().synchronize()
++            #expect(result.phase == .checked)
++            #expect(f.remote.sent == [.confirmation(record)])
++            let snapshot = try await mediaSnapshot(f.store)
++            #expect(snapshot.confirmations == [record] && snapshot.outbox.isEmpty)
++            #expect(f.remote.mediaCalls == 0)
++        }
++    }
++
++    @Test func captureBeginningDuringRequestStopsLaterWorkWithoutWaitingForAcknowledgement() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run)
++            let admission = StatusSynchronizationCaptureAdmission()
++            f.remote.setManifest(statusRendition(f.renditions[0].original, version: 2), revision: 2)
++            f.remote.onManifest = { _ in admission.allowed = false; admission.captureAccepted = true }
++            let coordinator = f.coordinator(admission: { admission.allowed })
++            let result = await coordinator.synchronize()
++            #expect(admission.captureAccepted)
++            #expect(result.phase == .waitingForCapture)
++            #expect(f.store.mutations.isEmpty && f.remote.sent.isEmpty && f.remote.mediaCalls == 0)
++            let count = f.remote.afters.count
++            #expect(await coordinator.synchronize().phase == .waitingForCapture)
++            #expect(f.remote.afters.count == count)
++        }
++    }
++}
++
++@MainActor final class StatusSynchronizationCaptureAdmission {
++    var allowed = true
++    var captureAccepted = false
++}
++
++/// Technical fixtures use the existing actual disk stores. The remote and owner
++/// inventory below are explicit test inputs, not HTTP, Log or quality evidence.
++@MainActor struct StatusSynchronizationFixture {
++    let store: StatusSynchronizationFaultStore
++    let identity: RegistrationStoreIdentity
++    let registration: DeviceRegistration
++    let renditions: [RenditionIdentity]
++    let remote: StatusMetadataRemote
++    let external: PublicationExternalFixture
++    let invalidations: MediaInvalidationCoordinator
++    static func make(run: ExplorationRunDirectory, candidate: StorageCandidate = .sqlite,
++                     names: [String] = ["status-known"]) async throws -> Self {
++        let base = try statusSynchronizationDisk(candidate, run: run, mode: .createNew)
++        let store = StatusSynchronizationFaultStore(base: base)
++        let identity = try await establishRegistrationIdentity(base)
++        let registrationIdentity = try await mediaRegister(base, registration: .init(
++            destination: .init(rawValue: "9a3ba104-985f-4a2d-875d-d458258b9b6b"),
++            id: .init(rawValue: "21088ea6-c2bc-4c21-8329-63d05bdfefcb"), generation: .init(rawValue: 1)))
++        let registration = try #require(try await mediaSnapshot(base).registrations.last)
++        var renditions: [RenditionIdentity] = []
++        let remote = StatusMetadataRemote()
++        for name in names {
++            let rendition = statusRendition(try publicationOriginal(name))
++            _ = try await mediaCommit(base, .publication(mediaPublication(rendition, registration: registrationIdentity)))
++            renditions.append(rendition); remote.setManifest(rendition, revision: 1)
++        }
++        let external = PublicationExternalFixture()
++        let invalidations = MediaInvalidationCoordinator(store: store, identity: identity,
++            ordering: ManagedOriginalAccess(store: store, originals: ManagedOriginalStore(run: run)),
++            scopes: RenditionScopeRegistry(leases: RenditionReadLeases(store: store)), external: external)
++        return .init(store: store, identity: identity, registration: registration, renditions: renditions,
++                     remote: remote, external: external, invalidations: invalidations)
++    }
++    func coordinator(admission: @escaping @MainActor @Sendable () -> Bool = { true }) -> BackendStatusSynchronizationCoordinator {
++        .init(store: store, identity: identity, registration: registration, remote: remote,
++              invalidations: invalidations, admission: admission)
++    }
++}
++
++nonisolated func statusSynchronizationDisk(_ candidate: StorageCandidate, run: ExplorationRunDirectory,
++                                         mode: ExplorationStoreOpenMode, fault: RecordingStoreFault? = nil) throws -> any MediaDiskStore {
++    switch candidate {
++    case .atomicFile: try AtomicFileRecordingStore(run: run, mode: mode, fault: fault)
++    case .sqlite: try SQLiteRecordingStore(run: run, mode: mode, fault: fault)
++    }
++}
++
++/// Metadata-only known original. The unknown inspection deliberately grants no
++/// normal-save, Log, cleanup or media authority, and creates no media file.
++nonisolated func statusKnownOriginal(_ original: OriginalContent, store: any MediaDiskStore) async throws -> OriginalBinding {
++    let f = try CaptureFixture(clip: original.capture.rawValue)
++    guard case .committed(let intentReceipt) = await store.execute(.commitIntent(f.token(1), expectedRevision: 0, f.intent)) else {
++        throw BackendContractError.notCommitted
++    }
++    var lifecycle = try RecordingSaveLifecycle(intent: f.intent, intentToken: f.token(1), revision: 0)
++    try lifecycle.acceptIntentCommit(intentReceipt)
++    try lifecycle.acceptRecordingEnd(context: f.context, evidence: f.end)
++    try lifecycle.acceptFile(.init(context: f.context, original: f.intent.original,
++        byteCount: original.content.byteCount, finalizedAt: f.time))
++    _ = try lifecycle.acceptInspection(.init(context: f.context, original: f.intent.original,
++        video: .unavailable(.notMeasured), audio: .unavailable(.notMeasured), format: .unavailable(.notMeasured),
++        playback: .unavailable(.notMeasured), completeness: .unknown(.notMeasured)), resultToken: f.token(4))
++    let result = try #require(lifecycle.resultRecord)
++    guard case .committed(let receipt) = await store.execute(.commitResult(f.token(4), expectedRevision: 1, result)) else {
++        throw BackendContractError.notCommitted
++    }
++    let binding = OriginalBinding(original: original, reference: f.intent.original, saveRecord: result, saveCommit: receipt)
++    _ = try await mediaOriginalCommit(store, .bind(binding))
++    return binding
++}
++nonisolated func statusRendition(_ original: OriginalContent, version: UInt64 = 1) -> RenditionIdentity {
++    .init(original: original, inputLogIdentity: "technical-status-fixture", transformAssetIdentity: "no-formal-proof",
++        transformAssetVersion: "fixture-v1", outputConfigurationIdentity: "fixture-output", conversionVersion: "fixture-conversion",
++        rendition: .init(rawValue: version == 1 ? "d380d397-5a2f-4186-bd4c-e07b1df6d15e" : "00000000-0000-4000-8000-00000000000\(version)"),
++        deliveryContent: original.content, publicationGeneration: .init(rawValue: version))
++}
++nonisolated func statusInvalidation(_ rendition: RenditionIdentity, registration: RegistrationIdentity,
++                                   id: String = "status-invalidation") -> InvalidationRecord {
++    .init(id: .init(rawValue: id), rendition: rendition, registration: registration, generation: .init(rawValue: 1))
++}
++
++@MainActor final class StatusSynchronizationFaultStore: RecordingStorePort, OriginalStorePort, MediaOperationStorePort {
++    let base: any MediaDiskStore
++    var losePublication = false
++    var afterCommit = false
++    var hideLookup = false
++    private(set) var mutations: [BackendStoreMutation] = []
++    private(set) var lookups: [BackendStoreMutation] = []
++    init(base: any MediaDiskStore) { self.base = base }
++    func commit(_ mutation: BackendStoreMutation) async -> BackendCommitResult {
++        if case .publication = mutation.change {
++            mutations.append(mutation)
++            if losePublication {
++                if afterCommit { _ = await base.commit(mutation) }
++                return .unknown
++            }
++        }
++        return await base.commit(mutation)
++    }
++    func lookupCommit(_ mutation: BackendStoreMutation) async -> BackendCommitResult {
++        lookups.append(mutation)
++        if case .publication = mutation.change, hideLookup { return .unknown }
++        return await base.lookupCommit(mutation)
++    }
++    func establishRegistrationIdentity(expectedRevision: UInt64, expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity {
++        try await base.establishRegistrationIdentity(expectedRevision: expectedRevision, expectedIdentity: expectedIdentity)
++    }
++    func load() async -> BackendStoreLoadResult { await base.load() }
++    func execute(_ command: RecordingStoreCommand) async -> RecordingStoreResult { await base.execute(command) }
++    func loadUnfinished() async -> UnfinishedRecordingLoadResult { await base.loadUnfinished() }
++    func loadRecordings() async -> RecordingStoreLoadResult { await base.loadRecordings() }
++    func loadOriginalState() async -> BackendOutcome<OriginalStoreSnapshot> { await base.loadOriginalState() }
++    func commitOriginal(_ mutation: OriginalStoreMutation) async -> OriginalStoreCommitResult { await base.commitOriginal(mutation) }
++    func lookupInvalidation(_ acknowledgement: InvalidationAcknowledgement) async -> BackendOutcome<InvalidationID> { await base.lookupInvalidation(acknowledgement) }
++}
++
++@MainActor final class StatusMetadataRemote: PublicationRemotePort {
++    var manifests: [(OriginalContent, BackendOutcome<PublicationManifest>)] = []
++    var pages: [BackendOutcome<PublicationInvalidationPage>] = []
++    var onManifest: (@MainActor (OriginalContent) async -> Void)?
++    var onInvalidations: (@MainActor () async -> Void)?
++    var loseSendReply = false
++    private(set) var manifestCalls: [OriginalContent] = []
++    private(set) var afters: [InvalidationID?] = []
++    private(set) var sent: [BackendSyncEntry] = []
++    private(set) var mediaCalls = 0
++    func setManifest(_ rendition: RenditionIdentity, revision: UInt64, generation: UInt64 = 0) {
++        let value = BackendOutcome<PublicationManifest>.succeeded(.init(current: rendition, revision: revision,
++            invalidationGeneration: .init(rawValue: generation), replacementPending: false, mediaType: "video/quicktime"))
++        if let index = manifests.firstIndex(where: { PublicationStoreBoundary.exact($0.0, rendition.original) }) { manifests[index].1 = value }
++        else { manifests.append((rendition.original, value)) }
++    }
++    func manifest(original: OriginalContent, registration: RegistrationIdentity) async -> BackendOutcome<PublicationManifest> {
++        manifestCalls.append(original)
++        await onManifest?(original)
++        return manifests.first(where: { PublicationStoreBoundary.exact($0.0, original) })?.1 ?? .unknown
++    }
++    func invalidations(registration: RegistrationIdentity, after: InvalidationID?) async -> BackendOutcome<PublicationInvalidationPage> {
++        afters.append(after)
++        await onInvalidations?()
++        return pages.isEmpty ? .succeeded(.init(records: [], nextAfter: nil)) : pages.removeFirst()
++    }
++    func send(_ entry: BackendSyncEntry) async -> BackendOutcome<BackendSyncResponse> {
++        if !sent.contains(where: { PublicationStoreBoundary.exact($0, entry) }) { sent.append(entry) }
++        return loseSendReply ? .unknown : .succeeded(response(entry))
++    }
++    func lookup(_ entry: BackendSyncEntry) async -> BackendOutcome<BackendSyncResponse> {
++        sent.contains(where: { PublicationStoreBoundary.exact($0, entry) }) ? .succeeded(response(entry)) : .notExecuted
++    }
++    func distribute(_ request: PublicationDistributionRequest) async -> BackendOutcome<PublicationDistribution> { mediaCalls += 1; return .unknown }
++    func lookupDistribution(_ request: PublicationDistributionRequest) async -> BackendOutcome<PublicationDistribution> { mediaCalls += 1; return .unknown }
++    private func response(_ entry: BackendSyncEntry) -> BackendSyncResponse {
++        switch entry {
++        case .confirmation(let value): .confirmation(value.intent.operation)
++        case .invalidation(let value): .invalidation(value.record.id)
++        }
++    }
++}
+--- before/FrameRelayTests/Integration/Composition/ProductStatusSynchronizationTests.swift
++++ FrameRelayTests/Integration/Composition/ProductStatusSynchronizationTests.swift
+@@ -0,0 +1,408 @@
++import Foundation
++import Security
++import Testing
++@testable import FrameRelay
++
++@Suite(.serialized) @MainActor struct ProductStatusSynchronizationTests {
++    @Test func injectedRegistrationKeepsExistingBehaviorWithoutProductCredentialFallback() async throws {
++        let parent = try statusCompositionParent()
++        let keychain = try RegistrationTestKeychain(); defer { keychain.cleanup() }
++        let vault = try keychain.vault(), remote = RegistrationTestRemote()
++        let composition = ProductComposition(factory: .init(supportDirectory: parent), registrationFactory: { store in
++            RegistrationCoordinator(store: store, vault: vault, remote: remote)
++        })
++        await composition.open()
++        let model = try #require(composition.connection)
++        #expect(!model.supportsStatusSynchronization && composition.statusSynchronization == nil)
++        #expect(await remote.posts == 0)
++        #expect(await remote.lookups == 0)
++        #expect(await remote.discoveries == 0)
++        #expect(composition.library != nil)
++    }
++
++    @Test func explicitRegisteredModelOperationUsesOneWriterAndRefreshesLibrary() async throws {
++        let factory = ProductLibraryFactory(supportDirectory: try statusCompositionParent())
++        let services = try await factory.open()
++        let keychain = try RegistrationTestKeychain(); defer { keychain.cleanup() }
++        let vault = try keychain.vault(), registrationRemote = RegistrationTestRemote()
++        let registration = RegistrationCoordinator(store: services.store, vault: vault, remote: registrationRemote)
++        guard case .registered = await registration.register(connection: keychain.connection, bearer: "synthetic-bootstrap") else {
++            throw BackendContractError.notCommitted
++        }
++        let binding = try await statusKnownOriginal(try publicationOriginal("composition-known"), store: services.store)
++        let remote = StatusMetadataRemote(); remote.setManifest(statusRendition(binding.original), revision: 1)
++        let composition = ProductComposition(factory: factory, registrationFactory: { store in
++            RegistrationCoordinator(store: store, vault: vault, remote: registrationRemote)
++        }, statusSynchronizationFactory: { opened, media in
++            ProductStatusSynchronization(store: opened.store, access: opened.access, media: media, credentials: vault,
++                admission: { true }, remoteFactory: { _, _, _, _ in remote })
++        })
++        await composition.open()
++        let model = try #require(composition.connection)
++        #expect(model.canSynchronize && remote.afters.isEmpty && remote.manifestCalls.isEmpty)
++        #expect(try await mediaSnapshot(services.store).publications.isEmpty)
++        await model.synchronizeStatus()
++        #expect(model.synchronizationReport?.phase == .checked)
++        #expect(composition.library?.item(binding.original.capture)?.status(.publication).contains("公開版の保存記録あり") == true)
++        #expect(composition.library?.snapshot?.revision == (try await mediaSnapshot(services.store).revision))
++        #expect(try await mediaSnapshot(services.store).confirmations.isEmpty)
++        await composition.open()
++        #expect(composition.connection === model && remote.afters.count == 1)
++        #expect(remote.mediaCalls == 0 && remote.sent.isEmpty)
++    }
++
++    @Test func unknownPersistedOwnerDoesNotBecomeAnAckAndIndependentVideoContinues() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run, names: ["unknown-owner", "other-video"])
++            let snapshot = try await mediaOriginalSnapshot(f.store)
++            let lease = MediaReadLease(id: .init(rawValue: "old-owner"), target: .rendition(f.renditions[0]),
++                operation: .init(rawValue: "old-read"), registration: f.registration.server.registration,
++                context: .playback(.init(rawValue: "lost-player")), epoch: try #require(snapshot.reconciliationEpoch),
++                accessGeneration: .init(rawValue: 1))
++            _ = try await mediaOriginalCommit(f.store, .acquireMedia(lease))
++            let record = statusInvalidation(f.renditions[0], registration: f.registration.server.registration)
++            f.remote.pages = [.succeeded(.init(records: [record], nextAfter: nil))]
++            f.remote.setManifest(statusRendition(f.renditions[1].original, version: 2), revision: 2)
++            let player = StatusOriginalPlayer()
++            let access = ManagedOriginalAccess(store: f.store, originals: ManagedOriginalStore(run: run))
++            let media = ProductMediaTermination(store: f.store, access: access, player: player)
++            let port = ProductStatusSynchronization(store: f.store, access: access, media: media,
++                credentials: StatusUnavailableCredentials(), admission: { true }, remoteFactory: { _, _, _, _ in f.remote })
++            let report = await port.synchronize(connection: try statusConnection(), registration: f.registration)
++            #expect(report.phase == .partial && report.unresolvedInvalidations == 1)
++            #expect(report.items.last?.disposition == .recorded)
++            #expect(try await mediaSnapshot(f.store).invalidations.isEmpty)
++            #expect(f.remote.sent.isEmpty && f.remote.mediaCalls == 0)
++            #expect(try await mediaOriginalSnapshot(f.store).logicalOriginals.first?.invalidation?.record == record)
++        }
++    }
++
++    @Test func preparedBackgroundSourceWithoutReadersRemainsUnresolved() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run)
++            let intent = try await statusBackgroundDownload(f, prepared: true)
++            if case .download(_, _, let lease) = intent.source { _ = try await mediaOriginalCommit(f.store, .releaseMedia(lease)) }
++            let record = statusInvalidation(f.renditions[0], registration: f.registration.server.registration)
++            f.remote.pages = [.succeeded(.init(records: [record], nextAfter: nil))]
++            let player = StatusOriginalPlayer()
++            let access = ManagedOriginalAccess(store: f.store, originals: ManagedOriginalStore(run: run))
++            let media = ProductMediaTermination(store: f.store, access: access, player: player)
++            let port = ProductStatusSynchronization(store: f.store, access: access, media: media,
++                credentials: StatusUnavailableCredentials(), admission: { true }, remoteFactory: { _, _, _, _ in f.remote })
++            let report = await port.synchronize(connection: try statusConnection(), registration: f.registration)
++            #expect(report.phase == .partial && report.unresolvedInvalidations == 1)
++            #expect(player.stops == 0)
++            #expect(try await mediaSnapshot(f.store).invalidations.isEmpty && f.remote.sent.isEmpty)
++            #expect(try await mediaSnapshot(f.store).backgroundTasks.first?.binding == nil)
++        }
++    }
++
++    @Test func writerReservationFencesBackgroundPreparationAndNewReaderDuringTerminalAwait() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run)
++            let intent = try await statusBackgroundDownload(f, prepared: false)
++            let record = statusInvalidation(f.renditions[0], registration: f.registration.server.registration)
++            f.remote.pages = [.succeeded(.init(records: [record], nextAfter: nil))]
++            f.remote.setManifest(f.renditions[0], revision: 2, generation: 1)
++            let player = StatusOriginalPlayer()
++            player.onStop = {
++                let before = try await mediaSnapshot(f.store)
++                let attempted = BackendStoreMutation(expectedRevision: before.revision,
++                    change: .backgroundTask(command: .init(rawValue: "racing-prepare"), value: .prepared(intent)),
++                    expectedStoreIdentity: f.identity)
++                #expect(await f.store.commit(attempted) == .rejected(.deletionUnresolved))
++                guard case .download(_, _, let owned) = intent.source else { throw BackendContractError.invalidValue }
++                let other = MediaReadLease(id: .init(rawValue: "racing-acquire"), target: owned.target,
++                    operation: owned.operation, registration: owned.registration, context: owned.context,
++                    epoch: owned.epoch, accessGeneration: .init(rawValue: 2))
++                let current = try await mediaOriginalSnapshot(f.store)
++                #expect(await f.store.commitOriginal(.init(operation: .init(rawValue: "racing-acquire"),
++                    expectedRevision: current.revision, change: .acquireMedia(other))) == .rejected(.deletionUnresolved))
++                // Explicit technical owner terminal: no SDK factory was called
++                // before the rejected prepared intent, and this lease is closed.
++                _ = try await mediaOriginalCommit(f.store, .releaseMedia(owned))
++            }
++            let access = ManagedOriginalAccess(store: f.store, originals: ManagedOriginalStore(run: run))
++            let media = ProductMediaTermination(store: f.store, access: access, player: player)
++            let port = ProductStatusSynchronization(store: f.store, access: access, media: media,
++                credentials: StatusUnavailableCredentials(), admission: { true }, remoteFactory: { _, _, _, _ in f.remote })
++            let report = await port.synchronize(connection: try statusConnection(), registration: f.registration)
++            #expect(report.phase == .checked)
++            #expect(try await mediaSnapshot(f.store).backgroundTasks.isEmpty)
++            #expect(try await mediaSnapshot(f.store).invalidations.count == 1)
++            #expect(f.remote.sent.count == 1 && f.remote.mediaCalls == 0)
++            #expect(player.stops == 1 && player.resumes == 1)
++        }
++    }
++}
++
++@MainActor private final class StatusOriginalPlayer: OriginalPlaybackTerminationPort {
++    var onStop: (@MainActor () async throws -> Void)?
++    private(set) var stops = 0
++    private(set) var resumes = 0
++    func stopAndObserve(original: OriginalContent) async throws -> OriginalPlaybackTermination {
++        stops += 1; try await onStop?()
++        return .init(original: original, admissionClosed: true, createdOwners: 0, terminals: [])
++    }
++    func resumeAfterInvalidation(_ acknowledgement: InvalidationAcknowledgement) async throws { resumes += 1 }
++}
++nonisolated private struct StatusUnavailableCredentials: RegistrationAuthorizationPort {
++    func authorization(for connection: RegistrationConnection, intent: RegistrationIntent?, storeIdentity: RegistrationStoreIdentity) async throws -> RegistrationAuthorization {
++        throw RegistrationAccessError.credentialUnavailable
++    }
++}
++nonisolated private func statusConnection() throws -> RegistrationConnection {
++    try .init(endpoint: .init(httpsOrigin: "https://127.0.0.1:1"),
++              destination: .init(rawValue: "9a3ba104-985f-4a2d-875d-d458258b9b6b"))
++}
++nonisolated private func statusCompositionParent() throws -> URL {
++    let parent = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
++        .appendingPathComponent("FrameRelay-status-composition-" + UUID().uuidString)
++    try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: false)
++    return parent
++}
++@MainActor private func statusBackgroundDownload(_ f: StatusSynchronizationFixture, prepared: Bool) async throws -> BackgroundMediaTaskIntent {
++    let rendition = f.renditions[0], registration = f.registration.server.registration
++    let operation = MediaOperationID(rawValue: "background-download"), attempt = TransferAttemptID(rawValue: "background-attempt")
++    let before = try await mediaSnapshot(f.store)
++    let request = MediaRequest(operation: operation, target: .rendition(rendition), purpose: .download,
++        registration: registration, expectedStartRevision: before.revision)
++    _ = try await mediaCommit(f.store, .request(command: operation, value: request))
++    _ = try await mediaCommit(f.store, .requestTransition(command: .init(rawValue: "download-reconciled"), operation: operation,
++        target: request.target, registration: registration, value: .reconciled(.init(
++            context: .init(operation: operation, registration: registration, target: request.target, session: nil),
++            observation: .init(rawValue: 1), result: .notExecuted))))
++    _ = try await mediaCommit(f.store, .requestTransition(command: .init(rawValue: "download-begin"), operation: operation,
++        target: request.target, registration: registration, value: .beginAttempt(attempt)))
++    let state = try await mediaOriginalSnapshot(f.store)
++    let lease = MediaReadLease(id: .init(rawValue: "background-reader"), target: request.target, operation: operation,
++        registration: registration, context: .transport(attempt), epoch: try #require(state.reconciliationEpoch), accessGeneration: .init(rawValue: 1))
++    _ = try await mediaOriginalCommit(f.store, .acquireMedia(lease))
++    let intent = BackgroundMediaTaskIntent(id: .init(rawValue: UUID().uuidString), context: .init(operation: operation, attempt: attempt,
++        target: request.target, registration: registration, gateGeneration: 1, storeIdentity: f.identity),
++        session: .init(identifier: .init(rawValue: "FrameRelay.status.synthetic." + UUID().uuidString), generation: .init(rawValue: UUID())),
++        taskDescription: UUID().uuidString, requestFingerprint: .init(sha256: String(repeating: "b", count: 64)),
++        source: .download(rendition: rendition, range: nil, lease: lease))
++    if prepared {
++        let snapshot = try await mediaSnapshot(f.store)
++        guard case .committed = await f.store.commit(.init(expectedRevision: snapshot.revision,
++            change: .backgroundTask(command: .init(rawValue: "prepared-background"), value: .prepared(intent)), expectedStoreIdentity: f.identity)) else {
++            throw BackendContractError.notCommitted
++        }
++    }
++    return intent
++}
++
++/// These three cases are explicit test-target fixtures for the dedicated empty
++/// Simulator. The production App has no seed, credential injection or success
++/// branch. Existing stores and Keychain records are never reset or overwritten.
++@Suite(.serialized) @MainActor struct ProductStatusSynchronizationSeedTests {
++    @Test(.enabled(if: ProcessInfo.processInfo.environment["FR_S28_STATUS_SEED"] == "1"))
++    func seedDedicatedRegisteredRoot() async throws {
++        let nonce = try statusSeedNonce()
++        let services = try await ProductLibraryFactory.shared.open()
++        let before = try await mediaSnapshot(services.store)
++        let originals = try await mediaOriginalSnapshot(services.store)
++        guard case .loaded(let recordings) = await services.store.loadRecordings() else { throw BackendContractError.unavailable }
++        try #require(before.revision == 0 && before.storeIdentity == nil && before.registrationIntents.isEmpty
++            && before.registrations.isEmpty && before.publications.isEmpty && before.requests.isEmpty && before.backgroundTasks.isEmpty
++            && before.confirmations.isEmpty && before.invalidations.isEmpty && before.outbox.isEmpty
++            && recordings.recordings.isEmpty && originals.logicalOriginals.isEmpty)
++        try #require(try statusProductKeychainIsEmpty())
++        let vault = KeychainRegistrationVault()
++        try #require(try await vault.connection(storeIdentity: nil) == nil)
++        let file = services.run.url.appendingPathComponent("s28-status-seed.json")
++        try #require(!FileManager.default.fileExists(atPath: file.path))
++        let identity = try await establishRegistrationIdentity(services.store)
++        let connection = try statusConnection()
++        try await vault.saveConnection(connection, bearer: "s28-synthetic-" + nonce, storeIdentity: identity)
++        let intent = try await vault.prepareIntent(for: connection.destination, storeIdentity: identity)
++        _ = try await mediaCommit(services.store, .registrationIntent(intent))
++        _ = try await mediaCommit(services.store, .registration(.init(intent: intent, registration: .init(destination: connection.destination,
++            id: .init(rawValue: UUID().uuidString.lowercased()), generation: .init(rawValue: 1)))))
++        let registration = try #require(try await mediaSnapshot(services.store).registrations.last)
++        let binding = try await statusKnownOriginal(try publicationOriginal("s28-" + nonce), store: services.store)
++        let observation = mediaPublication(statusRendition(binding.original), registration: registration.server.registration)
++        let commit = try await mediaCommit(services.store, .publication(observation))
++        let manifest = StatusSeedManifest(nonce: nonce, identity: identity, registration: registration, binding: binding,
++            observation: observation, commit: commit)
++        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
++        try encoder.encode(manifest).write(to: file, options: .withoutOverwriting)
++        #expect(try await mediaSnapshot(services.store).confirmations.isEmpty)
++        print("S28_STATUS_SEED nonce=\(nonce) registered=true publication=synthetic metadataOnly=true")
++    }
++
++    @Test(.enabled(if: ProcessInfo.processInfo.environment["FR_S28_STATUS_VERIFY"] == "1"))
++    func verifyDedicatedRegisteredRoot() async throws {
++        let nonce = try statusSeedNonce()
++        let services = try await ProductLibraryFactory.shared.open()
++        let file = services.run.url.appendingPathComponent("s28-status-seed.json")
++        let manifest = try JSONDecoder().decode(StatusSeedManifest.self, from: Data(contentsOf: file))
++        try #require(manifest.nonce == nonce)
++        let snapshot = try await mediaSnapshot(services.store)
++        #expect(snapshot.storeIdentity == manifest.identity && snapshot.registrations == [manifest.registration])
++        #expect(snapshot.publications.count == 1 && snapshot.publications[0].observation == manifest.observation
++            && snapshot.publications[0].commit == manifest.commit)
++        #expect(snapshot.confirmations.isEmpty && snapshot.invalidations.isEmpty && snapshot.deliveries.isEmpty
++            && snapshot.outbox.isEmpty && snapshot.requests.isEmpty && snapshot.backgroundTasks.isEmpty && snapshot.temporaryMedia.isEmpty)
++        let originals = try await mediaOriginalSnapshot(services.store)
++        #expect(originals.originals.map(\.binding) == [manifest.binding])
++        #expect(originals.logicalOriginals.allSatisfy { $0.readers.isEmpty && $0.mediaReaders.isEmpty && $0.invalidation == nil })
++        let restored = await RegistrationCoordinator(store: services.store, vault: KeychainRegistrationVault(),
++            remote: RegistrationTestRemote()).restore()
++        #expect(registrationIsCommitted(restored))
++        print("S28_STATUS_VERIFY nonce=\(nonce) publication=preserved confirmations=0 mediaRecords=0")
++    }
++}
++
++nonisolated private struct StatusSeedManifest: Codable {
++    let nonce: String
++    let identity: RegistrationStoreIdentity
++    let registration: DeviceRegistration
++    let binding: OriginalBinding
++    let observation: PublishedRenditionObservation
++    let commit: BackendCommitReceipt
++}
++nonisolated private func statusSeedNonce() throws -> String {
++    let env = ProcessInfo.processInfo.environment
++    let nonce = env["FR_S28_STATUS_NONCE"] ?? ""
++    try #require(UUID(uuidString: nonce)?.uuidString.lowercased() == nonce)
++    let expected = try #require(env["FR_S28_STATUS_SIMULATOR_UDID"])
++    let actual = try #require(env["SIMULATOR_UDID"])
++    try #require(UUID(uuidString: expected) != nil && actual == expected)
++    return nonce
++}
++nonisolated private func statusProductKeychainIsEmpty() throws -> Bool {
++    let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
++        kSecAttrService as String: KeychainRegistrationVault.productService,
++        kSecAttrSynchronizable as String: false, kSecUseDataProtectionKeychain as String: true,
++        kSecReturnAttributes as String: true, kSecMatchLimit as String: kSecMatchLimitAll]
++    var result: CFTypeRef?
++    let status = SecItemCopyMatching(query as CFDictionary, &result)
++    if status == errSecItemNotFound { return true }
++    guard status == errSecSuccess else { throw RegistrationAccessError.credentialUnavailable }
++    return false
++}
++
++/// A separate explicit HTTP run: the existing publication fixture is used only
++/// for the two bounded JSON reads. No distribution, playback or fixture control
++/// endpoint is available to this case, and this is not formal quality proof.
++@Suite(.serialized, .enabled(if: ProcessInfo.processInfo.environment["FR_S27_HTTP_FIXTURE"] == "1"
++    && ProcessInfo.processInfo.environment["FR_S28_METADATA_ONLY"] == "1"))
++@MainActor struct StatusSynchronizationHTTPFixtureTests {
++    @Test func metadataOnlyPageAndManifestUseCoordinator() async throws {
++        let config = try StatusHTTPConfiguration()
++        try await withStorageRun { run in
++            let store = try SQLiteRecordingStore(run: run, mode: .createNew)
++            let identity = try await establishRegistrationIdentity(store)
++            _ = try await mediaCommit(store, .registrationIntent(config.receipt.intent))
++            _ = try await mediaCommit(store, .registration(config.receipt))
++            let registration = try #require(try await mediaSnapshot(store).registrations.last)
++            _ = try await statusKnownOriginal(config.rendition.original, store: store)
++            let before = try await mediaSnapshot(store)
++            let credentials = PublicationCredentialsFixture(registration: registration, identity: identity,
++                material: .init(bearer: config.bearer, secret: config.registrationSecret))
++            let remote = StatusObservedHTTPRemote(base: URLSessionPublicationRemote(connection: config.connection,
++                credentials: credentials, store: store, identity: identity))
++            let coordinator = BackendStatusSynchronizationCoordinator(store: store, identity: identity, registration: registration,
++                remote: remote, invalidations: statusInvalidator(store: store, identity: identity, run: run))
++            let result = await coordinator.synchronize()
++            let saved = try await mediaSnapshot(store)
++            let reopened = try SQLiteRecordingStore(run: run, mode: .openExisting)
++            let replay = try await mediaSnapshot(reopened)
++            let matches = saved == replay
++            let observation: [String: Any] = [
++                "report_schema": "fr-s28-metadata-observation-v1", "probe_mode": "metadata-only", "fixtureOnly": true,
++                "runIdentity": config.runIdentity, "boundedPages": remote.invalidationsStarted,
++                "invalidationsStarted": remote.invalidationsStarted, "invalidationsCompleted": remote.invalidationsCompleted,
++                "manifestStarted": remote.manifestStarted, "manifestCompleted": remote.manifestCompleted,
++                "confirmationSend": remote.confirmationSend, "ackSend": remote.ackSend, "operationLookup": remote.operationLookup,
++                "distribute": remote.distributeCount, "lookupDistribution": remote.lookupDistributionCount,
++                "durablePublicationCount": saved.publications.count, "newConfirmations": saved.confirmations.count - before.confirmations.count,
++                "reopenMatches": matches, "coordinatorAwaitCompleted": true, "sdkTerminalCountsObserved": false,
++                "sdkTerminalContract": "PublicationURLSessionRequest awaits task completion and session invalidation"
++            ]
++            let data = try JSONSerialization.data(withJSONObject: observation, options: [.sortedKeys])
++            Attachment.record(String(decoding: data, as: UTF8.self), named: "s28-metadata-observation.json")
++            #expect(result.phase == .checked && !result.hasMore && result.unresolvedInvalidations == 0)
++            #expect(remote.invalidationsStarted == 1 && remote.invalidationsCompleted == 1)
++            #expect(remote.manifestStarted == 1 && remote.manifestCompleted == 1)
++            #expect(remote.confirmationSend == 0 && remote.ackSend == 0 && remote.operationLookup == 0)
++            #expect(remote.distributeCount == 0 && remote.lookupDistributionCount == 0)
++            #expect(before.publications.isEmpty && saved.publications.count == 1)
++            #expect(saved.publications.first?.observation.rendition == config.rendition)
++            #expect(saved.confirmations.isEmpty && saved.invalidations.isEmpty && saved.outbox.isEmpty
++                && saved.requests.isEmpty && saved.backgroundTasks.isEmpty && saved.temporaryMedia.isEmpty)
++            #expect(matches && replay.storeIdentity == identity)
++            let originals = try await mediaOriginalSnapshot(reopened)
++            #expect(originals.logicalOriginals.allSatisfy { $0.readers.isEmpty && $0.mediaReaders.isEmpty })
++        }
++    }
++}
++
++@MainActor private final class StatusObservedHTTPRemote: PublicationRemotePort {
++    let base: URLSessionPublicationRemote
++    private(set) var invalidationsStarted = 0
++    private(set) var invalidationsCompleted = 0
++    private(set) var manifestStarted = 0
++    private(set) var manifestCompleted = 0
++    private(set) var confirmationSend = 0
++    private(set) var ackSend = 0
++    private(set) var operationLookup = 0
++    private(set) var distributeCount = 0
++    private(set) var lookupDistributionCount = 0
++    init(base: URLSessionPublicationRemote) { self.base = base }
++    func manifest(original: OriginalContent, registration: RegistrationIdentity) async -> BackendOutcome<PublicationManifest> {
++        manifestStarted += 1
++        let value = await base.manifest(original: original, registration: registration)
++        manifestCompleted += 1
++        return value
++    }
++    func invalidations(registration: RegistrationIdentity, after: InvalidationID?) async -> BackendOutcome<PublicationInvalidationPage> {
++        invalidationsStarted += 1
++        let value = await base.invalidations(registration: registration, after: after)
++        invalidationsCompleted += 1
++        return value
++    }
++    func send(_ entry: BackendSyncEntry) async -> BackendOutcome<BackendSyncResponse> {
++        switch entry { case .confirmation: confirmationSend += 1; case .invalidation: ackSend += 1 }
++        return await base.send(entry)
++    }
++    func lookup(_ entry: BackendSyncEntry) async -> BackendOutcome<BackendSyncResponse> { operationLookup += 1; return await base.lookup(entry) }
++    func distribute(_ request: PublicationDistributionRequest) async -> BackendOutcome<PublicationDistribution> { distributeCount += 1; return .failed(.rejected) }
++    func lookupDistribution(_ request: PublicationDistributionRequest) async -> BackendOutcome<PublicationDistribution> { lookupDistributionCount += 1; return .failed(.rejected) }
++}
++
++@MainActor private struct StatusHTTPConfiguration {
++    let connection: RegistrationConnection
++    let receipt: RegistrationServerReceipt
++    let rendition: RenditionIdentity
++    let bearer: String
++    let registrationSecret: String
++    let runIdentity: String
++    init() throws {
++        let env = ProcessInfo.processInfo.environment
++        guard let origin = env["FR_S27_ORIGIN"], let bearer = env["FR_S27_BEARER"],
++              let secret = env["FR_S27_REGISTRATION_SECRET"], let json = env["FR_S27_FIXTURE_JSON"], json.utf8.count <= 16_384 else {
++            throw BackendContractError.invalidValue
++        }
++        let object = try PublicationWire.parse(Data(json.utf8)).object(keys: ["schema_version", "run_identity", "fixture_only",
++            "wire_sha256", "source_sha256", "media_type", "registration_receipt", "original", "v1", "v2", "provenance"])
++        guard object["schema_version"] == .string("fr-publication-fixture-v1"), object["fixture_only"] == .boolean(true),
++              object["wire_sha256"] == .string("455868ebe8d057ad32471a169396333c03cd1bcf2b4a4986f3147935f2617e0a"),
++              object["media_type"] == .string("video/quicktime"), object["v2"] == .null else { throw BackendContractError.unsupportedVersion }
++        let fields = try object["registration_receipt"]!.object(keys: ["destination_id", "operation_id", "registration_id", "generation", "created_at"])
++        let intent = RegistrationIntent(operation: .init(rawValue: try fields["operation_id"]!.opaque()),
++            destination: .init(rawValue: try fields["destination_id"]!.opaque()))
++        receipt = try RegistrationWire.receipt(PublicationWire.body(object["registration_receipt"]!), intent: intent)
++        #if DEBUG && targetEnvironment(simulator)
++        connection = try .init(endpoint: .isolatedLoopbackProbe(origin), destination: intent.destination)
++        #else
++        throw BackendContractError.unavailable
++        #endif
++        rendition = try PublicationWire.decodeRendition(object["v1"]!)
++        guard try PublicationWire.original(rendition.original) == object["original"] else { throw BackendContractError.identityMismatch }
++        runIdentity = try object["run_identity"]!.opaque()
++        self.bearer = bearer; registrationSecret = secret
++    }
++}
+--- before/FrameRelayTests/Integration/Storage/StatusSynchronizationStoreTests.swift
++++ FrameRelayTests/Integration/Storage/StatusSynchronizationStoreTests.swift
+@@ -0,0 +1,145 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++@Suite(.serialized) @MainActor struct StatusSynchronizationStoreTests {
++    @Test(arguments: StorageCandidate.allCases)
++    func metadataCommitAndIndependentLibraryAxesSurviveActualDiskReopen(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let store = try statusSynchronizationDisk(candidate, run: run, mode: .createNew)
++            let identity = try await establishRegistrationIdentity(store)
++            let registration = try await mediaRegister(store)
++            let registered = try #require(try await mediaSnapshot(store).registrations.last)
++            let binding = try await statusKnownOriginal(try publicationOriginal("disk-status"), store: store)
++            let rendition = statusRendition(binding.original)
++            let remote = StatusMetadataRemote(); remote.setManifest(rendition, revision: 1)
++            let invalidations = statusInvalidator(store: store, identity: identity, run: run)
++            let coordinator = BackendStatusSynchronizationCoordinator(store: store, identity: identity, registration: registered,
++                remote: remote, invalidations: invalidations)
++            #expect(await coordinator.synchronize().phase == .checked)
++            let reopened = try statusSynchronizationDisk(candidate, run: run, mode: .openExisting)
++            let snapshot = try await mediaSnapshot(reopened)
++            #expect(snapshot.publications.count == 1 && snapshot.publications[0].observation.rendition == rendition)
++            #expect(snapshot.confirmations.isEmpty && snapshot.outbox.isEmpty)
++            #expect(snapshot.registrations.last?.server.registration == registration)
++            let files = StatusSynchronizationAbsentFiles()
++            let reader = LibraryStoreReader(store: reopened, files: files)
++            guard case .loaded(let library) = await reader.loadLibrary(), let item = library.items.first else {
++                throw BackendContractError.unavailable
++            }
++            #expect(item.status(.publication).contains("公開版の保存記録あり"))
++            #expect(item.status(.confirmation).contains("明示確認なし"))
++            #expect(item.status(.retrieval).contains("オフライン再生不可"))
++            #expect(item.status(.original) == "原本なし")
++            #expect(!item.isDiscardHistory)
++            #expect(try await mediaSnapshot(reopened) == snapshot)
++            #expect(remote.mediaCalls == 0)
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases, [RecordingStoreFault.beforeDiskCommit, .afterDiskCommitBeforeReply])
++    func realDiskFaultRetainsOnlyExactCommittedPublication(candidate: StorageCandidate, fault: RecordingStoreFault) async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run, candidate: candidate)
++            let failedDisk = try statusSynchronizationDisk(candidate, run: run, mode: .openExisting, fault: fault)
++            let hidden = StatusSynchronizationFaultStore(base: failedDisk); hidden.hideLookup = true
++            let rendition = statusRendition(f.renditions[0].original, version: 2)
++            f.remote.setManifest(rendition, revision: 2)
++            let coordinator = BackendStatusSynchronizationCoordinator(store: hidden, identity: f.identity, registration: f.registration,
++                remote: f.remote, invalidations: statusInvalidator(store: hidden, identity: f.identity, run: run))
++            #expect(await coordinator.synchronize().phase == .partial)
++            let mutation = try #require(hidden.mutations.last)
++            let reopened = try statusSynchronizationDisk(candidate, run: run, mode: .openExisting)
++            let snapshot = try await mediaSnapshot(reopened)
++            if fault == .afterDiskCommitBeforeReply {
++                let receipt = try #require(snapshot.publications.last?.commit)
++                #expect(snapshot.publications.count == 2)
++                #expect(await reopened.lookupCommit(mutation) == .committed(receipt))
++                let changed = BackendStoreMutation(expectedRevision: mutation.expectedRevision + 1,
++                    change: mutation.change, expectedStoreIdentity: f.identity)
++                #expect(await reopened.lookupCommit(changed) == .rejected(.identityMismatch))
++            } else {
++                #expect(snapshot.publications.count == 1)
++                #expect(await reopened.lookupCommit(mutation) == .unknown)
++            }
++            #expect(snapshot.confirmations.isEmpty && snapshot.invalidations.isEmpty && snapshot.outbox.isEmpty)
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases)
++    func reopenStartsAtNullAndCannotSubstituteNewRegistrationForOldReservation(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run, candidate: candidate)
++            let record = statusInvalidation(f.renditions[0], registration: f.registration.server.registration)
++            f.external.available = false
++            f.remote.pages = [.succeeded(.init(records: [record], nextAfter: record.id))]
++            #expect(await f.coordinator().synchronize().hasMore)
++            let reopened = try statusSynchronizationDisk(candidate, run: run, mode: .openExisting)
++            let nextIdentity = try await mediaRegister(reopened, registration: .init(destination: record.registration.destination,
++                id: .init(rawValue: "new-registration"), generation: .init(rawValue: 2)))
++            let next = try #require(try await mediaSnapshot(reopened).registrations.last)
++            let remote = StatusMetadataRemote(); remote.setManifest(f.renditions[0], revision: 1)
++            let coordinator = BackendStatusSynchronizationCoordinator(store: reopened, identity: f.identity, registration: next,
++                remote: remote, invalidations: statusInvalidator(store: reopened, identity: f.identity, run: run))
++            let result = await coordinator.synchronize()
++            #expect(result.phase == .partial && result.unresolvedInvalidations == 1)
++            #expect(remote.afters.count == 1 && remote.afters[0] == nil)
++            let snapshot = try await mediaSnapshot(reopened)
++            #expect(snapshot.invalidations.isEmpty && snapshot.confirmations.isEmpty)
++            #expect(snapshot.confirmationStates.last?.registration == nextIdentity)
++            #expect(try await mediaOriginalSnapshot(reopened).logicalOriginals.first?.invalidation?.record == record)
++            #expect(remote.sent.isEmpty && remote.mediaCalls == 0)
++        }
++    }
++
++    @Test func historicalOutboxRetainsItsOwnRegistrationAndNeverRestoresConfirmationToNewOne() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run)
++            let confirmations = MediaConfirmationCoordinator(store: f.store, identity: f.identity)
++            let token = try publicationToken(f.renditions[0], registration: f.registration.server.registration)
++            guard case .succeeded(let old) = await confirmations.confirm(token, action: .init(rawValue: "old-explicit-action")) else {
++                throw BackendContractError.notCommitted
++            }
++            _ = try await mediaRegister(f.store.base, registration: .init(destination: f.registration.server.registration.destination,
++                id: .init(rawValue: "next-registration"), generation: .init(rawValue: 2)))
++            let next = try #require(try await mediaSnapshot(f.store).registrations.last)
++            let coordinator = BackendStatusSynchronizationCoordinator(store: f.store, identity: f.identity, registration: next,
++                remote: f.remote, invalidations: statusInvalidator(store: f.store, identity: f.identity, run: run))
++            _ = await coordinator.synchronize()
++            #expect(f.remote.sent == [.confirmation(old)])
++            #expect(f.remote.sent[0].registration == f.registration.server.registration)
++            let snapshot = try await mediaSnapshot(f.store)
++            #expect(snapshot.confirmations == [old])
++            #expect(snapshot.confirmationStates.last?.registration == next.server.registration)
++            #expect(snapshot.confirmationStates.last?.validConfirmation == nil)
++        }
++    }
++
++    @Test func canonicalEquivalentRegistrationIsNotTheExactStoredRegistration() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run)
++            _ = try await mediaRegister(f.store.base, registration: .init(destination: f.registration.server.registration.destination,
++                id: .init(rawValue: "\u{e9}"), generation: .init(rawValue: 2)))
++            let stored = try #require(try await mediaSnapshot(f.store).registrations.last)
++            let alias = DeviceRegistration(server: .init(intent: stored.server.intent, registration: .init(
++                destination: stored.server.registration.destination, id: .init(rawValue: "e\u{301}"), generation: stored.server.registration.generation)),
++                intentCommit: stored.intentCommit, commit: stored.commit)
++            #expect(alias == stored && !PublicationStoreBoundary.exact(alias, stored))
++            let coordinator = BackendStatusSynchronizationCoordinator(store: f.store, identity: f.identity, registration: alias,
++                remote: f.remote, invalidations: f.invalidations)
++            #expect(await coordinator.synchronize().phase == .unavailable)
++            #expect(f.remote.afters.isEmpty && f.remote.manifestCalls.isEmpty)
++        }
++    }
++}
++
++@MainActor func statusInvalidator(store: any MediaOperationStorePort & OriginalStorePort, identity: RegistrationStoreIdentity,
++                                run: ExplorationRunDirectory) -> MediaInvalidationCoordinator {
++    .init(store: store, identity: identity, ordering: ManagedOriginalAccess(store: store, originals: ManagedOriginalStore(run: run)),
++          scopes: RenditionScopeRegistry(leases: RenditionReadLeases(store: store)), external: PublicationExternalFixture())
++}
++
++nonisolated struct StatusSynchronizationAbsentFiles: RecordingOriginalFilePort {
++    func reserveForRecording(_ reference: CaptureOriginalReference) async throws { throw BackendContractError.unavailable }
++    func observeFile(_ reference: CaptureOriginalReference) async -> OriginalFileObservation { .absent }
++}
+--- before/FrameRelayUITests/Flows/ConnectionFlowTests.swift
++++ FrameRelayUITests/Flows/ConnectionFlowTests.swift
+@@ -50,4 +50,40 @@
+         app.buttons["connection.close"].tap()
+         XCTAssertTrue(app.buttons["library.refresh"].exists)
+     }
++
++    /// Requires the separately seeded, dedicated synthetic Simulator. It uses
++    /// the unchanged normal App composition and a refused local HTTPS endpoint.
++    @MainActor func testRegisteredMetadataSynchronizationPreservesSavedPublication() throws {
++        let env = ProcessInfo.processInfo.environment
++        guard env["FR_S28_STATUS_UI"] == "1" else { throw XCTSkip("Explicit S28 dedicated metadata UI fixture is not enabled") }
++        let nonce = try XCTUnwrap(env["FR_S28_STATUS_NONCE"])
++        XCTAssertEqual(UUID(uuidString: nonce)?.uuidString.lowercased(), nonce)
++        let expected = try XCTUnwrap(env["FR_S28_STATUS_SIMULATOR_UDID"])
++        XCTAssertNotNil(UUID(uuidString: expected))
++        XCTAssertEqual(env["SIMULATOR_UDID"], expected)
++        let app = XCUIApplication(); app.launch()
++        let entry = app.buttons["product.connection"]
++        XCTAssertTrue(entry.waitForExistence(timeout: 10)); entry.tap()
++        XCTAssertTrue(app.staticTexts["connection.registered"].waitForExistence(timeout: 10))
++        let synchronize = app.buttons["connection.synchronize"]
++        XCTAssertTrue(synchronize.waitForExistence(timeout: 5)); XCTAssertTrue(synchronize.isEnabled)
++        synchronize.tap()
++        let result = app.staticTexts["connection.synchronization.state"]
++        XCTAssertTrue(result.waitForExistence(timeout: 30))
++        XCTAssertTrue(result.label.contains("一部"))
++        XCTAssertTrue(synchronize.isEnabled)
++        app.buttons["connection.close"].tap()
++        XCTAssertTrue(app.buttons["library.refresh"].waitForExistence(timeout: 5))
++        let video = app.buttons.containing(.staticText, identifier: "動画 s28-" + nonce).firstMatch
++        // The library row includes the synthetic recording title and saved
++        // publication. It is neither a completed media acquisition nor proof.
++        let saved = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "公開版の保存記録あり")).firstMatch
++        if !saved.exists && video.exists { video.tap() }
++        XCTAssertTrue(saved.waitForExistence(timeout: 5))
++        app.terminate(); app.launch()
++        XCTAssertTrue(entry.waitForExistence(timeout: 10)); entry.tap()
++        XCTAssertTrue(app.staticTexts["connection.registered"].waitForExistence(timeout: 10))
++        XCTAssertFalse(app.staticTexts["connection.synchronization.state"].exists)
++        app.buttons["connection.close"].tap()
++    }
+ }

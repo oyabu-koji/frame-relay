@@ -1,0 +1,79 @@
+--- baseline/FrameRelayTests/Integration/Photos/PhotoSaveCoordinatorTests.swift
++++ FrameRelayTests/Integration/Photos/PhotoSaveCoordinatorTests.swift
+@@ -56,7 +56,7 @@
+     }
+ 
+     @Test(arguments: [false, true])
+-    func interruptionAtResultCommitRetainsMediaAndNeverReadds(afterCommit: Bool) async throws {
++    func resultCommitUncertaintyDoesNotDiscardIndependentTerminalOrPermitReaddition(afterCommit: Bool) async throws {
+         try await withStorageRun { run in
+             let f = try await PhotoSaveFixture.make(run: run)
+             await f.faults.configure(.result, afterCommit: afterCommit)
+@@ -64,11 +64,12 @@
+             #expect(await f.library.additions.count == 1)
+             #expect(await f.library.completed == 1)
+             #expect(await f.media.finishes == 1)
+-            #expect(await f.media.releases == 0)
++            #expect(await f.media.releases == 1)
+             let held = try await f.rendition.temporary.usageSnapshot(f.receipt.id)
+-            #expect(held.uses == 1 && held.openHandles == 0 && held.fileBytes > 0)
++            #expect(held.uses == 0 && held.openHandles == 0 && (held.fileBytes == 0) == afterCommit)
+             let original = try await f.latest()
+             #expect((original.outcome != nil) == afterCommit)
++            #expect(original.usageTerminal != nil && original.terminalUsageRelease != nil)
+             let reopened = try SQLiteRecordingStore(run: run, mode: .openExisting)
+             let next = f.reopenedCoordinator(store: reopened)
+             _ = await next.restore()
+@@ -98,13 +99,16 @@
+             #expect(await f.library.requests.isEmpty)
+             #expect(await f.media.resolves == 0)
+             #expect(await f.media.finishes == 0)
+-            #expect(await f.media.releases == 0)
++            #expect(await f.media.releases == 1)
++            #expect(try await f.rendition.temporary.stateFor(f.receipt.id).usages.isEmpty)
+             await f.library.configure(add: .authorized)
+             #expect(await f.coordinator.save(f.receipt, action: .init(rawValue: "implicit-retry")) == .failed(.rejected))
+             #expect(await f.coordinator.save(f.receipt, action: .init(rawValue: "wrong-retry"), retryOf: .init(rawValue: "other")) == .failed(.rejected))
+             guard case .succeeded(let retried) = await f.coordinator.save(f.receipt,
+                 action: .init(rawValue: "explicit-retry"), retryOf: first) else { Issue.record("Explicit retry failed"); return }
+             #expect(retried.registration.intent.retryOf == first)
++            #expect(retried.registration.intent.usage != denied.registration.intent.usage)
++            #expect(await f.coordinator.save(f.receipt, action: .init(rawValue: "explicit-retry"), retryOf: first) == .succeeded(retried))
+             #expect(await f.library.additions.count == 1)
+             #expect(try await mediaSnapshot(f.rendition.store).photoRegistrations.count == 2)
+         }
+@@ -123,9 +127,8 @@
+             #expect(await f.coordinator.save(f.receipt, action: action) == .succeeded(saved))
+             #expect(await f.coordinator.save(f.receipt, action: .init(rawValue: "unlinked-operation")) == .failed(.rejected))
+             #expect(await f.library.additions.count == 1)
+-            if case .succeeded = outcome {
+-                #expect(await f.media.releases == 1)
+-            } else { #expect(await f.media.releases == 0) }
++            #expect(await f.media.releases == 1)
++            #expect(saved.usageTerminal != nil && saved.terminalUsageRelease != nil)
+             let reconciler = PhotoRegistrationReconciler(store: f.faults, identity: f.identity, library: f.library)
+             guard case .succeeded(let checked) = await reconciler.reconcile(saved.registration.intent.key,
+                 action: .init(rawValue: "explicit-result-check")) else { Issue.record("No exact observation"); return }
+@@ -195,6 +198,7 @@
+             guard case .succeeded(let saved) = await f.coordinator.save(f.receipt,
+                 action: .init(rawValue: "unsafe-terminal")) else { Issue.record("No uncertain result"); return }
+             guard case .unknown? = saved.outcome else { Issue.record("Unsafe terminal became success"); return }
++            #expect(saved.usageTerminal == nil && saved.terminalUsageRelease == nil)
+             #expect(await f.media.releases == 0)
+             #expect(try await f.rendition.temporary.usageSnapshot(f.receipt.id).uses == 1)
+             #expect(await f.coordinator.save(f.receipt, action: .init(rawValue: "must-not-add-again")) == .failed(.rejected))
+@@ -241,11 +245,12 @@
+             #expect(await f.library.additions.count == 1)
+             #expect(await f.library.completed == 1)
+             #expect(await f.media.finishes == 1)
+-            #expect(await f.media.releases == 0)
++            #expect(await f.media.releases == 1)
+             let record = try await f.latest()
+             #expect(record.outcome == nil)
++            #expect(record.usageTerminal != nil && record.terminalUsageRelease != nil)
+             let held = try await f.rendition.temporary.usageSnapshot(f.receipt.id)
+-            #expect(held.uses == 1 && held.openHandles == 0 && held.fileBytes > 0)
++            #expect(held.uses == 0 && held.openHandles == 0 && held.fileBytes > 0)
+             await f.faults.configure()
+             #expect(await f.reopenedCoordinator().save(f.receipt, action: .init(rawValue: "must-not-readd")) == .failed(.rejected))
+             #expect(await f.library.additions.count == 1)

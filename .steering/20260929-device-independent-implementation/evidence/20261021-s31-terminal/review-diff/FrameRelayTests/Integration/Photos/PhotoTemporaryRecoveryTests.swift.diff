@@ -1,0 +1,35 @@
+--- baseline/FrameRelayTests/Integration/Photos/PhotoTemporaryRecoveryTests.swift
++++ FrameRelayTests/Integration/Photos/PhotoTemporaryRecoveryTests.swift
+@@ -121,6 +121,7 @@
+             let scope = try await RenditionMediaScope.open(original: seed.record.registration.intent.rendition.original, leases: leases)
+             let owner = try await ManagedTemporaryMedia.open(root: run.url.appendingPathComponent("temporary"), leases: leases, scope: scope)
+             #expect(await owner.recoverSuccessfulPhotoUsage(seed.record) == .unknown)
++            #expect(await owner.recoverTerminalPhotoUsage(seed.record) == .unknown)
+             let state = try await owner.stateFor(seed.record.registration.intent.media)
+             #expect(state.usages.contains(seed.record.registration.mediaUse) && !state.reclaiming)
+             #expect(try await owner.usageSnapshot(state.id).fileBytes > 0)
+@@ -160,6 +161,9 @@
+             let f = try await PhotoSaveFixture.make(run: run)
+             let intentOnly = try await f.commitIntent()
+             _ = try await f.rendition.temporary.resolvePhotoMedia(f.receipt.usage)
++            await #expect(throws: BackendContractError.identityMismatch) {
++                try await f.rendition.temporary.photoUsageTerminal(intentOnly.registration, termination: .notStarted)
++            }
+             // Deliberately hostile caller bypasses the coordinator's producer
+             // contract; the local owner still knows its SDK handle is open.
+             let result = PhotoRegistrationResult(intent: intentOnly.registration.intent,
+@@ -248,9 +252,11 @@
+                                            outcome: PhotoRegistrationOutcome = .succeeded(localIdentifier: nil),
+                                            secondOriginal: Bool = false) async throws -> PhotoRecoverySeed {
+     let f = try await PhotoSaveFixture.make(run: run, candidate: candidate, keepPlayback: keepPlayback)
+-    await f.media.configure(releaseBlocked: true)
+-    await f.library.configure(outcome: outcome)
+-    _ = await f.coordinator.save(f.receipt, action: .init(rawValue: "committed-before-process-ended"))
++    // Preserve the old schema-7 shape deliberately: outcome without the newer
++    // independent SDK/file terminal. Compatibility recovery must not infer one.
++    let intentOnly = try await f.commitIntent(action: "committed-before-process-ended")
++    _ = try await mediaCommit(f.rendition.store, .photo(command: .init(rawValue: "legacy-photo-result"),
++        value: .result(.init(intent: intentOnly.registration.intent, outcome: outcome))))
+     let record = try await f.latest()
+     if secondOriginal { try await photoOtherOriginal(run: run, store: f.rendition.store, identity: f.identity) }
+     return .init(record: record, identity: f.identity)

@@ -1,0 +1,72 @@
+--- 56/FrameRelay/Features/Connection/ConnectionView.swift
++++ 58/FrameRelay/Features/Connection/ConnectionView.swift
+@@ -4,6 +4,7 @@
+ struct ConnectionView: View {
+     @Bindable var model: ConnectionModel
+     @Environment(\.dismiss) private var dismiss
++    @FocusState private var focusedInput: ConnectionInputField?
+     var body: some View {
+         NavigationStack {
+             VStack(spacing: 0) {
+@@ -103,16 +104,19 @@
+                                 TextField("HTTPSの接続先URL（パスなし）", text: $model.origin)
+                                     .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
+                                     .accessibilityIdentifier("connection.new.origin")
++                                    .focused($focusedInput, equals: .newOrigin)
+                                     .textFieldStyle(.roundedBorder)
+                                     .frame(minHeight: 44)
+                                 TextField("接続先ID", text: $model.destination)
+                                     .textInputAutocapitalization(.never).autocorrectionDisabled()
+                                     .accessibilityIdentifier("connection.new.destination")
++                                    .focused($focusedInput, equals: .newDestination)
+                                     .textFieldStyle(.roundedBorder)
+                                     .frame(minHeight: 44)
+                                 SecureField("認証トークン", text: $model.bearer)
+                                     .textInputAutocapitalization(.never).autocorrectionDisabled()
+                                     .accessibilityIdentifier("connection.new.bearer")
++                                    .focused($focusedInput, equals: .newBearer)
+                                     .textFieldStyle(.roundedBorder)
+                                     .frame(minHeight: 44)
+                                 Button("接続先を確認して新しい登録を開始") { Task { await model.registerNewStore() } }
+@@ -137,16 +141,19 @@
+                                 TextField("HTTPSの接続先URL（パスなし）", text: $model.origin)
+                                     .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
+                                     .accessibilityIdentifier("connection.origin")
++                                    .focused($focusedInput, equals: .origin)
+                                     .textFieldStyle(.roundedBorder)
+                                     .frame(minHeight: 44)
+                                 TextField("接続先ID", text: $model.destination)
+                                     .textInputAutocapitalization(.never).autocorrectionDisabled()
+                                     .accessibilityIdentifier("connection.destination")
++                                    .focused($focusedInput, equals: .destination)
+                                     .textFieldStyle(.roundedBorder)
+                                     .frame(minHeight: 44)
+                                 SecureField("認証トークン", text: $model.bearer)
+                                     .textInputAutocapitalization(.never).autocorrectionDisabled()
+                                     .accessibilityIdentifier("connection.bearer")
++                                    .focused($focusedInput, equals: .bearer)
+                                     .textFieldStyle(.roundedBorder)
+                                     .frame(minHeight: 44)
+                                 Button("接続先を確認して端末を登録") { Task { await model.register() } }
+@@ -183,6 +190,10 @@
+                     .font(.body)
+                     .frame(maxWidth: .infinity, alignment: .leading)
+                     .padding(16)
++                }
++                .scrollDismissesKeyboard(.interactively)
++                .onScrollPhaseChange { _, phase in
++                    if phase == .interacting { focusedInput = nil }
+                 }
+                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                 .background(Color(uiColor: .systemGroupedBackground))
+@@ -227,6 +238,10 @@
+     }
+ }
+ 
++private enum ConnectionInputField: Hashable {
++    case origin, destination, bearer, newOrigin, newDestination, newBearer
++}
++
+ private struct ConnectionSection<Content: View, Header: View>: View {
+     private let content: Content
+     private let header: Header

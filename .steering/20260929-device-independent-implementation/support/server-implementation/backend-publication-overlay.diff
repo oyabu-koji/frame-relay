@@ -889,20 +889,24 @@
  from pathlib import PurePosixPath
  import stat
  
-@@ -9,6 +10,12 @@
+@@ -9,6 +10,16 @@
  
  
  BLOCK = 1024 * 1024
++SEALED_ROOT = ("publications", "frame-relay")
 +SEALED_PREFIX = "publications/frame-relay/"
 +
 +
 +def _not_sealed(relative):
-+    if str(relative).startswith(SEALED_PREFIX):
++    # Match the same dot/separator normalization as parent(), including the
++    # namespace root. Reserve ASCII case aliases on case-insensitive volumes.
++    parts = PurePosixPath(relative).parts
++    if tuple(component.lower() for component in parts[:2]) == SEALED_ROOT:
 +        raise StorageError("publication_artifact_is_sealed")
  
  
  @contextmanager
-@@ -47,6 +54,13 @@
+@@ -47,6 +58,13 @@
  
  @contextmanager
  def exclusive_writer(root, relative):
@@ -916,7 +920,7 @@
      with parent(root, relative, create=True) as (directory, name):
          descriptor = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
                               0o600, dir_fd=directory)
-@@ -55,6 +69,47 @@
+@@ -55,6 +73,47 @@
              stream.flush()
              os.fsync(stream.fileno())
          os.fsync(directory)
@@ -964,7 +968,7 @@
  
  
  def read_all(root, relative, *, consume=None, fault=None):
-@@ -79,6 +134,8 @@
+@@ -79,6 +138,8 @@
  
  
  def publish(root, source, target):
@@ -973,7 +977,7 @@
      with parent(root, source) as (source_dir, source_name), parent(root, target, create=True) as (target_dir, target_name):
          fingerprint(os.stat(source_name, dir_fd=source_dir, follow_symlinks=False))
          try:
-@@ -93,6 +150,7 @@
+@@ -93,6 +154,7 @@
  
  
  def remove_owned(root, relative):
@@ -1522,7 +1526,7 @@
 +            '001_registrations','002_storage','003_conversion_candidates','004_publication']
 --- /dev/null
 +++ b/backend/tests/test_frame_relay_publication.py
-@@ -0,0 +1,711 @@
+@@ -0,0 +1,743 @@
 +"""Real SQLite/files and fault/reopen boundaries; fixture authority is not quality proof."""
 +from concurrent.futures import ThreadPoolExecutor
 +from contextlib import closing
@@ -1908,12 +1912,44 @@
 +def test_sealed_artifact_cannot_be_written_aliased_or_removed_by_app_helpers(tmp_path, monkeypatch):
 +    w = world(tmp_path, monkeypatch)
 +    rendition = publish(w)
-+    with _database(w.settings) as conn: item = repository.artifact(conn, rendition["rendition_id"], w.service.authority)
-+    with pytest.raises(StorageError, match="sealed"):
-+        with files.exclusive_writer(w.settings.media_root, item["path"]): pass
-+    with pytest.raises(StorageError, match="sealed"): files.publish(w.settings.media_root, item["path"], "tmp/alias")
-+    with pytest.raises(StorageError, match="sealed"): files.remove_owned(w.settings.media_root, item["path"])
-+    assert (w.settings.media_root/item["path"]).read_bytes() == MOV
++    with _database(w.settings) as conn:
++        item = repository.artifact(conn, rendition["rendition_id"], w.service.authority)
++        heads = [dict(row) for row in conn.execute("SELECT * FROM fr_publication_heads ORDER BY original_key")]
++        pointer = dict(conn.execute("SELECT active_processed_result_id,review_status FROM assets WHERE id=?", (w.seed["asset_id"],)).fetchone())
++    artifact = w.settings.media_root / item["path"]
++    before = files.current_fingerprint(w.settings.media_root, item["path"])
++    sentinel = tmp_path / "outside-publication-sentinel"
++    sentinel.write_bytes(b"external bytes must remain")
++    sentinel_before = sentinel.stat()
++    with files.exclusive_writer(w.settings.media_root, "tmp/unsealed-source") as stream:
++        stream.write(b"unsealed source must remain")
++    prefixes = ("publications/frame-relay", "./publications/frame-relay", "publications//frame-relay",
++        "publications/./frame-relay", "publications/frame-relay/.", "Publications/Frame-Relay",
++        "PUBLICATIONS/FRAME-RELAY", "./Publications//Frame-Relay/.")
++    for prefix in prefixes:
++        existing = prefix + "/" + artifact.name
++        fresh = prefix + "/" + str(uuid4()) + ".media"
++        for relative in (prefix, existing, fresh):
++            with pytest.raises(StorageError, match="sealed"):
++                with files.exclusive_writer(w.settings.media_root, relative): pass
++            with pytest.raises(StorageError, match="sealed"):
++                files.publish(w.settings.media_root, relative, "tmp/publish-alias")
++            with pytest.raises(StorageError, match="sealed"):
++                files.publish(w.settings.media_root, "tmp/unsealed-source", relative)
++            with pytest.raises(StorageError, match="sealed"):
++                files.remove_owned(w.settings.media_root, relative)
++        assert not (w.settings.media_root / fresh).exists()
++        assert not (w.settings.media_root / "tmp/publish-alias").exists()
++        assert artifact.read_bytes() == MOV
++        assert files.current_fingerprint(w.settings.media_root, item["path"]) == before
++        assert (w.settings.media_root / "tmp/unsealed-source").read_bytes() == b"unsealed source must remain"
++        assert sentinel.read_bytes() == b"external bytes must remain"
++        current = sentinel.stat()
++        assert (current.st_dev, current.st_ino, current.st_size, current.st_mtime_ns, current.st_ctime_ns) == (
++            sentinel_before.st_dev, sentinel_before.st_ino, sentinel_before.st_size, sentinel_before.st_mtime_ns, sentinel_before.st_ctime_ns)
++        with _database(w.settings) as conn:
++            assert [dict(row) for row in conn.execute("SELECT * FROM fr_publication_heads ORDER BY original_key")] == heads
++            assert dict(conn.execute("SELECT active_processed_result_id,review_status FROM assets WHERE id=?", (w.seed["asset_id"],)).fetchone()) == pointer
 +
 +
 +@pytest.mark.parametrize("stage", ["before_commit", "after_commit"])

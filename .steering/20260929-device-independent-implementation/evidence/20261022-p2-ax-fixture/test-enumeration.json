@@ -1,0 +1,3157 @@
+{
+  "errors" : [
+
+  ],
+  "values" : [
+    {
+      "children" : [
+        {
+          "children" : [
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "invalidationCannotAckBeforeCommitAndRemainsInvalidAfterLostResponse()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "invalidationFirstBlocksCleanupAndRemovalFirstDefersAckThroughRecovery()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "lostCommitResponseMustBeLookedUpAndOutboxIsAtomic()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "registrationRecoveryUsesOnlyLoadedIntentAndRegistrationProofs()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "requestedStopActualStopAndHandleReleaseAreThreeDifferentBoundaries()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownSchemaAndCorruptionNeverLoadAsAnEmptyStore()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "verificationCommitCanBeLoadedAndRetainsServerAndLocalProofBoundaries()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "BackendContractBoundaryTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "allReaderReleaseReceiptExpiresOnNewReaderAndNewEpoch()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "cleanupUsesLastMatchingProofWithoutNetworkOrPhotosRequirement()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "completeCoverageIdentityAndUsageAreRequiredForPhotoHandoff()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "mismatchedPlaybackSessionRegistrationAndReceiptDoNotCommit()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "oldTokenAndLocalReplayCannotRestoreCommittedInvalidation()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "preparedPlayerAndUncommittedDistributionCannotConfirm()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "BackendEvidenceRulesTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "batchRejectsEmptyDuplicateAndChangedTargetsWithoutPartialStart()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "completedTransportIsExcludedFromPauseAllWithoutInventingSaveSuccess()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "delayedStatusCannotRollInProgressBackToNotExecuted()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "endedPlaybackNeverRestartsWhenConditionsRecover()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "fixedBatchRequiresWiFiAndBothRegistrationCommits()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "lateRemoteSuccessCannotUndoCancellationOrBecomeANewOperationResult()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "mismatchedRegistrationResultOrCommitNeverBecomesUsableRegistration()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "overlappingWaitsDoNotEraseUserPauseAndEveryWaitMustClear()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "partialUnknownMissingAndUncommittedOriginalsCannotEnterBatch()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "pauseAllIncludesQueuedAndEnvironmentalWaitsAndPreservesCancellation()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "registrationResponseLossKeepsSameLookupUntilBothCommitsCanBeReplayed()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "requestNeedsExactStartCommitAndKnownRemoteResultBeforeAttempt()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "resultsFromOtherRegistrationContentRenditionOrSessionCannotMutateRequest()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "resumeWaitsForMatchingRealStopAndReconciliationBeforeNewAttempt()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownCapabilityVersionAndDestinationDoNotAuthorizeOperations()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "BackendOperationRulesTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "distributionBeforePublicationRequiresInvalidationEvenWithoutConfirmationSync()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "mismatchedDistributionCommitCannotAddRecipientOrConsumeRevision()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "missingOldRegistrationAcknowledgementBlocksOnlyItsReplacement()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "publicationBeforeDistributionRejectsEveryDelayedOldVersionEntry()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "receivedButUncommittedStaleAndForeignAcknowledgementsDoNotAuthorizePublication()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "recipientAddedWhileWaitingMustAcknowledgeBeforePublicationCanCommit()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "stalePublicationGenerationAndDifferentOriginalCannotBeginReplacement()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "BackendPublicationRulesTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "captureBeginningDuringRequestStopsLaterWorkWithoutWaitingForAcknowledgement()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "existingConfirmationOutboxIsDeliveredWithoutCreatingAnotherAction()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "explicitMetadataOperationPersistsPublicationWithoutConfirmationOrMedia()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "invalidatedV1CanRemainPublishedAtTheSameRevisionWhileReplacementWaits()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "itemIDsIncludeExactContentAndGeneration()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "malformedCursorCannotCreateAnAutomaticPaginationLoop()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "manifestAloneCannotInvalidateTheCurrentConfirmation()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "missingPublicationReplyUsesOriginalMutationRatherThanRebasing(afterCommit:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "onePagePerActionRetainsFailuresContinuesOtherVideosAndRepollsFromNull()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "opaqueUnicodeMismatchIsLocalToThatVideo()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "registrationChangeDuringAwaitCannotApplyTheOldResponse()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "BackendStatusSynchronizationCoordinatorTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "actualLocalTerminalDoesNotOverwriteCompletedRequest()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "captureNeverInventsStopForInflightCopyOrCreateAttachGap(stage:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "captureStopWaitsForAllActualLocalBoundariesAndPreservesPersonAndWiFi(cancelled:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "completionWaitsForTerminalCommitRealSourceCloseAndOwnLeaseRelease()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "controlsKeepCompoundWaitsAndDoNotTreatCancelAcknowledgementAsTerminal()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "lostStoppedReplyIsLookedUpAfterLeaseReleaseWithoutSecondMutation()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "lostTerminalReplyRetainsExactLookupAndWithholdsFinishUntilConfirmed()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "normalAdmissionRefusesBeforeAttemptLeaseCopyAndSDKFactories()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "recoveredOldContextTerminalNeverAdoptsSourceOrChangesNewRegistration()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "recoveryPreservesAttachGapsDuplicatesUnknownMissingAndNumericReuse()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "reopenedConfirmedStopNeedsNoSourceAdoptionButCannotUseAnotherAttempt(sameAttempt:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "restartEmptyAdmissionDoesNotClearExistingCaptureWaitsOrOtherControlAxes()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "terminalBeforeAttachDrainsAfterExactCommitWithoutReplayOrReaderLeak()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "uniqueEnumeratedDescriptionDoesNotAdoptCreateAttachGap()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "BackgroundEventDrainTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "fixedOriginPathMethodRangeAndHeadersAreBoundWithoutCredentialValues()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "rejectsBodyStreamAndUnknownHeaders()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "rejectsUnadoptedURLInputs(url:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "BackgroundMediaRequestFingerprintTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "emptySessionEnumeratesAndBuffersActualInvalidationBeforeConsumerStarts()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "suspendedUploadAndDownloadEnumerateCancelAndActuallyCompleteWithoutResume()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "BackgroundMediaSessionTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "downloadKeepsFixedRangeAndRequiresTheCurrentMediaEpochOnlyForNewResume(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "everyCommitBoundaryRetainsExactPayloadAcrossLostReplyAndReopen(candidate:point:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "exactEventsReopenWithoutPromotingRemoteOrReleasingReaders(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "exactLiveLeaseSurvivesAccessAdvanceButDuplicateOSBindingsDoNot(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "lateExactTerminalAndClosureStayWithTheOldRegistration(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "preBackgroundDocumentsRemainEmptyAndUnmodifiedOnRead(candidate:schema:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "resumeRechecksCurrentRequestAndExactLease(candidate:blocker:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "storeGuardAndFullMutationLookupRejectMissingOrChangedAuthority(candidate:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "BackgroundMediaStoreTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "decodedValuesStillRequireBoundaryValidation(field:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "delayedFactCannotChangeItsExactBindingOrSource(field:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "fixedDownloadRangeAndMediaLeaseAreIndependentOfUploadIdentity()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "immutableContextRoundTripsWithoutConfusingOSAndMacSessions()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "stopRequestDoesNotProveSDKOrOwnerTermination()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "BackgroundMediaTaskTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "suspendedUploadActuallyTerminatesBeforeOrdinaryRiskDiscard()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "BackgroundRemovalTerminalTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "finiteRecoveryRejectsOldResponsesAndExhausts()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "successfulRecoveryOnlyReturnsReadyForUserREC()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "CaptureAudioRecoveryTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "actualRasterMatchesGeneratedCubeAndPreservesAllInputBytesAndAttachments(signal:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "changedUnknownAndLogSignalsCannotBorrowTheFixtureContract()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "convertedInputIsRefusedWithoutChangingItsAttachments()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "emptyProductCatalogRefusesEachLogIndependently(encoding:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "fixtureMustCarryProvenanceVersionExactHashAndFiniteNormalizedOpaqueValues()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "inFlightResultCannotReviveAfterContextRoundTripOrStopAndSameContextActivation(stop:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "pendingInputIsReplacedAndSequenceHighWaterRejectsOldFrames()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "CaptureDisplayTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "STOPBeforeDidStartKeepsWBFixedUntilConfirmedEnd()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "confirmedInputOrWriterFailureStopsButZeroLevelDoesNot(writerFailure:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "explicitWBRefreshCannotRelockAfterSTOPCompletion()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "immediateSTOPPreventsLatePrerequisitesFromStartingRecorder()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "inputIsRecheckedAfterDelayedWBAndStore()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "intentFailureOrUnknownEndsWithoutStartingAndKeepsPersistenceTruth(unknown:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "nextClipMeasuresNewWBAndRejectsOldClipAndGeneration()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "requiresIntentCommitAndCurrentWBInEitherCompletionOrder(wbFirst:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "CaptureLifecycleTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "exactFractionsHaveEqualHashesWithoutChangingTheirRepresentation()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "invalidDecodedScaleDoesNotNormalizeIntoValidTime()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "zeroNegativeAndMinimumIntegerHaveNoAbsoluteValueOverflow()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "CaptureRationalTimeTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "anotherCamerasManualRangesCannotAuthorizeThisCamera()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "invalidAndDifferentTimelineValuesAreNotSilentlyNormalized()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "requestedOrSupportedDoesNotMeanApplied()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "restoredSettingsMustMatchCurrentCapabilitiesAndGeneration()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "silenceAndUnfinishedAnalysisDoNotBlockRECButResourcesDo()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unqueriedUnsupportedAndUnavailableRemainDifferent()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "CaptureReadinessTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "candidatesAreScopedToSelectedCameraResolutionFPSAndLog()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "recordingAdmissionUsesPreparedScopeAndCurrentGeometry()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "requestedPreferredAndActiveRemainSeparateAndFramingNeverInfersCrop()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "CaptureStabilizationTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "configuredGraceExpiresIntoHoldAndNeverTransfersToOtherPerson(grace:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "failedDetectionIsNotConfirmedAbsenceForSceneTap()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "independentExposureSelectionDoesNotChangeProtagonistOrAF()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "invalidOrAmbiguousCandidatePayloadCannotBecomeConfirmedAbsence()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "lostPersonReturnsWithinGraceButOtherPersonCannotTakeOverAndExpiryRequiresTap()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "personArrivalAfterSceneTapRestoresPersonPriorityWithoutSelectingProtagonist()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "staleSequenceTimeSelectionFramingAndGenerationAreRejected()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "stoppedAnalysisExpiresWithoutAnyFurtherFrames()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "trackingOffUsesContinuousPersonPriorityAndSceneTapRequiresFreshConfirmedAbsence()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unconfiguredScenePolicyAndUnconfirmedIdentityCannotSilentlyBecomeTracking()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "whiteBalanceChangeInvalidatesOldFramesWithoutReplacingSelectedIdentity()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "CaptureSubjectSessionTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "changedFramingAndInvalidationKeepSequenceAndRevisionHighWaterMarks()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "forecastUsesRatiosWithoutChangingCaptureAndWiderGuideMarksOnlyKnownArea()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "isoCompensationIsBoundedReturnsToBaselineAndUsesLatestManualRevision()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "nearCandidateIsSuggestedWithoutChangingChosenTargetOrClaimingQuality()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "CaptureZoomTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "activeSDKAndOldUnknownReaderPreventDiscardUntilActualReleaseAndFreshAction()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "exactLostReplyLookupAllowsOnlyOneLiveDiscard(stage:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "exactReplayDoesNotDeleteAnotherTargetOrReexecuteAfterReopen()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "interruptedDiscardRestoresOnlyObservedFactsAndNeverRestartsUnlink(stage:after:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "invalidationOrdersWithDiscardAndKeepsMacAndPhotoHistoryUnchanged()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "malformedDecodedRiskOrMultipleTargetsAreRejectedBeforeAnyIntent(kind:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "untransferredAndUnknownOriginalsDiscardWithoutPromotingSaveOrRemoteFacts(candidate:unknown:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "DiscardIntegrationTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "D02UnverifiedOnlyBlocksDisplayAlongsideRecording()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "abandonedAudioSubscriptionCannotChangeRepreparedSession()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "checkingPreparationAcceptsDelayedAudioWithoutPreparingAgain()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "currentClipAudioSharesControlOrderingAndRejectsCallbacksAfterTerminal()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "diagnosticFailurePersistsAndBlocksNewRECWithoutDiscardingAnEarlyEnd(startActive:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "earlyWBRejectionOrSTOPRetainsEndUntilLateIntentCommit(rejectWB:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "idleAudioFailureRejectsRECAndIgnoresOldGenerationAndSequence()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "initializationAndSimulatorPreparationCannotCreateMediaOrRequestCapture()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "malformedDecodedNumbersAndNewInvalidImportDoNotReuseOldTicket()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "preparationFreezesCandidatesAndDoesNotTreatCapabilityAsRecording()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "receivedObservationsPersistInReceiveOrderWithOriginalTimes()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "ticketTransportFailureUnbindsThePreviousTicketAndCandidates()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ExplorationCoordinatorTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "appendReadbackAndReopenPreserveMoreThanDisplayHistory()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "distinctOwnersAppendWithoutLostRecords()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "explicitOpenCreateAndExistingFilesRemainProtected()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "tamperedSequenceAndInvalidEventAreRejected()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownSchemaAndCorruptionAreNotReinitialized()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ExplorationDiagnosticsStoreTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "oneShotMeasurementIsExplicitAndCompletedOnlyOnce()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "pendingLockSupersededByAutoCannotApplyLater()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "stopDuringMeasurementOrDelayedRelockWaitsForAppliedCurrentValues(measurementEnded:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "twoClipsRestartOrdinalsWithoutAcceptingTheOldClip()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ExplorationWBCommandOrderTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "example()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "FrameRelayTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "concurrentAtomicAddsChooseOneOperationAndSecret()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "corruptExistingKeychainRecordNeverBecomesNewRegistration()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "differentStoreCannotReadAdoptOrReplaceBoundCredentials()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "duplicateConnectionCannotReplaceCredentials()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "legacyUnboundRecordsArePreservedAndNeverAdopted(credentialOnly:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "missingAndMismatchedIntentCredentialAreNotRegenerated()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "realKeychainReopenRetainsCredentialBeforeAnyIntentCommit()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "transportRefusesAStoreMismatchBeforeReleasingAuthorization()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "KeychainRegistrationTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "actualHTTPRejectsMissingTokenAndReturnsTheFixedShortRange()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "actualPlayerAdvancesThenSDKLoaderAndNetworkReachTerminal()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "LegacyServerPlaybackProbeTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "discardRequiresTargetRiskAcknowledgementEvenWithAvailableHandler()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "failedLoadKeepsPriorRowsAndNeverAppearsAsEmptySuccess()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "fixedTargetsAndDoubleInputDoNotChangeSelectionIntoIntent(action:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "overlappingRefreshWaitsForANewReadInsteadOfLosingCommittedRows()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "perVideoResultsComeOnlyFromReadSnapshotAndSurviveModelRecreation()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "playbackHandoffDoesNotWaitForAPersistentMediaOperationResult()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "singleActionsRejectMultipleTargets(action:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unconnectedActionsExplainWhyAndNeverCreateSuccess()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownAcceptanceBlocksRetryUntilRecordedResolution()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unresolvedVideoDoesNotBlockAnotherVideoOrOriginalPlayback()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "LibraryModelTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "backendReadFailureAndRevisionMismatchCannotAppearAsNoPhotoRecords()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "commonRevisionIncludesPhotoRecordsWithoutAnAuthorizationDependency()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "historicalAdditionAndLastPresenceAreIndependent(outcome:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "missingIdentifierAndStaleDisplayedAttemptCannotRequestReadAccess()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "noIdentifierExplainsWhyReadPermissionCannotResolveCorrespondence()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "permissionAndNotFoundNeverRewriteAnUnknownAddition(authorization:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "refreshAndRecreationNeverReconcileAndExplicitResultDoesNotInventHistory()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "successfulAdditionDoesNotRequireReadPermissionToRemainSuccessful()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "versionsRemainWithTheirCaptureAndOnlyLatestAttemptCanBeReconciled()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "LibraryPhotoProjectionTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "committedFileWithoutBindingExplicitlyRequiresIdentityReconciliation(result:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "mismatchedBindingCannotSupplyOriginalOrDeletionSuccess()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "onlyResolvedRemovalAndObservedAbsenceCanBeSuccessful(purpose:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "presenceNeverChangesHistoricalSaveResult(result:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unfinishedSaveAndInaccessibleOriginalStayUncertain()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unresolvedRemovalNeverHidesItem(purpose:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "LibraryProjectionTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "changingRevisionsAreBoundedlyRejectedInsteadOfMixingStates()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "commitDuringFileScanInvalidatesEarlierStoreRead()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "intentWithoutResultIsAnUncertainItemRatherThanEmptyLibrary()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "latestRemovedResultIsUnknownWhenCurrentFileCannotConfirmIt(unavailable:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "missingReservationRemainsUnavailableInsteadOfProvingOriginalAbsence()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "originalStoreFailureCannotTurnDiscardHistoryIntoOrdinaryMissingFiles()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "realMovieUnknownSaveAndBindingSurviveStoreReopenWithoutMutation()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "storeFailureIsNotAnEmptyLibrary(failure:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "verificationHintUsesOnlyCurrentExactCommittedFinalRead(kind:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "LibraryStoreReaderTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "arbitraryBytesNeverBecomeVerifiedMedia()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "boundedHashIdentifiesBytesAndRejectsInaccessibleOriginal()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "rejectsEscapeReferencesAndPersistentReservationReuse()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "rejectsSymlinksAndExistingMediaWithoutChangingThem()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ManagedOriginalStoreTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "cancellationDrainsActualCopyBeforeDetachingAndNeverExportsPartial()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "copyDetectsOriginalChangeBetweenBoundedReadsAndKeepsPartialAsUnknown()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "copyPathAndContentExchangesAreRejectedAndForeignFilesKept(exchange:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "exactFullCopyUsesBoundedOriginalReadsAndActualDescriptorClose(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "exchangedLeaseSourceAndTaskCannotCloseAnotherOwner()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "exchangedNamespaceRejectsExportButStillClosesOnlyOwnedFD()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "namespaceSymlinkAndDuplicateOwnerAreRejectedWithoutFollowingExternalFiles()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "newOwnerDoesNotAdoptOrDeleteAnUnattributedExistingCopy()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownSourceAndExistingTemporaryAreRetainedAndNeverReused()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ManagedUploadSourceTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "acceptedDistributionRequiresAckEvenWithoutAConfirmation()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "confirmationFaultAndExactLookupSurviveInstanceReplacement(candidate:fault:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "decodedNestedValuesAndMergedJournalReceiptsAreRevalidated(corruption:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "fixedBatchEvidenceConfirmationAndCleanupUseOneWriter(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "invalidationFaultKeepsReservationOrCommitsTombstoneAndAckTogether(candidate:afterCommit:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "invalidationRequiresExactReaderReleaseAndCurrentEpochAndRetainsTombstone()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "nonRecipientCanAdoptNewPublicationButWrongReservationsLeaveNoState()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "rejectedOldRetrievalDoesNotBecomeARecipientOrBlockNewPublicationForever()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "remoteIdentityMergesWithActualUnknownMovieAndKeepsReaders()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unsupportedAndAssemblyEvidenceRemainFactsWithoutCleanupAuthority()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "MediaOperationStoreTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "firstMediaCommitMigratesSchemaThreeWithoutLosingLegacyEvidence(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "schemaThreeReadsPreserveCleanupHistoryAndUnresolvedReaders(candidate:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "MediaStoreLegacyMigrationTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "admissionAndExactCommandsRejectCallerStateWrongIdentityAndStaleGlobalRevision()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "cancellationAndRemoteObservationOrderSurviveLateSuccessAndAnotherReopen()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "overlappingWaitsAndAttemptsSurviveReopenWithoutTreatingCompletionAsVerification()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "MediaStoreRequestPersistenceTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "actualPCMSeparatesQuietSoundAndFullScale(nonInterleaved:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "integerPositiveAndNegativeFullScaleAndNearPeakRemainDistinct()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "noSamplesIsFiniteAndFailedWriteCannotBecomeCompleted()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "nonfiniteMeterDoesNotInventSilenceOrLostInput()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "productArrivalDeadlineStillAppliesAfterUserRecoveryReset()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "silenceArrivalDeadlineAndReorderedSamplesUseActualSampleObservations()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "NativeCaptureAudioObservationTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "bothOutputPathsRequireSameConfirmedContract()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "newerManualValueSupersedesDelayedSwitchCompensation()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "rejectsEachUnsupportedBoundaryBeforeSDKMutation(boundary:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "returningLensUsesLatestManualRevisionAndSessionResetRejectsOldCompletion()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "NativeCaptureLensTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "actualPixelFormatsProduceDirectionsWithKnownSignal(format:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "actualTaggedSignalsUseOwnProfile(signal:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "delayedPixelBufferCannotAcquireTheNewContextAfterObservedChanges()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "geometryReversesMetadataCropAndRejectsPartiallyMissingPerson()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "invalidPolicyIsRejectedBeforePixelEvaluation()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "multiplePeopleHaveNoSilentDropOrAverage()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "pixelResultExpiresAndOldOrderCannotRestoreOK()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "realBufferRunsThroughAsyncAnalysisAndStopReleasesPendingInputs()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "selectedPeopleAndExcludedBackgroundAreEvaluatedIndependently()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "smallSunReflectionAndBlackClothesDoNotDetermineDirection()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unavailableInputFencesAlreadyRunningResultBeforeItCanRestoreOK()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownOrContradictoryTagsDoNotBorrowRecordingWish()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "NativeCaptureNDTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "bothOutputsRequireConnectionAndRequestedModeSupport(output:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "sdkModesRetainStableIDsWithoutTreatingAutoAsAnAppliedKnownMode()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "NativeCaptureStabilizationTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "exactCropEvidenceIncludesEveryPlaneAndExcludesPaddingAndOutsidePixels(format:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "realVisionAmbiguousDuplicatePortraitsDoNotStealSelectedIdentity()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "realVisionBlankImageProducesConfirmedEmptyDetection()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "realVisionDetectsTracksRejectsAnotherPersonAndReacquiresFixedReference()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "realVisionRejectsImmediateReplacementWithoutContinuousReferenceFrame(blankBeforeReplacement:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "NativeCaptureSubjectAnalysisTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "protagonistAndHoldDisableAutomaticPersonSwitchingWhileOFFKeepsAF()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unsupportedContinuousAFNeverFallsBackToLockOrWrongPoint()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "NativeCaptureSubjectFocusTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "failedCandidateConversionCannotBecomeSuccessfulEmptyDetection()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "frameAgeUsesCaptureClockInsteadOfMarkingDelayedArrivalAsFresh()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "outputPixelsAreConvertedBeforeNormalizedPersonBoundsReachAFAndPreview()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unsupportedOrientationMirrorAndMissingGeometryRemainUnavailable()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "NativeCaptureSubjectGeometryTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "delayedMoveCannotRestartAfterNewerStopOrManualOperation()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "lateReadbackNeverExtendsTarget(inward:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "sdkCancelledRampRetainsItsObservedPosition()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "sdkCandidatesAreFilteredByActualRangeWithoutInventedIntegerStops()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "NativeCaptureZoomTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "deniedAddOnlyDoesNotInvokeAnAdditionAndReadLookupStaysUnavailable()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "diagnoseSameMovieBytesAtMovieAndLegacyExtensionlessPaths()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "realAdditionKeepsSourceUntilCallbackAndExactLookupPreservesDateAndAudio()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "realCoordinatorPersistsIndependentTerminalAndRetiresReaderWithCorrectCopyRetention()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "NativePhotoLibraryTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "alreadyAdmittedStartNeverBecomesNeverStartedOnReplayOrLaterHardwareFailure()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "currentStartPreflightFailureProducesExactlyOneNeverStartedTerminal(failure:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "staleOrUnownedStartCannotTerminateAnotherCapture(mismatch:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "NativeRecordingStartAdmissionTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "audioFailureAfterWhiteBalanceFailureKeepsTheOriginalReason(movie:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "failedRefreshStartRemainsPartialAfterStopRelockAndNextClipCanSave(movieFile:userStopFirst:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unrelatedOrInactiveCommandFailuresDoNotContaminateTheCurrentClip()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "userStopKeepsFailureAndSDKFinalizationFailureStillTakesPrecedence(movieFile:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "NativeRecordingTerminationTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "actualContentBindingSurvivesReopenAndCommitInterruption(fault:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "contentReplacementRevisionConflictAndForgedSaveReceiptAreRejected()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "malformedDecodedBindingDigestDoesNotBypassValidation()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "schemaTwoRetainsResultsAndDoesNotInventContentBindings()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "OriginalBindingStoreTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "newReaderInspectsSyntheticTracksWithoutQualityPromotion(withAudio:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "OriginalInspectionReaderTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "delayedOpeningCannotBeReleasedBeforeItsActualCompletion(cancelTask:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "newAdapterCannotTreatOldPersistedReadersAsReleased()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "recordingWithoutCommittedEndCannotBindContent()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "removalAndInvalidationReservationsPersistAndRejectBothConflictOrders()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "resolvedRemovalRetainsIdentityAndPurposeUntilNextReservation()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "sameSizeContentReplacementIsRejectedBeforeAnyBytesAreExposed()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "sameSizeInPlaceChangeAfterOpeningIsRejectedByFingerprint()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "staleAllReleasedReceiptCannotAuthorizeRemovalAfterNewReaderGeneration()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownMovieProvidesBoundedFDReadsButIsNotTransferEligible()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "OriginalLeaseOrderingTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "backwardSeekUpdatesCurrentPositionAndResumeShowsActualPlayback()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "invalidMovieFailsWithoutSavingOrConfirmingAndClosesReader()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "presentationClosedBeforeItsStartTaskRunsDoesNotCreateAReader()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "realPlayerAdvancesDecodesFrameAndReleasesTheOnlyOriginalReader()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "stopBeforeAttachmentWaitsForOutstandingOriginalOpen()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "stopDuringDelayedSDKReadWaitsForRealDrainBeforeReleasingLease()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "stopRequestStopsBufferedPlayerAndAnOldSessionCannotStopTheNextOne()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "thirtySecondProductConfigurationAdvancesWithoutVideoOutputAndReleases()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unresolvedDurableReleasePreservesLeaseButDoesNotTrapPresentation()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "OriginalPlaybackTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "missingPerSampleTimesAndEpochMismatchNeverGuessEndpoints()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "tracksPresentationExtremaAcrossDecodeOrderAndTimescales()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "OriginalPresentationSpanTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "corruptedDecodedBatchIsRejectedWithoutRepair()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "duplicateOrUnboundTargetsAndDiscardRiskMismatchAreRejected()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "legacyIntentAndMismatchedBatchNeverAdmitPhysicalEffect(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "orderedTargetsExactReplayAndResultShareOneJournal(candidate:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "OriginalRemovalBatchTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "activeSDKAndUnknownPersistedReaderCannotBeDeclaredReleased()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "actualCleanupKeepsIndependentOriginalsReservationsAndExternalData(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "commitInterruptionRestoresFactsWithoutRetryingUnlink(stage:after:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "fileSpecificFailureKeepsReservationAndContinuesIndependentTarget(kind:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "independentObserverCannotCommitStaleNotRemovedAfterUnlink(legacy:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "invalidationFirstRejectsCleanupAndRemovalFirstDefersInvalidation(removalFirst:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "latestCleanupConditionsAreRecheckedAfterFullRead(change:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "lostIntentAndReserveRepliesWithExactLookupCanContinueOnce(stage:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "oldZeroReaderReceiptCannotAuthorizeAfterAnotherReaderOpenedAndClosed()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "pathReplacementDuringFullReadNeverDeletesReplacement(kind:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "OriginalRemovalIntegrationTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "allHistoricalRequestsNeedTheirOwnReceipt(candidate:omitReceipt:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "callerCannotOmitTasksOrReuseAnEpochAndNewAttempt(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "canonicalInventoryRetainsOpaqueUTF8()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "concreteAndExistentialInventoryUseTheSameWriterWitness(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "finalWriterGuardRebuildsInventoryAndPermitsIndependentRevision(candidate:change:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "hashWindowKeepsExactTargetHistory(candidate:change:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "reservedWriterRejectsNewAttemptAndTaskFactories(candidate:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "OriginalRemovalTransportFenceTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "brokenMovieCommitsUnknownWithoutClaimingPlaybackOrCompleteness()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "fileBeforeEndAndWrongByteCountCannotCommit()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "inaccessibleReservationIsNotReportedAsMissingOriginal()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "interruptedRealMovieResultCommitIsResolvedOnlyByReopen(fault:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "realMovieRecoveryNeverPromotesUnknown(interruption:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "snapshotAndRecoveryPreserveAllFourContractClassifications()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "OriginalSaveRecoveryTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "photoCallbackMustEndBeforeEveryScopeAndInvalidationCanCommit(outcome:cancelCaller:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "PhotoInvalidationBoundaryTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "corruptPhotoJournalIsRejectedWithoutRepairOrWrite(corruption:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "currentNotFoundAndRestrictedScopePreserveSuccessfulRegistration()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "explicitRetryRequiresProvenNonAdditionAndPreviousOperation(notAttempted:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "fabricatedCompleteHandoffCannotReplacePersistedAcquisitionAndHashVerification()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "intentFaultKeepsExactMutationAndSourceUseAcrossReopen(candidate:afterCommit:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "intentRejectsDifferentSourceDateAndObsoleteUsageEpoch()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "legacyDocumentReadKeepsDiskBytesAndEmptyPhotosProjection(schema:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "recoveryRejectsForgedSuccessOrDifferentSource(corruption:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "resultFaultDoesNotTurnIntentIntoPermissionToAddAgain(candidate:afterCommit:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "successfulRecoveryReleasesOnlyExactOldPhotoUsageAndRetainsOtherReaders()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownCanReceiveDelayedExactTerminalButCannotBeReaddedOrRewritten()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "PhotoRegistrationStoreTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "addCommandBindsReceiptAndResolvedHandoff()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "authorizationLimitsAndNotFoundDoNotChangeHistoricalSuccess()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "decoderRejectsInvalidNestedIntentValues(corruption:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "handoffRequiresFiniteDateAndCurrentPhotoUse()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "intentRoundTripPreservesCaptureDateAndExactMediaUse()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "PhotoRegistrationTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "alteredReceiptAndIntentOnlyRestoreCannotEnterSDK()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "delayedPresenceCommitForOldIntentCannotReportTheExplicitRetryAsChecked()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "delayedTerminalKeepsUsageAndCancellationDoesNotCancelOwnedSaveOrAllowDoubleTap()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "deniedSaveRetainsProofOfNonStartAndOnlyExplicitLinkedRetryCanAdd()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "exactPresenceNeverRewritesUnknownAsNotSavedOrPermitsReaddition(authorization:presence:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "finishFailureOrMismatchedIntentStaysUnknownAndRetainsUsage(wrongIntent:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "limitedAddOnlyIsNotAnAuthorizationForSaving()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "rejectedManagementCommitAfterSDKSuccessIsUnknownAndKeepsTheFile()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "resultCommitUncertaintyDoesNotDiscardIndependentTerminalOrPermitReaddition(afterCommit:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "sameWriterAndS25DiskMediaReachSuccessBeforeUsageRelease(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "settledResultPreservesItsMeaningAndDoesNotRepeatTheSameOperation(outcome:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "uncertainIntentNeverBecomesPermissionToInvokePhotos(afterCommit:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "PhotoSaveCoordinatorTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "globalRestoreSkipsAnotherOriginalWhileRecoveringItsOwnSuccess()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "legacyUUIDOnlyFileReopensAndReadsWithoutRenameOrContentChange()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "newLocalNamesUseOnlyTheDeclaredContainerSuffix()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "nonSuccessIsNeverAnOldOwnerReleasePermit(outcome:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "openPhotoConsumerAndForgedSuccessCannotReleaseTheActualUse()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "releaseCommitResponseLossRetainsExactMutationAndDefersUnlink(afterCommit:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "reopenedSuccessfulRegistrationReclaimsOnlyItsPersistedUsage(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "successfulPhotoRecoveryPreservesOtherOldEpochPlaybackUsage()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unsafeOrAmbiguousLeafAndMimeAreRejectedByTheCommonWriter()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "PhotoTemporaryRecoveryTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "definiteRetryIntentRejectionRetiresItsUnusedNewLeaseWithoutDroppingTheCopy()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "laterSuccessOfSameUnknownRequestReclaimsRetainedCopyWithoutAddingAgain()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "linkedRetryCannotSwitchMediaOrReuseTheRetiredPhotoUsage()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "reopenedTerminalUnknownRecoversOnlyExactOldUseAndRetainsResult(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "terminalCommitLossNeverBecomesAnUnconfirmedRelease(afterCommit:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "terminalLeavesOtherLocalReadersAndCopiesUntouched()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "terminalReleaseResponseLossRetainsOriginalMutationAcrossScopeClose(afterCommit:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "terminalReleasesItsReaderButOnlySuccessReclaimsTheCopy(candidate:outcome:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "uncertainRetryIntentKeepsItsFreshLeaseUntilExactLiveNonStartReconciliation(afterCommit:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "writerRejectsTerminalReleaseWithAlteredProof(corruption:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "PhotoTerminalRecoveryTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "captureBoundarySharesNormalFactoryAdmissionWithoutCreatingMediaOrRegistration()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "completionRunsOnMainActorOncePerDrainedBatchIncludingLateHandler()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "handlerOpensSameProductWriterWithoutAnyUIAppearanceAndUnknownFactoryCalls()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "knownSessionIsReusedAcrossPreparationAndBackgroundHandlerWithoutAdoptingOldSource()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "openingDelayAndUnknownSessionKeepCompletionPending()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "separateCompositionRootsDoNotBindToFirstGlobalBackgroundStore()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "storeOpenFailureKeepsOSHandlerAndDoesNotInstantiateSDKOrSource()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductBackgroundCompositionTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "productPolicyAllowsOneAttemptPerUserActionAndWaitsForReleaseAfterFiveSeconds()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCaptureAudioCompositionTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "idleAudioChecksSilenceFailuresAndRejectsStaleSequencesAndGenerations()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "leavingDuringRecoveryRejectsLateSuccessAndReleasesOnlyAfterSDKReturns()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "microphonePermissionDeniedBeforePreparationAppearsAsAudioFailure()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "oldControlEventCannotOverwriteNewerSnapshotAndSaveMustSettleBeforeRetry()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "recoveryRequiresUserRECAndOldClipEventsCannotChangeTheNextClip()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "retryPolicyBoundsAttemptsAndPermissionDenialRequiresSettings()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "timeoutRetainsSDKOwnerUntilRealReleaseAndRejectsLateSuccess()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCaptureAudioCoordinatorTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "confirmedFaultBeforeOrAfterUserStopCannotSaveAsNormal(movie:userStopFirst:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "delayedGoodAudioCannotClearCurrentFaultAndOldClipIsRejected()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCaptureAudioLifecycleTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "audioInputFailureAfterPreparationBlocksNextREC()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "backgroundStopKeepsSaveOwnerUntilCompletion()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "cancelledPreparationCannotPublishOrRetainCamera(stage:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "delayedDiscoveryCannotChainIntoPrepareAfterLeaving()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "delayedSettingsLoadCannotResumeHiddenCapturePreparation()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "earlySTOPAndLeavingRetainOwnerUntilLateIntentCommitWithoutStartingRecorder()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "earlySTOPDoesNotWaitForInitialWBCallbackOrAcceptItAfterTerminal()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "explicitRefreshKeepsRecordingAndManualSettingsThenNextClipMeasuresAgain()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "leavingAfterNativePreflightRejectionReleasesCameraWithoutFileSuccess()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "leavingAtPreparationAwaitDiscardsAndReleasesOnlyItsDevice(stage:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "listRefreshDoesNotHoldNextRECOrChangeItsState()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "nativePreflightRejectionSettlesOnceAndAllowsReprepareAndLeaving()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "oldPreparationCannotPublishOrClearBusyStateOfNewVisit()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "oldSettingsApplyCannotPrepareAfterReentry()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "oldShutdownCompletionCannotClearNewPreparedDevice()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "recorderStartsOnlyAfterIntentCommitThenSavesBindsAndRefreshesOnce()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "refreshCancellationRefixesBeforeTerminationAndOldCallbacksCannotReviveIt(cause:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "uncertainIntentCommitRefreshesListAndLeavingDoesNotStartRecorder()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unsupportedOrDifferentReadbackCannotBecomeREC()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unsupportedRefreshDoesNotBlockRECOrSubmitAnUnsupportedCommand()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "wishesPersistIndependentlyAndMissingChoicesNeverStartRecording()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCaptureCoordinatorTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "audioRecoveryHasIndependentOwnerUntilActualRecoveryAndCancelReturn()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "failedEndPersistenceConsumesTerminalObservedBeforeEndResponse(terminal:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "failedEndPersistenceKeepsOldOwnerUntilLateFileReturnWithoutOpeningNewCapture()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "oldPreflightCompletionCannotClearOrBeginNewRecording()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "ownerRevisionRejectsDuplicatesRetiredOwnersAndOldEndWithoutOpeningNewCapture()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "preflightHoldsBeforeFirstAwaitAndRevokedTicketCannotIssueAnyRecordingCommand(action:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "recAcceptanceClocksStayFixedAcrossLocalStopDelay()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "recordingAndSavingOwnersEndOnlyAtTheirActualTerminal(exit:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownLocalStopDoesNotBeginLifecycleOrSaving()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCaptureMediaBoundaryTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "productPolicyReachesAnalysisAndExpiresAfterOneSecondWithoutBlockingREC(candidate:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCaptureNDCompositionTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "intentContextSequenceAndLateVisitCannotRestoreOldOK()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "malformedSnapshotCannotShowOKWithoutMatchingResult()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "pendingWarningsAndExpiredNDNeverGateRECAndStoppedStreamClearsOK()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "policyMissingNeverShowsInjectedSuccessButKeepsRECAvailable()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "rejectedOldContextWithHigherSequenceCannotCancelCurrentExpiry()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCaptureNDCoordinatorTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "actualDigestDoesNotBlockReservationAndCancellationClosesOnlyAfterReadReturns(cancel:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "boundReadCancellationAndConcurrentChangeRejectTheActualDescriptor(cancel:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unboundCommittedMovieReopensAsReconciliationWithoutAuthorizingTransferOrRemoval()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCapturePostSaveStorageTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "failedSaveRefreshDoesNotDelayRepreparationOrOverwriteNextRecording()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "safeSaveWaitsButSlowBindingCannotBlockOrContaminateLaterClips(bindSucceeds:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "settingsAndNavigationDoNotCancelQueuedOriginalOrAffectNewVisit()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unconfirmedFileWaitsForEndPersistenceAndDuplicatesCannotRefreshAgain()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCapturePostSaveTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "ordinaryIntentFlowsThroughCommonSaveReopenLibraryAndRealOriginalPlayback()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCaptureSavePlaybackTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "cameraAndFormatEnumerationOrderIsNotRestoredAsIdentity()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "observedCreationDateSurvivesWriterFinalizationAndAssetReopen()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "olderCapabilitiesWithoutRefreshEvidenceRemainDecodableAndUnconfirmed()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "settingStoreReopenPreservesWishesWithoutCapabilitiesOrWBLock(mode:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownOrCorruptSettingsRemainUnchanged(data:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCaptureSettingsTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "actualChangesAreVisibleWithoutMutatingWishesOrOtherControls()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "changedFormatCannotReusePreviousRecordingSupport()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "initiallyMissingSnapshotDoesNotRestoreStalePreparationAfterObservationStreamEnds()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "legacyDefaultEmptyStabilizationStreamPreservesPrepareTimeRecordingAdmission()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "prepareMismatchRemainsVisibleAndDoesNotSubstituteOFF()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "recordingRejectsSettingChangesWhileCameraZoomAndModeObservationsInvalidateFraming()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "reprepareClearsFramingBeforeAwaitAndRejectsPreviousGenerationAfterwards()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCaptureStabilizationCoordinatorTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "absentIntentAndAnalysisNeverBlockRECOrStopRecording()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "existingSchemaWithoutIntentLoadsAndOrdinarySettingsRoundTripRetainsChosenIntent()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "oldGenerationAndReversedSnapshotsCannotRestoreSubjectsAfterLeaving()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "pendingIntentSaveKeepsRECAndLateCommitRequiresReloadOnNewVisit()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "productFactoryConnectsApprovedPolicySceneTapAndRestoresOnlyChosenIntent(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unconfiguredProductPolicyDoesNotPersistUnapprovedIntentOrIssueSubjectCommands()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCaptureSubjectCoordinatorTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "ordinaryCompositionInjectsVersionedZoomAndKeepsUnagreedISODisabled()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCaptureZoomCompositionTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "manualISOOverridesDelayedLensCompensationAndSwitchesKeepItsBaseline(oldReplyUnavailable:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "pendingReadbackAndEndedObservationNeverReusePrepareTimeAppliedValues()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "previewOnlyThenMovementAndStopsStaySeparateFromRecordingAndIntent()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "staleFramingAndAmbientReadbackCannotAuthorizeOldPreviewOrRewriteWishes()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "stopDuringPendingStartWinsAndLateLeaveCannotClearNewVisit()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCaptureZoomCoordinatorTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "compositionKeepsModelsAndDoesNotAutoResumeAfterBackground()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "factoryReturnsOneWriterAndReopensFixedProductDirectory()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "invalidExistingRootIsPreserved(kind:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "thirtySecondMovieCompletesBothTracksAndFullReaderInspection()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCompositionTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "activeUnknownNeverStopsAutomaticallyAndOnlyFreshExactReleaseReopensAdmission()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "everyUnconfirmedTerminalBoundaryKeepsOriginalAndAdmissionClosed(point:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "normalCompositionRequiresExplicitRiskAndProjectsHistoricalDiscardAfterReopen()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "reopenedUnknownSourceAndOldLeaseStayUnreleased()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unfinishedCopyAndAttachmentGapStayUnknownWithoutAutomaticStop(point:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownOrReusedSDKInventoryNeverAuthorizesRemoval(kind:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unregisteredNeverStartedInventorySealAndNormalDiscardNeedNoSDKFactory()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductHistoricalRemovalTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "seedNormalAppContainer()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "verifySeedIdentityAndReleasedReadersAfterUI()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductLibrarySeedTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "explicitDeniedReconciliationCommitsToTheSameWriterAndKeepsCaptureAvailable()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "productOpenRefreshAndCapturePreparationNeverQueryOrRequestPhotos()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductPhotoCompositionTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "changingCalendarDateInResultCannotReplaceCommittedIntent(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "legacySchemaSixStaysUndatedAndMigratesOnlyOnCommit(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "missingLegacyTrialCannotBeReclassifiedAsOrdinaryRecording()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "ordinaryIntentRequiresFiniteCalendarObservationBeforeDiskCommit(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "ordinaryRecordingKeepsOneCalendarDateAcrossIntentResultAndReopen(candidate:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductRecordingPersistenceTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "captureAdmissionIsCheckedBeforeStopAfterStopAndBeforeExecution(denyAt:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "dialogKeepsExactBindingAndSelection(changeBinding:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "explicitCheckClosesOnlyItsUnprocessedChildAndNeverRetriesUnlink(stage:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "explicitCheckClosesUnprocessedChildWhileItsReservationIsInFlight()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "ordinaryCompositionDiscardsOneUntransferredOriginalAndProjectsItsExactResult()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "removalAndInvalidationReleaseOnlyTheirOwnSealAndReobserveCurrentAccess(invalidationFirst:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "removalReleaseRequiresItsExactOwnerAndFreshCommonObservation()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductRemovalCompositionTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "seedDedicatedNormalRoot()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "verifyDedicatedUIResultAndUntouchedData()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductRemovalSeedTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "seedDedicatedRegisteredRoot()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "verifyDedicatedRegisteredRoot()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductStatusSynchronizationSeedTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "explicitRegisteredModelOperationUsesOneWriterAndRefreshesLibrary()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "injectedRegistrationKeepsExistingBehaviorWithoutProductCredentialFallback()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "preparedBackgroundSourceWithoutReadersRemainsUnresolved()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownPersistedOwnerDoesNotBecomeAnAckAndIndependentVideoContinues()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "writerReservationFencesBackgroundPreparationAndNewReaderDuringTerminalAwait()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductStatusSynchronizationTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "explicitConfirmationUnknownCommitKeepsExactMutationAndReopenFacts(afterCommit:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "invalidationKeepsReservationUntilEveryScopeAndExternalOwnerTerminate()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "realAVPlayerTokenRequiresSeparateExplicitAction()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "reservedInvalidationResumesAfterReopenWithoutInventingExternalEvidence()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "responseLossAndReopenRetireOnlyExactDurableOutbox()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownExternalAndReregistrationCannotReplaceOldReservation()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "PublicationCoordinatorTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "canonicalPlaybackConfirmationInvalidationAndReplacement()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "PublicationHTTPFixtureTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "canonicalDecimalAndOpaqueIdentityDoNotNormalize()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "distributionLookupMustMatchCompleteOriginalRequestAndCommit()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "duplicateKeysNumbersAndMalformedJSONAreRejected(text:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "opaqueIdentityComparesDecodedUTF8WithoutUnicodeNormalization()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "sha256CanonicalUUIDAndNullInitialPublicationAreExact()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "PublicationWireTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "fileAndInspectionAreNotSavedBeforeMatchingResultCommit()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "inspectionForAnotherOriginalAndOldCommitAreRejected()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownAudioOrMissingAudioCannotBecomeNormalSavedFile()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RecordingSaveLifecycleTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "danglingStoreAndSQLiteSidecarLinksCannotCreateTheirTargets()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "decodedInvalidValuesAndTargetsAreRejected()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "incompatibleSQLiteModelIsRejected()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unknownFileSchemaIsNotReset()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RecordingStoreDecodeTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "commitsSurviveExplicitReopen(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "distinctOwnersRejectStaleAndDuplicateUpdates(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "mismatchedTargetAndFabricatedResultDoNotCommit(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "openingNeverCreatesOrReplacesAnExistingStore(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "successfulTechnicalResultIsNotUnfinished(candidate:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RecordingStorePersistenceTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "currentSchemaRequiresItsTransactionRevision()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "interruptedIntentIsReconciledFromDisk(candidate:fault:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "interruptedResultRetainsIntentAndOnlyCommittedResult(candidate:fault:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "legacySchemaPreservesRecordingEvidenceAndMigratesOnNextCommit(candidate:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RecordingStoreTransactionBoundaryTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "productCompositionUsesLibraryWriterAndRetainsModels()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unavailableCredentialsHideInitialInputAndLeaveLibraryAvailable()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RegistrationCompositionTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "concurrentExplicitInputsCoalesceAtCoordinatorBoundary()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "credentialOnlyCrashRequiresExplicitContinuationBeforePOST()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "identityCommitMustFinishBeforeKeychainOrNetwork(fault:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "lostServerResponseReconcilesSameIntentWithoutSecondPOST()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "mismatchedReceiptIsNotCommitted()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "missingPersistedCredentialKeepsRegistrationAndDoesNotPOST()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "newStoreCannotReuseRetainedKeychainAtAnyEntry(registered:samePath:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "realSQLiteFaultBeforeOrAfterIntentAndResultCommitRecovers(fault:atRegistration:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "registrationAndNormalRestartUseOneWriterAndNeverDuplicatePOST()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "replacementDuringAwaitCannotCommitIntentIntoNewStoreAtSameRevision()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "unavailableLookupCannotTurnUnknownIntoASecondRegistration()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RegistrationCoordinatorTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "testLostResponseAndLocalCommitRecovery()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testRegistrationCommitAndReopenUsesSameIdentity()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testWrongDestinationAndSecretAreRejected()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RegistrationServerProbeTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "boundJournalRejectsMissingOrSubstitutedDocumentIdentity()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "containerRelocationRetainsIdentityAndOldOpenWriterStops()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "identityCommitFaultIsReconciledOnlyFromDisk(fault:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "identityCommitPersistsWithoutInventingJournalRevision()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "legacyReadIsBytePreservingAndOnlyExplicitIdentityCommitMigrates(schema:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "replacementAtSamePathRejectsOldIdentityEvenAtSameRevision()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "sameWriterAndSeparateAdaptersConvergeOnOneDurableIdentity()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RegistrationStoreIdentityTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "testCancellationAfterResponseTerminatesTaskAndSession()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testOversizeMetadataIsBoundedAndSessionTerminates()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testRedirectIsRefusedAndSessionTerminates()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RegistrationTransportProbeTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "capabilityDiscoveryDoesNotAdvertiseUnimplementedMediaOperations()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "descriptionsRedactOriginAndCredentials()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "exactReceiptPreserves63BitGenerationAndTarget()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "onlyExactAuthenticatedAbsenceCanAuthorizeSameIntentRetry()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "productEndpointRejectsAmbiguousOrUnprotectedOrigins()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "rejectsChangedIdentityUnknownFieldsAndNonCanonicalGenerations()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "timestampsMustBeRealCanonicalUTCInstants()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RegistrationWireTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "generateDisposableMovieAndManifest()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RenditionFixtureGenerationTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "authenticatedStreamingAdvancesBeforeFullFileAndActuallyTerminates()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "authenticationFailureAndGateLossDuringResponseDoNotDeliverBytes()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "exactRangeGateChangeAndStopDuringResponse()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "httpRetrievalVerifiesWholeFileBeforePhotoUse()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "rejectsMalformedFixedRangeAndWaitsForTerminal(mode:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RenditionHTTPFixtureTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "completeTemporaryFilePlaysOfflineThenDetachesAndClosesItsUse()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "invalidationStopsAlreadyBufferedLocalPlayerAndKeepsOriginalCaptureTime(concurrentEnd:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "setupFailureJoinsMonitorBeforeScopeReportsTerminal()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RenditionPlaybackTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "cachedBytesRejectChangedRegistrationInvalidationOrRealWriterEpoch(change:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "cancellingQueuedReadDoesNotCancelTheOtherConsumerOrDuplicateItsGET()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "closeWaitsForActualCallbackAndCannotRestoreCacheFromLateCompletion()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "expandedRequestIsAuthorizedWhileExactSlicesAndCacheHitsKeepCurrentGate()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RenditionRangeCacheTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "metadataOnlyPageAndManifestUseCoordinator()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "StatusSynchronizationHTTPFixtureTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "canonicalEquivalentRegistrationIsNotTheExactStoredRegistration()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "historicalOutboxRetainsItsOwnRegistrationAndNeverRestoresConfirmationToNewOne()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "metadataCommitAndIndependentLibraryAxesSurviveActualDiskReopen(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "realDiskFaultRetainsOnlyExactCommittedPublication(candidate:fault:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "reopenStartsAtNullAndCannotSubstituteNewRegistrationForOldReservation(candidate:)"
+                }
+              ],
+              "kind" : "class",
+              "name" : "StatusSynchronizationStoreTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "acquireAndReleaseFailuresCannotSplitUsageFromLease(afterCommit:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "heldReaderRejectsLeafReplacementAndDoesNotUnlinkReplacement()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "photoTerminalDetectsTruncationAndRetainsOtherUsageAndReconciliationState()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "reconciliationRejectsGenerationChangeEvenAfterExternalOwnerCloses()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "refusesSymlinkRootWithoutDisturbingExistingFileOwner(linkedParent:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "reopensAndFinishesCommittedReclamationAfterUnlinkWithoutReleasingOldActiveUses()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "scopeClosesAdmissionButWaitsForPhotoCallbackAndReleasesRootOnlyAfterAllOwnersTerminate()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "usageObservationRejectsMissingActiveFileAndRootReplacement()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "TemporaryMediaRecoveryTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "completeFileMultipleUsesRetainUntilPhotoCallbackAndFinalClose(candidate:)"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "localReaderDropsCompletedDataTasksBeforeReleasingItsUsage()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "partialReadAndReusedUsageIDAreRejectedWithoutRemovingFirstUse()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "rangeHoleAndWholeHashMismatchNeverProducePhotoHandoff()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "reopenPreservesOldUsageAndRejectsOldEpochReleaseAndSameLengthTamper()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "rootUsageCountsTwoFilesHolesUnknownBytesAndIndependentConsumers()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "TemporaryMediaTests"
+            }
+          ],
+          "kind" : "target",
+          "name" : "FrameRelayTests"
+        },
+        {
+          "children" : [
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "testConnectionEntryReconciliationAndReturnPreserveLibrary()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testFirstConnectionRejectsPlainHTTPWithoutCreatingRegistration()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testRegisteredMetadataSynchronizationPreservesSavedPublication()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ConnectionFlowTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "testUnboundPreparationDoesNotClaimCameraCapabilityOrStartRecording()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ExplorationFlowTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "testExample()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testLaunchPerformance()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "FrameRelayUITests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "testAccessibilityDetailActionsContrastOnly()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testAccessibilityFreshHistory()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testAccessibilityHistoryAfterPlaybackHandoff()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testAccessibilityLibraryAndDetail()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testAccessibilityReconciliationDescriptionDynamicTypeOnly()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testAccessibilityStoppedPlayer()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testHistoryAndSubmissionTextLayoutAtCurrentContentSize()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testListDetailSelectionHistoryAndRetainedStateAfterRelaunch()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testOriginalPlaybackDiagnosticStartStop()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testOriginalPlaybackProgressStopBackgroundAndRestart()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testVoiceOverReadsHistoryAndPlaybackSubmission()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testVoiceOverReadsLibraryStateAndActions()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "LibraryFlowTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "testOrdinaryLibraryRefreshAndCaptureDoNotRequestPhotosPermission()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "PhotoPermissionsFlowTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "testOrdinaryCaptureWithoutTicketShowsSimulatorLimitationAndReturnsToLibrary()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testShootingIntentCanBeChosenWithoutCameraAndRestoresAfterRelaunch()"
+                },
+                {
+                  "kind" : "test",
+                  "name" : "testStabilizationSettingsKeepCandidateUnconfirmedWithoutCameraAndDoNotInventFPS()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "ProductCaptureFlowTests"
+            },
+            {
+              "children" : [
+                {
+                  "kind" : "test",
+                  "name" : "testDiscardCancellationAndDurableHistoryOnDedicatedSeed()"
+                }
+              ],
+              "kind" : "class",
+              "name" : "RemovalFlowTests"
+            }
+          ],
+          "kind" : "target",
+          "name" : "FrameRelayUITests"
+        }
+      ],
+      "kind" : "plan",
+      "name" : "FrameRelay"
+    }
+  ]
+}

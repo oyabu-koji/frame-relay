@@ -5,7 +5,7 @@ from pydantic import ValidationError
 from app.api.deps import require_bearer_token
 from app.api.registrations import require_registration_secret
 from app.core.settings import load_settings
-from app.schemas.frame_relay_storage import StorageBindingRequest
+from app.schemas.frame_relay_storage import OriginalInventoryRequest, StorageBindingRequest
 from app.schemas.upload_sessions import parse_content_range, validate_chunk_sha256
 from app.services import frame_relay_storage as service
 from app.repositories.frame_relay_storage import StorageError
@@ -32,6 +32,22 @@ def require_binding(request: Request):
 def create(request: StorageBindingRequest, secret: str = Depends(require_registration_secret)):
     value = service.create(load_settings(), request.model_dump(), secret)
     return response({"binding": service.public_binding(value)})
+
+
+def require_inventory(request: Request):
+    if len(request.query_params.multi_items()) != len(request.query_params):
+        raise HTTPException(status_code=422, detail="Invalid original inventory query")
+    try:
+        return OriginalInventoryRequest.model_validate(dict(request.query_params))
+    except ValidationError:
+        raise HTTPException(status_code=422, detail="Invalid original inventory query") from None
+
+
+# The static metadata route must precede the session-id lookup below.
+@router.get("/inventory")
+def original_inventory(request: OriginalInventoryRequest = Depends(require_inventory),
+                       secret: str = Depends(require_registration_secret)):
+    return response(service.original_inventory(load_settings(), request.model_dump(), secret))
 
 
 @router.get("/{session_id}")

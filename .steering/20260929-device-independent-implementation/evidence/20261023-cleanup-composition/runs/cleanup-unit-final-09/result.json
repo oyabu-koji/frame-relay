@@ -1,0 +1,168 @@
+{
+  "name": "cleanup-unit-final-09",
+  "command": [
+    "xcodebuild",
+    "-project",
+    "FrameRelay.xcodeproj",
+    "-scheme",
+    "FrameRelay",
+    "-configuration",
+    "Debug",
+    "-destination",
+    "platform=iOS Simulator,id=DB985305-B55C-4694-8307-77E3BFD2E11D",
+    "-derivedDataPath",
+    "/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData",
+    "-resultBundlePath",
+    "/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/cleanup-unit-final-09/result.xcresult",
+    "-disableAutomaticPackageResolution",
+    "-parallel-testing-enabled",
+    "NO",
+    "-collect-test-diagnostics",
+    "never",
+    "-only-testing:FrameRelayTests",
+    "test"
+  ],
+  "environment_overrides": {},
+  "cwd": "/Users/oyabu/dev/rep/FrameRelay",
+  "started_at": "2026-10-23T12:26:11.482605+00:00",
+  "source_fingerprint": "4b10c22b7e95221b3d8dd779392f852ee880a242ed5b5ce4a4b201add878e414",
+  "source_files": 292,
+  "snapshot": "/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/sources/4b10c22b7e95221b3d8dd779392f852ee880a242ed5b5ce4a4b201add878e414",
+  "exit_code": 65,
+  "seconds": 84.07686208304949,
+  "finished_at": "2026-10-23T12:27:35.560482+00:00",
+  "sources_unchanged": true,
+  "changed_inputs": [],
+  "build": {
+    "actionTitle": "Testing project FrameRelay with scheme FrameRelay",
+    "analyzerWarningCount": 0,
+    "analyzerWarnings": [],
+    "destination": {
+      "architecture": "arm64",
+      "deviceId": "DB985305-B55C-4694-8307-77E3BFD2E11D",
+      "deviceName": "FrameRelay Cleanup Regression 20261023 coslmwo",
+      "modelName": "iPhone 18 Pro",
+      "osBuildNumber": "24A434",
+      "osVersion": "27.0",
+      "platform": "iOS Simulator"
+    },
+    "endTime": 1792758455.1,
+    "errorCount": 0,
+    "errors": [],
+    "startTime": 1792758372.171,
+    "status": "succeeded",
+    "warningCount": 0,
+    "warnings": []
+  },
+  "tests": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "DB985305-B55C-4694-8307-77E3BFD2E11D",
+          "deviceName": "FrameRelay Cleanup Regression 20261023 coslmwo",
+          "modelName": "iPhone 18 Pro",
+          "osBuildNumber": "24A434",
+          "osVersion": "27.0",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "passedTests": 940,
+        "skippedTests": 31,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "FrameRelay · Built with macOS 26.6.2",
+    "expectedFailures": 0,
+    "failedTests": 1,
+    "finishTime": 1792758455.1,
+    "passedTests": 568,
+    "result": "Failed",
+    "runtimeWarnings": [],
+    "skippedTests": 31,
+    "startTime": 1792758372.171,
+    "statistics": [
+      {
+        "subtitle": "532 test runs",
+        "title": "160 tests ran with dynamic parameters"
+      }
+    ],
+    "testFailures": [
+      {
+        "failureText": "Issue recorded: Caller cancellation or invalidation discarded the terminal Photos result",
+        "targetName": "FrameRelayTests",
+        "testIdentifier": 331,
+        "testIdentifierString": "PhotoInvalidationBoundaryTests/photoCallbackMustEndBeforeEveryScopeAndInvalidationCanCommit(outcome:cancelCaller:)",
+        "testIdentifierURL": "test://com.apple.xcode/FrameRelay/FrameRelayTests/PhotoInvalidationBoundaryTests/photoCallbackMustEndBeforeEveryScopeAndInvalidationCanCommit(outcome:cancelCaller:)",
+        "testName": "photoCallbackMustEndBeforeEveryScopeAndInvalidationCanCommit(outcome:cancelCaller:)"
+      }
+    ],
+    "title": "Test - FrameRelay",
+    "topInsights": [
+      {
+        "category": "Longest Test Runs",
+        "impact": "26% of duration",
+        "text": "10 longest test runs with outlier durations exceeding 0.84s (three standard deviations)"
+      }
+    ],
+    "totalTestCount": 600
+  },
+  "counts": {
+    "nodes": {
+      "('Test Plan', 'Failed')": 1,
+      "('Unit test bundle', 'Failed')": 1,
+      "('Test Suite', 'Passed')": 96,
+      "('Test Case', 'Passed')": 568,
+      "('Arguments', 'Passed')": 531,
+      "('Test Suite', 'Skipped')": 13,
+      "('Test Case', 'Skipped')": 31,
+      "('Skip Message', '')": 31,
+      "('Test Suite', 'Failed')": 1,
+      "('Test Case', 'Failed')": 1,
+      "('Arguments', 'Failed')": 1,
+      "('Failure Message', '')": 1
+    },
+    "expanded": {
+      "Passed": 940,
+      "Skipped": 31,
+      "Failed": 1
+    },
+    "skipped": [
+      "BackgroundMediaSessionTests/emptySessionEnumeratesAndBuffersActualInvalidationBeforeConsumerStarts()",
+      "BackgroundMediaSessionTests/suspendedUploadAndDownloadEnumerateCancelAndActuallyCompleteWithoutResume()",
+      "BackgroundRemovalTerminalTests/suspendedUploadActuallyTerminatesBeforeOrdinaryRiskDiscard()",
+      "LegacyServerPlaybackProbeTests/actualHTTPRejectsMissingTokenAndReturnsTheFixedShortRange()",
+      "LegacyServerPlaybackProbeTests/actualPlayerAdvancesThenSDKLoaderAndNetworkReachTerminal()",
+      "NativePhotoLibraryTests/realCoordinatorPersistsIndependentTerminalAndRetiresReaderWithCorrectCopyRetention()",
+      "NativePhotoLibraryTests/diagnoseSameMovieBytesAtMovieAndLegacyExtensionlessPaths()",
+      "NativePhotoLibraryTests/realAdditionKeepsSourceUntilCallbackAndExactLookupPreservesDateAndAudio()",
+      "NativePhotoLibraryTests/deniedAddOnlyDoesNotInvokeAnAdditionAndReadLookupStaysUnavailable()",
+      "ProductCleanupSeedTests/seedFreshDedicatedNormalRoot()",
+      "ProductCleanupSeedTests/verifyUIBatchRealFilesAndUntouchedEvidenceAfterReopen()",
+      "ProductLibrarySeedTests/seedNormalAppContainer()",
+      "ProductLibrarySeedTests/verifySeedIdentityAndReleasedReadersAfterUI()",
+      "ProductRemovalSeedTests/seedDedicatedNormalRoot()",
+      "ProductRemovalSeedTests/verifyDedicatedUIResultAndUntouchedData()",
+      "ProductStatusSynchronizationSeedTests/seedDedicatedRegisteredRoot()",
+      "ProductStatusSynchronizationSeedTests/verifyDedicatedRegisteredRoot()",
+      "StatusSynchronizationHTTPFixtureTests/metadataOnlyPageAndManifestUseCoordinator()",
+      "PublicationHTTPFixtureTests/canonicalPlaybackConfirmationInvalidationAndReplacement()",
+      "RegistrationServerProbeTests/testRegistrationCommitAndReopenUsesSameIdentity()",
+      "RegistrationServerProbeTests/testLostResponseAndLocalCommitRecovery()",
+      "RegistrationServerProbeTests/testWrongDestinationAndSecretAreRejected()",
+      "RegistrationTransportProbeTests/testRedirectIsRefusedAndSessionTerminates()",
+      "RegistrationTransportProbeTests/testOversizeMetadataIsBoundedAndSessionTerminates()",
+      "RegistrationTransportProbeTests/testCancellationAfterResponseTerminatesTaskAndSession()",
+      "RenditionHTTPFixtureTests/authenticatedStreamingAdvancesBeforeFullFileAndActuallyTerminates()",
+      "RenditionHTTPFixtureTests/rejectsMalformedFixedRangeAndWaitsForTerminal(mode:)",
+      "RenditionHTTPFixtureTests/exactRangeGateChangeAndStopDuringResponse()",
+      "RenditionHTTPFixtureTests/authenticationFailureAndGateLossDuringResponseDoNotDeliverBytes()",
+      "RenditionHTTPFixtureTests/httpRetrievalVerifiesWholeFileBeforePhotoUse()",
+      "RenditionFixtureGenerationTests/generateDisposableMovieAndManifest()"
+    ]
+  }
+}

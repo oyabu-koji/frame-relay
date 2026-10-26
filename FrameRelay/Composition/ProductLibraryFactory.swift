@@ -7,6 +7,8 @@ nonisolated struct ProductLibraryServices: Sendable {
     let originals: ManagedOriginalStore
     let access: ManagedOriginalAccess
     let reader: LibraryStoreReader
+    let photoReconciliation: LibraryPhotoReconciliation
+    let photoLibrary: any PhotoLibraryPort
 }
 
 /// App-lifetime owner of the one writer. The directory validator is shared with
@@ -14,9 +16,13 @@ nonisolated struct ProductLibraryServices: Sendable {
 actor ProductLibraryFactory {
     static let shared = ProductLibraryFactory()
     private let supportDirectory: URL?
+    private let photoLibrary: any PhotoLibraryPort
     private var services: ProductLibraryServices?
 
-    init(supportDirectory: URL? = nil) { self.supportDirectory = supportDirectory }
+    init(supportDirectory: URL? = nil, photoLibrary: any PhotoLibraryPort = NativePhotoLibrary()) {
+        self.supportDirectory = supportDirectory
+        self.photoLibrary = photoLibrary
+    }
 
     func open() throws -> ProductLibraryServices {
         if let services { return services }
@@ -42,11 +48,12 @@ actor ProductLibraryFactory {
         let run = try exists ? ExplorationRunDirectory.openExisting(at: root)
                             : ExplorationRunDirectory.createNew(at: root)
         // Never turn an invalid/missing existing database into an empty library.
-        let store = try SQLiteRecordingStore(run: run, mode: mode)
+        let store = try SQLiteRecordingStore(run: run, mode: mode, supportedVerificationSchemas: ["fr-final-read-v1"])
         let originals = ManagedOriginalStore(run: run)
         let access = ManagedOriginalAccess(store: store, originals: originals)
         let result = ProductLibraryServices(run: run, store: store, originals: originals, access: access,
-                                           reader: LibraryStoreReader(store: store, files: originals))
+            reader: LibraryStoreReader(store: store, files: originals),
+            photoReconciliation: LibraryPhotoReconciliation(store: store, library: photoLibrary), photoLibrary: photoLibrary)
         services = result
         return result
     }

@@ -1,0 +1,54 @@
+--- start/.steering/20260929-device-independent-implementation/tasklist.md
++++ final/.steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,7 +12,23 @@
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の引渡し（2026-10-22、P2 2件の修正・必要再検証完了）
++## 現在の引渡し（2026-10-22、原本再生の停止位置P2修正・必要検証完了）
++
++- **S16 / P2-STOP done（非実機範囲）**: 明示implementで独立validation `fr-validation-20261022-ikt29oug` のP2 1件と必要関連変更だけを修正した。**E-P2-STOP-20261022 / [証跡](evidence/20261022-playback-stop-layout/README.md)**。最大文字・全文を維持し、ScrollViewと停止/閉じるを上下の兄弟領域へ分離した。reader実解放後の停止完了契約と既存I/O/Modelは不変。初回失敗のdispatch瞬間・直接原因や停止内部の不具合は未確定のまま保持する。
++- **操作・全文・AX**: 最終04では通常/AX5とも実秒数一桁→二桁の更新中に停止位置0pt、説明全文への通常scroll中も0pt。AX5の秒数自体は63.3/125.3ptの1行/2行を往復した。freshなframe/有効/到達、単一tap→停止開始または完了→stop/player不在、背景停止維持/再起動を検査した。初期playing監査を維持し、説明1箇所だけ既存Libraryと同じnative UILabelの実幅・無制限高計測/semantic footnote/全12sizeへ限定調整。監査mask/false handler/共通reveal・top以降は開始bytesと同一、受理/除外/文字制限なし。
++- **構成・結果**: 実在のFrameRelay.xcodeproj/FrameRelay scheme/自動Test plan/Debug/有効Unit・UIと新規iPhone18Pro/iOS27 Simulatorを確認。Xcode27.0(27A266a)/Swift6.4 compiler・言語5.0/最低iOS27.0を維持。最終04のgeneric iOS署名なしbuild、Unit14宣言/17展開、通常UI3、最大UI2、UI後2成功/seed1skipは失敗0、compiler/analyzer診断とruntimeWarnings 0。UIは全てskip0。全Unit/全UIや実機の新規合格へ拡張しない。
++- **原本・実行版・保全**: fresh seedは空の専用rootで2成功/verify1skip、既存rootのcopy/修復/再seedなし。UI後は同じbinding3件・immutable manifest bytes・原本485,721bytes/SHA-256・映像音声各30秒/音声1trackを保持し、単一store再openで全logical/media reader空を確認。物理container移動は観測として分離。最終389入力は開始からView/UIの2sourceだけ変更・387不変、必要6runは前後04 bytes一致。開始16,673fileの既存変更はこの2コードとtasklistだけ、新規は今回証跡のみ。通常stop contrast失敗、最大説明contrast失敗、無効な構造単独案と01〜03版を保持。canonical docs/requirements/design/project/guard/旧証跡は保全。
++- **引渡し・残件**: 専用Simulator `664DEF26-9030-4889-9715-FED5B9E0D675` はlargeへ復元・データ保持でshutdown、既存Simulatorのstate変更0。前回の実文字AX/fresh fixture修正を保持し、他task・段階・全steering・Q01/A01〜18・実機/実撮影/実回線・品質・PRD受入の未完了は維持する。次は明示 `$validate-implementation .steering/20260929-device-independent-implementation/`。独立validationは暗黙に開始しない。
++
++## 修正中の記録（履歴: 2026-10-22、原本再生の停止位置P2）
++
++- **S16 / in-progress、P2-STOP**: 明示 `$implement-steering .steering/20260929-device-independent-implementation/` により、独立validation `/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/` のP2 1件だけを修正する。AX5の秒数折返しで停止ボタンが約62pt移動した事実と、初回停止待機失敗・限定再試験成功を分けて保持する。初回失敗の直接原因や停止内部の不具合は未確定。
++- **所有・保全**: mainは本tasklistと新規 `evidence/20261022-playback-stop-layout/`、workerは `FrameRelay/Features/Playback/OriginalPlaybackView.swift` と `FrameRelayUITests/Flows/LibraryFlowTests.swift` の2fileだけを所有する。既存16,673file/352,478,405bytes・未コミット差分と対象3fileを `/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-playback-stop-20261022-yzlo6h2y/` に退避済み。既存変更の現物へ限定差分を追加し、旧証跡/原本/設定を保持する。
++- **受入・必要検証**: 最大文字・全文表示を維持し、停止ボタンを下部固定領域へ配置して秒数更新から独立させる。reader実解放後だけ停止完了を表示する既存契約は維持する。実時間更新中のframe安定・タップ到達・停止遷移、関連Unit、build/診断、通常/AX5 UIとAX監査、UI後の原本identity/digest/全reader解放を確認する。未確認のままdoneにしない。
++- **途中検証・関連調整**: 下部safeAreaInset案は通常/AX5とも秒数更新中のstop移動0pt・単一tap停止/背景/再起動に成功。追加playing監査で通常はstopのcontrast指摘1件を検出し、既存closeと同じprimary tintへ限定修正後に通常2case成功。AX5は5case中4成功/説明Textのcontrast1失敗。画像では説明が操作領域の境界で一部表示、AX領域は下へ続くことを照合した。初期playing監査を維持したまま、ScrollViewとfooterを外側VStackの兄弟へ分け、説明全文への通常scroll到達/stop固定位置も検査する関連修正を実施中。失敗・source01/02はrawへ保持し、SDK誤検知や既存停止処理の欠陥とは断定しない。
++- **範囲の上限**: 前回解消した実文字AX/fresh fixtureを保持し、他task・全steering・実機/品質/PRD受入の未完了を維持する。独立validationは本修正後の別明示工程。
++
++## 直前の引渡し（履歴: 2026-10-22、P2 2件の修正・必要再検証完了）
+ 
+ - **範囲・正本**: 明示 `$implement-steering .steering/20260929-device-independent-implementation/` により、独立検証 `/private/tmp/fr-validation-20261022-lh_5wn0r/validation-summary.json` のAX4失敗とfresh Library fixture作成失敗だけを修正した。結果は **E-P2-20261022-FIX / [今回証跡](evidence/20261022-p2-ax-fixture/README.md)**。以下の直前再開点・旧E行は当時の履歴として保持する。独立validationは未開始。
+ - **P2-FIXTURE / done**: test-only cleanupが非legacyの`.reserveRemoval`を使い、実検査unknownのMOVをcleanup入力にしていた不整合を修正。既存合成fixtureのsaved/検証/確認・非開始reader事実と`.reserveCleanup`へ整合し、製品guard・discard契約・実再生原本のunknownを維持。通常Unitに隔離tmp rootの作成/再open/投影/digest/全reader回帰を追加した。専用新規2環境の初回App root seedが各2成功/verify1skip。CFコピー・既存rootの修復/再seedなし。
+@@ -302,6 +318,9 @@
+ ### S16 製品入口・共有Compositionとtarget接続
+ 
+ - [x] Status: done
++  - E-P2-STOP-20261022（2026-10-22）: 上記「現在の引渡し」と今回READMEの受入・Verifyを完了。下部操作と本文領域の分離/説明の全文AX計測、実更新/scroll中0pt・単一tap停止遷移、既存解放契約、関連17 Unit・通常3/最大2 UI/AX・UI後全identity/digest/reader・build/診断とmain差分/保全を結合し、非実機範囲doneへ戻す。他task・全steering・実機受入は未完。
++  - 以下の再開記録は修正中の履歴。現行の判定はE-P2-STOP-20261022を参照する。
++  - 再開 P2-STOP（2026-10-22）: 上記「現在の作業」の独立指摘1件と必要関連変更だけを対象とする。旧E-P2-20261022-FIXは実文字AX/fresh fixture解消の履歴として保持し、今回の停止位置・tap/停止遷移・UI後照合とmain差分確認後に非実機範囲を再判定する。
+   - E-P2-20261022-FIX（2026-10-22）: Composition7/OriginalPlayback9/CaptureSavePlayback1 Unit、製品入口→一覧/実再生/停止/背景/再起動、通常/最大UI・strict6とbuild/診断0、UI後stable identity/digest/全reader空を結合し既存Done/Verifyの非実機範囲done。探索ticket・Simulator拒否と通常Libraryを分離し、fixtureはtest targetのみ。S1Vや実機/品質/PRD受入は昇格しない。
+   - 以下は修正前の履歴。当時の失敗・blocked/部分引渡しを保持し、現在の判定は上記証跡を参照する。
+   - 最新部分結果/局所保留（2026-10-10）: UI13は通常サイズ・診断env0で再生進行/Stop/再生再開/背景停止維持/再起動、一覧/選択/履歴/再open、VoiceOverの3case成功、library/detail監査1失敗（detail-actionsのDT説明1＋対象nil contrast1）、skip/build診断0。全監査合格ではなくS14/S16はblockedを維持する。source126件/所有8fileと他root保護21fileを照合、旧開始失敗は再現なし・原因未修正。最大文字の同版UI-large-04と後続VERIFYはmainが検証のみ継続し、App/Test書込は凍結。再開条件は残る監査指摘の原因/実表示の特定と必要範囲の修正・再検証。位置比較を成立させるための不要な製品余白/文字制限は追加しない。独立S24を次の単独書込taskとする。
+@@ -1705,6 +1724,7 @@
+ | E-S28-01 | 2026-10-22、worker/main | S28既存登録の明示metadata同期 | 285入力、同writer/専用Status Simulator | 1page/続き/失効cursor分離/旧mutation-outbox/登録store/動画別表示 | Unit868展開(有意味867)/28skip、UI1/reopen1/build/実metadataHTTP1成功(2要求/媒体0) | evidence/20261022-status-sync/。全再登録/全媒体/全S28未達、最終共有版はE-S34-BG01 |
+ | E-S34-BG01 | 2026-10-22、workers/main | S34歴史的確定upload終端後の単数破棄・最終回帰 | 288入力candidate02、全run前後一致 | 全receipt/inventory・同writer最終照合/実SDK終端→ownFD-close→lease/stopped→通常risk/unlink/reopen | Unit913展開(有意味912)/29skip、実SDK1/metadataHTTP1/UI7/reopen1/build成功、CF1/seed1skip、診断0 | evidence/20261022-removal-terminal/。permit/Macは注入、SDK全FD/通常strict/全媒体/正式proof等へ昇格しない |
+ | E-H01-01 | 2026-10-22、main/読み取り調査 | H01・18票/全79AC | H01-SOURCE-01/389入力 | 全76母行/35軸更新/6旧親行保持/層別実行版を照合 | 準備版静的検証成功、実機未実施/全D0/受入未評価 | evidence/20261022-device-handoff/。実機実値/品質/許可/全組合せと反復はQ01未束縛 |
++| E-P2-STOP-20261022 | 2026-10-22、explorer/worker/main | 独立指摘AX5の秒数折返し/停止位置P2、S16必要関連範囲 | 最終P2-STOP-SOURCE-20261022-04の389入力、開始からView/UIだけ変更・387不変 | 実更新/scroll中の位置・全文・単一tap/停止/背景/再起動、初期playing/停止後AX、Unit/実reader/UI後原本照合、generic iOS | Unit14宣言17展開、通常3/最大2 UI、UI後2成功/seed1skip、build/診断0。移動量0pt、全reader空、digest/485721bytes不変。途中失敗01〜03保持 | [今回証跡](evidence/20261022-playback-stop-layout/README.md)。S16非実機done、初回失敗の直接原因は未確定。全steering・実機/品質/PRD受入は未完 |
+ | E-P2-20261022-FIX | 2026-10-22、explorer/workers/main、document_author/doc_reviewer | 独立指摘AX4件/fresh fixture不整合、S14/S16非実機Verify | 最終288入力不変、389 binding/旧H01から7変更382不変 | 新規App root seed・Unit/strict/通常/最大UI/実VO・UI後全reader/identity/digest・generic iOS | 全Unit590宣言562成功28skip/915展開（有意味914）、通常18前提別/strict6・最大4成功、seed各2成功1skip、UI後2成功1skip、build/診断0。失敗・取消・0件も保持 | [今回証跡](evidence/20261022-p2-ax-fixture/README.md)。S14/S16非実機done、他task/全steering/実機/品質/受入へ波及させない |
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+@@ -1747,6 +1767,8 @@
+ 
+ ## 振り返り・引渡し
+ 
++- 2026-10-22 停止位置P2修正後: E-P2-STOP-20261022で今回1件とS16の必要な非実機検証を完了。mainが開始差分・最終389入力・所有範囲・全run/途中失敗・原本/readerとSimulator保全を照合した。既存の全task状態・全steering/実機/品質/受入の未完了を維持し、独立した次工程は同pathの明示validationのみ。
++
+ - 2026-10-22 P2修正後: E-P2-20261022-FIXで2指摘とS14/S16の非実機Verifyを完了。以下の旧最終記録は修正前の履歴として保持する。今回も他task/段階/全steering、実機・品質・受入の未達を継承し、次工程は同pathの明示独立validationのみ。
+ 
+ - 計画作成日: 2026-10-01。実装完了日・実機工程完了日・PRD受入達成日は未確定。

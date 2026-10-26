@@ -1,0 +1,2153 @@
+........................................................................ [ 31%]
+........................................................................ [ 62%]
+................FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.FFFF.FFF.....FFFFFFFF. [ 93%]
+.....FFFFFFFFF                                                           [100%]
+=================================== FAILURES ===================================
+______ test_unpublished_initial_commit_does_not_fabricate_previous_or_ack ______
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_unpublished_initial_commi0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0b7da0>
+
+    def test_unpublished_initial_commit_does_not_fabricate_previous_or_ack(tmp_path, monkeypatch):
+        w = world(tmp_path, monkeypatch)
+        assert manifest(w) == {"current": None, "media_type": None, "revision": "0", "invalidation_generation": "0", "replacement_pending": False}
+        original = w.settings.media_root / ("originals/frame-relay/" + w.seed["session_id"] + ".bin")
+        with _database(w.settings) as conn:
+            original = w.settings.media_root / conn.execute("SELECT final_path FROM fr_upload_bindings WHERE session_id=?", (w.seed["session_id"],)).fetchone()[0]
+        before = original.read_bytes()
+>       rendition = publish(w)
+                    ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:155: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0b5a90>
+candidate_id = '4b1806ab-2611-48d3-bb68-c9c1a9f4e7f7', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+____ test_initial_publication_fault_reopen_and_exact_replay[before_commit] _____
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_initial_publication_fault0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a093650>
+stage = 'before_commit'
+
+    @pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
+    def test_initial_publication_fault_reopen_and_exact_replay(tmp_path, monkeypatch, stage):
+        w = world(tmp_path, monkeypatch)
+        request = {"operation_id": str(uuid4()), "candidate_id": w.seed["candidate_id"], "expected_revision": 0}
+        def fault(step):
+            if step == stage:
+                raise Crash()
+        with pytest.raises(Crash):
+>           w.service.publish_initial(**request, fault=fault)
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:175: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0920f0>
+candidate_id = 'b0ffec90-a386-40af-aa20-fa65e900bd89'
+fault = <function test_initial_publication_fault_reopen_and_exact_replay.<locals>.fault at 0x10a383d80>
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_____ test_initial_publication_fault_reopen_and_exact_replay[after_commit] _____
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_initial_publication_fault1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a197740>
+stage = 'after_commit'
+
+    @pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
+    def test_initial_publication_fault_reopen_and_exact_replay(tmp_path, monkeypatch, stage):
+        w = world(tmp_path, monkeypatch)
+        request = {"operation_id": str(uuid4()), "candidate_id": w.seed["candidate_id"], "expected_revision": 0}
+        def fault(step):
+            if step == stage:
+                raise Crash()
+        with pytest.raises(Crash):
+>           w.service.publish_initial(**request, fault=fault)
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:175: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a157020>
+candidate_id = '3473cf73-720e-4bdf-b57d-aa7401356f36'
+fault = <function test_initial_publication_fault_reopen_and_exact_replay.<locals>.fault at 0x10a3dc5e0>
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_dynamic_required_recipients_preserve_old_registration_and_reject_old_ack_substitution _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_dynamic_required_recipien0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a197920>
+
+    def test_dynamic_required_recipients_preserve_old_registration_and_reject_old_ack_substitution(tmp_path, monkeypatch):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:188: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a19b680>
+candidate_id = 'd8a8d948-0b00-44f2-81b2-5a5b97e0b20b', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_______ test_same_distribution_operation_requires_entire_payload[range] ________
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_same_distribution_operati0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a155c10>
+mutation = 'range'
+
+    @pytest.mark.parametrize("mutation", ["range", "kind", "gate", "source", "rendition"])
+    def test_same_distribution_operation_requires_entire_payload(tmp_path, monkeypatch, mutation):
+        w = world(tmp_path, monkeypatch)
+>       _source, _receipt, request = accepted_read(w, publish(w))
+                                                      ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:214: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x109fafda0>
+candidate_id = '705fbebb-5772-4982-ae50-85c4f0d4567f', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+________ test_same_distribution_operation_requires_entire_payload[kind] ________
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_same_distribution_operati1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a06e570>
+mutation = 'kind'
+
+    @pytest.mark.parametrize("mutation", ["range", "kind", "gate", "source", "rendition"])
+    def test_same_distribution_operation_requires_entire_payload(tmp_path, monkeypatch, mutation):
+        w = world(tmp_path, monkeypatch)
+>       _source, _receipt, request = accepted_read(w, publish(w))
+                                                      ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:214: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x109f74b90>
+candidate_id = '1102256b-1057-41b3-8358-8e60286e5f23', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+________ test_same_distribution_operation_requires_entire_payload[gate] ________
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_same_distribution_operati2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x109f51e80>
+mutation = 'gate'
+
+    @pytest.mark.parametrize("mutation", ["range", "kind", "gate", "source", "rendition"])
+    def test_same_distribution_operation_requires_entire_payload(tmp_path, monkeypatch, mutation):
+        w = world(tmp_path, monkeypatch)
+>       _source, _receipt, request = accepted_read(w, publish(w))
+                                                      ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:214: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x109f510a0>
+candidate_id = '3a714368-c3cd-400c-ba31-e40daf1fe258', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_______ test_same_distribution_operation_requires_entire_payload[source] _______
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_same_distribution_operati3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x108b58a10>
+mutation = 'source'
+
+    @pytest.mark.parametrize("mutation", ["range", "kind", "gate", "source", "rendition"])
+    def test_same_distribution_operation_requires_entire_payload(tmp_path, monkeypatch, mutation):
+        w = world(tmp_path, monkeypatch)
+>       _source, _receipt, request = accepted_read(w, publish(w))
+                                                      ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:214: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x108b59ac0>
+candidate_id = 'd01332ec-c93d-40aa-863f-cece4e622f90', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_____ test_same_distribution_operation_requires_entire_payload[rendition] ______
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_same_distribution_operati4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x108b30c80>
+mutation = 'rendition'
+
+    @pytest.mark.parametrize("mutation", ["range", "kind", "gate", "source", "rendition"])
+    def test_same_distribution_operation_requires_entire_payload(tmp_path, monkeypatch, mutation):
+        w = world(tmp_path, monkeypatch)
+>       _source, _receipt, request = accepted_read(w, publish(w))
+                                                      ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:214: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x108b333e0>
+candidate_id = '83636b40-6446-4a65-97e6-8b786313c0cb', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_identical_operation_ids_in_two_registrations_have_independent_concurrent_admissions _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_identical_operation_ids_i0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x108b58d10>
+
+    def test_identical_operation_ids_in_two_registrations_have_independent_concurrent_admissions(tmp_path, monkeypatch):
+        w = world(tmp_path, monkeypatch)
+>       rendition = publish(w)
+                    ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:227: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a076f30>
+candidate_id = 'a651dd37-80e9-4b96-adba-8969b22d1957', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_____ test_same_registration_concurrent_ticket_consumption_has_one_winner ______
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_same_registration_concurr0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x109f50e90>
+
+    def test_same_registration_concurrent_ticket_consumption_has_one_winner(tmp_path, monkeypatch):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:244: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x108d178f0>
+candidate_id = 'fd1f10fc-2cf3-4058-a594-740c10175f8e', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_distribution_response_loss_reopen_returns_exact_request_and_receipt[before_commit] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_distribution_response_los0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a092990>
+stage = 'before_commit'
+
+    @pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
+    def test_distribution_response_loss_reopen_returns_exact_request_and_receipt(tmp_path, monkeypatch, stage):
+        w = world(tmp_path, monkeypatch)
+>       request = source_request(w, publish(w))
+                                    ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:261: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a195c40>
+candidate_id = '7a3730f7-dd6c-4a05-ad21-966b991ff959', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_distribution_response_loss_reopen_returns_exact_request_and_receipt[after_commit] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_distribution_response_los1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x108adf110>
+stage = 'after_commit'
+
+    @pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
+    def test_distribution_response_loss_reopen_returns_exact_request_and_receipt(tmp_path, monkeypatch, stage):
+        w = world(tmp_path, monkeypatch)
+>       request = source_request(w, publish(w))
+                                    ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:261: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x108adec30>
+candidate_id = '88b54dd8-e66b-462c-ad53-4440107b3546', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_get_commit_loss_and_interrupted_body_require_new_acceptance[before_commit] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_get_commit_loss_and_inter0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a02d970>
+stage = 'before_commit'
+
+    @pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
+    def test_get_commit_loss_and_interrupted_body_require_new_acceptance(tmp_path, monkeypatch, stage):
+        w = world(tmp_path, monkeypatch)
+>       source, _receipt, request = accepted_read(w, publish(w))
+                                                     ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:278: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a02fe30>
+candidate_id = '1c980ca6-965f-41be-b34d-cf71a9583e78', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_get_commit_loss_and_interrupted_body_require_new_acceptance[after_commit] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_get_commit_loss_and_inter1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a02c170>
+stage = 'after_commit'
+
+    @pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
+    def test_get_commit_loss_and_interrupted_body_require_new_acceptance(tmp_path, monkeypatch, stage):
+        w = world(tmp_path, monkeypatch)
+>       source, _receipt, request = accepted_read(w, publish(w))
+                                                     ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:278: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a02d580>
+candidate_id = '7ae22e19-ae4e-4999-b4b3-d1ac273d7a72', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_get_whole_hash_is_outside_writer_and_rechecks_publication_before_bytes __
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_get_whole_hash_is_outside0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x108adee70>
+
+    def test_get_whole_hash_is_outside_writer_and_rechecks_publication_before_bytes(tmp_path, monkeypatch):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:300: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a1981d0>
+candidate_id = 'cd12201d-a0dd-40b8-851f-f29c36af3957', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_____ test_accepted_old_response_keeps_its_inode_after_ack_and_publication _____
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_accepted_old_response_kee0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a195670>
+
+    def test_accepted_old_response_keeps_its_inode_after_ack_and_publication(tmp_path, monkeypatch):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:322: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x109d3e120>
+candidate_id = '0ed7126e-3e4e-42d5-bd87-7748b5ade9b3', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+__ test_changed_artifact_after_hash_is_rejected_without_admission[same_size] ___
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_changed_artifact_after_ha0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x108b59910>
+change = 'same_size'
+
+    @pytest.mark.parametrize("change", ["same_size", "truncate", "replace", "symlink", "hardlink"])
+    def test_changed_artifact_after_hash_is_rejected_without_admission(tmp_path, monkeypatch, change):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:338: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x108b592e0>
+candidate_id = 'aa0c6f41-6293-4d09-bf64-4bfd14e0b14f', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+___ test_changed_artifact_after_hash_is_rejected_without_admission[truncate] ___
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_changed_artifact_after_ha1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a02cbc0>
+change = 'truncate'
+
+    @pytest.mark.parametrize("change", ["same_size", "truncate", "replace", "symlink", "hardlink"])
+    def test_changed_artifact_after_hash_is_rejected_without_admission(tmp_path, monkeypatch, change):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:338: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a02dd60>
+candidate_id = '8723614a-b71f-4776-98c2-783ce9cac7e0', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+___ test_changed_artifact_after_hash_is_rejected_without_admission[replace] ____
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_changed_artifact_after_ha2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a02d6a0>
+change = 'replace'
+
+    @pytest.mark.parametrize("change", ["same_size", "truncate", "replace", "symlink", "hardlink"])
+    def test_changed_artifact_after_hash_is_rejected_without_admission(tmp_path, monkeypatch, change):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:338: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a02f860>
+candidate_id = '7c5e4309-02c5-411d-a8d1-be97fa3f150d', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+___ test_changed_artifact_after_hash_is_rejected_without_admission[symlink] ____
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_changed_artifact_after_ha3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0b5fa0>
+change = 'symlink'
+
+    @pytest.mark.parametrize("change", ["same_size", "truncate", "replace", "symlink", "hardlink"])
+    def test_changed_artifact_after_hash_is_rejected_without_admission(tmp_path, monkeypatch, change):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:338: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0b4140>
+candidate_id = '1f6a1e91-9cd2-4982-8b70-0f8a48b5d274', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+___ test_changed_artifact_after_hash_is_rejected_without_admission[hardlink] ___
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_changed_artifact_after_ha4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a02f3b0>
+change = 'hardlink'
+
+    @pytest.mark.parametrize("change", ["same_size", "truncate", "replace", "symlink", "hardlink"])
+    def test_changed_artifact_after_hash_is_rejected_without_admission(tmp_path, monkeypatch, change):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:338: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a02e930>
+candidate_id = '98b48042-748c-43fd-95cb-3395cead1c87', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+______ test_candidate_alias_write_after_hash_does_not_mutate_sealed_inode ______
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_candidate_alias_write_aft0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a02e240>
+
+    def test_candidate_alias_write_after_hash_does_not_mutate_sealed_inode(tmp_path, monkeypatch):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:361: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x109d3e480>
+candidate_id = 'bc9662ad-a574-4faa-a8fe-261096787e90', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_external_inplace_write_after_admission_is_detected_without_claiming_retraction _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_external_inplace_write_af0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x108b58b00>
+
+    def test_external_inplace_write_after_admission_is_detected_without_claiming_retraction(tmp_path, monkeypatch):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:373: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a1981d0>
+candidate_id = '868a4020-13e1-405b-b543-3bec85fa3717', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+___ test_sealed_artifact_cannot_be_written_aliased_or_removed_by_app_helpers ___
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_sealed_artifact_cannot_be0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x108add1c0>
+
+    def test_sealed_artifact_cannot_be_written_aliased_or_removed_by_app_helpers(tmp_path, monkeypatch):
+        w = world(tmp_path, monkeypatch)
+>       rendition = publish(w)
+                    ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:385: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0da0c0>
+candidate_id = 'e2c6d4c1-494a-477f-9c12-39f2e80d00e4', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_confirmation_and_ack_fault_reopen_never_restore_invalidated_confirmation[before_commit] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_confirmation_and_ack_faul0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0db740>
+stage = 'before_commit'
+
+    @pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
+    def test_confirmation_and_ack_fault_reopen_never_restore_invalidated_confirmation(tmp_path, monkeypatch, stage):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:429: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0db050>
+candidate_id = '2d706f89-d945-468f-8317-7c828cd6d149', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_confirmation_and_ack_fault_reopen_never_restore_invalidated_confirmation[after_commit] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_confirmation_and_ack_faul1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0d9070>
+stage = 'after_commit'
+
+    @pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
+    def test_confirmation_and_ack_fault_reopen_never_restore_invalidated_confirmation(tmp_path, monkeypatch, stage):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:429: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0d8cb0>
+candidate_id = '5ff59d06-fa92-46b0-b072-38233519221e', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+__ test_candidate_failure_after_invalidation_keeps_tombstone_and_old_pointer ___
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_candidate_failure_after_i0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0924e0>
+
+    def test_candidate_failure_after_invalidation_keeps_tombstone_and_old_pointer(tmp_path, monkeypatch):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:454: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x109e3acc0>
+candidate_id = '553d223c-690b-4074-99c2-3c3276803d63', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_normal_production_authority_rejects_fixture_database_after_reopen[manifest] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_normal_production_authori0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a02d070>
+entry = 'manifest'
+
+    @pytest.mark.parametrize("entry", ["manifest", "distribution", "get", "lookup", "publish"])
+    def test_normal_production_authority_rejects_fixture_database_after_reopen(tmp_path, monkeypatch, entry):
+        w = world(tmp_path, monkeypatch)
+>       rendition = publish(w)
+                    ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:469: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a02d6a0>
+candidate_id = '8ebad605-05d7-48e2-a08e-0da07074369d', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_normal_production_authority_rejects_fixture_database_after_reopen[distribution] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_normal_production_authori1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0d9f10>
+entry = 'distribution'
+
+    @pytest.mark.parametrize("entry", ["manifest", "distribution", "get", "lookup", "publish"])
+    def test_normal_production_authority_rejects_fixture_database_after_reopen(tmp_path, monkeypatch, entry):
+        w = world(tmp_path, monkeypatch)
+>       rendition = publish(w)
+                    ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:469: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0d9850>
+candidate_id = '6d5959e4-86cc-49cd-9bcc-ef09f19d47ab', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_normal_production_authority_rejects_fixture_database_after_reopen[get] __
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_normal_production_authori2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0db350>
+entry = 'get'
+
+    @pytest.mark.parametrize("entry", ["manifest", "distribution", "get", "lookup", "publish"])
+    def test_normal_production_authority_rejects_fixture_database_after_reopen(tmp_path, monkeypatch, entry):
+        w = world(tmp_path, monkeypatch)
+>       rendition = publish(w)
+                    ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:469: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0dad50>
+candidate_id = '2fe74c48-7d44-4560-8d78-84fbadffdea1', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_normal_production_authority_rejects_fixture_database_after_reopen[lookup] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_normal_production_authori3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0bd100>
+entry = 'lookup'
+
+    @pytest.mark.parametrize("entry", ["manifest", "distribution", "get", "lookup", "publish"])
+    def test_normal_production_authority_rejects_fixture_database_after_reopen(tmp_path, monkeypatch, entry):
+        w = world(tmp_path, monkeypatch)
+>       rendition = publish(w)
+                    ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:469: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0be630>
+candidate_id = 'e681a3be-379f-4625-be80-de7db536abf8', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_normal_production_authority_rejects_fixture_database_after_reopen[publish] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_normal_production_authori4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0bd5b0>
+entry = 'publish'
+
+    @pytest.mark.parametrize("entry", ["manifest", "distribution", "get", "lookup", "publish"])
+    def test_normal_production_authority_rejects_fixture_database_after_reopen(tmp_path, monkeypatch, entry):
+        w = world(tmp_path, monkeypatch)
+>       rendition = publish(w)
+                    ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:469: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0be0f0>
+candidate_id = 'e7099e66-c094-4ca8-bfe2-32c4f8df7e3b', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+___ test_sqlite_failure_rolls_back_entire_publication_mutation[distribution] ___
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_sqlite_failure_rolls_back0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0da0c0>
+operation = 'distribution'
+
+    @pytest.mark.parametrize("operation", ["distribution", "confirmation", "acknowledgement", "publication"])
+    def test_sqlite_failure_rolls_back_entire_publication_mutation(tmp_path, monkeypatch, operation):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:495: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0da4e0>
+candidate_id = '58d6502a-bce7-484a-8927-bc2efc298920', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+___ test_sqlite_failure_rolls_back_entire_publication_mutation[confirmation] ___
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_sqlite_failure_rolls_back1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a02f5c0>
+operation = 'confirmation'
+
+    @pytest.mark.parametrize("operation", ["distribution", "confirmation", "acknowledgement", "publication"])
+    def test_sqlite_failure_rolls_back_entire_publication_mutation(tmp_path, monkeypatch, operation):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:495: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x109f9a300>
+candidate_id = '8348e88f-37ed-4678-9189-2d5decedea8f', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_sqlite_failure_rolls_back_entire_publication_mutation[acknowledgement] __
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_sqlite_failure_rolls_back2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0902f0>
+operation = 'acknowledgement'
+
+    @pytest.mark.parametrize("operation", ["distribution", "confirmation", "acknowledgement", "publication"])
+    def test_sqlite_failure_rolls_back_entire_publication_mutation(tmp_path, monkeypatch, operation):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:495: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a090d10>
+candidate_id = 'f2fb0700-8872-4c92-a711-f816addb6dc9', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+___ test_sqlite_failure_rolls_back_entire_publication_mutation[publication] ____
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_sqlite_failure_rolls_back3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0bcf80>
+operation = 'publication'
+
+    @pytest.mark.parametrize("operation", ["distribution", "confirmation", "acknowledgement", "publication"])
+    def test_sqlite_failure_rolls_back_entire_publication_mutation(tmp_path, monkeypatch, operation):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:495: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0be540>
+candidate_id = '28365243-d7da-47da-bc0b-31c560e31b13', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_old_http_entries_without_version_header_never_deliver_or_confirm_fr_asset[/preview] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_old_http_entries_without_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0bf860>
+path = '/preview'
+
+    @pytest.mark.parametrize("path", ["/preview", "/results/unknown", "/preview-confirmation"])
+    def test_old_http_entries_without_version_header_never_deliver_or_confirm_fr_asset(tmp_path, monkeypatch, path):
+        w = world(tmp_path, monkeypatch)
+>       publish(w)
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:544: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0bef60>
+candidate_id = 'd5f1c19d-9233-4766-94c5-8deb8fce5f5e', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_old_http_entries_without_version_header_never_deliver_or_confirm_fr_asset[/results/unknown] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_old_http_entries_without_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0d2c60>
+path = '/results/unknown'
+
+    @pytest.mark.parametrize("path", ["/preview", "/results/unknown", "/preview-confirmation"])
+    def test_old_http_entries_without_version_header_never_deliver_or_confirm_fr_asset(tmp_path, monkeypatch, path):
+        w = world(tmp_path, monkeypatch)
+>       publish(w)
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:544: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0d3980>
+candidate_id = '04779c88-86c8-48a6-b83e-da10c5763f39', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_old_http_entries_without_version_header_never_deliver_or_confirm_fr_asset[/preview-confirmation] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_old_http_entries_without_2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0bddf0>
+path = '/preview-confirmation'
+
+    @pytest.mark.parametrize("path", ["/preview", "/results/unknown", "/preview-confirmation"])
+    def test_old_http_entries_without_version_header_never_deliver_or_confirm_fr_asset(tmp_path, monkeypatch, path):
+        w = world(tmp_path, monkeypatch)
+>       publish(w)
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:544: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0bc770>
+candidate_id = 'bf6f93da-2369-481a-84a2-175983f4bf5e', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_wire_exact_requests_reject_normalization_and_substitution[unknown_json] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_wire_exact_requests_rejec0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0d17f0>
+change = 'unknown_json'
+
+    @pytest.mark.parametrize("change", ["unknown_json", "duplicate_query", "unknown_query", "padded_header", "changed_gate", "changed_range"])
+    def test_wire_exact_requests_reject_normalization_and_substitution(tmp_path, monkeypatch, change):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:586: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0d1a60>
+candidate_id = '5fc16ebf-2f8b-4707-9f0d-993ca582929b', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_wire_exact_requests_reject_normalization_and_substitution[duplicate_query] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_wire_exact_requests_rejec1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x108b59910>
+change = 'duplicate_query'
+
+    @pytest.mark.parametrize("change", ["unknown_json", "duplicate_query", "unknown_query", "padded_header", "changed_gate", "changed_range"])
+    def test_wire_exact_requests_reject_normalization_and_substitution(tmp_path, monkeypatch, change):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:586: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0bff50>
+candidate_id = '23d43dec-ae70-472b-96fc-a26147847f46', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_wire_exact_requests_reject_normalization_and_substitution[unknown_query] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_wire_exact_requests_rejec2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0bd700>
+change = 'unknown_query'
+
+    @pytest.mark.parametrize("change", ["unknown_json", "duplicate_query", "unknown_query", "padded_header", "changed_gate", "changed_range"])
+    def test_wire_exact_requests_reject_normalization_and_substitution(tmp_path, monkeypatch, change):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:586: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0bd6a0>
+candidate_id = '76ee43c1-b5e7-4dd5-a1fa-da4682e514ee', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_wire_exact_requests_reject_normalization_and_substitution[padded_header] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_wire_exact_requests_rejec3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a953d70>
+change = 'padded_header'
+
+    @pytest.mark.parametrize("change", ["unknown_json", "duplicate_query", "unknown_query", "padded_header", "changed_gate", "changed_range"])
+    def test_wire_exact_requests_reject_normalization_and_substitution(tmp_path, monkeypatch, change):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:586: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a9524b0>
+candidate_id = 'ae5fbf01-34ec-4da5-bd33-d4fb6c29f43c', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_wire_exact_requests_reject_normalization_and_substitution[changed_gate] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_wire_exact_requests_rejec4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a951250>
+change = 'changed_gate'
+
+    @pytest.mark.parametrize("change", ["unknown_json", "duplicate_query", "unknown_query", "padded_header", "changed_gate", "changed_range"])
+    def test_wire_exact_requests_reject_normalization_and_substitution(tmp_path, monkeypatch, change):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:586: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a9538c0>
+candidate_id = '90066492-4255-4171-abf7-6811f05fb0c7', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_wire_exact_requests_reject_normalization_and_substitution[changed_range] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_wire_exact_requests_rejec5')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0bef60>
+change = 'changed_range'
+
+    @pytest.mark.parametrize("change", ["unknown_json", "duplicate_query", "unknown_query", "padded_header", "changed_gate", "changed_range"])
+    def test_wire_exact_requests_reject_normalization_and_substitution(tmp_path, monkeypatch, change):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:586: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x109f99370>
+candidate_id = '66e90f9f-09a1-451d-b069-95f7a207a493', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+__ test_canonical_http_get_single_consumption_and_matching_quicktime_identity __
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_canonical_http_get_single0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0dbb30>
+
+    def test_canonical_http_get_single_consumption_and_matching_quicktime_identity(tmp_path, monkeypatch):
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:604: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0da720>
+candidate_id = 'f57696d5-9ee4-405a-aff9-6fdb7af20898', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_____ test_pinned_response_closes_fd_even_when_asgi_send_fails_before_body _____
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_pinned_response_closes_fd0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0d1a60>
+
+    def test_pinned_response_closes_fd_even_when_asgi_send_fails_before_body(tmp_path, monkeypatch):
+        import asyncio
+        from starlette.requests import ClientDisconnect
+        w = world(tmp_path, monkeypatch)
+>       accepted = open_request(w, accepted_read(w, publish(w))[2])
+                                                    ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:620: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0d2540>
+candidate_id = 'b15425f9-38d1-46ba-ab87-f6116f421f8f', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+___ test_invalidation_pagination_is_bounded_progresses_and_repolls_lower_ids ___
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_invalidation_pagination_i0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a490b00>
+
+    def test_invalidation_pagination_is_bounded_progresses_and_repolls_lower_ids(tmp_path, monkeypatch):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w); w.service.accept_distribution(source_request(w, v1), SECRET)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:643: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a43e570>
+candidate_id = '808026f7-26f5-48fc-8f65-c96dc1c31ae8', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_maximum_escaped_invalidation_fits_single_page_and_exact_bytes_are_retained _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_maximum_escaped_invalidat0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0e7a40>
+
+    def test_maximum_escaped_invalidation_fits_single_page_and_exact_bytes_are_retained(tmp_path, monkeypatch):
+        w = world(tmp_path, monkeypatch)
+>       rendition = publish(w)
+                    ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:663: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0e53a0>
+candidate_id = 'e21f3a22-158d-4bae-8b3c-b158ee27a0cd', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_replacement_publication_fault_reopen_and_historical_ack_replay[before_commit] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_replacement_publication_f0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a0e5370>
+stage = 'before_commit'
+
+    @pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
+    def test_replacement_publication_fault_reopen_and_historical_ack_replay(tmp_path, monkeypatch, stage):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:687: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a0e56d0>
+candidate_id = '39033121-7180-445f-ba10-0cca5a4b9043', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_replacement_publication_fault_reopen_and_historical_ack_replay[after_commit] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_replacement_publication_f1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a43c320>
+stage = 'after_commit'
+
+    @pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
+    def test_replacement_publication_fault_reopen_and_historical_ack_replay(tmp_path, monkeypatch, stage):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:687: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a43d220>
+candidate_id = 'bfc54ba3-594c-4747-af75-19e82c619729', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_wrong_or_reused_ack_payload_never_satisfies_required_registration[invalidation_id] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_wrong_or_reused_ack_paylo0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a43f5c0>
+field = 'invalidation_id'
+
+    @pytest.mark.parametrize("field", ["invalidation_id", "invalidation_generation", "rendition", "local_commit"])
+    def test_wrong_or_reused_ack_payload_never_satisfies_required_registration(tmp_path, monkeypatch, field):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w); w.service.accept_distribution(source_request(w, v1), SECRET)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:709: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a43edb0>
+candidate_id = '3bd865c4-d708-4db3-b914-65ce8144081d', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_wrong_or_reused_ack_payload_never_satisfies_required_registration[invalidation_generation] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_wrong_or_reused_ack_paylo1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a43e210>
+field = 'invalidation_generation'
+
+    @pytest.mark.parametrize("field", ["invalidation_id", "invalidation_generation", "rendition", "local_commit"])
+    def test_wrong_or_reused_ack_payload_never_satisfies_required_registration(tmp_path, monkeypatch, field):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w); w.service.accept_distribution(source_request(w, v1), SECRET)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:709: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x108a94770>
+candidate_id = '90463c1c-a3bc-4d91-8991-2360b3c07953', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_wrong_or_reused_ack_payload_never_satisfies_required_registration[rendition] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_wrong_or_reused_ack_paylo2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a196d50>
+field = 'rendition'
+
+    @pytest.mark.parametrize("field", ["invalidation_id", "invalidation_generation", "rendition", "local_commit"])
+    def test_wrong_or_reused_ack_payload_never_satisfies_required_registration(tmp_path, monkeypatch, field):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w); w.service.accept_distribution(source_request(w, v1), SECRET)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:709: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a197fb0>
+candidate_id = '4a48b720-b362-4aaa-9a83-82636427fcbe', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_wrong_or_reused_ack_payload_never_satisfies_required_registration[local_commit] _
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_wrong_or_reused_ack_paylo3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a091790>
+field = 'local_commit'
+
+    @pytest.mark.parametrize("field", ["invalidation_id", "invalidation_generation", "rendition", "local_commit"])
+    def test_wrong_or_reused_ack_payload_never_satisfies_required_registration(tmp_path, monkeypatch, field):
+        w = world(tmp_path, monkeypatch)
+>       v1 = publish(w); w.service.accept_distribution(source_request(w, v1), SECRET)
+             ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:709: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a1e97f0>
+candidate_id = 'f09e5bb8-9188-4363-880e-8226ce2e530a', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+_ test_sqlite_get_admission_failure_closes_pinned_fd_and_leaves_ticket_unused __
+
+tmp_path = PosixPath('/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001/pytest-tmp/test_sqlite_get_admission_fail0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a491ca0>
+
+    def test_sqlite_get_admission_failure_closes_pinned_fd_and_leaves_ticket_unused(tmp_path, monkeypatch):
+        from contextlib import contextmanager
+        w = world(tmp_path, monkeypatch)
+>       request = accepted_read(w, publish(w))[2]
+                                   ^^^^^^^^^^
+
+../snapshot-001/backend/tests/test_frame_relay_publication.py:726: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../snapshot-001/backend/tests/test_frame_relay_publication.py:51: in publish
+    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../snapshot-001/backend/app/services/frame_relay_publication.py:115: in publish_initial
+    draft = self._draft(candidate_id, fault)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.frame_relay_publication.PublicationService object at 0x10a492de0>
+candidate_id = '6301860b-79b1-45dc-8e0d-8a6e5e03b2ca', fault = None
+
+    def _draft(self, candidate_id, fault):
+        with self.database() as conn:
+            source = repository.candidate(conn, candidate_id)
+            approved = self.authority.check_candidate(conn, *source)
+        item, _evidence, output, _original = source
+        receipt = output["receipt"]
+        rendition_id = str(uuid4())
+>       relative = files.SEALED_PREFIX + rendition_id + ".media"
+                   ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.services.frame_relay_files' has no attribute 'SEALED_PREFIX'
+
+../snapshot-001/backend/app/services/frame_relay_publication.py:76: AttributeError
+=========================== short test summary info ============================
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_unpublished_initial_commit_does_not_fabricate_previous_or_ack
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_initial_publication_fault_reopen_and_exact_replay[before_commit]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_initial_publication_fault_reopen_and_exact_replay[after_commit]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_dynamic_required_recipients_preserve_old_registration_and_reject_old_ack_substitution
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_same_distribution_operation_requires_entire_payload[range]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_same_distribution_operation_requires_entire_payload[kind]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_same_distribution_operation_requires_entire_payload[gate]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_same_distribution_operation_requires_entire_payload[source]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_same_distribution_operation_requires_entire_payload[rendition]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_identical_operation_ids_in_two_registrations_have_independent_concurrent_admissions
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_same_registration_concurrent_ticket_consumption_has_one_winner
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_distribution_response_loss_reopen_returns_exact_request_and_receipt[before_commit]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_distribution_response_loss_reopen_returns_exact_request_and_receipt[after_commit]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_get_commit_loss_and_interrupted_body_require_new_acceptance[before_commit]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_get_commit_loss_and_interrupted_body_require_new_acceptance[after_commit]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_get_whole_hash_is_outside_writer_and_rechecks_publication_before_bytes
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_accepted_old_response_keeps_its_inode_after_ack_and_publication
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_changed_artifact_after_hash_is_rejected_without_admission[same_size]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_changed_artifact_after_hash_is_rejected_without_admission[truncate]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_changed_artifact_after_hash_is_rejected_without_admission[replace]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_changed_artifact_after_hash_is_rejected_without_admission[symlink]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_changed_artifact_after_hash_is_rejected_without_admission[hardlink]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_candidate_alias_write_after_hash_does_not_mutate_sealed_inode
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_external_inplace_write_after_admission_is_detected_without_claiming_retraction
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_sealed_artifact_cannot_be_written_aliased_or_removed_by_app_helpers
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_confirmation_and_ack_fault_reopen_never_restore_invalidated_confirmation[before_commit]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_confirmation_and_ack_fault_reopen_never_restore_invalidated_confirmation[after_commit]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_candidate_failure_after_invalidation_keeps_tombstone_and_old_pointer
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_normal_production_authority_rejects_fixture_database_after_reopen[manifest]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_normal_production_authority_rejects_fixture_database_after_reopen[distribution]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_normal_production_authority_rejects_fixture_database_after_reopen[get]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_normal_production_authority_rejects_fixture_database_after_reopen[lookup]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_normal_production_authority_rejects_fixture_database_after_reopen[publish]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_sqlite_failure_rolls_back_entire_publication_mutation[distribution]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_sqlite_failure_rolls_back_entire_publication_mutation[confirmation]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_sqlite_failure_rolls_back_entire_publication_mutation[acknowledgement]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_sqlite_failure_rolls_back_entire_publication_mutation[publication]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_old_http_entries_without_version_header_never_deliver_or_confirm_fr_asset[/preview]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_old_http_entries_without_version_header_never_deliver_or_confirm_fr_asset[/results/unknown]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_old_http_entries_without_version_header_never_deliver_or_confirm_fr_asset[/preview-confirmation]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_wire_exact_requests_reject_normalization_and_substitution[unknown_json]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_wire_exact_requests_reject_normalization_and_substitution[duplicate_query]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_wire_exact_requests_reject_normalization_and_substitution[unknown_query]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_wire_exact_requests_reject_normalization_and_substitution[padded_header]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_wire_exact_requests_reject_normalization_and_substitution[changed_gate]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_wire_exact_requests_reject_normalization_and_substitution[changed_range]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_canonical_http_get_single_consumption_and_matching_quicktime_identity
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_pinned_response_closes_fd_even_when_asgi_send_fails_before_body
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_invalidation_pagination_is_bounded_progresses_and_repolls_lower_ids
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_maximum_escaped_invalidation_fits_single_page_and_exact_bytes_are_retained
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_replacement_publication_fault_reopen_and_historical_ack_replay[before_commit]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_replacement_publication_fault_reopen_and_historical_ack_replay[after_commit]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_wrong_or_reused_ack_payload_never_satisfies_required_registration[invalidation_id]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_wrong_or_reused_ack_payload_never_satisfies_required_registration[invalidation_generation]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_wrong_or_reused_ack_payload_never_satisfies_required_registration[rendition]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_wrong_or_reused_ack_payload_never_satisfies_required_registration[local_commit]
+FAILED ../snapshot-001/backend/tests/test_frame_relay_publication.py::test_sqlite_get_admission_failure_closes_pinned_fd_and_leaves_ticket_unused
+57 failed, 173 passed in 9.82s
+{"runtime": "/private/tmp/fr-di-20261015-s27/S27/runtime-pytest-001", "execution_kind": "pytest", "exit_code": 1, "pytest_exit_code": 1, "failure_type": null}

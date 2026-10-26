@@ -1,0 +1,467 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination "platform=iOS Simulator,id=FC6EF960-EEC5-4592-BC4B-DD4FFD767B93" -derivedDataPath /private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData -resultBundlePath /private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/cleanup-post-07/result.xcresult -disableAutomaticPackageResolution -parallel-testing-enabled NO -collect-test-diagnostics never "-only-testing:FrameRelayTests/ProductCleanupSeedTests" "-only-testing:FrameRelayUITests/CleanupFlowTests/testStoredCleanupResultsAccessibilityOnDedicatedSeed" test
+
+2026-10-23 21:21:53.774 xcodebuild[91444:57891504] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+Writing result bundle at path:
+	/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/cleanup-post-07/result.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (3 targets)
+    Target 'FrameRelayTests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelayUITests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelay' in project 'FrameRelay' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+Build description signature: 1dfe3c8a03bda6adbc301adcbee6c7b5
+Build description path: /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/XCBuildData/1dfe3c8a03bda6adbc301adcbee6c7b5.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/oyabu/dev/rep/FrameRelay/FrameRelay.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist -producttype com.apple.product-type.application -genpkginfo /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/assetcatalog_generated_info.plist -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/ProductTypeInfoPlistAdditions.plist -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/FrameRelayUITests --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/SDKExplicitPrecompiledModules
+
+2026-10-23 21:21:56.485404+0900 FrameRelayUITests-Runner[91463:57891905] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-23 21:21:58.574.
+Test Suite 'FrameRelayUITests.xctest' started at 2026-10-23 21:21:58.574.
+Test Suite 'CleanupFlowTests' started at 2026-10-23 21:21:58.575.
+Test Case '-[FrameRelayUITests.CleanupFlowTests testStoredCleanupResultsAccessibilityOnDedicatedSeed]' started.
+    t =     0.00s Start Test at 2026-10-23 21:21:58.577
+    t =     0.02s Set Up
+    t =     0.03s Open com.oyabu.FrameRelay
+    t =     0.03s     Launch com.oyabu.FrameRelay
+2026-10-23 21:21:58.669 xcodebuild[91444:57891504] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-23 21:21:58.669 xcodebuild[91444:57891504] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.52s         Setting up automation session
+objc[91463]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.NUrxb4/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x109ed0398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.NUrxb4/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10a428310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     3.26s         Wait for com.oyabu.FrameRelay to idle
+    t =     4.94s Waiting 10.0s for "library.refresh" Button to exist
+    t =     6.02s     Checking `Expect predicate `existsNoRetry == 1` for object "library.refresh" Button`
+    t =     6.02s         Checking existence of `"library.refresh" Button`
+    t =     7.20s Find the "library.refresh" Button
+    t =     7.26s Checking existence of `"library.loadFailure" Any`
+    t =     7.33s Checking existence of `"library.scope" Any`
+    t =     7.37s Find the NavigationBar (First Match)
+    t =     7.37s Find the "library.scope" Any
+    t =     7.41s Find the "library.scope" Button
+    t =     7.47s Find the Target Application 'com.oyabu.FrameRelay'
+    t =     7.49s Tap "library.scope" Any
+    t =     7.49s     Wait for com.oyabu.FrameRelay to idle
+    t =     7.50s     Find the "library.scope" Any
+    t =     7.53s     Check for interrupting elements affecting "library.scope" Button
+    t =     7.57s     Synthesize event
+    t =     7.86s     Wait for com.oyabu.FrameRelay to idle
+    t =     9.02s Waiting 5.0s for "ライブラリ" Button to exist
+    t =    10.06s     Checking `Expect predicate `existsNoRetry == 1` for object "ライブラリ" Button`
+    t =    10.06s         Checking existence of `"ライブラリ" Button`
+    t =    10.13s Tap "ライブラリ" Button
+    t =    10.13s     Wait for com.oyabu.FrameRelay to idle
+    t =    10.14s     Find the "ライブラリ" Button
+    t =    10.17s     Check for interrupting elements affecting "ライブラリ" Button
+    t =    10.22s     Synthesize event
+    t =    10.51s     Wait for com.oyabu.FrameRelay to idle
+    t =    11.92s Checking existence of `"library.scope" Any`
+    t =    11.97s Find the NavigationBar (First Match)
+    t =    11.98s Find the "library.scope" Any
+    t =    12.02s Find the "library.scope" Button
+    t =    12.06s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    12.08s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.item."'
+    t =    12.11s Find the Any (Element at index 0)
+    t =    12.14s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a" Button
+    t =    12.17s Find the Any (Element at index 1)
+    t =    12.20s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b" Button
+    t =    12.23s Find the Any (Element at index 2)
+    t =    12.26s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" Button
+    t =    12.29s Find the Any (Element at index 3)
+    t =    12.31s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing" Button
+    t =    12.35s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a" Button
+    t =    12.37s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b" Button
+    t =    12.43s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" Button
+    t =    12.46s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing" Button
+    t =    12.49s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    12.49s     Wait for com.oyabu.FrameRelay to idle
+    t =    12.49s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    12.52s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    12.55s     Synthesize event
+    t =    12.98s     Wait for com.oyabu.FrameRelay to idle
+    t =    15.08s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.item."'
+    t =    15.14s Find the Any (Element at index 0)
+    t =    15.17s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a" Button
+    t =    15.20s Find the Any (Element at index 1)
+    t =    15.23s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b" Button
+    t =    15.27s Find the Any (Element at index 2)
+    t =    15.30s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" Button
+    t =    15.33s Find the Any (Element at index 3)
+    t =    15.36s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing" Button
+    t =    15.39s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a" Button
+    t =    15.42s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b" Button
+    t =    15.45s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" Button
+    t =    15.48s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing" Button
+    t =    15.51s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    15.51s     Wait for com.oyabu.FrameRelay to idle
+    t =    15.52s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    15.54s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    15.57s     Synthesize event
+    t =    15.99s     Wait for com.oyabu.FrameRelay to idle
+    t =    16.68s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.item."'
+    t =    16.72s Find the Any (Element at index 0)
+    t =    16.75s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a" Button
+    t =    16.78s Find the Any (Element at index 1)
+    t =    16.81s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b" Button
+    t =    16.84s Find the Any (Element at index 2)
+    t =    16.87s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" Button
+    t =    16.90s Find the Any (Element at index 3)
+    t =    16.93s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing" Button
+    t =    16.96s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a" Button
+    t =    16.99s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b" Button
+    t =    17.02s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" Button
+    t =    17.05s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing" Button
+    t =    17.08s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    17.08s     Wait for com.oyabu.FrameRelay to idle
+    t =    17.08s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.11s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    17.14s     Synthesize event
+    t =    17.55s     Wait for com.oyabu.FrameRelay to idle
+    t =    18.04s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.item."'
+    t =    18.07s Find the Any (Element at index 0)
+    t =    18.10s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a" Button
+    t =    18.13s Find the Any (Element at index 1)
+    t =    18.16s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b" Button
+    t =    18.19s Find the Any (Element at index 2)
+    t =    18.22s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" Button
+    t =    18.25s Find the Any (Element at index 3)
+    t =    18.28s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing" Button
+    t =    18.31s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a" Button
+    t =    18.34s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b" Button
+    t =    18.37s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" Button
+    t =    18.40s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing" Button
+    t =    18.43s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    18.43s     Wait for com.oyabu.FrameRelay to idle
+    t =    18.43s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    18.46s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    18.49s     Synthesize event
+    t =    18.91s     Wait for com.oyabu.FrameRelay to idle
+    t =    19.40s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.item."'
+    t =    19.45s Find the Any (Element at index 0)
+    t =    19.48s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a" Button
+    t =    19.51s Find the Any (Element at index 1)
+    t =    19.54s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b" Button
+    t =    19.57s Find the Any (Element at index 2)
+    t =    19.60s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" Button
+    t =    19.63s Find the Any (Element at index 3)
+    t =    19.66s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing" Button
+    t =    19.70s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a" Button
+    t =    19.73s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b" Button
+    t =    19.76s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" Button
+    t =    19.79s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing" Button
+    t =    19.81s Checking existence of `"library.scope" Any`
+    t =    19.89s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =    19.89s     Wait for com.oyabu.FrameRelay to idle
+    t =    19.89s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    19.92s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    19.95s     Synthesize event
+    t =    20.37s     Wait for com.oyabu.FrameRelay to idle
+    t =    22.48s Checking existence of `"library.scope" Any`
+    t =    22.54s Find the NavigationBar (First Match)
+    t =    22.54s Find the "library.scope" Any
+    t =    22.58s Find the "library.scope" Button
+    t =    22.62s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =    22.62s     Wait for com.oyabu.FrameRelay to idle
+    t =    22.62s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    22.65s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    22.68s     Synthesize event
+    t =    23.10s     Wait for com.oyabu.FrameRelay to idle
+    t =    23.81s Checking existence of `"library.scope" Button`
+    t =    23.86s Find the NavigationBar (First Match)
+    t =    23.87s Find the "library.scope" Button
+    t =    23.90s Find the "library.scope" Button
+    t =    23.94s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    23.97s Checking existence of `Any (First Match)`
+    t =    23.99s Find the NavigationBar (First Match)
+    t =    24.00s Find the Any (First Match)
+    t =    24.03s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    24.06s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    25.13s Checking existence of `"library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText`
+    t =    25.18s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    25.20s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    25.23s Checking existence of `"library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a" Any`
+    t =    25.26s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a" Any
+    t =    25.29s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-a" Button
+    t =    25.33s Checking existence of `"library.scope" Any`
+    t =    25.36s Find the NavigationBar (First Match)
+    t =    25.37s Find the "library.scope" Any
+    t =    25.40s Find the "library.scope" Button
+    t =    25.44s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    25.46s Checking existence of `Any (First Match)`
+    t =    25.49s Find the NavigationBar (First Match)
+    t =    25.50s Find the Any (First Match)
+    t =    25.52s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    25.56s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    25.56s     Wait for com.oyabu.FrameRelay to idle
+    t =    25.56s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    25.58s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    25.61s     Synthesize event
+    t =    26.03s     Wait for com.oyabu.FrameRelay to idle
+    t =    28.19s Checking existence of `"library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText`
+    t =    28.22s Find the NavigationBar (First Match)
+    t =    28.23s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    28.30s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    28.33s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    29.41s Checking existence of `"library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText`
+    t =    29.45s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    29.49s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    29.51s Checking existence of `"library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b" Any`
+    t =    29.55s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b" Any
+    t =    29.59s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-b" Button
+    t =    29.63s Checking existence of `"library.scope" Any`
+    t =    29.66s Find the NavigationBar (First Match)
+    t =    29.67s Find the "library.scope" Any
+    t =    29.71s Find the "library.scope" Button
+    t =    29.75s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =    29.75s     Wait for com.oyabu.FrameRelay to idle
+    t =    29.75s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    29.78s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    29.81s     Synthesize event
+    t =    30.23s     Wait for com.oyabu.FrameRelay to idle
+    t =    32.41s Checking existence of `"library.scope" Button`
+    t =    32.46s Find the NavigationBar (First Match)
+    t =    32.46s Find the "library.scope" Button
+    t =    32.50s Find the "library.scope" Button
+    t =    32.55s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    32.57s Checking existence of `Any (First Match)`
+    t =    32.60s Find the NavigationBar (First Match)
+    t =    32.60s Find the Any (First Match)
+    t =    32.64s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    32.68s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    32.68s     Wait for com.oyabu.FrameRelay to idle
+    t =    32.68s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    32.71s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    32.73s     Synthesize event
+    t =    33.16s     Wait for com.oyabu.FrameRelay to idle
+    t =    35.27s Checking existence of `"library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText`
+    t =    35.31s Find the NavigationBar (First Match)
+    t =    35.32s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    35.35s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    35.39s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    35.42s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    35.42s     Wait for com.oyabu.FrameRelay to idle
+    t =    35.42s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    35.45s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    35.48s     Synthesize event
+    t =    35.90s     Wait for com.oyabu.FrameRelay to idle
+    t =    36.64s Checking existence of `"library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText`
+    t =    36.68s Find the NavigationBar (First Match)
+    t =    36.69s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    36.72s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    36.75s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    37.82s Checking existence of `"library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText`
+    t =    37.85s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    37.89s Find the "library.result.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing.8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99" StaticText
+    t =    37.91s Checking existence of `"library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing" Any`
+    t =    37.95s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-missing" Any
+    t =    38.00s Checking existence of `"library.scope" Any`
+    t =    38.08s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =    38.08s     Wait for com.oyabu.FrameRelay to idle
+    t =    38.09s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    38.12s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    38.15s     Synthesize event
+    t =    38.57s     Wait for com.oyabu.FrameRelay to idle
+    t =    40.68s Checking existence of `"library.scope" Any`
+    t =    40.72s Find the NavigationBar (First Match)
+    t =    40.73s Find the "library.scope" Any
+    t =    40.77s Find the "library.scope" Button
+    t =    40.81s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =    40.81s     Wait for com.oyabu.FrameRelay to idle
+    t =    40.82s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    40.84s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    40.88s     Synthesize event
+    t =    41.30s     Wait for com.oyabu.FrameRelay to idle
+    t =    42.02s Checking existence of `"library.scope" Button`
+    t =    42.07s Find the NavigationBar (First Match)
+    t =    42.08s Find the "library.scope" Button
+    t =    42.12s Find the "library.scope" Button
+    t =    42.16s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    42.18s Checking existence of `"library.itemTitle.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" Any`
+    t =    42.26s Find the NavigationBar (First Match)
+    t =    42.27s Find the "library.itemTitle.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" Any
+    t =    42.34s Find the "library.itemTitle.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" StaticText
+    t =    42.43s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    42.43s     Wait for com.oyabu.FrameRelay to idle
+    t =    42.44s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    42.47s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    42.50s     Synthesize event
+    t =    42.92s     Wait for com.oyabu.FrameRelay to idle
+    t =    45.03s Checking existence of `"library.itemTitle.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" StaticText`
+    t =    45.10s Find the NavigationBar (First Match)
+    t =    45.11s Find the "library.itemTitle.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" StaticText
+    t =    45.18s Find the "library.itemTitle.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" StaticText
+    t =    45.26s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    45.28s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" Any
+    t =    45.32s Find the "library.item.s34c-1cdad914-0156-4803-9983-fcfefb8a18e1-keep" Button
+    t =    45.36s Checking existence of `Any (First Match)`
+    t =    45.40s Checking existence of `"library.scope" Any`
+    t =    45.44s Find the NavigationBar (First Match)
+    t =    45.45s Find the "library.scope" Any
+    t =    45.48s Find the "library.scope" Button
+    t =    45.52s Swipe down Target Application 'com.oyabu.FrameRelay'
+    t =    45.52s     Wait for com.oyabu.FrameRelay to idle
+    t =    45.53s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    45.56s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    45.59s     Synthesize event
+    t =    46.01s     Wait for com.oyabu.FrameRelay to idle
+    t =    47.78s Checking existence of `"library.scope" Button`
+    t =    47.82s Find the NavigationBar (First Match)
+    t =    47.83s Find the "library.scope" Button
+    t =    47.87s Find the "library.scope" Button
+    t =    47.91s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    47.94s Tap "library.scope" Any
+    t =    47.94s     Wait for com.oyabu.FrameRelay to idle
+    t =    47.94s     Find the "library.scope" Any
+    t =    47.98s     Check for interrupting elements affecting "library.scope" Button
+    t =    48.02s     Synthesize event
+    t =    48.32s     Wait for com.oyabu.FrameRelay to idle
+    t =    49.43s Waiting 5.0s for "破棄の履歴" Button to exist
+    t =    50.45s     Checking `Expect predicate `existsNoRetry == 1` for object "破棄の履歴" Button`
+    t =    50.45s         Checking existence of `"破棄の履歴" Button`
+    t =    50.48s Tap "破棄の履歴" Button
+    t =    50.48s     Wait for com.oyabu.FrameRelay to idle
+    t =    50.49s     Find the "破棄の履歴" Button
+    t =    50.52s     Check for interrupting elements affecting "破棄の履歴" Button
+    t =    50.55s     Synthesize event
+    t =    50.84s     Wait for com.oyabu.FrameRelay to idle
+    t =    52.27s Checking existence of `"library.scope" Any`
+    t =    52.35s Find the NavigationBar (First Match)
+    t =    52.36s Find the "library.scope" Any
+    t =    52.41s Find the "library.scope" Button
+    t =    52.45s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    52.47s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.item."'
+    t =    52.50s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    52.50s     Wait for com.oyabu.FrameRelay to idle
+    t =    52.50s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    52.53s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    52.56s     Synthesize event
+    t =    52.98s     Wait for com.oyabu.FrameRelay to idle
+    t =    53.70s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.item."'
+    t =    53.73s Checking existence of `"library.scope" Any`
+    t =    53.77s Find the NavigationBar (First Match)
+    t =    53.78s Find the "library.scope" Any
+    t =    53.82s Find the "library.scope" Button
+    t =    53.86s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    53.88s Tap "library.scope" Any
+    t =    53.88s     Wait for com.oyabu.FrameRelay to idle
+    t =    53.89s     Find the "library.scope" Any
+    t =    53.92s     Check for interrupting elements affecting "library.scope" Button
+    t =    53.97s     Synthesize event
+    t =    54.26s     Wait for com.oyabu.FrameRelay to idle
+    t =    55.37s Waiting 5.0s for "ライブラリ" Button to exist
+    t =    56.39s     Checking `Expect predicate `existsNoRetry == 1` for object "ライブラリ" Button`
+    t =    56.39s         Checking existence of `"ライブラリ" Button`
+    t =    56.44s Tap "ライブラリ" Button
+    t =    56.44s     Wait for com.oyabu.FrameRelay to idle
+    t =    56.44s     Find the "ライブラリ" Button
+    t =    56.47s     Check for interrupting elements affecting "ライブラリ" Button
+    t =    56.50s     Synthesize event
+    t =    56.79s     Wait for com.oyabu.FrameRelay to idle
+    t =    58.23s Checking existence of `"library.scope" Any`
+    t =    58.28s Find the NavigationBar (First Match)
+    t =    58.29s Find the "library.scope" Any
+    t =    58.33s Find the "library.scope" Button
+    t =    58.37s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    60.82s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    60.92s Added attachment named 'cleanup-stored-results-accessibility'
+    t =    60.92s Requesting snapshot of accessibility hierarchy for app with pid 91479
+    t =    61.03s Requesting snapshot of accessibility hierarchy for app with pid 91479
+    t =    61.08s Added attachment named 'cleanup-stored-results-accessibility-tree'
+    t =    61.09s Tear Down
+Test Case '-[FrameRelayUITests.CleanupFlowTests testStoredCleanupResultsAccessibilityOnDedicatedSeed]' passed (61.451 seconds).
+Test Suite 'CleanupFlowTests' passed at 2026-10-23 21:23:00.028.
+	 Executed 1 test, with 0 failures (0 unexpected) in 61.451 (61.453) seconds
+Test Suite 'FrameRelayUITests.xctest' passed at 2026-10-23 21:23:00.028.
+	 Executed 1 test, with 0 failures (0 unexpected) in 61.451 (61.454) seconds
+Test Suite 'Selected tests' passed at 2026-10-23 21:23:00.029.
+	 Executed 1 test, with 0 failures (0 unexpected) in 61.451 (61.455) seconds
+2026-10-23 21:23:01.561669+0900 FrameRelay[91692:57895692] [General] Failed to send CA Event for app launch measurements for ca_event_type: 0 event_name: com.apple.app_launch_measurement.FirstFramePresentationMetric
+2026-10-23 21:23:01.563678+0900 FrameRelay[91692:57895636] [XPCErrors] non-launching port is incompatible with service identifier "com.apple.PointerUI.pointeruid.default-service"
+2026-10-23 21:23:01.564481+0900 FrameRelay[91692:57895636] [API] cannot add handler to 0 from 0 - dropping
+2026-10-23 21:23:01.564865+0900 FrameRelay[91692:57895636] [API] cannot add handler to 0 from 0 - dropping
+2026-10-23 21:23:01.661413+0900 FrameRelay[91692:57895683] [General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
+Test Suite 'Selected tests' started at 2026-10-23 21:23:01.728.
+Test Suite 'FrameRelayTests.xctest' started at 2026-10-23 21:23:01.729.
+Test Suite 'FrameRelayTests.xctest' passed at 2026-10-23 21:23:01.729.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-10-23 21:23:01.729.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64-apple-ios17.0-simulator
+◇ Suite ProductCleanupSeedTests started.
+​➜ Test seedFreshDedicatedNormalRoot() skipped.
+​◇ Test verifyUIBatchRealFilesAndUntouchedEvidenceAfterReopen() started.
+S34_CLEANUP_VERIFY token=1cdad914-0156-4803-9983-fcfefb8a18e1 bindings=4 batch=8A0BC60D-935C-4B4E-9E4A-CE8A09AE5D99 fixedTargets=3 removed=2 ineligible=1 keep=hash-match originalReaders=0 mediaReaders=0 external=hash-match evidence=unchanged manifest=unchanged history=0
+✔ Test verifyUIBatchRealFilesAndUntouchedEvidenceAfterReopen() passed after 0.066 seconds.
+✔ Suite ProductCleanupSeedTests passed after 0.066 seconds.
+✔ Test run with 2 tests in 1 suite passed after 0.067 seconds.
+2026-10-23 21:23:02.082 xcodebuild[91444:57891504] [MT] IDETestOperationsObserverDebug: 66.880 elapsed -- Testing started completed.
+2026-10-23 21:23:02.082 xcodebuild[91444:57891504] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-23 21:23:02.082 xcodebuild[91444:57891504] [MT] IDETestOperationsObserverDebug: 66.880 sec, +66.880 sec -- end
+
+Test session results, code coverage, and logs:
+	/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/cleanup-post-07/result.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

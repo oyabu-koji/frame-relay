@@ -1,0 +1,21 @@
+--- baseline/FrameRelay/Application/Ports/MediaOperationStorePort.swift
++++ FrameRelay/Application/Ports/MediaOperationStorePort.swift
+@@ -134,3 +134,18 @@
+             expectedStoreIdentity: expectedStoreIdentity)
+     }
+ }
++
++nonisolated extension StoredPhotoUsageTerminal {
++    var mutation: BackendStoreMutation {
++        .init(expectedRevision: commit.previousRevision, change: .photo(command: command, value: .terminal(terminal)),
++            expectedStoreIdentity: expectedStoreIdentity)
++    }
++}
++
++nonisolated extension StoredPhotoTerminalUsageRelease {
++    var mutation: BackendStoreMutation {
++        .init(expectedRevision: commit.previousRevision,
++            change: .photo(command: command, value: .releaseTerminalUsage(release)),
++            expectedStoreIdentity: expectedStoreIdentity)
++    }
++}

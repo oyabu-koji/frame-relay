@@ -1,0 +1,20 @@
+--- before/README-publication.md
++++ after/README-publication.md
+@@ -10,7 +10,7 @@
+ 
+ backend 担当の `prepare_publication_snapshot.py` による凍結済み `run-config.json` と `checkpoint-files.json` を入力とする。準備 helper は checkpoint の指定 SHA256、config/provenance/snapshot 全 file、外部 source/interpreter/site-packages/.pth、wire を照合し、新 HTTP snapshot へ copy する。backend snapshot の生成をこの helper で重複しない。wire の固定 SHA256 は `455868ebe8d057ad32471a169396333c03cd1bcf2b4a4986f3147935f2617e0a`。
+ 
+-この版は実行前の手順確定であり、helper/import/HTTP/Xcode の成功を示さない。2026-10-22の再開前は `s27-resume-before-02/server-isolation/` に保全済み。欠落した旧 tmp/snapshot/runtime を復元・再利用せず、main が今回の凍結版から新規準備する。
++以下は再実行の手順であり、個別の成功判定には実行版と証跡を対応させる。2026-10-22のS27実HTTP成功は [E-S27-01のmain確認](../../evidence/20261022-publication/s27-http-final-review-02.json)、S28 metadata-onlyの最終288入力での成功は [E-S34-BG01のHTTP確認](../../evidence/20261022-removal-terminal/s34-terminal-metadata-final-02-main-review.json) を参照する。全製品接続・正式proof・実機受入の成立は示さない。2026-10-22の再開前は `s27-resume-before-02/server-isolation/` に保全済み。欠落した旧 tmp/snapshot/runtime を復元・再利用せず、main が今回の凍結版から新規準備する。
+ 
+ 1. backend 6file と HTTP 5file の全担当を凍結し、main が差分と hash を確認する。backend の新 `prepare_publication_snapshot.py` が作る `run-config.json`/`checkpoint-files.json` を使用し、旧137node/160case prefix＋publication全33node/70case＝170node/230case の回帰を先に実行・評価する。HTTPのSwift 1caseとは別の集合である。
+ 2. 実在する `FrameRelay.xcodeproj`、scheme/test plan `FrameRelay`、Debug、現在のSimulator destinationを確認する。同じApp/Tests版で `FrameRelayTests/PublicationHTTPFixtureTests/canonicalPlaybackConfirmationInvalidationAndReplacement()` だけを SDK に列挙し、errors空・1宣言/1実行である列挙JSON、構成とdestination一覧を保存する。過去の固定UDIDを使わない。専用の新DerivedDataを選ぶ。
+@@ -72,7 +72,7 @@
+ 
+ ## S28 metadata-only の明示mode
+ 
+-`--probe-mode` を省略すると従来の `publication` となり、S27のmethod・6環境値・全12必須観測をそのまま要求する。S28は準備時に `--probe-mode metadata-only` を指定する別runとし、S27の成功結果・AVPlayer進行・SDK/HTTP件数を流用しない。旧S27の凍結5fileは `s27-http-main-review-05.json` と `evidence/20261022-publication/` に保全されている。この追加modeは実行未確認である。
++`--probe-mode` を省略すると従来の `publication` となり、S27のmethod・6環境値・全12必須観測をそのまま要求する。S28は準備時に `--probe-mode metadata-only` を指定する別runとし、S27の成功結果・AVPlayer進行・SDK/HTTP件数を流用しない。旧S27の凍結5fileは `s27-http-main-review-05.json` と `evidence/20261022-publication/` に保全されている。このmodeは別runで実行し、初回285入力の [S28確認](../../evidence/20261022-status-sync/s28-http-main-final-review-01.json) と最終288入力の [再確認](../../evidence/20261022-removal-terminal/s34-terminal-metadata-final-02-main-review.json) を保存した。実2要求・媒体0byte・SQLite再openの技術fixtureの範囲であり、SDK task/session件数はこのHTTP試験では未観測のまま保持する。
+ 
+ 準備は上表の全必須引数に `--probe-mode metadata-only` を加え、既存の成功backend273file snapshot/config/checkpoint・同じ969,998byte合成Movieを入力にする。App/tool両担当の凍結とmainの差分確認後だけ実行する。methodは `FrameRelayTests/StatusSynchronizationHTTPFixtureTests/metadataOnlyPageAndManifestUseCoordinator()` の1宣言/1実行をSDKで明示列挙する。新しい実destinationと専用DerivedDataを束縛する。
+ 

@@ -93,6 +93,80 @@ struct LibraryStoreReaderTests {
         #expect(await reader.loadLibrary() == .unavailable(.changing))
         #expect(await store.recordingReads == 4)
     }
+
+    @Test(arguments: [false, true])
+    func latestRemovedResultIsUnknownWhenCurrentFileCannotConfirmIt(unavailable: Bool) async throws {
+        try await withStorageRun { run in
+            let fixture = try OriginalRemovalFixture(run: run)
+            let binding = try await fixture.original("reader-removal", unknown: true)
+            let url = try await fixture.files.existingURL(for: binding.reference)
+            let bytes = try Data(contentsOf: url)
+            let batch = try fixture.discardBatch(binding)
+            guard case .succeeded = await fixture.discardCoordinator().start(batch) else { throw BackendContractError.notCommitted }
+            let normal = LibraryStoreReader(store: fixture.store, files: fixture.files)
+            guard case .loaded(let confirmed) = await normal.loadLibrary() else { throw BackendContractError.unavailable }
+            #expect(confirmed.history.map(\.id) == [binding.original.capture])
+            #expect(confirmed.items.first?.operationResults.first?.outcome == .succeeded)
+            if !unavailable { try bytes.write(to: url) }
+            let before = try await mediaOriginalSnapshot(fixture.store)
+            let files: any RecordingOriginalFilePort
+            if unavailable { files = LibraryUnavailableFiles() } else { files = fixture.files }
+            let reader = LibraryStoreReader(store: fixture.store, files: files)
+            guard case .loaded(let uncertain) = await reader.loadLibrary() else { throw BackendContractError.unavailable }
+            #expect(uncertain.history.isEmpty)
+            #expect(uncertain.items.first?.removal == .reconciliationRequired(.discard))
+            #expect(uncertain.items.first?.operationResults.first?.outcome == .unknown)
+            #expect(uncertain.items.first?.requiresReconciliation == true)
+            #expect(try await mediaOriginalSnapshot(fixture.store) == before)
+        }
+    }
+
+    @Test(arguments: LibraryVerificationHintCase.allCases)
+    func verificationHintUsesOnlyCurrentExactCommittedFinalRead(kind: LibraryVerificationHintCase) async throws {
+        try await withStorageRun { run in
+            let fixture = try OriginalRemovalFixture(run: run)
+            let binding = try await fixture.original("reader-proof")
+            _ = try await fixture.evidence(binding, schema: "fr-final-read-v1")
+            if kind == .oldRegistration {
+                _ = try await mediaRegister(fixture.store, registration: .init(destination: .init(rawValue: "s21-destination"),
+                    id: .init(rawValue: "replacement-registration"), generation: .init(rawValue: 2)))
+            }
+            let backend = try await mediaSnapshot(fixture.store)
+            let proof = try #require(backend.verifications.last)
+            let target: MediaTarget = kind == .otherGeneration
+                ? .original(.init(capture: binding.original.capture, generation: .init(rawValue: 99), content: binding.original.content))
+                : proof.expected.target
+            let context = RemoteOperationContext(operation: proof.expected.operation, registration: proof.expected.registration,
+                target: target, session: proof.expected.session)
+            let evidence = VerificationEvidence(id: proof.evidence.id, context: context, finalSaveCompleted: true,
+                verification: kind == .assemblyOnly ? .assemblyOnly(binding.original.content) : .finalDestinationReadBack(binding.original.content),
+                committed: true, schemaVersion: kind == .unsupported ? "unsupported-final-read" : "fr-final-read-v1",
+                observedAt: proof.evidence.observedAt)
+            let commit = BackendCommitReceipt(key: .verification(kind == .uncommittedReceipt ? .init(rawValue: "other-command") : proof.command,
+                evidence.id, context), previousRevision: proof.commit.previousRevision, committedRevision: proof.commit.committedRevision)
+            let replacement = StoredVerificationEvidence(command: proof.command, expected: context, evidence: evidence, commit: commit)
+            let displayBackend = BackendStoreSnapshot(revision: backend.revision, registrationIntents: backend.registrationIntents,
+                registrations: backend.registrations, batches: backend.batches, requests: backend.requests, verifications: [replacement],
+                confirmations: backend.confirmations, invalidations: backend.invalidations, outbox: backend.outbox)
+            let recordingResult = await fixture.store.loadRecordings()
+            let originals = await fixture.store.loadOriginalState()
+            let reader = LibraryStoreReader(store: LibraryReadStoreStub(recordings: recordingResult,
+                originalResult: originals, backend: displayBackend), files: fixture.files)
+            guard case .loaded(let result) = await reader.loadLibrary() else { throw BackendContractError.unavailable }
+            let information = try #require(result.items.first?.removalReviewInformation)
+            #expect(information.contains("最後の有効な保存検証："))
+            if kind == .valid {
+                #expect(information.contains(evidence.observedAt.formatted(date: .abbreviated, time: .standard)))
+                #expect(!information.contains("保存検証：記録なし"))
+            } else { #expect(information.contains("保存検証：記録なし")) }
+            #expect(await fixture.store.loadRecordings() == recordingResult)
+            #expect(await fixture.store.loadOriginalState() == originals)
+        }
+    }
+}
+
+nonisolated enum LibraryVerificationHintCase: CaseIterable, Equatable, Sendable {
+    case valid, unsupported, assemblyOnly, oldRegistration, otherGeneration, uncommittedReceipt
 }
 
 nonisolated private func bindForLibrary(_ run: ExplorationRunDirectory, binding: OriginalBinding) async throws {
@@ -116,23 +190,34 @@ nonisolated private func readLibraryAfterReopen(_ run: ExplorationRunDirectory) 
     return snapshot
 }
 
-private actor LibraryReadStoreStub: RecordingStorePort, OriginalStorePort {
+private actor LibraryReadStoreStub: RecordingStorePort, OriginalStorePort, MediaOperationStorePort {
     private let recordings: RecordingStoreLoadResult
     private let originalResult: BackendOutcome<OriginalStoreSnapshot>
     private let laterRecordings: RecordingStoreLoadResult?
+    private let backend: BackendStoreSnapshot?
     private(set) var recordingReads = 0
     init(recordings: RecordingStoreLoadResult,
          originalResult: BackendOutcome<OriginalStoreSnapshot> = .succeeded(.init(revision: 0, originals: [])),
-         laterRecordings: RecordingStoreLoadResult? = nil) {
+         laterRecordings: RecordingStoreLoadResult? = nil, backend: BackendStoreSnapshot? = nil) {
         self.recordings = recordings
         self.originalResult = originalResult
         self.laterRecordings = laterRecordings
+        self.backend = backend
     }
     func loadRecordings() -> RecordingStoreLoadResult {
         recordingReads += 1
         return recordingReads > 1 ? (laterRecordings ?? recordings) : recordings
     }
     func loadOriginalState() -> BackendOutcome<OriginalStoreSnapshot> { originalResult }
+    func load() -> BackendStoreLoadResult {
+        if let backend { return .loaded(backend) }
+        let revision: UInt64
+        if case .loaded(let snapshot) = recordings { revision = snapshot.revision } else { revision = 0 }
+        return .loaded(.init(revision: revision, registrationIntents: [], registrations: [], batches: [],
+            requests: [], verifications: [], confirmations: [], invalidations: [], outbox: []))
+    }
+    func commit(_ mutation: BackendStoreMutation) -> BackendCommitResult { fatalError("Read-only Library wrote media state") }
+    func lookupCommit(_ mutation: BackendStoreMutation) -> BackendCommitResult { fatalError("Read-only Library looked up a write") }
     func execute(_ command: RecordingStoreCommand) -> RecordingStoreResult { fatalError("Read-only consumer wrote a recording") }
     func loadUnfinished() -> UnfinishedRecordingLoadResult { fatalError("Library omitted successful recordings") }
     func commitOriginal(_ mutation: OriginalStoreMutation) -> OriginalStoreCommitResult { fatalError("Read-only consumer wrote an original") }
@@ -141,4 +226,9 @@ private actor LibraryReadStoreStub: RecordingStorePort, OriginalStorePort {
 private struct LibraryAbsentFiles: RecordingOriginalFilePort {
     func reserveForRecording(_ original: CaptureOriginalReference) async throws { throw BackendContractError.wrongStage }
     func observeFile(_ original: CaptureOriginalReference) async -> OriginalFileObservation { .absent }
+}
+
+private struct LibraryUnavailableFiles: RecordingOriginalFilePort {
+    func reserveForRecording(_ original: CaptureOriginalReference) async throws { throw BackendContractError.wrongStage }
+    func observeFile(_ original: CaptureOriginalReference) async -> OriginalFileObservation { .unavailable(.resourceUnavailable) }
 }

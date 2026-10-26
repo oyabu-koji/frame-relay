@@ -1,0 +1,123 @@
+{
+  "baselineFiles": 8480,
+  "baselineBytes": 196657895,
+  "changed": [
+    ".steering/20260929-device-independent-implementation/tasklist.md",
+    "FrameRelay/Application/MediaOperations/PhotoSaveCoordinator.swift",
+    "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+    "FrameRelay/Application/Ports/PhotoLibraryPorts.swift",
+    "FrameRelay/Application/Ports/RenditionMediaPorts.swift",
+    "FrameRelay/Domain/Media/PhotoRegistration.swift",
+    "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift",
+    "FrameRelay/Platform/LocalStore/PhotoStoreProjection.swift",
+    "FrameRelay/Platform/LocalStore/TemporaryMediaStoreProjection.swift",
+    "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift",
+    "FrameRelayTests/Integration/Photos/NativePhotoLibraryTests.swift",
+    "FrameRelayTests/Integration/Photos/PhotoSaveCoordinatorTests.swift",
+    "FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift",
+    "FrameRelayTests/Integration/Photos/PhotoTemporaryRecoveryTests.swift",
+    "docs/architecture.md",
+    "docs/functional-design.md",
+    "docs/repository-structure.md"
+  ],
+  "newSourceAndTestFiles": [
+    "FrameRelayTests/Integration/Photos/PhotoTerminalRecoveryTests.swift",
+    "FrameRelayTests/Integration/Publication/PhotoInvalidationBoundaryTests.swift"
+  ],
+  "missing": [],
+  "unchanged": 8463,
+  "outOfOwnershipChanges": [],
+  "oldEvidenceChanged": [],
+  "projectCompositionPriorRenderChanged": [],
+  "taskStateChanges": {},
+  "ACLedgerCount": 79,
+  "ACIDsAndOrderRetained": true,
+  "sourceInputs": {
+    "runs": [
+      "test-01",
+      "ios-build-01",
+      "photos-authorized-02",
+      "photos-denied-03"
+    ],
+    "inputs": 245,
+    "allSourcesIdentical": true,
+    "currentMatches": true,
+    "unit": {
+      "passedDeclarations": 440,
+      "passedExecutions": 653,
+      "skipped": 21,
+      "failed": 0,
+      "emptyTemplateExampleIncluded": 1
+    },
+    "ui": {
+      "passed": 4,
+      "failed": 0
+    },
+    "newBoundarySuites": {
+      "PhotoTerminalRecoveryTests": {
+        "declarations": 10,
+        "executions": 27
+      },
+      "PhotoInvalidationBoundaryTests": {
+        "declarations": 1,
+        "executions": 8
+      }
+    },
+    "photos": {
+      "authorized": {
+        "passed": 2,
+        "skipped": 2
+      },
+      "denied": {
+        "passed": 2,
+        "skipped": 2
+      }
+    },
+    "runtimeWarnings": 0,
+    "compilerWarnings": 0,
+    "analyzerWarnings": 0,
+    "iosBuild": "succeeded",
+    "limits": [
+      "Unit skip includes existing and explicit opt-in probes; not executed is not passed",
+      "Unit includes existing empty template example; meaningful Unit executions 652",
+      "Photo permissions were arranged on new disposable Simulator; initial OS prompts/limited selection/user deletion/device quality unverified",
+      "Photos unknown/failed/notAttempted copies remain retained; no automatic reclamation policy",
+      "normal formal Rec.709 acquisition/save producer and batch product operations remain disconnected",
+      "instance reopen does not prove process crash/power-loss recovery"
+    ],
+    "toolObservation": "Initial concurrent xcresulttool summary extraction exited64 due database.sqlite3 lazy materialization race; sequential extraction succeeded without rebuilding or rerunning tests. Original log retained."
+  },
+  "documentationReview": {
+    "agent": "s31_terminal_doc_review",
+    "role": "doc_reviewer",
+    "scope": "S31 terminal/usage release additions only against initial baseline",
+    "findings": [],
+    "result": "指摘なし",
+    "fileHashes": {
+      "docs/architecture.md": "5b14a00fd851c4378f9a00d6333077da5354722838f4d206933a35e2cf5cf3ac",
+      "docs/functional-design.md": "f7a586970acabd25386105cf08de653f120079827700cd6dce8bc8a147729737",
+      "docs/repository-structure.md": "7d13f5b50db9ee926e99d41dd956ce0014a90f9667ab79ba9b33a4911bcfb33b"
+    },
+    "checked": [
+      "terminal vs registration result",
+      "exact original use release vs copy reclamation",
+      "old unknown/intent non-release and old success compatibility",
+      "copy retention for unknown/failed/notAttempted",
+      "fresh explicit retry use",
+      "normal producer/batch and DV-16 remain incomplete"
+    ],
+    "limits": [
+      "read-only static document review",
+      "no build/test or independent implementation validation"
+    ]
+  },
+  "review": "main reviewed the final code/test/doc delta, exact intent/terminal/release ordering, old-record compatibility, pending commits and explicit retry, copy retention and actual scope invalidation; independent validation was not invoked",
+  "remaining": [
+    "formal Rec.709 normal acquisition/save producer and fixed batch operations",
+    "S23/S27 product connectivity and device DV-16",
+    "old unknown/intent uses without terminal evidence",
+    "automatic reclamation policy for unresolved copies",
+    "legacy extensionless reuse"
+  ],
+  "rawArtifactRoot": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-di-resume-20261021-xxox35mt"
+}

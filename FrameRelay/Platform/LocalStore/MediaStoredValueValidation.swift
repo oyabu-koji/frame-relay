@@ -3,6 +3,23 @@ import Foundation
 /// Codable reconstructs values but does not establish their invariants. Every
 /// journal event passes these checks and domain transitions on both write/reopen.
 nonisolated enum MediaStoredValueValidation {
+    static func uploadMetadata(_ value: UploadMetadataChange) throws {
+        switch value { case .beginQuery(let query): try query.validate(); case .observe(let observation): try observation.validate() }
+        try registration(value.request.registration.server.registration)
+    }
+    static func originalUploadAcceptance(_ plan: OriginalUploadAcceptancePlan) throws {
+        try plan.validate()
+        try registration(plan.request.registration.server.registration)
+        // Individual binding/save/presence mismatches are child decisions, not
+        // a reason to silently remove a member or reject unrelated children.
+    }
+    static func personControl(_ plan: MediaPersonControlPlan) throws {
+        try plan.validate()
+        for child in plan.children {
+            try target(child.target.target)
+            try registration(child.target.registration)
+        }
+    }
     static func text(_ value: String) throws {
         guard !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw BackendContractError.invalidValue
@@ -85,6 +102,87 @@ nonisolated enum MediaStoredValueValidation {
             try context(value.context)
             guard value.observation.rawValue > 0 else { throw BackendContractError.invalidValue }
             if case .succeeded(let evidence) = value.result { try text(evidence.rawValue) }
+        }
+    }
+    static func photo(_ value: PhotoRegistrationChange) throws {
+        try value.intent.validate()
+        try rendition(value.intent.rendition)
+        switch value {
+        case .intent: break
+        case .result(let result):
+            if let identifier = result.outcome.localIdentifier { try text(identifier.rawValue) }
+        case .presence(let observation): try observation.validate()
+        case .releaseUsage(let release):
+            try text(release.successCommand.rawValue)
+            try text(release.mediaUse.owner)
+            try mediaLease(release.mediaUse.lease)
+            guard release.mediaUse.usage == release.intent.usage,
+                  release.successCommit.matches(.photo(release.successCommand, release.intent.key),
+                      revision: release.successCommit.previousRevision) else {
+                throw BackendContractError.identityMismatch
+            }
+        case .terminal(let terminal): try photoTerminal(terminal)
+        case .releaseTerminalUsage(let release):
+            try photoTerminal(release.terminal)
+            try text(release.terminalCommand.rawValue)
+            guard release.terminalCommit.matches(.photo(release.terminalCommand, release.intent.key),
+                revision: release.terminalCommit.previousRevision) else { throw BackendContractError.identityMismatch }
+        }
+    }
+
+    static func photoBatch(_ value: PhotoSaveBatchChange) throws {
+        try text(value.batch.rawValue)
+        switch value {
+        case .accept(let batch): try batch.validate()
+        case .beginChild(_, let target), .notProcessed(_, let target, _): try target.validate()
+        }
+        let targets: [PhotoSaveBatchTarget]
+        switch value {
+        case .accept(let batch): targets = batch.targets
+        case .beginChild(_, let target), .notProcessed(_, let target, _): targets = [target]
+        }
+        for target in targets {
+            try registration(target.source.registration)
+            try rendition(target.source.rendition)
+        }
+    }
+
+    static func background(_ value: BackgroundMediaTaskChange) throws {
+        let intent = value.intent
+        try intent.validate()
+        try text(intent.id.rawValue); try text(intent.context.operation.rawValue); try text(intent.context.attempt.rawValue)
+        try registration(intent.context.registration); try target(intent.context.target)
+        switch intent.source {
+        case .upload(let session, let lease, let source):
+            try text(session.rawValue); try self.lease(lease)
+            try RecordingStoreDocument.validateBoundContent(source.content)
+        case .uploadChunk(let lease, let chunk, let metadata):
+            try self.lease(lease); try chunk.validate(); try metadata.validate()
+            try RecordingStoreDocument.validateBoundContent(chunk.descriptor.content)
+        case .download(let rendition, _, let lease):
+            try self.rendition(rendition); try mediaLease(lease)
+        }
+        let binding: BackgroundMediaTaskBinding?
+        switch value {
+        case .prepared, .stopRequested: binding = nil
+        case .attached(_, let value), .resumeRequested(_, let value): binding = value
+        case .terminal(_, let value): binding = value.binding
+        case .ownerClosed(_, let value): binding = value.binding
+        }
+        if let binding {
+            guard binding.session == intent.session, binding.taskIdentifier > 0,
+                  binding.taskDescription == intent.taskDescription else { throw BackendContractError.identityMismatch }
+        }
+    }
+
+    private static func photoTerminal(_ terminal: PhotoUsageTerminal) throws {
+        try text(terminal.mediaUse.owner)
+        try mediaLease(terminal.mediaUse.lease)
+        guard terminal.mediaUse.usage == terminal.intent.usage,
+              terminal.mediaUse.lease.target == .rendition(terminal.intent.rendition),
+              terminal.mediaUse.lease.context == .temporary(terminal.intent.media, terminal.intent.usage.id),
+              terminal.mediaUse.lease.epoch == terminal.intent.usage.epoch else {
+            throw BackendContractError.identityMismatch
         }
     }
 }

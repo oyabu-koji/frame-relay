@@ -1,0 +1,34 @@
+{
+  "task": "S28 explicit new registration for a foreign bound Keychain and fresh registration store",
+  "worker": "cleanup_connection",
+  "code_and_tests": [
+    "FrameRelay/Application/Ports/RegistrationPorts.swift",
+    "FrameRelay/Application/MediaOperations/RegistrationCoordinator.swift",
+    "FrameRelay/Platform/Credentials/KeychainRegistrationVault.swift",
+    "FrameRelay/Features/Connection/ConnectionModel.swift",
+    "FrameRelay/Features/Connection/ConnectionView.swift",
+    "FrameRelayTests/Integration/Registration/NewStoreRegistrationTests.swift",
+    "FrameRelayTests/Integration/Registration/NewStoreKeychainTests.swift",
+    "FrameRelayTests/Integration/Composition/ProductNewRegistrationSeedTests.swift",
+    "FrameRelayUITests/Flows/NewRegistrationFlowTests.swift",
+    "FrameRelayTests/Support/RegistrationTestSupport.swift"
+  ],
+  "main": [
+    "tasklist.md",
+    "design.md",
+    ".steering/20260929-device-independent-implementation/evidence/20261023-new-registration"
+  ],
+  "policy": "one writing task; preserve existing/P2/source snapshots; no real external network or credentials; five App files only, existing tests unchanged; default deny legacy/unbound/corrupt/unavailable",
+  "amendments": [
+    {
+      "reason": "compile29 actor witness inference in existing test support",
+      "file": "FrameRelayTests/Support/RegistrationTestSupport.swift",
+      "scope": "empty protocol-conformance extension only; existing methods/state/assertions preserved",
+      "verification": "related suites32 + fullUnit36; frozen final checks tracked by later execution binding"
+    },
+    {
+      "reason": "Connection ownership handed to inventory_client before metadata client phase",
+      "scope": "normal S28 shared ConnectionModel/View additive changes are recorded under remote-inventory/client-ownership.json; no simultaneous write ownership"
+    }
+  ]
+}

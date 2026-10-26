@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct FrameRelayApp: App {
+    @UIApplicationDelegateAdaptor(FrameRelayBackgroundAppDelegate.self) private var backgroundDelegate
     @State private var composition = ProductComposition()
     var body: some Scene {
         WindowGroup {

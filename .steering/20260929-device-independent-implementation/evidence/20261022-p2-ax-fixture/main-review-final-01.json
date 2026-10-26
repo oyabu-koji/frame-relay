@@ -1,0 +1,36 @@
+{
+  "kind": "implementation main integration review; independent validation not started",
+  "code_files": [
+    "FrameRelay/Features/Library/LibraryView.swift",
+    "FrameRelayTests/Integration/Composition/ProductLibrarySeedTests.swift",
+    "FrameRelayUITests/Flows/LibraryFlowTests.swift"
+  ],
+  "stable_docs": [
+    "docs/architecture.md",
+    "docs/functional-design.md",
+    "docs/repository-structure.md",
+    "docs/development-guidelines.md"
+  ],
+  "steering_file": ".steering/20260929-device-independent-implementation/tasklist.md",
+  "code_review": "mainが開始baselineとの3コード全diffを確認。実文字幅/semantic全サイズ/全文/ID/combine、strict false handler、test-target-only fixtureのreserveCleanup現行guard、非empty root拒否/再open/content identity/全reader、同ID/同controlの選択観測と実可視title tapを確認。",
+  "guard": {
+    "path": "FrameRelay/Platform/LocalStore/OriginalStoreDocument.swift",
+    "sha256": "42cd56b9b566fc274c04094d69a79b314a7b01e67dd2a9a24e0ad415b86fc226",
+    "matches_start": true
+  },
+  "project_configuration_changed": false,
+  "source_manifest": "source-manifest.json:389 inputs, 7 changed/382 unchanged vs H01-SOURCE-01",
+  "full_Unit_binary_identity": "test-products-final-02.json: App/main-debug-dylib/Unit executable match products used by final fresh seed, strict and full Unit; only UITests executable changed for observation helpers",
+  "doc_review": "doc-review-final-01.json: doc_reviewer指摘なし、4文書5箇所/リンク55欠落0",
+  "S14_criteria": "Projection13/Model15/StoreReader17 Unit＋一覧/詳細/選択/理由/履歴/再起動・strict6・最大字/VOで既存Done/Verifyを照合。未接続操作は理由表示というDone条件を継承し、他taskの製品複数操作の実成功にしない。",
+  "S16_criteria": "Composition7/OriginalPlayback9/ProductCaptureSavePlayback1 Unit＋通常起動から実再生/停止/背景/再起動、build・診断・最大字/VO・postUI identity/readersを結合して既存Done/Verifyを判定。",
+  "old_failures": "旧再生開始失敗もraw履歴へ保持。今回の成功だけで旧SDK内部原因が確定/修正済みとは主張しない。",
+  "scope_limits": [
+    "S23/S27/S28/S34/S49は部分・blockedのまま",
+    "S32/S33/S26A/M02〜M06/H01既存done範囲不拡大",
+    "H01は引渡し準備のみ",
+    "実機/品質/PRD受入未実施、全D0/R部分を保持",
+    "限定SDK/metadata HTTP/279公開HTTP/登録metadata UI専用runは未再実行"
+  ],
+  "independent_validation_started": false
+}

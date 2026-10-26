@@ -68,6 +68,19 @@ nonisolated protocol RegistrationVaultPort: Sendable {
     /// Persist credential material before returning the operation reference. This is not an intent commit.
     func prepareIntent(for destination: DestinationIdentity, storeIdentity: RegistrationStoreIdentity) async throws -> RegistrationIntent
     func requireCredential(for intent: RegistrationIntent, storeIdentity: RegistrationStoreIdentity) async throws
+    /// Read-only eligibility for a separate explicit operation. nil identity is
+    /// a display preflight only; writes require the durable current-store UUID.
+    func permitsNewStoreRegistration(storeIdentity: RegistrationStoreIdentity?) async throws -> Bool
+    func saveNewStoreConnection(_ connection: RegistrationConnection, bearer: String,
+                               storeIdentity: RegistrationStoreIdentity) async throws
+}
+
+nonisolated extension RegistrationVaultPort {
+    func permitsNewStoreRegistration(storeIdentity: RegistrationStoreIdentity?) async throws -> Bool { false }
+    func saveNewStoreConnection(_ connection: RegistrationConnection, bearer: String,
+                               storeIdentity: RegistrationStoreIdentity) async throws {
+        throw RegistrationAccessError.credentialConflict
+    }
 }
 
 nonisolated protocol RegistrationAuthorizationPort: Sendable {

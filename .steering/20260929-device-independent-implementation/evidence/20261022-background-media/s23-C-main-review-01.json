@@ -1,0 +1,22 @@
+{
+  "task": "S23",
+  "files": {
+    "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift": "b8a7c7bdbacdf9ad5107992becea0d8bbe56858ea8b4204d82eff83d57cbe77a",
+    "FrameRelay/Application/Recovery/BackgroundMediaRecovery.swift": "cb489fb6b6f4f8ea9bd5c0142bc09c3e0b9dc8b705c5c5dd4f7f3ee3412f5661",
+    "FrameRelay/Composition/ProductBackgroundMediaFactory.swift": "4ff8deca003735eae0467cd4b34120257d5d6da89266bbfe7759124a3cba0a5b",
+    "FrameRelay/Composition/ProductBackgroundEventRouter.swift": "30e260ef42d2928ab2b7b81cfd5768041fe4b941594e299927f9648e0a664a24",
+    "FrameRelay/FrameRelayApp.swift": "8479efae3134a6c111b432012fae3db33e0d43cdc4603b9e0b356155df7b6237",
+    "FrameRelay/Composition/ProductComposition.swift": "16da9dd1bd3d87ad3d92baa30f30facaa3c17c5e9140704cab0e3d8de818c6f2",
+    "FrameRelayTests/Integration/Composition/ProductBackgroundCompositionTests.swift": "7dcd6232c1342972034dec8c4fedf4380554447b4c0282144724d2c2400218df",
+    "FrameRelayTests/Integration/Remote/BackgroundEventDrainTests.swift": "9f6c4aa30f62594308f42ae4277812d730611d786bd0a1ab8e6304e227feb895"
+  },
+  "review": "main read all eight files and exact delta from S34 snapshot; one stream per session, durable exact commit lookups and source owner drain; late/early MainActor OS handler; per-store factory injection; current normal strict path closed",
+  "static_test_inventory": "14 declarations / 14 expanded, not executed",
+  "remaining": [
+    "strict network admission",
+    "download ingress",
+    "old source adoption",
+    "S49 REC/save wiring",
+    "OS background real-device kill/relaunch"
+  ]
+}

@@ -1,0 +1,292 @@
+--- preview/FrameRelay/Application/MediaOperations/BackendStatusSynchronizationCoordinator.swift
++++ final/FrameRelay/Application/MediaOperations/BackendStatusSynchronizationCoordinator.swift
+@@ -132,12 +132,25 @@
+         guard exact(rendition.original, original), manifest.mediaType != nil else { return .unresolved }
+         if let prior {
+             guard manifest.revision >= prior.observation.observation.rawValue else { return .unresolved }
+-            if exact(prior.observation.rendition, rendition),
+-               prior.observation.invalidationGeneration == manifest.invalidationGeneration {
++            if exact(prior.observation.rendition, rendition) {
+                 guard let state = latest.confirmationStates.first(where: {
+                     exact($0.registration, boundary.registration.server.registration) && exact($0.current.original, original)
+                 }), exact(state.current, rendition), state.generation == manifest.invalidationGeneration else { return .unresolved }
+-                return .unchanged
++                if prior.observation.invalidationGeneration == manifest.invalidationGeneration { return .unchanged }
++                // V1 may remain the server pointer while replacement waits for
++                // other registrations. Its pointer revision need not advance.
++                // Reconcile the exact local tombstone instead of manufacturing
++                // a second publication or restoring the invalidated confirmation.
++                if let ack = state.invalidation, ack.isCommitted,
++                   exact(ack.record.rendition, rendition), exact(ack.record.registration, boundary.registration.server.registration),
++                   ack.record.generation == manifest.invalidationGeneration,
++                   state.invalidatedRenditions.contains(rendition.rendition),
++                   latest.invalidations.contains(where: { exact($0, ack) }) {
++                    let result = await store.lookupInvalidation(ack)
++                    _ = try await boundary.load()
++                    if case .succeeded(let id) = result, exact(id, ack.record.id) { return .unchanged }
++                    return .unresolved
++                }
+             }
+         }
+         // Same mapping as PublicationHTTPBinding.open. Do not allocate a local
+@@ -196,6 +209,11 @@
+     func load() async throws -> BackendStoreSnapshot {
+         let value = try await PublicationStoreBoundary.load(store, identity: identity)
+         guard registration.isCommitted,
++              PublicationStoreBoundary.exact(registration.server.intent.destination, registration.server.registration.destination),
++              PublicationStoreBoundary.exact(registration.intentCommit.key,
++                BackendCommitKey.registrationIntent(registration.server.intent.operation, registration.server.intent.destination)),
++              PublicationStoreBoundary.exact(registration.commit.key,
++                BackendCommitKey.registration(registration.server.intent.operation, registration.server.registration)),
+               let current = value.registrations.last(where: {
+                   $0.server.registration.destination == registration.server.registration.destination
+               }), PublicationStoreBoundary.exact(current, registration),
+--- preview/FrameRelay/Application/Ports/StatusSynchronizationPort.swift
++++ final/FrameRelay/Application/Ports/StatusSynchronizationPort.swift
+@@ -19,7 +19,20 @@
+ nonisolated struct StatusSynchronizationItem: Equatable, Sendable, Identifiable {
+     let original: OriginalContent
+     let disposition: StatusSynchronizationDisposition
+-    var id: CaptureID { original.capture }
++    var id: StatusSynchronizationItemID {
++        .init(capture: Data(original.capture.rawValue.utf8), generation: original.generation.rawValue,
++              algorithm: Data(original.content.algorithm.utf8), digest: Data(original.content.digest.utf8),
++              byteCount: original.content.byteCount)
++    }
++}
++
++/// Opaque text uses byte equality even for canonically equivalent Unicode.
++nonisolated struct StatusSynchronizationItemID: Hashable, Sendable {
++    let capture: Data
++    let generation: UInt64
++    let algorithm: Data
++    let digest: Data
++    let byteCount: UInt64
+ }
+ 
+ nonisolated struct StatusSynchronizationReport: Equatable, Sendable {
+--- preview/FrameRelayTests/Application/BackendStatusSynchronizationCoordinatorTests.swift
++++ final/FrameRelayTests/Application/BackendStatusSynchronizationCoordinatorTests.swift
+@@ -140,6 +140,54 @@
+         }
+     }
+ 
++    @Test func invalidatedV1CanRemainPublishedAtTheSameRevisionWhileReplacementWaits() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run)
++            let record = statusInvalidation(f.renditions[0], registration: f.registration.server.registration)
++            let confirmation = MediaConfirmationCoordinator(store: f.store, identity: f.identity)
++            _ = await confirmation.confirm(try publicationToken(f.renditions[0], registration: record.registration),
++                                           action: .init(rawValue: "explicit-before-replacement"))
++            f.remote.pages = [.succeeded(.init(records: [record], nextAfter: nil))]
++            f.remote.setManifest(f.renditions[0], revision: 1, generation: 1)
++            let coordinator = f.coordinator()
++            let first = await coordinator.synchronize()
++            #expect(first.phase == .checked && first.items.first?.disposition == .unchanged)
++            let snapshot = try await mediaSnapshot(f.store)
++            #expect(snapshot.publications.count == 1 && snapshot.invalidations.count == 1)
++            #expect(snapshot.confirmationStates.first?.validConfirmation == nil)
++            #expect(f.store.mutations.isEmpty)
++            let second = await coordinator.synchronize()
++            #expect(second.phase == .checked && f.store.mutations.isEmpty)
++            #expect(try await mediaSnapshot(f.store).publications == snapshot.publications)
++            #expect(f.remote.mediaCalls == 0)
++        }
++    }
++
++    @Test func manifestAloneCannotInvalidateTheCurrentConfirmation() async throws {
++        try await withStorageRun { run in
++            let f = try await StatusSynchronizationFixture.make(run: run)
++            let confirmation = MediaConfirmationCoordinator(store: f.store, identity: f.identity)
++            guard case .succeeded(let record) = await confirmation.confirm(
++                try publicationToken(f.renditions[0], registration: f.registration.server.registration),
++                action: .init(rawValue: "explicit-still-valid")) else { throw BackendContractError.notCommitted }
++            f.remote.setManifest(f.renditions[0], revision: 2, generation: 1)
++            #expect(await f.coordinator().synchronize().phase == .partial)
++            let snapshot = try await mediaSnapshot(f.store)
++            #expect(snapshot.confirmationStates.first?.validConfirmation == record)
++            #expect(snapshot.invalidations.isEmpty && snapshot.publications.count == 1)
++        }
++    }
++
++    @Test func itemIDsIncludeExactContentAndGeneration() throws {
++        let a = try publicationOriginal("\u{e9}")
++        let b = OriginalContent(capture: .init(rawValue: "e\u{301}"), generation: a.generation, content: a.content)
++        let c = OriginalContent(capture: a.capture, generation: .init(rawValue: 2), content: a.content)
++        #expect(StatusSynchronizationItem(original: a, disposition: .unchanged).id
++            != StatusSynchronizationItem(original: b, disposition: .unchanged).id)
++        #expect(StatusSynchronizationItem(original: a, disposition: .unchanged).id
++            != StatusSynchronizationItem(original: c, disposition: .unchanged).id)
++    }
++
+     @Test func captureBeginningDuringRequestStopsLaterWorkWithoutWaitingForAcknowledgement() async throws {
+         try await withStorageRun { run in
+             let f = try await StatusSynchronizationFixture.make(run: run)
+--- preview/FrameRelayTests/Integration/Composition/ProductStatusSynchronizationTests.swift
++++ final/FrameRelayTests/Integration/Composition/ProductStatusSynchronizationTests.swift
+@@ -43,6 +43,9 @@
+         #expect(try await mediaSnapshot(services.store).publications.isEmpty)
+         await model.synchronizeStatus()
+         #expect(model.synchronizationReport?.phase == .checked)
++        let reported = try #require(model.synchronizationReport?.items.first)
++        #expect(model.description(for: reported).contains("撮影日時不明"))
++        #expect(!model.description(for: reported).contains(binding.original.capture.rawValue))
+         #expect(composition.library?.item(binding.original.capture)?.status(.publication).contains("公開版の保存記録あり") == true)
+         #expect(composition.library?.snapshot?.revision == (try await mediaSnapshot(services.store).revision))
+         #expect(try await mediaSnapshot(services.store).confirmations.isEmpty)
+--- preview/FrameRelay/Application/Library/LibrarySnapshot.swift
++++ final/FrameRelay/Application/Library/LibrarySnapshot.swift
+@@ -233,6 +233,7 @@
+             PublicationStoreBoundary.exact($0.observation.registration, identity)
+                 && PublicationStoreBoundary.exact($0.observation.rendition.original, original)
+                 && $0.commit.matches(BackendStoreChange.publication($0.observation).key, revision: $0.commit.previousRevision)
++                && PublicationStoreBoundary.exact($0.commit.key, BackendStoreChange.publication($0.observation).key)
+         })
+         let state = backend.confirmationStates.first(where: {
+             PublicationStoreBoundary.exact($0.registration, identity)
+@@ -242,7 +243,8 @@
+             : "公開版の保存記録あり（最後に照合した版）"
+         if let state, let confirmation = state.validConfirmation,
+            PublicationStoreBoundary.exact(confirmation.intent.playback.distribution.registration, identity),
+-           PublicationStoreBoundary.exact(confirmation.intent.playback.distribution.rendition, state.current) {
++           PublicationStoreBoundary.exact(confirmation.intent.playback.distribution.rendition, state.current),
++           PublicationStoreBoundary.exact(confirmation.commit.key, confirmation.intent.key) {
+             result[.confirmation] = "有効な明示確認の保存記録あり（現在の記録版）"
+         } else {
+             result[.confirmation] = state?.invalidation == nil ? "現在の記録版の明示確認なし"
+@@ -251,6 +253,7 @@
+         if let ack = backend.invalidations.last(where: {
+             PublicationStoreBoundary.exact($0.record.registration, identity)
+                 && PublicationStoreBoundary.exact($0.record.rendition.original, original) && $0.isCommitted
++                && PublicationStoreBoundary.exact($0.commit.key, $0.record.key)
+         }) {
+             let entry = BackendSyncEntry.invalidation(ack)
+             let delivered = backend.deliveries.contains(where: {
+@@ -271,8 +274,14 @@
+             PublicationStoreBoundary.exact($0.expected.registration, identity)
+                 && PublicationStoreBoundary.exact($0.expected.target, MediaTarget.original(original))
+         })
+-        result[.verification] = verification?.isCommitted == true
+-            && verification?.evidence.verifies(original, destination: identity.destination, supportedSchemas: ["fr-final-read-v1"]) == true
++        let verified = verification.map { proof in
++            guard proof.isCommitted, PublicationStoreBoundary.exact(proof.expected, proof.evidence.context),
++                  PublicationStoreBoundary.exact(proof.commit.key, proof.key),
++                  case .finalDestinationReadBack(let content) = proof.evidence.verification,
++                  PublicationStoreBoundary.exact(content, original.content) else { return false }
++            return proof.evidence.verifies(original, destination: identity.destination, supportedSchemas: ["fr-final-read-v1"])
++        } ?? false
++        result[.verification] = verified
+             ? "最後の有効なMac mini保存検証の記録あり（現在の存在は未照合）"
+             : "有効なMac mini保存検証の保存記録なし"
+         let requests = backend.requests.filter {
+--- preview/FrameRelay/Composition/ProductComposition.swift
++++ final/FrameRelay/Composition/ProductComposition.swift
+@@ -72,7 +72,13 @@
+                         credentials: vault, admission: admission)
+             }
+             connection = ConnectionModel(coordinator: registration, statusSynchronization: statusSynchronization,
+-                didSynchronize: { [weak self] in await self?.library?.refresh() })
++                didSynchronize: { [weak self] in await self?.library?.refresh() },
++                synchronizationTargetDescription: { [weak self] original in
++                    guard let item = self?.library?.snapshot?.items.first(where: {
++                        $0.original.map { PublicationStoreBoundary.exact($0, original) } == true
++                    }) else { return "撮影日時不明（この原本に対応する保存記録を確認できません）" }
++                    return item.capturedAt == nil ? "撮影日時不明（撮影時の日時が記録されていません）" : item.captureDateDescription
++                })
+             openingIssue = nil
+             await library?.refresh()
+             await connection?.restore()
+--- preview/FrameRelay/Features/Connection/ConnectionModel.swift
++++ final/FrameRelay/Features/Connection/ConnectionModel.swift
+@@ -5,8 +5,10 @@
+     private let coordinator: RegistrationCoordinator
+     private let statusSynchronization: (any StatusSynchronizationPort)?
+     private let didSynchronize: @MainActor @Sendable () async -> Void
++    private let synchronizationTargetDescription: @MainActor @Sendable (OriginalContent) -> String
+     private(set) var state: RegistrationState = .needsConnection
+     private(set) var isWorking = false
++    private(set) var isSynchronizing = false
+     private(set) var hasLoaded = false
+     private(set) var permitsInitialInput = false
+     private(set) var synchronizationReport: StatusSynchronizationReport?
+@@ -15,10 +17,16 @@
+     var bearer = ""
+ 
+     init(coordinator: RegistrationCoordinator, statusSynchronization: (any StatusSynchronizationPort)? = nil,
+-         didSynchronize: @escaping @MainActor @Sendable () async -> Void = {}) {
++         didSynchronize: @escaping @MainActor @Sendable () async -> Void = {},
++         synchronizationTargetDescription: @escaping @MainActor @Sendable (OriginalContent) -> String = { _ in
++             "撮影日時不明（対応する日時の記録を確認できません）"
++         }) {
+         self.coordinator = coordinator; self.statusSynchronization = statusSynchronization
+         self.didSynchronize = didSynchronize
++        self.synchronizationTargetDescription = synchronizationTargetDescription
+     }
++
++    func description(for item: StatusSynchronizationItem) -> String { synchronizationTargetDescription(item.original) }
+ 
+     var supportsStatusSynchronization: Bool { statusSynchronization != nil }
+     var canSynchronize: Bool {
+@@ -28,7 +36,8 @@
+     func synchronizeStatus() async {
+         guard canSynchronize, let statusSynchronization, case .registered(let connection, let registration) = state else { return }
+         isWorking = true
+-        defer { isWorking = false }
++        isSynchronizing = true
++        defer { isWorking = false; isSynchronizing = false }
+         synchronizationReport = await statusSynchronization.synchronize(connection: connection, registration: registration)
+         await didSynchronize()
+     }
+@@ -37,8 +46,9 @@
+         guard !isWorking else { return }
+         isWorking = true
+         defer { isWorking = false; hasLoaded = true }
++        let previousState = state
+         state = await coordinator.restore()
+-        synchronizationReport = nil
++        if state != previousState { synchronizationReport = nil }
+         permitsInitialInput = await coordinator.permitsInitialInput()
+     }
+     func register() async {
+--- preview/FrameRelay/Features/Connection/ConnectionView.swift
++++ final/FrameRelay/Features/Connection/ConnectionView.swift
+@@ -10,7 +10,7 @@
+                     Text(model.message)
+                         .fixedSize(horizontal: false, vertical: true)
+                         .accessibilityIdentifier("connection.state")
+-                    if model.isWorking { ProgressView("登録情報を確認しています") }
++                    if model.isWorking { ProgressView(model.isSynchronizing ? "状態を照合しています" : "登録情報を確認しています") }
+                 }
+                 if case .registered(_, let registration) = model.state {
+                     Section("端末登録") {
+@@ -30,7 +30,7 @@
+                                 Text(report.message).fixedSize(horizontal: false, vertical: true)
+                                     .accessibilityIdentifier("connection.synchronization.state")
+                                 ForEach(report.items) { item in
+-                                    Text("動画 \(item.original.capture.rawValue)：\(item.disposition.text)")
++                                    Text("\(model.description(for: item))：\(item.disposition.text)")
+                                         .fixedSize(horizontal: false, vertical: true)
+                                 }
+                             }
+--- preview/FrameRelayUITests/Flows/ConnectionFlowTests.swift
++++ final/FrameRelayUITests/Flows/ConnectionFlowTests.swift
+@@ -74,12 +74,14 @@
+         XCTAssertTrue(synchronize.isEnabled)
+         app.buttons["connection.close"].tap()
+         XCTAssertTrue(app.buttons["library.refresh"].waitForExistence(timeout: 5))
+-        let video = app.buttons.containing(.staticText, identifier: "動画 s28-" + nonce).firstMatch
+-        // The library row includes the synthetic recording title and saved
+-        // publication. It is neither a completed media acquisition nor proof.
+-        let saved = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "公開版の保存記録あり")).firstMatch
+-        if !saved.exists && video.exists { video.tap() }
++        let video = app.descendants(matching: .any).matching(identifier: "library.item.s28-" + nonce).firstMatch
++        XCTAssertTrue(video.waitForExistence(timeout: 5)); video.tap()
++        // A saved publication is visible in the normal per-video detail. It is
++        // neither a completed media acquisition nor formal quality proof.
++        let saved = app.descendants(matching: .any).matching(identifier: "library.status.publication").firstMatch
+         XCTAssertTrue(saved.waitForExistence(timeout: 5))
++        for _ in 0..<6 where !saved.isHittable { app.swipeUp() }
++        XCTAssertTrue(saved.label.contains("公開版の保存記録あり"))
+         app.terminate(); app.launch()
+         XCTAssertTrue(entry.waitForExistence(timeout: 10)); entry.tap()
+         XCTAssertTrue(app.staticTexts["connection.registered"].waitForExistence(timeout: 10))

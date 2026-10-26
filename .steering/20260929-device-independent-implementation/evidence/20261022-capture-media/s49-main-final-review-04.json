@@ -1,0 +1,114 @@
+{
+  "task": "S49 final candidate03 main incremental review",
+  "time": 1792603510.832336,
+  "input_count": 279,
+  "changes_since_candidate01": [
+    "FrameRelayTests/Application/ProductCaptureMediaBoundaryTests.swift",
+    "FrameRelayTests/Integration/Remote/BackgroundEventDrainTests.swift",
+    "FrameRelay/Application/Capture/ProductCaptureCoordinator.swift"
+  ],
+  "test_first_red": "s49-order-red-02:13pass/2fail, zero diagnostics; same additional test bytes retained",
+  "checks": [
+    "all12 initial source/test diffs reviewed in candidate01; only3 permitted inputs changed afterward",
+    "exact buffered file/unconfirmed consumed once after nonaccepted recordingEnded actual return",
+    "file actual return retires only old owner; no new capture UI mutation",
+    "save drain UUID prevents old deferred return clearing newer drain",
+    "conditional closure uses explicit Sendable type; source/store/SDK/UI/project unchanged"
+  ],
+  "remaining": [
+    "strict resume/admission atomic boundary and normal actual media are closed",
+    "S25/all-media capture stop and real active network REC unverified; wholeS49 blocked even if this partial candidate passes"
+  ],
+  "verification": {
+    "s49-unit-03": {
+      "label": "s49-unit-03",
+      "declarations": {
+        "totalTestCount": 550,
+        "passedTests": 525,
+        "failedTests": 0,
+        "skippedTests": 25,
+        "expectedFailures": 0
+      },
+      "expanded": {
+        "Passed": 841,
+        "Skipped": 25
+      },
+      "runtime_warnings": 0,
+      "build": {
+        "status": "succeeded",
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "compiler_errors": [],
+      "compiler_warnings": []
+    },
+    "s49-ios-build-03": {
+      "label": "s49-ios-build-03",
+      "declarations": {
+        "totalTestCount": 0,
+        "passedTests": 0,
+        "failedTests": 0,
+        "skippedTests": 0,
+        "expectedFailures": 0
+      },
+      "expanded": {},
+      "runtime_warnings": 0,
+      "build": {
+        "status": "succeeded",
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "compiler_errors": [],
+      "compiler_warnings": []
+    },
+    "s49-ui-01": {
+      "label": "s49-ui-01",
+      "declarations": {
+        "totalTestCount": 3,
+        "passedTests": 3,
+        "failedTests": 0,
+        "skippedTests": 0,
+        "expectedFailures": 0
+      },
+      "expanded": {
+        "Passed": 3
+      },
+      "runtime_warnings": 0,
+      "build": {
+        "status": "succeeded",
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "compiler_errors": [],
+      "compiler_warnings": []
+    },
+    "s49-cf-verify-01": {
+      "label": "s49-cf-verify-01",
+      "declarations": {
+        "totalTestCount": 2,
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 1,
+        "expectedFailures": 0
+      },
+      "expanded": {
+        "Skipped": 1,
+        "Passed": 1
+      },
+      "runtime_warnings": 0,
+      "build": {
+        "status": "succeeded",
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "compiler_errors": [],
+      "compiler_warnings": []
+    }
+  },
+  "all_inputs_equal_final": true,
+  "final_time": 1792603685.656904
+}

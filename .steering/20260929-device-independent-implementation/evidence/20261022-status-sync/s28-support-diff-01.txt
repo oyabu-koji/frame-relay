@@ -1,0 +1,726 @@
+--- s27/server-isolation/README-publication.md
++++ s28/server-isolation/README-publication.md
+@@ -69,3 +69,34 @@
+ guard denial0、source/依存/原本不変を要求する。秘密はlistener finallyで削除し、親も実 `Popen.wait()` 後に不在を確認する。強制signal、親による秘密の救済削除、未終端/未close、artifact欠落は失敗として保持する。
+ 
+ 静的 compile/準備/dry-run は実 HTTP/AVPlayer 成功ではない。TLS、Wi-Fi/VPN、背景/ロック/実機、Rec.709/聴取品質、製品の external/recovery owner producer は別の未確認範囲として残す。
++
++## S28 metadata-only の明示mode
++
++`--probe-mode` を省略すると従来の `publication` となり、S27のmethod・6環境値・全12必須観測をそのまま要求する。S28は準備時に `--probe-mode metadata-only` を指定する別runとし、S27の成功結果・AVPlayer進行・SDK/HTTP件数を流用しない。旧S27の凍結5fileは `s27-http-main-review-05.json` と `evidence/20261022-publication/` に保全されている。この追加modeは実行未確認である。
++
++準備は上表の全必須引数に `--probe-mode metadata-only` を加え、既存の成功backend273file snapshot/config/checkpoint・同じ969,998byte合成Movieを入力にする。App/tool両担当の凍結とmainの差分確認後だけ実行する。methodは `FrameRelayTests/StatusSynchronizationHTTPFixtureTests/metadataOnlyPageAndManifestUseCoordinator()` の1宣言/1実行をSDKで明示列挙する。新しい実destinationと専用DerivedDataを束縛する。
++
++生成先は同じ技術fixture root `/private/tmp/fr-di-20261015-s27/S27/` 内の `metadata-http-preparation-NNN`、`metadata-http-snapshot-NNN`、`runtime-metadata-only-NNN`。S27の `http-preparation-NNN` / `http-snapshot-NNN` / `runtime-publication-NNN` とは分け、いずれも再利用しない。configには `probe_mode` と固定 `probe_contract`（method、env集合、添付名/schema、必須観測）を保存し、そのconfig hashとmodeをcheckpointへ束縛する。親・listener・Swift wrapperの各argvにも同じ `--probe-mode metadata-only` を渡し、ready・secret envelope・各resultのmode不一致を拒否する。
++
++準備commandの形は既存 `prepare_publication_probe.py` の全必須引数に上記modeを追加する形である。準備後の実argvは `metadata-http-preparation-NNN/commands.json` の `dry_run` と `execute` を正本とする。どちらもfrozen `source-snapshot/run_publication_fixture.py`、新 `config.json`、その `checkpoint.json` の実SHA256、`--probe-mode metadata-only` を含む。mainが具体値を確認した後にdry-run→executeの順で使い、既存の `--execute-reviewed-integration` / `--execute-reviewed-xcode` と停止・実process終了確認を維持する。
++
++Swift gateは `FR_S27_HTTP_FIXTURE=1` AND `FR_S28_METADATA_ONLY=1`。従来6値に後者だけを追加した7値を `TEST_RUNNER_` 経由で渡す。fixture JSONはS27と同じcanonical string/bool/nullの値形で、`factory_source.size` だけmetadata用のdecimal stringに写像する。登録資格情報とoriginal/V1を再利用し、fixture control secretは配布するが本testから使用しない。listenerもこのmodeではcontrol要求を拒否する。
++
++サーバーは順番通りのPOST `invalidations`（after=null、limit="8"）→POST `manifest` の2 requestだけを許可する。失効は空の1page・next_after=null、manifestは同一originalのV1currentを要求する。媒体GET/distribution/confirmation/ACK/lookup/controlの試行は不合格とし、JSON応答の実送出・handler終端・media byte0・固定payload hashを親が再計算する。fixtureを作るseedのdisk I/Oと、testが開始したmetadata HTTPを混同しない。
++
++SDK添付は `metadata-attachments/` のprivate0700 directory / 0600 filesへ当該testだけをexportする。固定名は `s28-metadata-observation.json`、schemaは `fr-s28-metadata-observation-v1`。親はraw test summary/treeの1Passed・failure/skip/expected failure0、test ID/URL・destination・実manifest/実添付・runIdentityを再照合し、重複JSON key、非有限値、余分なfield、型違い、別mode/schemaを拒否する。
++
++| SDK添付field | 必須値と意味 |
++| --- | --- |
++| `report_schema` / `probe_mode` / `fixtureOnly` / `runIdentity` | 固定schema / `metadata-only` / true / 当該configのrun identity |
++| `boundedPages` | 整数1。明示した1pageの実行結果 |
++| `invalidationsStarted` / `invalidationsCompleted` / `manifestStarted` / `manifestCompleted` | それぞれ整数1。実remote呼出しとawaitからの復帰 |
++| `confirmationSend` / `ackSend` / `operationLookup` / `distribute` / `lookupDistribution` | それぞれ整数0 |
++| `durablePublicationCount` / `newConfirmations` | 同writerの公開記録整数1 / 新確認整数0 |
++| `reopenMatches` / `coordinatorAwaitCompleted` | true / true。実SQLite再open一致とcoordinator await復帰 |
++| `sdkTerminalCountsObserved` | false。既存real remoteにはSDK task/session実数の注入をしていない |
++| `sdkTerminalContract` | 固定文字列 `PublicationURLSessionRequest awaits task completion and session invalidation` |
++
++最後のSDK契約は凍結した `URLSessionPublicationRemote.swift` のperform→task completion→session invalidation→continuation復帰条件のsource/hash照合として別記録にする。実task/session件数を主張する項目ではない。実await完了counter、serverの実2 request、同writerのcommit/reopenは別の観測として照合する。
++
++新modeの必須観測は `coordinator_metadata_commit_reopen`、`exactly_two_metadata_requests`、`all_metadata_handlers_terminal`、`one_complete_empty_invalidation_page`、`manifest_matches_current_v1`、`zero_media_and_distribution_requests`、`zero_confirmation_ack_lookup_requests`、`zero_fixture_control_requests` の8件。従来のpre-rescue pending/GC未close/tracked接続/DB媒体FD/新しい不明regular FD0、seed前からの全created thread join、子の実exit0・signal0・秘密env削除、22設定・外部source/依存/.pth/interpreter・全source不変、loopback1 bind、import provenanceも同時に必須とする。metadata-onlyの成功を全S28・通常媒体送信・実機受入の成立へ昇格しない。
+--- s27/server-isolation/prepare_publication_probe.py
++++ s28/server-isolation/prepare_publication_probe.py
+@@ -48,6 +48,51 @@
+     "unconsumed_v1_ticket_rejected_after_publication", "all_rejected_gets_emit_no_media", "final_manifest_is_v2",
+ )
+ REQUIRED_OBSERVATIONS = ("avplayer_progress_before_full_download", *WIRE_OBSERVATIONS)
++PROBE_MODES = ("publication", "metadata-only")
++METADATA_TEST = "StatusSynchronizationHTTPFixtureTests/metadataOnlyPageAndManifestUseCoordinator()"
++METADATA_KEYS = (*KEYS, "FR_S28_METADATA_ONLY")
++METADATA_WIRE_OBSERVATIONS = (
++    "exactly_two_metadata_requests", "all_metadata_handlers_terminal", "one_complete_empty_invalidation_page",
++    "manifest_matches_current_v1", "zero_media_and_distribution_requests", "zero_confirmation_ack_lookup_requests",
++    "zero_fixture_control_requests",
++)
++METADATA_REQUIRED_OBSERVATIONS = ("coordinator_metadata_commit_reopen", *METADATA_WIRE_OBSERVATIONS)
++METADATA_SCHEMA = "fr-s28-metadata-observation-v1"
++METADATA_SDK_CONTRACT = "PublicationURLSessionRequest awaits task completion and session invalidation"
++METADATA_COUNTERS = {"boundedPages": 1, "invalidationsStarted": 1, "invalidationsCompleted": 1,
++    "manifestStarted": 1, "manifestCompleted": 1, "confirmationSend": 0, "ackSend": 0,
++    "operationLookup": 0, "distribute": 0, "lookupDistribution": 0, "durablePublicationCount": 1, "newConfirmations": 0}
++
++
++def probe_contract(mode):
++    if mode == "publication":
++        return {"mode": mode, "test": PLAYBACK_TEST, "environment_keys": list(KEYS),
++            "attachment_directory": PLAYBACK_ATTACHMENTS, "attachment_stem": "s27-wire-observation", "attachment_extension": "txt",
++            "report_schema": "s27-wire-observation-v1", "required_observations": list(REQUIRED_OBSERVATIONS)}
++    if mode == "metadata-only":
++        return {"mode": mode, "test": METADATA_TEST, "environment_keys": list(METADATA_KEYS),
++            "attachment_directory": "metadata-attachments", "attachment_stem": "s28-metadata-observation", "attachment_extension": "json",
++            "report_schema": METADATA_SCHEMA, "required_observations": list(METADATA_REQUIRED_OBSERVATIONS)}
++    raise RuntimeError("Unreviewed probe mode")
++
++
++def probe_mode(config):
++    # Historical publication configs keep their original default and contract.
++    # Every newly prepared config includes its full fixed contract in its hash.
++    mode = config.get("probe_mode", "publication")
++    contract = probe_contract(mode)
++    if (("probe_mode" in config and config.get("probe_contract") != contract) or
++            ("probe_mode" not in config and "probe_contract" in config)):
++        raise RuntimeError("Probe mode/contract configuration mismatch")
++    return mode
++
++
++def namespace_prefixes(mode):
++    if mode == "publication":
++        return "http-preparation-", "http-snapshot-", "runtime-publication-"
++    if mode == "metadata-only":
++        return "metadata-http-preparation-", "metadata-http-snapshot-", "runtime-metadata-only-"
++    raise RuntimeError("Unreviewed probe namespace")
+ 
+ 
+ def verify_swift_playback_contract(sources):
+@@ -69,7 +114,52 @@
+             raise RuntimeError("Publication Swift progress assertion/attachment contract changed")
+ 
+ 
+-def evaluate_publication_tests(summary, tests, config):
++def verify_swift_metadata_contract(sources):
++    relative = "FrameRelayTests/Integration/Composition/ProductStatusSynchronizationTests.swift"
++    path = PROJECT / relative
++    if record(path) != sources.get(relative):
++        raise RuntimeError("Reviewed metadata-only Swift source changed")
++    source = path.read_text()
++    start = "@MainActor struct StatusSynchronizationHTTPFixtureTests {"
++    end = "\n@MainActor private final class StatusObservedHTTPRemote:"
++    gate = ('@Suite(.serialized, .enabled(if: ProcessInfo.processInfo.environment["FR_S27_HTTP_FIXTURE"] == "1"\n'
++        '    && ProcessInfo.processInfo.environment["FR_S28_METADATA_ONLY"] == "1"))')
++    if any(source.count(expression) != 1 for expression in (start, end, gate)):
++        raise RuntimeError("Metadata-only Swift suite/gate contract changed")
++    test_source = source.split(start, 1)[1].split(end, 1)[0]
++    for expression in ("@Test func metadataOnlyPageAndManifestUseCoordinator() async throws",
++            "let result = await coordinator.synchronize()", "let reopened = try SQLiteRecordingStore(run: run, mode: .openExisting)",
++            "let replay = try await mediaSnapshot(reopened)", "let matches = saved == replay",
++            '"report_schema": "' + METADATA_SCHEMA + '", "probe_mode": "metadata-only", "fixtureOnly": true',
++            '"runIdentity": config.runIdentity, "boundedPages": remote.invalidationsStarted',
++            '"durablePublicationCount": saved.publications.count, "newConfirmations": saved.confirmations.count - before.confirmations.count',
++            '"reopenMatches": matches, "coordinatorAwaitCompleted": true, "sdkTerminalCountsObserved": false',
++            '"sdkTerminalContract": "' + METADATA_SDK_CONTRACT + '"',
++            'Attachment.record(String(decoding: data, as: UTF8.self), named: "s28-metadata-observation.json")',
++            "#expect(result.phase == .checked && !result.hasMore && result.unresolvedInvalidations == 0)",
++            "#expect(remote.invalidationsStarted == 1 && remote.invalidationsCompleted == 1)",
++            "#expect(remote.manifestStarted == 1 && remote.manifestCompleted == 1)",
++            "#expect(remote.confirmationSend == 0 && remote.ackSend == 0 && remote.operationLookup == 0)",
++            "#expect(remote.distributeCount == 0 && remote.lookupDistributionCount == 0)",
++            "#expect(before.publications.isEmpty && saved.publications.count == 1)",
++            "#expect(saved.publications.first?.observation.rendition == config.rendition)",
++            "#expect(matches && replay.storeIdentity == identity)"):
++        if test_source.count(expression) != 1:
++            raise RuntimeError("Metadata-only Swift assertion/attachment contract changed")
++    relative = "FrameRelay/Platform/Remote/URLSessionPublicationRemote.swift"
++    remote = PROJECT / relative
++    if record(remote) != sources.get(relative):
++        raise RuntimeError("Reviewed real publication SDK source changed")
++    sdk_source = remote.read_text()
++    for expression in ("let response = try await PublicationURLSessionRequest.perform(http)",
++            "didCompleteWithError error: Error?", "completed = true", "session.finishTasksAndInvalidate()",
++            "didBecomeInvalidWithError error: Error?", "else if error != nil || !completed",
++            "continuation.resume(returning: .init(status: response.statusCode, data: data))"):
++        if sdk_source.count(expression) != 1:
++            raise RuntimeError("Publication SDK terminal-await source contract changed")
++
++
++def evaluate_publication_tests(summary, tests, config, *, required_test=PLAYBACK_TEST):
+     """Re-evaluated from raw xcresult summary/tree by wrapper AND parent."""
+     cases = []
+     def visit(node):
+@@ -86,7 +176,7 @@
+         "failedTests": 0, "skippedTests": 0, "expectedFailures": 0}
+     devices = summary.get("devicesAndConfigurations", [])
+     executions = sum(max(1, len([child for child in node.get("children", []) if child.get("nodeType") == "Arguments"])) for node in cases)
+-    passed = (expected == {PLAYBACK_TEST} and summary.get("result") == "Passed" and counts == expected_counts and
++    passed = (expected == {required_test} and summary.get("result") == "Passed" and counts == expected_counts and
+         all(type(value) is int for value in counts.values()) and len(devices) == 1 and
+         devices[0].get("device", {}).get("deviceId") == config["destination"].split("id=")[1] and
+         all(type(devices[0].get(key)) is int and devices[0][key] == value
+@@ -98,6 +188,11 @@
+         "execution_count": executions, "test_urls": [node.get("nodeIdentifierURL") for node in cases],
+         "nonpassing_declarations": [{"identifier": node.get("nodeIdentifier"), "result": node.get("result")}
+             for node in cases if node.get("result") != "Passed"]}
++
++
++def evaluate_probe_tests(summary, tests, config):
++    return evaluate_publication_tests(summary, tests, config,
++        required_test=probe_contract(probe_mode(config))["test"])
+ 
+ 
+ def playback_evidence(runtime, config, summary, tests, fixture):
+@@ -152,6 +247,133 @@
+     return {"passed": passed, "test_verification": verification, "values": values,
+         "manifest_record": record(manifest_path), "attachment_file": name, "attachment_record": record(path),
+         "meaning": "raw xcresult Passed plus exact real-player Swift assertion and SDK-exported text; not listener inference"}
++
++
++def metadata_evidence(runtime, config, summary, tests, fixture):
++    if probe_mode(config) != "metadata-only":
++        raise RuntimeError("Metadata report used for another probe mode")
++    contract = probe_contract("metadata-only")
++    verification = evaluate_probe_tests(summary, tests, config)
++    directory = runtime / contract["attachment_directory"]
++    if (directory.is_symlink() or not directory.is_dir() or
++            stat.S_IMODE(directory.lstat().st_mode) != 0o700):
++        raise RuntimeError("Missing private SDK metadata-only export")
++    manifest_path = directory / "manifest.json"
++    if manifest_path.lstat().st_size > 65536:
++        raise RuntimeError("Unexpected metadata-only attachment manifest size")
++    manifest = read_json(manifest_path)
++    if (not isinstance(manifest, list) or len(manifest) != 1 or manifest[0].get("testIdentifier") != METADATA_TEST or
++            not isinstance(manifest[0].get("testIdentifierURL"), str) or
++            not manifest[0]["testIdentifierURL"].startswith("test://") or
++            not manifest[0]["testIdentifierURL"].endswith("/FrameRelayTests/" + METADATA_TEST) or
++            manifest[0].get("testIdentifierURL") not in verification["test_urls"] or
++            not isinstance(manifest[0].get("attachments"), list) or len(manifest[0]["attachments"]) != 1):
++        raise RuntimeError("SDK metadata-only attachment test identity mismatch")
++    attachment = manifest[0]["attachments"][0]
++    name, suggested, timestamp = (attachment.get(key) for key in ("exportedFileName", "suggestedHumanReadableName", "timestamp"))
++    if (not isinstance(name, str) or re.fullmatch(r"[0-9A-Fa-f-]{36}\.json", name) is None or
++            not isinstance(suggested, str) or
++            re.fullmatch(r"s28-metadata-observation(?:_[0-9]+_[0-9A-Fa-f-]{36})?\.json", suggested) is None or
++            attachment.get("deviceId") != config["destination"].split("id=")[1] or
++            attachment.get("isAssociatedWithFailure") is not False or
++            type(timestamp) not in (int, float) or not math.isfinite(timestamp) or timestamp <= 0 or
++            {path.name for path in directory.iterdir()} != {"manifest.json", name}):
++        raise RuntimeError("Unexpected SDK metadata-only attachment")
++    path = directory / name
++    for exported in (manifest_path, path):
++        info = exported.lstat()
++        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or stat.S_IMODE(info.st_mode) != 0o600:
++            raise RuntimeError("Metadata-only SDK report must be a private regular file")
++    if path.stat().st_size > 4096:
++        raise RuntimeError("Unexpected metadata-only SDK report size")
++    def unique_object(pairs):
++        result = {}
++        for key, value in pairs:
++            if key in result:
++                raise RuntimeError("Duplicate SDK metadata report field")
++            result[key] = value
++        return result
++    def invalid_constant(_value):
++        raise RuntimeError("Non-finite SDK metadata report value")
++    values = json.loads(path.read_bytes(), object_pairs_hook=unique_object, parse_constant=invalid_constant)
++    expected_keys = {"report_schema", "probe_mode", "fixtureOnly", "runIdentity", *METADATA_COUNTERS,
++        "reopenMatches", "coordinatorAwaitCompleted", "sdkTerminalCountsObserved", "sdkTerminalContract"}
++    if (not isinstance(values, dict) or set(values) != expected_keys or
++            values["report_schema"] != METADATA_SCHEMA or values["probe_mode"] != "metadata-only" or
++            values["fixtureOnly"] is not True or values["runIdentity"] != config["run_identity"] or
++            fixture.get("run_identity") != config["run_identity"] or fixture.get("fixture_only") is not True or
++            fixture.get("wire_sha256") != WIRE_SHA256 or fixture.get("source_sha256") != config["fixture"]["sha256"] or
++            any(type(values[key]) is not int for key in METADATA_COUNTERS) or
++            type(values["reopenMatches"]) is not bool or type(values["coordinatorAwaitCompleted"]) is not bool or
++            values["sdkTerminalCountsObserved"] is not False or values["sdkTerminalContract"] != METADATA_SDK_CONTRACT):
++        raise RuntimeError("SDK metadata-only schema/mode/run identity/type mismatch")
++    passed = (verification["passed"] is True and all(values[key] == expected for key, expected in METADATA_COUNTERS.items()) and
++        values["reopenMatches"] is True and values["coordinatorAwaitCompleted"] is True)
++    return {"passed": passed, "test_verification": verification, "values": values,
++        "manifest_record": record(manifest_path), "attachment_file": name, "attachment_record": record(path),
++        "sdk_terminal_source_contract": {"remote_source_record": record(PROJECT / "FrameRelay/Platform/Remote/URLSessionPublicationRemote.swift"),
++            "contract": METADATA_SDK_CONTRACT, "actual_task_session_counts_observed": False},
++        "meaning": "raw SDK Passed and exact coordinator-await/SQLite-reopen report; actual SDK terminal counts unobserved"}
++
++
++def probe_evidence(runtime, config, summary, tests, fixture):
++    if probe_mode(config) == "publication":
++        return playback_evidence(runtime, config, summary, tests, fixture)
++    return metadata_evidence(runtime, config, summary, tests, fixture)
++
++
++def evidence_field(config):
++    return "playback_evidence" if probe_mode(config) == "publication" else "metadata_evidence"
++
++
++def metadata_only_observations(report):
++    result = dict.fromkeys(METADATA_WIRE_OBSERVATIONS, False)
++    try:
++        rows, controls, fixture = report["requests"], report["controls"], report["fixture"]
++        result["exactly_two_metadata_requests"] = (report["probe_mode"] == "metadata-only" and len(rows) == 2 and
++            [row["endpoint"] for row in rows] == ["invalidations", "manifest"] and
++            [row["sequence"] for row in rows] == [1, 2] and all(row["method"] == "POST" for row in rows))
++        def terminal(row):
++            clocks = [row[key] for key in ("started_monotonic", "headers_sent_monotonic", "terminal_monotonic")]
++            return (all(type(value) in (int, float) and math.isfinite(value) and value >= 0 for value in clocks) and
++                clocks[0] <= clocks[1] <= clocks[2] and row["handler_returned"] is True and "failure_type" not in row and
++                row["status"] == row["underlying_status"] == 200 and row["response_replaced"] is False and
++                row["content_type"] == "application/json" and type(row["body_bytes_emitted"]) is int and row["body_bytes_emitted"] > 0 and
++                type(row["media_bytes_emitted"]) is int and row["media_bytes_emitted"] == 0)
++        result["all_metadata_handlers_terminal"] = len(rows) == 2 and all(terminal(row) for row in rows)
++        registration = {key: fixture["registration_receipt"][key] for key in ("destination_id", "registration_id", "generation")}
++        invalidations = [row for row in rows if row["endpoint"] == "invalidations"]
++        expected_invalidation = {"schema_version": "fr-publication-v1", "registration": registration,
++            "after_invalidation_id": None, "limit": "8"}
++        request_digest = digest_json(expected_invalidation)
++        result["one_complete_empty_invalidation_page"] = (len(invalidations) == 1 and invalidations[0].get("invalidation_count") == 0 and
++            invalidations[0].get("next_after_is_null") is True and invalidations[0].get("request_sha256") == request_digest and
++            invalidations[0].get("result_sha256") == digest_json({"invalidations": [], "next_after": None}))
++        manifests = [row for row in rows if row["endpoint"] == "manifest"]
++        expected_manifest = {"schema_version": "fr-publication-v1", "registration": registration, "original": fixture["original"]}
++        final = report["final_manifest"]
++        result["manifest_matches_current_v1"] = (len(manifests) == 1 and manifests[0].get("request_sha256") == digest_json(expected_manifest) and
++            manifests[0].get("current_rendition_id") == fixture["v1"]["rendition_id"] and
++            manifests[0].get("result_sha256") == digest_json(final) and final.get("current") == fixture["v1"] and
++            final.get("replacement_pending") is False and report.get("replacement") is None and report.get("publication") is None)
++        result["zero_media_and_distribution_requests"] = (bool(rows) and not report.get("blocked_route_count") and
++            all(row["endpoint"] not in ("media", "distributions") and row["media_bytes_emitted"] == 0 for row in rows))
++        result["zero_confirmation_ack_lookup_requests"] = bool(rows) and all(
++            row["endpoint"] not in ("confirmations", "acknowledgements", "operations/lookup") for row in rows)
++        result["zero_fixture_control_requests"] = not controls and not report.get("blocked_route_count")
++    except (KeyError, TypeError, ValueError, OverflowError):
++        pass
++    return result
++
++
++def digest_json(value):
++    import hashlib
++    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"),
++        ensure_ascii=False, allow_nan=False).encode()).hexdigest()
++
++
++def wire_observations(report, config):
++    return publication_observations(report) if probe_mode(config) == "publication" else metadata_only_observations(report)
+ 
+ 
+ def owner_close_observation(events, tracked_connections, inventory, initial_inventory, runtime):
+@@ -276,14 +498,17 @@
+ 
+ def verified_config(path):
+     config = read_json(path)
++    mode = probe_mode(config)
++    contract = probe_contract(mode)
+     preparation, runtime = Path(config["preparation"]), Path(config["runtime"])
+-    revision = preparation.name.removeprefix("http-preparation-")
++    preparation_prefix, snapshot_prefix, runtime_prefix = namespace_prefixes(mode)
++    revision = preparation.name.removeprefix(preparation_prefix)
+     if (path != preparation / "config.json" or preparation.parent != ROOT or
+-            preparation != ROOT / ("http-preparation-" + revision) or not re.fullmatch(r"[0-9]{3}", revision) or
+-            runtime != ROOT / ("runtime-publication-" + revision) or
+-            Path(config["snapshot"]) != ROOT / ("http-snapshot-" + revision) or
+-            config.get("action") != "publication-fixture-only" or config.get("listener_deadline_seconds") != 1200 or
+-            not METHODS or config.get("tests") != ["FrameRelayTests/PublicationHTTPFixtureTests/" + name for name in METHODS]):
++            preparation != ROOT / (preparation_prefix + revision) or not re.fullmatch(r"[0-9]{3}", revision) or
++            runtime != ROOT / (runtime_prefix + revision) or Path(config["snapshot"]) != ROOT / (snapshot_prefix + revision) or
++            config.get("action") != ("publication-fixture-only" if mode == "publication" else "publication-metadata-only-fixture") or
++            config.get("listener_deadline_seconds") != 1200 or not METHODS or
++            config.get("tests") != ["FrameRelayTests/" + contract["test"]]):
+         raise RuntimeError("Unreviewed publication fixture configuration")
+     checkpoint = read_json(preparation / "checkpoint.json")
+     if (record(path) != checkpoint["config"] or tree(preparation / "source-snapshot") != checkpoint["source_files"] or
+@@ -291,6 +516,8 @@
+             record(preparation / "dependency-provenance.json") != checkpoint["dependency_provenance"] or
+             record(preparation / "wire-contract.json")["sha256"] != WIRE_SHA256):
+         raise RuntimeError("Frozen publication inputs changed")
++    if "probe_mode" in config and checkpoint.get("probe_mode") != mode:
++        raise RuntimeError("Checkpoint probe mode mismatch")
+     return config, checkpoint
+ 
+ 
+@@ -302,7 +529,10 @@
+             != provenance["source_before"] or record(Path(config["fixture"]["path"])) != config["fixture_record"] or
+             app_sources() != checkpoint["app_sources"]):
+         raise RuntimeError("Reviewed external source, movie or App source changed")
+-    verify_swift_playback_contract(checkpoint["app_sources"])
++    if probe_mode(config) == "publication":
++        verify_swift_playback_contract(checkpoint["app_sources"])
++    else:
++        verify_swift_metadata_contract(checkpoint["app_sources"])
+     return provenance
+ 
+ 
+@@ -311,6 +541,7 @@
+     url = urlsplit(ready.get("url", ""))
+     start, deadline = ready.get("started_monotonic"), ready.get("deadline_monotonic")
+     if (ready.get("run_identity") != config["run_identity"] or type(ready.get("pid")) is not int or ready["pid"] <= 1 or
++            ready.get("probe_mode", "publication") != probe_mode(config) or
+             (pid is not None and ready["pid"] != pid) or
+             any(type(v) not in (int, float) or not math.isfinite(v) for v in (start, deadline)) or
+             deadline - start != 1200 or (launched is not None and not launched <= start <= time.monotonic()) or
+@@ -329,6 +560,7 @@
+ def main():
+     parser = argparse.ArgumentParser()
+     parser.add_argument("--revision", required=True)
++    parser.add_argument("--probe-mode", choices=PROBE_MODES, default="publication")
+     parser.add_argument("--backend-config", type=Path, required=True)
+     parser.add_argument("--backend-checkpoint-sha256", required=True)
+     parser.add_argument("--fixture-movie", type=Path, required=True)
+@@ -338,6 +570,7 @@
+     parser.add_argument("--destination-udid", required=True)
+     parser.add_argument("--derived-data", type=Path, required=True)
+     args = parser.parse_args()
++    mode, contract = args.probe_mode, probe_contract(args.probe_mode)
+     if not re.fullmatch(r"[0-9]{3}", args.revision) or not METHODS:
+         raise RuntimeError("Require fresh revision and frozen exact test declarations")
+     source_config = read_json(args.backend_config)
+@@ -366,7 +599,7 @@
+         prefix = stream.read(16)
+     if movie_record["size"] != 969998 or movie_record["sha256"] != MOVIE_SHA256 or prefix[4:12] != b"ftypqt  ":
+         raise RuntimeError("Require the unchanged S25 synthetic QuickTime fixture")
+-    expected = ["FrameRelayTests/PublicationHTTPFixtureTests/" + name for name in METHODS]
++    expected = ["FrameRelayTests/" + contract["test"]]
+     enumeration = read_json(args.enumeration)
+     plans = enumeration.get("values", [])
+     if (enumeration.get("errors") != [] or len(plans) != 1 or plans[0].get("testPlan") != "FrameRelay" or
+@@ -384,9 +617,10 @@
+     for name in FILES:
+         if name.endswith(".py"):
+             compile(ast.parse((support / name).read_bytes(), filename=name), name, "exec")
+-    preparation = ROOT / ("http-preparation-" + args.revision)
+-    snapshot = ROOT / ("http-snapshot-" + args.revision)
+-    runtime = ROOT / ("runtime-publication-" + args.revision)
++    preparation_prefix, snapshot_prefix, runtime_prefix = namespace_prefixes(mode)
++    preparation = ROOT / (preparation_prefix + args.revision)
++    snapshot = ROOT / (snapshot_prefix + args.revision)
++    runtime = ROOT / (runtime_prefix + args.revision)
+     if any(p.exists() or p.is_symlink() for p in (preparation, snapshot, runtime)):
+         raise RuntimeError("Refuse reused publication namespace")
+     preparation.mkdir(parents=True)
+@@ -402,14 +636,15 @@
+         copy(path, preparation / name)
+         observations[name] = record(preparation / name)
+     write_json(preparation / "dependency-provenance.json", provenance)
+-    config = {"action": "publication-fixture-only", "preparation": str(preparation), "snapshot": str(snapshot),
++    config = {"action": "publication-fixture-only" if mode == "publication" else "publication-metadata-only-fixture",
++        "probe_mode": mode, "probe_contract": contract, "preparation": str(preparation), "snapshot": str(snapshot),
+         "runtime": str(runtime), "run_identity": str(uuid4()), "interpreter": provenance["interpreter"]["entry"],
+         "listener_deadline_seconds": 1200, "fixture": {"path": str(movie), "byteCount": 969998,
+             "sha256": MOVIE_SHA256, "mime": "video/quicktime", "fixtureOnly": True},
+         "fixture_record": movie_record, "tests": expected,
+         "destination": "platform=iOS Simulator,id=" + args.destination_udid, "derived_data": str(args.derived_data)}
+     write_json(preparation / "config.json", config)
+-    checkpoint = {"config": record(preparation / "config.json"), "source_files": sources,
++    checkpoint = {"probe_mode": mode, "config": record(preparation / "config.json"), "source_files": sources,
+         "backend_snapshot": source_checkpoint["snapshot"], "dependency_provenance": record(preparation / "dependency-provenance.json"),
+         "app_sources": app_sources(), "observations": observations, "runtime_created": False, "executed": False}
+     write_json(preparation / "checkpoint.json", checkpoint)
+@@ -418,7 +653,8 @@
+     if tree(source_snapshot) != checkpoint["backend_snapshot"] or {n: record(support / n) for n in FILES} != sources:
+         raise RuntimeError("Source changed while preparing")
+     command = [config["interpreter"], "-I", "-B", "-S", str(preparation / "source-snapshot/run_publication_fixture.py"),
+-        "--config", str(preparation / "config.json"), "--checkpoint-sha256", record(preparation / "checkpoint.json")["sha256"]]
++        "--config", str(preparation / "config.json"), "--checkpoint-sha256", record(preparation / "checkpoint.json")["sha256"],
++        "--probe-mode", mode]
+     write_json(preparation / "commands.json", {"dry_run": command, "execute": command + ["--execute-reviewed-integration"]})
+     for root in (preparation, snapshot):
+         for path in root.rglob("*"):
+--- s27/server-isolation/publication_fixture_listener.py
++++ s28/server-isolation/publication_fixture_listener.py
+@@ -82,6 +82,7 @@
+     # Seed/import-created workers belong to this run too. A baseline taken after
+     # make_fixture would silently exempt finalize/conversion seed threads.
+     before_threads = set(threading.enumerate())
++    mode = helper.probe_mode(config)
+     from starlette.concurrency import run_in_threadpool
+     from app.repositories.frame_relay_publication import PublicationError
+ 
+@@ -89,7 +90,7 @@
+     application, service, registration, candidate_v2, metadata = make_fixture(
+         helper, config, settings, movie, registration_secret)
+     started = time.monotonic()
+-    report = {"run_identity": config["run_identity"], "pid": os.getpid(), "fixture_only": True,
++    report = {"probe_mode": mode, "run_identity": config["run_identity"], "pid": os.getpid(), "fixture_only": True,
+         "started_monotonic": started, "deadline_monotonic": started + 1200,
+         "ready": False, "signals": [], "stop_reason": None, "server_terminated": False,
+         "requests": [], "controls": [], "request_limit": 4096, "passed": False,
+@@ -181,6 +182,10 @@
+                 raise RuntimeError("Unexpected fixture scope")
+             path, method = scope.get("path", ""), scope.get("method", "")
+             if path == "/__s27_fixture__/control" and method == "POST":
++                if mode == "metadata-only":
++                    report["blocked_route_count"] = report.get("blocked_route_count", 0) + 1
++                    await fixed(send, 404, {"code": "fixture_route_not_allowed"})
++                    return
+                 await control(scope, receive, send)
+                 return
+             prefix = "/frame-relay/v1/publication/"
+@@ -189,6 +194,8 @@
+                 endpoint = "media"
+             allowed = ((method == "GET" and endpoint == "media") or (method == "POST" and endpoint in
+                 ("manifest", "distributions", "operations/lookup", "confirmations", "invalidations", "acknowledgements")))
++            if mode == "metadata-only":
++                allowed = method == "POST" and endpoint in ("invalidations", "manifest")
+             if not allowed:
+                 report["blocked_route_count"] = report.get("blocked_route_count", 0) + 1
+                 await fixed(send, 404, {"code": "fixture_route_not_allowed"})
+@@ -197,7 +204,7 @@
+                 report["request_limit_exceeded"] = True
+                 await fixed(send, 503, {"code": "fixture_request_limit"})
+                 return
+-            row = {"sequence": len(report["requests"]) + 1, "endpoint": endpoint, "phase": state["phase"],
++            row = {"sequence": len(report["requests"]) + 1, "method": method, "endpoint": endpoint, "phase": state["phase"],
+                 "started_monotonic": time.monotonic(), "status": None, "underlying_status": None,
+                 "content_type": None, "body_bytes_emitted": 0, "media_bytes_emitted": 0,
+                 "first_body_monotonic": None, "headers_sent_monotonic": None,
+@@ -291,6 +298,7 @@
+                             row["current_rendition_id"] = (response["result"]["current"] or {}).get("rendition_id")
+                         if endpoint == "invalidations":
+                             row["invalidation_count"] = len(response["result"]["invalidations"])
++                            row["next_after_is_null"] = response["result"]["next_after"] is None
+                     else:
+                         row["error_code"] = response.get("code")
+                 if lose_receipt and row["underlying_status"] == 200:
+@@ -314,11 +322,13 @@
+         environment = {"FR_S27_HTTP_FIXTURE": "1", "FR_S27_ORIGIN": origin,
+             "FR_S27_BEARER": settings.api_token, "FR_S27_REGISTRATION_SECRET": registration_secret,
+             "FR_S27_FIXTURE_SECRET": control_secret, "FR_S27_FIXTURE_JSON": fixture_json}
++        if mode == "metadata-only":
++            environment["FR_S28_METADATA_ONLY"] = "1"
+         helper.write_json(secret_path, {"run_identity": config["run_identity"], "listener_pid": os.getpid(),
+-            "url": origin, "environment": environment}, private=True)
++            "probe_mode": mode, "url": origin, "environment": environment}, private=True)
+         report["ready"] = True
+         helper.write_json(runtime / "listener-ready.json", {"pid": os.getpid(), "url": origin,
+-            "run_identity": config["run_identity"], "started_monotonic": started,
++            "probe_mode": mode, "run_identity": config["run_identity"], "started_monotonic": started,
+             "deadline_monotonic": started + 1200, "deadline_seconds": 1200})
+ 
+     def should_stop():
+@@ -358,7 +368,7 @@
+         if secret_path.exists():
+             secret_path.unlink()
+         report["secret_deleted"] = not secret_path.exists()
+-        report["wire_observation"] = helper.publication_observations(report)
++        report["wire_observation"] = helper.wire_observations(report, config)
+         report["passed"] = (all(report.get(key) is True for key in ("ready", "server_terminated", "listener_fd_closed",
+             "all_created_threads_joined", "secret_deleted")) and report.get("remaining_server_connections") == 0 and
+             report.get("remaining_server_tasks") == 0 and report["stop_reason"] == "reviewed-stop" and not report["signals"] and
+@@ -373,12 +383,16 @@
+ def main():
+     parser = argparse.ArgumentParser()
+     parser.add_argument("--config", type=Path, required=True)
++    parser.add_argument("--probe-mode", choices=("publication", "metadata-only"), default="publication")
+     args = parser.parse_args()
+     if sys.version_info[:2] != (3, 12) or sys.platform != "darwin" or not (
+             sys.flags.isolated and sys.flags.no_site and sys.dont_write_bytecode):
+         raise RuntimeError("Require reviewed macOS Python 3.12 -I -B -S")
+     helper = load_helper()
+     config, checkpoint = helper.verified_config(args.config)
++    mode = helper.probe_mode(config)
++    if args.probe_mode != mode:
++        raise RuntimeError("Listener probe mode mismatch")
+     support, preparation = Path(__file__).resolve().parent, Path(config["preparation"])
+     if support != preparation / "source-snapshot":
+         raise RuntimeError("Use frozen publication listener sources")
+@@ -408,7 +422,7 @@
+     os.chdir(runtime)
+     os.environ["PWD"] = str(runtime)
+     sys.path.extend((str(backend), provenance["site_packages_root"]))
+-    result = {"run_identity": config["run_identity"], "pid": os.getpid(), "passed": False, "fixture_only": True,
++    result = {"probe_mode": mode, "run_identity": config["run_identity"], "pid": os.getpid(), "passed": False, "fixture_only": True,
+         "initial_fds": initial_fds, "settings_environment": {
+             key: "<redacted ephemeral token>" if key == "API_TOKEN" else value for key, value in explicit.items()},
+         "home_inherited_unchanged": os.environ.get("HOME") == inherited_home}
+--- s27/server-isolation/run_publication_fixture.py
++++ s28/server-isolation/run_publication_fixture.py
+@@ -14,6 +14,7 @@
+ def main():
+     parser = argparse.ArgumentParser()
+     parser.add_argument("--config", type=Path, required=True)
++    parser.add_argument("--probe-mode", choices=("publication", "metadata-only"), default="publication")
+     parser.add_argument("--checkpoint-sha256", required=True)
+     parser.add_argument("--execute-reviewed-integration", action="store_true")
+     args = parser.parse_args()
+@@ -22,6 +23,11 @@
+     helper = importlib.util.module_from_spec(spec)
+     spec.loader.exec_module(helper)
+     config, checkpoint = helper.verified_config(args.config)
++    mode = helper.probe_mode(config)
++    contract = helper.probe_contract(mode)
++    report_field = helper.evidence_field(config)
++    if args.probe_mode != mode:
++        raise RuntimeError("Supervisor probe mode mismatch")
+     preparation = Path(config["preparation"])
+     runtime = Path(config["runtime"])
+     if (helper.record(preparation / "checkpoint.json")["sha256"] != args.checkpoint_sha256 or
+@@ -31,10 +37,10 @@
+         raise RuntimeError("Changed input or reused fixture execution")
+     helper.verify_inputs(config, checkpoint)
+     commands = {name: [config["interpreter"], "-I", "-B", "-S", str(support / filename),
+-                       "--config", str(args.config)] for name, filename in (
++                       "--config", str(args.config), "--probe-mode", mode] for name, filename in (
+                            ("listener", "publication_fixture_listener.py"), ("simulator", "run_publication_simulator_probe.py"))}
+     if not args.execute_reviewed_integration:
+-        print(json.dumps({"executed": False, "commands": commands,
++        print(json.dumps({"probe_mode": mode, "probe_contract": contract, "executed": False, "commands": commands,
+             "simulator_execute_suffix": ["--listener-pid", "<actual owned PID>", "--execute-reviewed-xcode"],
+             "fixture_only": True, "runtime": str(runtime)}, indent=2))
+         return 0
+@@ -44,7 +50,7 @@
+     environment["PATH"] = "/usr/bin:/bin"
+     logs, children = {}, {}
+     started, received_signal = time.monotonic(), None
+-    outcome = {"run_identity": config["run_identity"], "parent_pid": os.getpid(), "children": {},
++    outcome = {"probe_mode": mode, "run_identity": config["run_identity"], "parent_pid": os.getpid(), "children": {},
+         "signals_sent": [], "passed": False, "secret_environment_read": False, "fixture_only": True}
+     def interrupted(signum, _frame):
+         nonlocal received_signal
+@@ -166,7 +172,7 @@
+             "xcode_exit_code": wrapper_summary.get("xcode_exit_code"),
+             "test_verification": wrapper_summary.get("test_verification"),
+             "build_diagnostics": wrapper_summary.get("build_diagnostics"),
+-            "playback_evidence": wrapper_summary.get("playback_evidence"),
++            report_field: wrapper_summary.get(report_field),
+             "observed_test_failures": wrapper_summary.get("observed_test_failures"),
+             "observed_build_failure": wrapper_summary.get("observed_build_failure"),
+             "metadata_collection": wrapper_summary.get("metadata_collection"),
+@@ -178,25 +184,25 @@
+             runner = documents["result.json"]
+             listener_result = documents["listener-results.json"]
+             wrapper_result = documents["wrapper-result.json"]
+-            observation = helper.publication_observations(listener_result)
++            observation = helper.wire_observations(listener_result, config)
+             if observation != listener_result.get("wire_observation"):
+                 raise RuntimeError("Publication wire observations changed")
+             # Read the raw SDK documents and exact exported attachment again in
+             # this parent. Listener/wrapper booleans are not playback evidence.
+-            playback = helper.playback_evidence(runtime, config, documents["test-summary.json"],
++            playback = helper.probe_evidence(runtime, config, documents["test-summary.json"],
+                 documents["test-tests.json"], listener_result["fixture"])
+-            if (wrapper_result.get("playback_evidence") != playback or wrapper_result.get("test_verification") !=
++            if (wrapper_result.get(report_field) != playback or wrapper_result.get("test_verification") !=
+                     {**playback["test_verification"], "evaluation": "completed"}):
+                 raise RuntimeError("Wrapper playback evidence differs from raw parent evaluation")
+-            manifest = helper.PLAYBACK_ATTACHMENTS + "/manifest.json"
++            manifest = contract["attachment_directory"] + "/manifest.json"
+             outcome["result_hashes"][manifest] = helper.record(runtime / manifest)
+             outcome["artifact_status"][manifest] = {"available": True}
+-            attachment = helper.PLAYBACK_ATTACHMENTS + "/" + playback["attachment_file"]
++            attachment = contract["attachment_directory"] + "/" + playback["attachment_file"]
+             outcome["result_hashes"][attachment] = helper.record(runtime / attachment)
+             outcome["artifact_status"][attachment] = {"available": True}
+-            outcome["playback_evidence"] = playback
+-            observation["avplayer_progress_before_full_download"] = playback["passed"]
+-            if set(observation) != set(helper.REQUIRED_OBSERVATIONS):
++            outcome[report_field] = playback
++            observation["avplayer_progress_before_full_download" if mode == "publication" else "coordinator_metadata_commit_reopen"] = playback["passed"]
++            if set(observation) != set(contract["required_observations"]):
+                 raise RuntimeError("Incomplete required publication observations")
+             outcome["http_observation"] = observation
+             owner = runner["owner_close_before_guard_finish"]
+@@ -211,6 +217,7 @@
+                 all(item["available"] for item in outcome["artifact_status"].values()) and
+                 all(value["exit_code"] == 0 for value in exits.values()) and
+                 runner.get("passed") is True and listener_result.get("passed") is True and wrapper_result.get("passed") is True and
++                all(value.get("probe_mode", "publication") == mode for value in (runner, listener_result, wrapper_result)) and
+                 owner_observation["passed"] is True and runner["guard"]["sqlite_connections_alive_before_explicit_close"] == 0 and
+                 runner.get("remaining_created_threads_before_guard_finish") == [] and
+                 post_rescue_fds["passed"] is True and runner["guard"]["sqlite_connections_alive_after_explicit_close"] == 0 and
+--- s27/server-isolation/run_publication_simulator_probe.py
++++ s28/server-isolation/run_publication_simulator_probe.py
+@@ -27,6 +27,7 @@
+ def collect_metadata(helper, runtime, bundle, environment, config, credentials, fixture):
+     """Collect each document after actual Xcode exit, including failed/interrupted runs."""
+     clean_environment = {k: v for k, v in environment.items() if not k.startswith("TEST_RUNNER_")}
++    contract = helper.probe_contract(helper.probe_mode(config))
+     documents, collection = {}, {}
+ 
+     def retain_stderr(observation, raw):
+@@ -79,7 +80,7 @@
+     verification = {"passed": False, "evaluation": "metadata_unavailable"}
+     if "summary" in documents and "tests" in documents:
+         try:
+-            verification = {**helper.evaluate_publication_tests(documents["summary"], documents["tests"], config), "evaluation": "completed"}
++            verification = {**helper.evaluate_probe_tests(documents["summary"], documents["tests"], config), "evaluation": "completed"}
+         except Exception as error:
+             verification = {"passed": False, "evaluation": "failed", "failure_type": type(error).__name__}
+     build = documents.get("build")
+@@ -87,17 +88,17 @@
+     if build is not None:
+         diagnostics.update({key: build.get(key) for key in ("status", "errorCount", "warningCount", "analyzerWarningCount")})
+     progress = {"passed": False, "evaluation": "SDK_attachment_unavailable"}
+-    attachment_collection = {"attempted": False, "collected": False, "directory": helper.PLAYBACK_ATTACHMENTS,
+-        "test_identifier": helper.PLAYBACK_TEST, "credential_environment_passed": False}
++    attachment_collection = {"attempted": False, "collected": False, "directory": contract["attachment_directory"],
++        "test_identifier": contract["test"], "credential_environment_passed": False}
+     collection["attachments"] = attachment_collection
+     try:
+         if not bundle.exists():
+             raise RuntimeError("Missing result bundle for SDK progress attachment")
+-        directory = runtime / helper.PLAYBACK_ATTACHMENTS
++        directory = runtime / contract["attachment_directory"]
+         directory.mkdir(mode=0o700)
+         attachment_collection["attempted"] = True
+         exported = subprocess.run(["/usr/bin/xcrun", "xcresulttool", "export", "attachments", "--path", str(bundle),
+-            "--test-id", helper.PLAYBACK_TEST, "--output-path", str(directory)], env=clean_environment,
++            "--test-id", contract["test"], "--output-path", str(directory)], env=clean_environment,
+             stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+             timeout=helper.METADATA_TIMEOUT_SECONDS, check=False)
+         attachment_collection["tool_exit_code"] = exported.returncode
+@@ -114,7 +115,7 @@
+             raw = path.read_bytes()
+             if redact(raw, credentials) != raw:
+                 raise RuntimeError("Disposable credential unexpectedly reflected in private SDK attachment")
+-        progress = helper.playback_evidence(runtime, config, documents.get("summary", {}),
++        progress = helper.probe_evidence(runtime, config, documents.get("summary", {}),
+             documents.get("tests", {}), fixture)
+         attachment_collection["collected"] = True
+     except subprocess.TimeoutExpired as error:
+@@ -127,18 +128,22 @@
+         "build_diagnostics": diagnostics,
+         "observed_test_failures": summary.get("failedTests"),
+         "observed_build_failure": None if build is None else build.get("status") != "succeeded" or build.get("errorCount") != 0,
+-        "playback_evidence": progress,
++        helper.evidence_field(config): progress,
+         "metadata_extraction_failed": any(not item["collected"] for item in collection.values())}
+ 
+ 
+ def main():
+     parser = argparse.ArgumentParser()
+     parser.add_argument("--config", type=Path, required=True)
++    parser.add_argument("--probe-mode", choices=("publication", "metadata-only"), default="publication")
+     parser.add_argument("--listener-pid", type=int)
+     parser.add_argument("--execute-reviewed-xcode", action="store_true")
+     args = parser.parse_args()
+     helper = helper_module()
+     config, checkpoint = helper.verified_config(args.config)
++    mode, contract = helper.probe_mode(config), helper.probe_contract(helper.probe_mode(config))
++    if args.probe_mode != mode:
++        raise RuntimeError("Simulator wrapper probe mode mismatch")
+     runtime = Path(config["runtime"])
+     bundle = runtime / "publication-fixture.xcresult"
+     command = ["/usr/bin/xcodebuild", "-project", str(helper.PROJECT / "FrameRelay.xcodeproj"),
+@@ -156,7 +161,7 @@
+     environment["PATH"] = "/usr/bin:/bin"
+     credentials, process, output, bound_pid, fixture = (), None, b"", None, None
+     started = time.monotonic()
+-    outcome = {"run_identity": config["run_identity"], "pid": os.getpid(), "passed": False,
++    outcome = {"probe_mode": mode, "run_identity": config["run_identity"], "pid": os.getpid(), "passed": False,
+         "command": command, "credentials_in_argv": False, "signals_sent": [], "test_verification": {"passed": False},
+         "metadata_collection": {}, "metadata_extraction_failed": None,
+         "limitation": "Xcode internal artifacts can retain disposable environment; listener exit revokes its only bearer"}
+@@ -192,8 +197,10 @@
+         values = secret["environment"]
+         fixture = json.loads(values["FR_S27_FIXTURE_JSON"])
+         if (secret.get("run_identity") != config["run_identity"] or secret.get("listener_pid") != bound_pid or
+-                secret.get("url") != ready["url"] or set(values) != set(helper.KEYS) or
++                secret.get("probe_mode", "publication") != mode or
++                secret.get("url") != ready["url"] or set(values) != set(contract["environment_keys"]) or
+                 values["FR_S27_HTTP_FIXTURE"] != "1" or values["FR_S27_ORIGIN"] != ready["url"] or
++                (mode == "metadata-only" and values.get("FR_S28_METADATA_ONLY") != "1") or
+                 len(values["FR_S27_FIXTURE_JSON"].encode()) > 16384 or fixture.get("fixture_only") is not True or
+                 fixture.get("run_identity") != config["run_identity"] or
+                 fixture.get("wire_sha256") != helper.WIRE_SHA256 or fixture.get("media_type") != "video/quicktime" or
+@@ -247,7 +254,7 @@
+             if outcome.get("xcode_actual_exit_observed") is True else None)
+         outcome["passed"] = (outcome.get("xcode_actual_exit_observed") is True and outcome.get("xcode_exit_code") == 0 and
+             outcome["test_verification"]["passed"] and outcome["app_sources_unchanged"] and
+-            outcome.get("playback_evidence", {}).get("passed") is True and
++            outcome.get(helper.evidence_field(config), {}).get("passed") is True and
+             outcome["metadata_extraction_failed"] is False and outcome.get("observed_build_failure") is False and
+             not outcome["signals_sent"] and not any(key.endswith("failure_type") for key in outcome) and not outcome.get("timed_out"))
+         helper.write_json(runtime / "wrapper-result.json", outcome, private=True)

@@ -44,7 +44,7 @@ nonisolated struct RegistrationTestKeychain {
     }
 }
 
-actor RegistrationTestRemote: RegistrationRemotePort {
+actor RegistrationTestRemote {
     var receipt: RegistrationServerReceipt?
     var hideNextReply = false
     var lookupResult: BackendOutcome<RegistrationServerReceipt>?
@@ -82,6 +82,7 @@ actor RegistrationTestRemote: RegistrationRemotePort {
         return .succeeded(received)
     }
 }
+extension RegistrationTestRemote: RegistrationRemotePort {}
 
 nonisolated func registrationIsCommitted(_ state: RegistrationState) -> Bool {
     if case .registered(_, let value) = state { return value.isCommitted }

@@ -1,0 +1,878 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination "platform=iOS Simulator,id=DB985305-B55C-4694-8307-77E3BFD2E11D" -derivedDataPath /private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData -resultBundlePath /private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/final-ui-regression-24/result.xcresult -disableAutomaticPackageResolution -parallel-testing-enabled NO -collect-test-diagnostics never "-only-testing:FrameRelayUITests/LibraryFlowTests/testListDetailSelectionHistoryAndRetainedStateAfterRelaunch" "-only-testing:FrameRelayUITests/LibraryFlowTests/testOriginalPlaybackProgressStopBackgroundAndRestart" "-only-testing:FrameRelayUITests/ProductCaptureFlowTests" "-only-testing:FrameRelayUITests/PhotoPermissionsFlowTests" test
+
+2026-10-23 22:18:13.868 xcodebuild[7178:58053786] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+Writing result bundle at path:
+	/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/final-ui-regression-24/result.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (3 targets)
+    Target 'FrameRelayUITests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelayTests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelay' in project 'FrameRelay' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: 7471b0963c5c934489c854de0c5d7989
+Build description path: /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/XCBuildData/7471b0963c5c934489c854de0c5d7989.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/oyabu/dev/rep/FrameRelay/FrameRelay.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist -producttype com.apple.product-type.application -genpkginfo /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/assetcatalog_generated_info.plist -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/ProductTypeInfoPlistAdditions.plist -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/FrameRelayUITests --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/SDKExplicitPrecompiledModules
+
+2026-10-23 22:18:15.834739+0900 FrameRelayUITests-Runner[7194:58054085] [Default] Running tests...
+objc[7194]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.NUrxb4/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1076dc398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.NUrxb4/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x107d44310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-23 22:18:19.171.
+Test Suite 'FrameRelayUITests.xctest' started at 2026-10-23 22:18:19.171.
+Test Suite 'LibraryFlowTests' started at 2026-10-23 22:18:19.171.
+Test Case '-[FrameRelayUITests.LibraryFlowTests testListDetailSelectionHistoryAndRetainedStateAfterRelaunch]' started.
+    t =     0.00s Start Test at 2026-10-23 22:18:19.172
+    t =     0.13s Set Up
+    t =     0.13s Open com.oyabu.FrameRelay
+    t =     0.14s     Launch com.oyabu.FrameRelay
+2026-10-23 22:18:19.513 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-23 22:18:19.513 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.76s         Setting up automation session
+    t =     3.29s         Wait for com.oyabu.FrameRelay to idle
+    t =     5.34s Waiting 10.0s for "library.refresh" Button to exist
+    t =     6.38s     Checking `Expect predicate `existsNoRetry == 1` for object "library.refresh" Button`
+    t =     6.38s         Checking existence of `"library.refresh" Button`
+    t =     7.61s Find the "library.refresh" Button
+    t =     7.67s Checking existence of `"library.loadFailure" Any`
+    t =     7.74s Checking existence of `"library.item.s16v2-cleanup" Any`
+    t =     7.77s Find the "library.item.s16v2-cleanup" Any
+    t =     7.85s Find the "library.item.s16v2-cleanup" Button
+    t =     7.89s Added attachment named 'library-item-target-s16v2-cleanup'
+    t =     7.89s Checking existence of `"library.item.s16v2-cleanup" Any`
+    t =     7.93s Find the "library.refresh" Button
+    t =     7.95s Checking existence of `"library.loadFailure" Any`
+    t =     8.02s Find the "library.scope" Any
+    t =     8.06s Find the Target Application 'com.oyabu.FrameRelay'
+    t =     8.16s Added attachment named 'operation-library-ready'
+    t =     8.16s Requesting snapshot of accessibility hierarchy for app with pid 7215
+    t =     8.27s Requesting snapshot of accessibility hierarchy for app with pid 7215
+    t =     8.31s Added attachment named 'operation-library-ready-tree'
+    t =     8.32s Checking existence of `Alert (First Match)`
+    t =     8.35s Checking existence of `"library.item.s16v2-original" Any`
+    t =     8.38s Find the "library.item.s16v2-original" Any
+    t =     8.43s Find the "library.item.s16v2-original" Button
+    t =     8.46s Added attachment named 'library-item-target-s16v2-original'
+    t =     8.46s Find the "library.item.s16v2-original" Any
+    t =     8.50s Checking existence of `"library.select.s16v2-original" Any`
+    t =     8.53s Find the "library.select.s16v2-original" Any
+    t =     8.62s Checking existence of `Switch (First Match)`
+    t =     8.67s Find the Switch (First Match)
+    t =     8.71s Tap "0" Switch
+    t =     8.71s     Wait for com.oyabu.FrameRelay to idle
+    t =     8.71s     Find the "0" Switch
+    t =     8.75s     Check for interrupting elements affecting "0" Switch
+    t =     8.81s     Synthesize event
+    t =     9.24s     Wait for com.oyabu.FrameRelay to idle
+    t =    11.58s Checking existence of `"library.select.s16v2-original" Any`
+    t =    11.63s Checking existence of `Switch (First Match)`
+    t =    11.68s Find the "library.select.s16v2-original" Any
+    t =    11.72s Find the Switch (First Match)
+    t =    11.77s Find the "library.select.s16v2-original" Switch
+    t =    11.81s Find the "1" Switch
+    t =    11.85s Added attachment named 'library-selection-live-s16v2-original'
+    t =    11.85s Find the Switch (First Match)
+    t =    11.88s Checking existence of `"library.select.s16v2-unfinished" Any`
+    t =    11.92s Find the "library.select.s16v2-unfinished" Any
+    t =    11.96s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    11.96s     Wait for com.oyabu.FrameRelay to idle
+    t =    11.97s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    11.99s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    12.02s     Synthesize event
+    t =    12.44s     Wait for com.oyabu.FrameRelay to idle
+    t =    14.20s Checking existence of `"library.select.s16v2-unfinished" Switch`
+    t =    14.26s Find the "library.select.s16v2-unfinished" Switch
+    t =    14.31s Checking existence of `Switch (First Match)`
+    t =    14.35s Find the Switch (First Match)
+    t =    14.40s Tap "0" Switch
+    t =    14.40s     Wait for com.oyabu.FrameRelay to idle
+    t =    14.40s     Find the "0" Switch
+    t =    14.44s     Check for interrupting elements affecting "0" Switch
+    t =    14.48s     Synthesize event
+    t =    14.77s     Wait for com.oyabu.FrameRelay to idle
+    t =    17.10s Checking existence of `"library.select.s16v2-unfinished" Any`
+    t =    17.16s Checking existence of `Switch (First Match)`
+    t =    17.21s Find the "library.select.s16v2-unfinished" Any
+    t =    17.25s Find the Switch (First Match)
+    t =    17.30s Find the "library.select.s16v2-unfinished" Switch
+    t =    17.34s Find the "1" Switch
+    t =    17.39s Added attachment named 'library-selection-live-s16v2-unfinished'
+    t =    17.39s Find the Switch (First Match)
+    t =    17.43s Checking existence of `"選択した2本の操作" StaticText`
+    t =    17.46s Find the "選択した2本の操作" StaticText
+    t =    17.50s Checking existence of `"選択した2本の操作" StaticText`
+    t =    17.53s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.63s Added attachment named 'operation-library-two-selected'
+    t =    17.63s Requesting snapshot of accessibility hierarchy for app with pid 7215
+    t =    17.72s Requesting snapshot of accessibility hierarchy for app with pid 7215
+    t =    17.76s Added attachment named 'operation-library-two-selected-tree'
+    t =    17.76s Checking existence of `"library.action.transfer" Button`
+    t =    17.79s Find the "library.action.transfer" Button
+    t =    17.83s Find the "library.action.transfer" Button
+    t =    17.85s Checking existence of `"library.reason.transfer" Any`
+    t =    17.89s Find the "library.reason.transfer" Any
+    t =    17.94s Find the "library.reason.transfer" StaticText
+    t =    18.05s Checking existence of `"library.action.saveToPhotos" Button`
+    t =    18.11s Find the "library.action.saveToPhotos" Button
+    t =    18.21s Find the "library.action.saveToPhotos" Button
+    t =    18.26s Checking existence of `"library.reason.saveToPhotos" Any`
+    t =    18.35s Find the "library.reason.saveToPhotos" Any
+    t =    18.42s Find the "library.reason.saveToPhotos" StaticText
+    t =    18.46s Checking existence of `"library.action.cleanup" Button`
+    t =    18.48s Find the "library.action.cleanup" Button
+    t =    18.52s Find the "library.action.cleanup" Button
+    t =    18.55s Checking existence of `"library.reason.cleanup" Any`
+    t =    18.59s Find the "library.reason.cleanup" Any
+    t =    18.64s Find the "library.reason.cleanup" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:31: error: -[FrameRelayUITests.LibraryFlowTests testListDetailSelectionHistoryAndRetainedStateAfterRelaunch] : XCTAssertTrue failed
+    t =    18.74s Tear Down
+    t =    18.74s     Waiting 2.0s for "originalPlayback.close" Button to exist
+    t =    19.75s         Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.close" Button`
+    t =    19.75s             Checking existence of `"originalPlayback.close" Button`
+    t =    19.80s             Capturing element debug description
+    t =    20.75s         Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.close" Button`
+    t =    20.75s             Checking existence of `"originalPlayback.close" Button`
+    t =    20.80s             Capturing element debug description
+    t =    20.80s         Checking existence of `"originalPlayback.close" Button`
+    t =    20.84s     Collecting debug information to assist test failure triage
+    t =    20.84s         Requesting snapshot of accessibility hierarchy for app with pid 7215
+Test Case '-[FrameRelayUITests.LibraryFlowTests testListDetailSelectionHistoryAndRetainedStateAfterRelaunch]' failed (21.127 seconds).
+Test Case '-[FrameRelayUITests.LibraryFlowTests testOriginalPlaybackProgressStopBackgroundAndRestart]' started.
+    t =     0.00s Start Test at 2026-10-23 22:18:40.300
+    t =     0.02s Set Up
+    t =     0.02s Open com.oyabu.FrameRelay
+    t =     0.02s     Launch com.oyabu.FrameRelay
+    t =     0.02s         Terminate com.oyabu.FrameRelay:7215
+2026-10-23 22:18:41.383 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-23 22:18:41.385 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.29s         Setting up automation session
+    t =     3.81s         Wait for com.oyabu.FrameRelay to idle
+    t =     5.63s Waiting 10.0s for "library.refresh" Button to exist
+    t =     6.67s     Checking `Expect predicate `existsNoRetry == 1` for object "library.refresh" Button`
+    t =     6.67s         Checking existence of `"library.refresh" Button`
+    t =     7.86s Find the "library.refresh" Button
+    t =     7.92s Checking existence of `"library.loadFailure" Any`
+    t =     7.99s Checking existence of `"library.item.s16v2-cleanup" Any`
+    t =     8.03s Find the "library.item.s16v2-cleanup" Any
+    t =     8.09s Find the "library.item.s16v2-cleanup" Button
+    t =     8.13s Added attachment named 'library-item-target-s16v2-cleanup'
+    t =     8.13s Checking existence of `"library.item.s16v2-cleanup" Any`
+    t =     8.16s Find the "library.refresh" Button
+    t =     8.19s Checking existence of `"library.loadFailure" Any`
+    t =     8.25s Find the "library.scope" Any
+    t =     8.29s Checking existence of `"library.item.s16v2-original" Any`
+    t =     8.32s Find the "library.item.s16v2-original" Any
+    t =     8.37s Find the "library.item.s16v2-original" Button
+    t =     8.40s Added attachment named 'library-item-target-s16v2-original'
+    t =     8.40s Tap "library.item.s16v2-original" Button
+    t =     8.40s     Wait for com.oyabu.FrameRelay to idle
+    t =     8.40s     Find the "library.item.s16v2-original" Button
+    t =     8.44s     Check for interrupting elements affecting "library.item.s16v2-original" Button
+    t =     8.47s     Synthesize event
+    t =     8.77s     Wait for com.oyabu.FrameRelay to idle
+    t =     9.24s Waiting 5.0s for "library.detailIdentity" Any to exist
+    t =    10.27s     Checking `Expect predicate `existsNoRetry == 1` for object "library.detailIdentity" Any`
+    t =    10.28s         Checking existence of `"library.detailIdentity" Any`
+    t =    10.30s Find the "library.detailIdentity" Any
+    t =    10.32s Checking existence of `"library.action.playOriginal" Button`
+    t =    10.33s Find the "library.action.playOriginal" Button
+    t =    10.36s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    10.36s     Wait for com.oyabu.FrameRelay to idle
+    t =    10.36s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    10.37s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    10.39s     Synthesize event
+    t =    10.81s     Wait for com.oyabu.FrameRelay to idle
+    t =    12.92s Checking existence of `"library.action.playOriginal" Button`
+    t =    12.95s Find the "library.action.playOriginal" Button
+    t =    12.98s Find the "library.action.playOriginal" Button
+    t =    13.00s Added attachment named 'playback-timing-play-tap-begin'
+    t =    13.00s Tap "library.action.playOriginal" Button
+    t =    13.00s     Wait for com.oyabu.FrameRelay to idle
+    t =    13.00s     Find the "library.action.playOriginal" Button
+    t =    13.02s     Check for interrupting elements affecting "library.action.playOriginal" Button
+    t =    13.04s     Synthesize event
+    t =    13.33s     Wait for com.oyabu.FrameRelay to idle
+    t =    13.41s Added attachment named 'playback-timing-play-tap-returned'
+    t =    13.41s Added attachment named 'playback-timing-progress-wait-begin'
+    t =    13.41s Waiting 10.0s for "originalPlayback.elapsed" Any to exist
+    t =    14.45s     Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.elapsed" Any`
+    t =    14.45s         Checking existence of `"originalPlayback.elapsed" Any`
+    t =    15.61s Find the "originalPlayback.elapsed" Any
+    t =    15.71s Added attachment named 'playback-timing-progress-wait-ended-1'
+    t =    15.71s Checking existence of `"originalPlayback.player" Any`
+    t =    15.78s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    15.88s Added attachment named 'operation-original-playback-progress'
+    t =    15.88s Requesting snapshot of accessibility hierarchy for app with pid 7302
+    t =    16.02s Requesting snapshot of accessibility hierarchy for app with pid 7302
+    t =    16.06s Added attachment named 'operation-original-playback-progress-tree'
+    t =    17.09s Find the "originalPlayback.elapsed" Any
+    t =    17.20s Checking existence of `"originalPlayback.stop" Button`
+    t =    17.23s Find the "originalPlayback.stop" Button
+    t =    17.26s Find the "originalPlayback.stop" Button
+    t =    17.29s Find the "originalPlayback.stop" Button
+    t =    17.32s Find the "originalPlayback.elapsed" StaticText
+    t =    18.10s Find the "originalPlayback.elapsed" Any
+    t =    18.50s Checking existence of `"originalPlayback.stop" Button`
+    t =    18.55s Find the "originalPlayback.stop" Button
+    t =    18.59s Find the "originalPlayback.stop" Button
+    t =    18.63s Find the "originalPlayback.stop" Button
+    t =    18.65s Find the "originalPlayback.elapsed" StaticText
+    t =    19.16s Find the "originalPlayback.elapsed" Any
+    t =    19.27s Checking existence of `"originalPlayback.stop" Button`
+    t =    19.30s Find the "originalPlayback.stop" Button
+    t =    19.33s Find the "originalPlayback.stop" Button
+    t =    19.36s Find the "originalPlayback.stop" Button
+    t =    19.39s Find the "originalPlayback.elapsed" StaticText
+    t =    20.11s Find the "originalPlayback.elapsed" Any
+    t =    20.21s Checking existence of `"originalPlayback.stop" Button`
+    t =    20.24s Find the "originalPlayback.stop" Button
+    t =    20.27s Find the "originalPlayback.stop" Button
+    t =    20.30s Find the "originalPlayback.stop" Button
+    t =    20.33s Find the "originalPlayback.elapsed" StaticText
+    t =    21.12s Find the "originalPlayback.elapsed" Any
+    t =    21.23s Checking existence of `"originalPlayback.stop" Button`
+    t =    21.26s Find the "originalPlayback.stop" Button
+    t =    21.30s Find the "originalPlayback.stop" Button
+    t =    21.34s Find the "originalPlayback.stop" Button
+    t =    21.37s Find the "originalPlayback.elapsed" StaticText
+    t =    22.07s Find the "originalPlayback.elapsed" Any
+    t =    22.18s Checking existence of `"originalPlayback.stop" Button`
+    t =    22.20s Find the "originalPlayback.stop" Button
+    t =    22.23s Find the "originalPlayback.stop" Button
+    t =    22.27s Find the "originalPlayback.stop" Button
+    t =    22.29s Find the "originalPlayback.elapsed" StaticText
+    t =    23.10s Find the "originalPlayback.elapsed" Any
+    t =    23.21s Checking existence of `"originalPlayback.stop" Button`
+    t =    23.23s Find the "originalPlayback.stop" Button
+    t =    23.26s Find the "originalPlayback.stop" Button
+    t =    23.29s Find the "originalPlayback.stop" Button
+    t =    23.32s Find the "originalPlayback.elapsed" StaticText
+    t =    24.11s Find the "originalPlayback.elapsed" Any
+    t =    24.22s Checking existence of `"originalPlayback.stop" Button`
+    t =    24.25s Find the "originalPlayback.stop" Button
+    t =    24.28s Find the "originalPlayback.stop" Button
+    t =    24.31s Find the "originalPlayback.stop" Button
+    t =    24.33s Find the "originalPlayback.elapsed" StaticText
+    t =    25.14s Find the "originalPlayback.elapsed" Any
+    t =    25.24s Checking existence of `"originalPlayback.stop" Button`
+    t =    25.27s Find the "originalPlayback.stop" Button
+    t =    25.30s Find the "originalPlayback.stop" Button
+    t =    25.35s Find the "originalPlayback.stop" Button
+    t =    25.38s Find the "originalPlayback.elapsed" StaticText
+    t =    25.48s Added attachment named 'playback-stop-position-during-elapsed-updates'
+    t =    25.48s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    25.58s Added attachment named 'operation-original-stop-stable-and-reached'
+    t =    25.58s Requesting snapshot of accessibility hierarchy for app with pid 7302
+    t =    25.71s Requesting snapshot of accessibility hierarchy for app with pid 7302
+    t =    25.74s Added attachment named 'operation-original-stop-stable-and-reached-tree'
+    t =    25.74s Waiting 5.0s for "originalPlayback.content" ScrollView to exist
+    t =    26.76s     Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.content" ScrollView`
+    t =    26.76s         Checking existence of `"originalPlayback.content" ScrollView`
+    t =    26.80s Waiting 5.0s for "originalPlayback.explanation" StaticText to exist
+    t =    27.80s     Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.explanation" StaticText`
+    t =    27.80s         Checking existence of `"originalPlayback.explanation" StaticText`
+    t =    27.84s Find the Window (First Match)
+    t =    27.85s Find the "originalPlayback.content" ScrollView
+    t =    27.88s Checking existence of `"原本の再生" NavigationBar`
+    t =    27.89s Find the "原本の再生" NavigationBar
+    t =    27.91s Find the "originalPlayback.explanation" StaticText
+    t =    27.94s Find the "originalPlayback.explanation" StaticText
+    t =    27.96s Find the "originalPlayback.explanation" StaticText
+    t =    28.00s Checking existence of `"originalPlayback.stop" Button`
+    t =    28.03s Find the "originalPlayback.stop" Button
+    t =    28.06s Find the "originalPlayback.stop" Button
+    t =    28.09s Added attachment named 'playback-explanation-playing-viewport-and-stop-frames'
+    t =    28.09s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    28.19s Added attachment named 'playback-explanation-playing-reached'
+    t =    28.19s Requesting snapshot of accessibility hierarchy for app with pid 7302
+    t =    28.34s Requesting snapshot of accessibility hierarchy for app with pid 7302
+    t =    28.37s Added attachment named 'playback-explanation-playing-reached-tree'
+    t =    28.38s Checking existence of `"原本の再生" NavigationBar`
+    t =    28.39s Checking existence of `"originalPlayback.status" Any`
+    t =    28.47s Find the "originalPlayback.status" Any
+    t =    28.56s Checking existence of `"originalPlayback.stop" Button`
+    t =    28.59s Find the "originalPlayback.stop" Button
+    t =    28.61s Find the "originalPlayback.stop" Button
+    t =    28.64s Checking existence of `"originalPlayback.player" Any`
+    t =    28.72s Find the "originalPlayback.stop" Button
+    t =    28.75s Added attachment named 'playback-stop-transition-before-single-tap'
+    t =    28.75s Tap "originalPlayback.stop" Button
+    t =    28.75s     Wait for com.oyabu.FrameRelay to idle
+    t =    28.75s     Find the "originalPlayback.stop" Button
+    t =    28.78s     Check for interrupting elements affecting "originalPlayback.stop" Button
+    t =    28.80s     Synthesize event
+    t =    29.10s     Wait for com.oyabu.FrameRelay to idle
+    t =    30.13s Checking existence of `"originalPlayback.status" Any`
+    t =    30.24s Find the "originalPlayback.status" Any
+    t =    30.32s Checking existence of `"originalPlayback.stop" Button`
+    t =    30.35s Checking existence of `"originalPlayback.player" Any`
+    t =    30.44s Added attachment named 'playback-stop-transition-accepted'
+    t =    31.47s Checking existence of `"originalPlayback.status" Any`
+    t =    31.57s Find the "originalPlayback.status" Any
+    t =    31.68s Checking existence of `"originalPlayback.stop" Button`
+    t =    31.73s Checking existence of `"originalPlayback.player" Any`
+    t =    31.85s Added attachment named 'playback-stop-transition-completed'
+    t =    31.85s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    31.97s Added attachment named 'operation-original-stopped-after-single-tap'
+    t =    31.97s Requesting snapshot of accessibility hierarchy for app with pid 7302
+    t =    32.12s Requesting snapshot of accessibility hierarchy for app with pid 7302
+    t =    32.15s Added attachment named 'operation-original-stopped-after-single-tap-tree'
+    t =    32.15s Tap "originalPlayback.close" Button
+    t =    32.15s     Wait for com.oyabu.FrameRelay to idle
+    t =    32.16s     Find the "originalPlayback.close" Button
+    t =    32.18s     Check for interrupting elements affecting "originalPlayback.close" Button
+    t =    32.21s     Synthesize event
+    t =    32.50s     Wait for com.oyabu.FrameRelay to idle
+    t =    32.88s Checking existence of `"library.action.playOriginal" Button`
+    t =    32.91s Find the "library.action.playOriginal" Button
+    t =    32.96s Waiting 5.0s for "library.action.playOriginal" Button to exist
+    t =    34.00s     Checking `Expect predicate `existsNoRetry == 1` for object "library.action.playOriginal" Button`
+    t =    34.00s         Checking existence of `"library.action.playOriginal" Button`
+    t =    34.04s Find the "library.action.playOriginal" Button
+    t =    34.06s Added attachment named 'playback-timing-play-tap-begin'
+    t =    34.06s Tap "library.action.playOriginal" Button
+    t =    34.06s     Wait for com.oyabu.FrameRelay to idle
+    t =    34.07s     Find the "library.action.playOriginal" Button
+    t =    34.09s     Check for interrupting elements affecting "library.action.playOriginal" Button
+    t =    34.11s     Synthesize event
+    t =    34.41s     Wait for com.oyabu.FrameRelay to idle
+    t =    34.79s Added attachment named 'playback-timing-play-tap-returned'
+    t =    34.79s Added attachment named 'playback-timing-progress-wait-begin'
+    t =    34.80s Waiting 10.0s for "originalPlayback.elapsed" Any to exist
+    t =    35.84s     Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.elapsed" Any`
+    t =    35.84s         Checking existence of `"originalPlayback.elapsed" Any`
+    t =    36.99s Find the "originalPlayback.elapsed" Any
+    t =    37.09s Added attachment named 'playback-timing-progress-wait-ended-1'
+    t =    37.09s Checking existence of `"originalPlayback.player" Any`
+    t =    37.18s Pressing Home button
+    t =    37.65s Wait for com.oyabu.FrameRelay to become Running Background
+    t =    38.21s Open com.oyabu.FrameRelay
+    t =    38.21s     Activate com.oyabu.FrameRelay
+    t =    38.23s         Wait for com.oyabu.FrameRelay to idle
+    t =    39.43s Checking `Expect predicate `label == "再生を停止しました"` for object "originalPlayback.status" Any`
+    t =    39.43s     Find the "originalPlayback.status" Any
+    t =    39.54s Find the "originalPlayback.elapsed" Any
+    t =    40.66s Find the "originalPlayback.status" Any
+    t =    40.76s Find the "originalPlayback.elapsed" Any
+    t =    41.67s Find the "originalPlayback.status" Any
+    t =    41.78s Find the "originalPlayback.elapsed" Any
+    t =    42.64s Find the "originalPlayback.status" Any
+    t =    42.75s Find the "originalPlayback.elapsed" Any
+    t =    42.84s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    42.93s Added attachment named 'playback-stopped-after-background'
+    t =    42.93s Requesting snapshot of accessibility hierarchy for app with pid 7302
+    t =    43.04s Requesting snapshot of accessibility hierarchy for app with pid 7302
+    t =    43.08s Added attachment named 'playback-stopped-after-background-tree'
+    t =    43.08s Tap "originalPlayback.close" Button
+    t =    43.08s     Wait for com.oyabu.FrameRelay to idle
+    t =    43.08s     Find the "originalPlayback.close" Button
+    t =    43.10s     Check for interrupting elements affecting "originalPlayback.close" Button
+    t =    43.13s     Synthesize event
+    t =    43.42s     Wait for com.oyabu.FrameRelay to idle
+    t =    43.80s Terminate com.oyabu.FrameRelay:7302
+    t =    44.87s Open com.oyabu.FrameRelay
+    t =    44.87s     Launch com.oyabu.FrameRelay
+2026-10-23 22:19:25.170 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-23 22:19:25.170 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    45.08s         Setting up automation session
+    t =    47.61s         Wait for com.oyabu.FrameRelay to idle
+    t =    49.35s Waiting 10.0s for "library.refresh" Button to exist
+    t =    50.37s     Checking `Expect predicate `existsNoRetry == 1` for object "library.refresh" Button`
+    t =    50.38s         Checking existence of `"library.refresh" Button`
+    t =    51.57s Find the "library.refresh" Button
+    t =    51.62s Checking existence of `"library.loadFailure" Any`
+    t =    51.69s Checking existence of `"library.item.s16v2-cleanup" Any`
+    t =    51.73s Find the "library.item.s16v2-cleanup" Any
+    t =    51.80s Find the "library.item.s16v2-cleanup" Button
+    t =    51.83s Added attachment named 'library-item-target-s16v2-cleanup'
+    t =    51.83s Checking existence of `"library.item.s16v2-cleanup" Any`
+    t =    51.87s Find the "library.refresh" Button
+    t =    51.90s Checking existence of `"library.loadFailure" Any`
+    t =    51.97s Find the "library.scope" Any
+    t =    52.01s Checking existence of `"library.item.s16v2-original" Any`
+    t =    52.04s Find the "library.item.s16v2-original" Any
+    t =    52.11s Find the "library.item.s16v2-original" Button
+    t =    52.16s Added attachment named 'library-item-target-s16v2-original'
+    t =    52.16s Tap "library.item.s16v2-original" Button
+    t =    52.16s     Wait for com.oyabu.FrameRelay to idle
+    t =    52.17s     Find the "library.item.s16v2-original" Button
+    t =    52.22s     Check for interrupting elements affecting "library.item.s16v2-original" Button
+    t =    52.28s     Synthesize event
+    t =    52.58s     Wait for com.oyabu.FrameRelay to idle
+    t =    52.97s Waiting 5.0s for "library.detailIdentity" Any to exist
+    t =    53.99s     Checking `Expect predicate `existsNoRetry == 1` for object "library.detailIdentity" Any`
+    t =    53.99s         Checking existence of `"library.detailIdentity" Any`
+    t =    54.03s Find the "library.detailIdentity" Any
+    t =    54.06s Checking existence of `"library.action.playOriginal" Button`
+    t =    54.08s Find the "library.action.playOriginal" Button
+    t =    54.10s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    54.10s     Wait for com.oyabu.FrameRelay to idle
+    t =    54.10s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    54.12s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    54.14s     Synthesize event
+    t =    54.56s     Wait for com.oyabu.FrameRelay to idle
+    t =    56.68s Checking existence of `"library.action.playOriginal" Button`
+    t =    56.71s Find the "library.action.playOriginal" Button
+    t =    56.74s Find the "library.action.playOriginal" Button
+    t =    56.76s Added attachment named 'playback-timing-play-tap-begin'
+    t =    56.76s Tap "library.action.playOriginal" Button
+    t =    56.76s     Wait for com.oyabu.FrameRelay to idle
+    t =    56.76s     Find the "library.action.playOriginal" Button
+    t =    56.78s     Check for interrupting elements affecting "library.action.playOriginal" Button
+    t =    56.80s     Synthesize event
+    t =    57.09s     Wait for com.oyabu.FrameRelay to idle
+    t =    57.11s Added attachment named 'playback-timing-play-tap-returned'
+    t =    57.11s Added attachment named 'playback-timing-progress-wait-begin'
+    t =    57.11s Waiting 10.0s for "originalPlayback.elapsed" Any to exist
+    t =    58.15s     Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.elapsed" Any`
+    t =    58.15s         Checking existence of `"originalPlayback.elapsed" Any`
+    t =    59.29s Find the "originalPlayback.elapsed" Any
+    t =    59.40s Added attachment named 'playback-timing-progress-wait-ended-1'
+    t =    59.40s Checking existence of `"originalPlayback.player" Any`
+    t =    59.48s Tap "originalPlayback.close" Button
+    t =    59.48s     Wait for com.oyabu.FrameRelay to idle
+    t =    59.49s     Find the "originalPlayback.close" Button
+    t =    59.52s     Check for interrupting elements affecting "originalPlayback.close" Button
+    t =    59.55s     Synthesize event
+    t =    59.84s     Wait for com.oyabu.FrameRelay to idle
+    t =    60.27s Checking existence of `"originalPlayback.status" Any`
+    t =    60.36s Tear Down
+    t =    60.36s     Waiting 2.0s for "originalPlayback.close" Button to exist
+    t =    61.38s         Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.close" Button`
+    t =    61.39s             Checking existence of `"originalPlayback.close" Button`
+    t =    61.41s             Capturing element debug description
+    t =    62.38s         Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.close" Button`
+    t =    62.38s             Checking existence of `"originalPlayback.close" Button`
+    t =    62.41s             Capturing element debug description
+    t =    62.41s         Checking existence of `"originalPlayback.close" Button`
+    t =    62.44s     Collecting debug information to assist test failure triage
+    t =    62.44s         Requesting snapshot of accessibility hierarchy for app with pid 7479
+Test Case '-[FrameRelayUITests.LibraryFlowTests testOriginalPlaybackProgressStopBackgroundAndRestart]' passed (62.781 seconds).
+Test Suite 'LibraryFlowTests' failed at 2026-10-23 22:19:43.081.
+	 Executed 2 tests, with 1 failure (0 unexpected) in 83.908 (83.910) seconds
+Test Suite 'PhotoPermissionsFlowTests' started at 2026-10-23 22:19:43.082.
+Test Case '-[FrameRelayUITests.PhotoPermissionsFlowTests testOrdinaryLibraryRefreshAndCaptureDoNotRequestPhotosPermission]' started.
+    t =     0.00s Start Test at 2026-10-23 22:19:43.083
+    t =     0.02s Set Up
+    t =     0.03s Open com.oyabu.FrameRelay
+    t =     0.03s     Launch com.oyabu.FrameRelay
+    t =     0.03s         Terminate com.oyabu.FrameRelay:7479
+2026-10-23 22:19:44.166 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-23 22:19:44.166 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.29s         Setting up automation session
+    t =     3.80s         Wait for com.oyabu.FrameRelay to idle
+    t =     5.55s Waiting 10.0s for "product.capture" Button to exist
+    t =     6.58s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =     6.58s         Checking existence of `"product.capture" Button`
+    t =     6.75s Checking existence of `Alert (First Match)`
+    t =     6.79s Checking existence of `Alert (First Match)`
+    t =     6.87s Checking existence of `"library.refresh" Button`
+    t =     6.90s Tap "library.refresh" Button
+    t =     6.90s     Wait for com.oyabu.FrameRelay to idle
+    t =     6.90s     Find the "library.refresh" Button
+    t =     6.93s     Check for interrupting elements affecting "library.refresh" Button
+    t =     6.96s     Synthesize event
+    t =     7.29s     Wait for com.oyabu.FrameRelay to idle
+    t =     8.00s Waiting 5.0s for "product.capture" Button to exist
+    t =     9.03s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =     9.03s         Checking existence of `"product.capture" Button`
+    t =     9.06s Checking existence of `Alert (First Match)`
+    t =     9.08s Tap "product.capture" Button
+    t =     9.08s     Wait for com.oyabu.FrameRelay to idle
+    t =     9.08s     Find the "product.capture" Button
+    t =     9.11s     Check for interrupting elements affecting "product.capture" Button
+    t =     9.14s     Synthesize event
+    t =     9.43s     Wait for com.oyabu.FrameRelay to idle
+    t =     9.57s Waiting 10.0s for "capture.closeToolbar" Button to exist
+    t =    10.60s     Checking `Expect predicate `existsNoRetry == 1` for object "capture.closeToolbar" Button`
+    t =    10.60s         Checking existence of `"capture.closeToolbar" Button`
+    t =    10.68s Checking existence of `"capture.rec" Button`
+    t =    10.73s Checking existence of `Alert (First Match)`
+    t =    10.75s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    10.86s Added attachment named 'Ordinary capture without a Photos request'
+    t =    10.86s Tap "capture.closeToolbar" Button
+    t =    10.86s     Wait for com.oyabu.FrameRelay to idle
+    t =    10.86s     Find the "capture.closeToolbar" Button
+    t =    10.91s     Check for interrupting elements affecting "capture.closeToolbar" Button
+    t =    10.95s     Synthesize event
+    t =    11.24s     Wait for com.oyabu.FrameRelay to idle
+    t =    11.65s Waiting 5.0s for "product.capture" Button to exist
+    t =    12.69s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =    12.69s         Checking existence of `"product.capture" Button`
+    t =    12.75s Checking existence of `"library.refresh" Button`
+    t =    12.78s Checking existence of `Alert (First Match)`
+    t =    12.81s Checking existence of `Alert (First Match)`
+    t =    12.83s Tear Down
+Test Case '-[FrameRelayUITests.PhotoPermissionsFlowTests testOrdinaryLibraryRefreshAndCaptureDoNotRequestPhotosPermission]' passed (13.045 seconds).
+Test Suite 'PhotoPermissionsFlowTests' passed at 2026-10-23 22:19:56.128.
+	 Executed 1 test, with 0 failures (0 unexpected) in 13.045 (13.046) seconds
+Test Suite 'ProductCaptureFlowTests' started at 2026-10-23 22:19:56.129.
+Test Case '-[FrameRelayUITests.ProductCaptureFlowTests testOrdinaryCaptureWithoutTicketShowsSimulatorLimitationAndReturnsToLibrary]' started.
+    t =     0.00s Start Test at 2026-10-23 22:19:56.130
+    t =     0.03s Set Up
+    t =     0.03s Open com.oyabu.FrameRelay
+    t =     0.03s     Launch com.oyabu.FrameRelay
+    t =     0.03s         Terminate com.oyabu.FrameRelay:7553
+2026-10-23 22:19:57.231 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-23 22:19:57.232 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.31s         Setting up automation session
+    t =     3.86s         Wait for com.oyabu.FrameRelay to idle
+    t =     5.72s Waiting 10.0s for "product.capture" Button to exist
+    t =     6.73s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =     6.73s         Checking existence of `"product.capture" Button`
+    t =     6.91s Tap "product.capture" Button
+    t =     6.91s     Wait for com.oyabu.FrameRelay to idle
+    t =     6.92s     Find the "product.capture" Button
+    t =     6.95s     Check for interrupting elements affecting "product.capture" Button
+    t =     6.98s     Synthesize event
+    t =     7.31s     Wait for com.oyabu.FrameRelay to idle
+    t =     7.36s Waiting 10.0s for "capture.issue" StaticText to exist
+    t =     8.40s     Checking `Expect predicate `existsNoRetry == 1` for object "capture.issue" StaticText`
+    t =     8.40s         Checking existence of `"capture.issue" StaticText`
+    t =     8.53s Find the "capture.issue" StaticText
+    t =     8.58s Find the "capture.rec" Button
+    t =     8.63s Find the "capture.stabilization" StaticText
+    t =     8.69s Checking existence of `"capture.stabilization" StaticText`
+    t =     8.73s Find the "capture.stabilization" StaticText
+    t =     8.78s Find the "capture.framing" StaticText
+    t =     8.83s Find the "capture.whiteBalance" StaticText
+    t =     8.88s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =     8.88s     Wait for com.oyabu.FrameRelay to idle
+    t =     8.89s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =     8.92s     Check for interrupting elements affecting "FrameRelay" Application
+    t =     8.97s     Synthesize event
+    t =     9.39s     Wait for com.oyabu.FrameRelay to idle
+    t =    11.55s Checking existence of `"capture.whiteBalance" StaticText`
+    t =    11.61s Find the "capture.whiteBalance" StaticText
+    t =    11.66s Find the "capture.refreshWhiteBalance" Button
+    t =    11.70s Find the "capture.subject.state" StaticText
+    t =    11.76s Find the "capture.subject.state" StaticText
+    t =    11.81s Find the "capture.subject.state" StaticText
+    t =    11.87s Find the "capture.subject.state" StaticText
+    t =    11.93s Checking existence of `"capture.subject.state" StaticText`
+    t =    11.97s Find the "capture.subject.state" StaticText
+    t =    12.02s Find the "capture.subject.state" StaticText
+    t =    12.07s Find the "capture.zoom.unavailable" StaticText
+    t =    12.13s Find the "capture.zoom.unavailable" StaticText
+    t =    12.18s Find the "capture.zoom.unavailable" StaticText
+    t =    12.24s Checking existence of `"capture.zoom.unavailable" StaticText`
+    t =    12.29s Find the "capture.zoom.unavailable" StaticText
+    t =    12.34s Find the "capture.zoom.start" Button
+    t =    12.39s Find the "capture.zoom.stop" Button
+    t =    12.43s Find the "capture.zoom.stop" Button
+    t =    12.48s Find the "capture.stop" Button
+    t =    12.53s Find the "capture.ndAdvice" StaticText
+    t =    12.59s Find the "capture.ndAdvice" StaticText
+    t =    12.65s Find the "capture.ndAdvice" StaticText
+    t =    12.70s Checking existence of `"capture.ndAdvice" StaticText`
+    t =    12.75s Find the "capture.ndAdvice" StaticText
+    t =    12.80s Find the "capture.ndReason" StaticText
+    t =    12.84s Find the "capture.ndReason" StaticText
+    t =    12.89s Find the "capture.audio.input" StaticText
+    t =    12.95s Checking existence of `"capture.audio.input" StaticText`
+    t =    13.00s Find the "capture.audio.retry" Button
+    t =    13.04s Checking existence of `"capture.audio.failure" StaticText`
+    t =    13.09s Checking existence of `"exploration.import" Button`
+    t =    13.14s Tap "capture.closeToolbar" Button
+    t =    13.14s     Wait for com.oyabu.FrameRelay to idle
+    t =    13.14s     Find the "capture.closeToolbar" Button
+    t =    13.19s     Check for interrupting elements affecting "capture.closeToolbar" Button
+    t =    13.23s     Synthesize event
+    t =    13.52s     Wait for com.oyabu.FrameRelay to idle
+    t =    13.96s Waiting 5.0s for "product.capture" Button to exist
+    t =    14.99s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =    14.99s         Checking existence of `"product.capture" Button`
+    t =    15.03s Checking existence of `"library.refresh" Button`
+    t =    15.07s Tear Down
+Test Case '-[FrameRelayUITests.ProductCaptureFlowTests testOrdinaryCaptureWithoutTicketShowsSimulatorLimitationAndReturnsToLibrary]' passed (15.322 seconds).
+Test Case '-[FrameRelayUITests.ProductCaptureFlowTests testShootingIntentCanBeChosenWithoutCameraAndRestoresAfterRelaunch]' started.
+    t =     0.00s Start Test at 2026-10-23 22:20:11.452
+    t =     0.02s Set Up
+    t =     0.02s Open com.oyabu.FrameRelay
+    t =     0.03s     Launch com.oyabu.FrameRelay
+    t =     0.03s         Terminate com.oyabu.FrameRelay:7604
+2026-10-23 22:20:12.531 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-23 22:20:12.531 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.28s         Setting up automation session
+    t =     3.71s         Wait for com.oyabu.FrameRelay to idle
+    t =     5.58s Waiting 10.0s for "product.capture" Button to exist
+    t =     6.60s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =     6.60s         Checking existence of `"product.capture" Button`
+    t =     6.78s Tap "product.capture" Button
+    t =     6.78s     Wait for com.oyabu.FrameRelay to idle
+    t =     6.78s     Find the "product.capture" Button
+    t =     6.81s     Check for interrupting elements affecting "product.capture" Button
+    t =     6.84s     Synthesize event
+    t =     7.16s     Wait for com.oyabu.FrameRelay to idle
+    t =     7.20s Waiting 10.0s for "capture.issue" StaticText to exist
+    t =     8.24s     Checking `Expect predicate `existsNoRetry == 1` for object "capture.issue" StaticText`
+    t =     8.24s         Checking existence of `"capture.issue" StaticText`
+    t =     8.33s Find the "capture.issue" StaticText
+    t =     8.38s Find the "capture.subject.intent" Button
+    t =     8.43s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =     8.43s     Wait for com.oyabu.FrameRelay to idle
+    t =     8.44s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =     8.47s     Check for interrupting elements affecting "FrameRelay" Application
+    t =     8.52s     Synthesize event
+    t =     8.96s     Wait for com.oyabu.FrameRelay to idle
+    t =    11.10s Find the "capture.subject.intent" Button
+    t =    11.17s Find the "capture.subject.intent" Button
+    t =    11.22s Find the "capture.subject.intent" Button
+    t =    11.28s Find the "capture.subject.intent" Button
+    t =    11.33s Find the "capture.subject.intent" Button
+    t =    11.38s Find the "capture.subject.intent" Button
+    t =    11.44s Find the "capture.subject.intent" Button
+    t =    11.49s Find the "capture.subject.intent" Button
+    t =    11.54s Get all elements bound by index for: Descendants matching type StaticText
+    t =    11.59s Find the StaticText (Element at index 0)
+    t =    11.63s Find the "capture.subject.intent" Button
+    t =    11.68s Requesting snapshot of accessibility hierarchy for app with pid 7657
+    t =    11.75s Find: Descendants matching type Button
+    t =    11.75s Find: Elements matching predicate '"capture.subject.intent" IN identifiers'
+    t =    11.79s Requesting snapshot of accessibility hierarchy for app with pid 7657
+    t =    11.85s Find: Descendants matching type Button
+    t =    11.85s Find: Elements matching predicate '"capture.subject.intent" IN identifiers'
+    t =    11.85s Requesting snapshot of accessibility hierarchy for app with pid 7657
+    t =    11.92s Find: Descendants matching type Button
+    t =    11.92s Requesting snapshot of accessibility hierarchy for app with pid 7657
+    t =    12.05s Added attachment named 'Original shooting intent'
+    t =    12.05s Tap "capture.subject.intent" Button
+    t =    12.05s     Wait for com.oyabu.FrameRelay to idle
+    t =    12.05s     Find the "capture.subject.intent" Button
+    t =    12.10s     Check for interrupting elements affecting "capture.subject.intent" Button
+    t =    12.14s     Synthesize event
+    t =    12.44s     Wait for com.oyabu.FrameRelay to idle
+    t =    13.72s Waiting 5.0s for "人物＋背景" Button to exist
+    t =    14.75s     Checking `Expect predicate `existsNoRetry == 1` for object "人物＋背景" Button`
+    t =    14.75s         Checking existence of `"人物＋背景" Button`
+    t =    14.81s Tap "人物＋背景" Button
+    t =    14.81s     Wait for com.oyabu.FrameRelay to idle
+    t =    14.81s     Find the "人物＋背景" Button
+    t =    14.85s     Check for interrupting elements affecting "人物＋背景" Button
+    t =    14.90s     Synthesize event
+    t =    15.19s     Wait for com.oyabu.FrameRelay to idle
+    t =    17.62s Find the "capture.subject.intent" Button
+    t =    17.69s Get all elements bound by index for: Descendants matching type StaticText
+    t =    17.74s Find the StaticText (Element at index 0)
+    t =    17.79s Find the "capture.subject.intent" Button
+    t =    17.84s Find the "capture.rec" Button
+    t =    17.89s Find the "capture.subject.state" StaticText
+    t =    17.94s Terminate com.oyabu.FrameRelay:7657
+    t =    18.99s Open com.oyabu.FrameRelay
+    t =    19.00s     Launch com.oyabu.FrameRelay
+2026-10-23 22:20:30.450 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-23 22:20:30.450 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    19.21s         Setting up automation session
+    t =    21.71s         Wait for com.oyabu.FrameRelay to idle
+    t =    23.51s Waiting 10.0s for "product.capture" Button to exist
+    t =    24.53s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =    24.53s         Checking existence of `"product.capture" Button`
+    t =    24.69s Tap "product.capture" Button
+    t =    24.69s     Wait for com.oyabu.FrameRelay to idle
+    t =    24.70s     Find the "product.capture" Button
+    t =    24.73s     Check for interrupting elements affecting "product.capture" Button
+    t =    24.76s     Synthesize event
+    t =    25.08s     Wait for com.oyabu.FrameRelay to idle
+    t =    25.10s Waiting 10.0s for "capture.issue" StaticText to exist
+    t =    26.14s     Checking `Expect predicate `existsNoRetry == 1` for object "capture.issue" StaticText`
+    t =    26.14s         Checking existence of `"capture.issue" StaticText`
+    t =    26.22s Find the "capture.issue" StaticText
+    t =    26.27s Find the "capture.subject.intent" Button
+    t =    26.33s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    26.33s     Wait for com.oyabu.FrameRelay to idle
+    t =    26.34s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    26.37s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    26.42s     Synthesize event
+    t =    26.84s     Wait for com.oyabu.FrameRelay to idle
+    t =    28.98s Find the "capture.subject.intent" Button
+    t =    29.04s Find the "capture.subject.intent" Button
+    t =    29.10s Find the "capture.subject.intent" Button
+    t =    29.16s Find the "capture.subject.intent" Button
+    t =    29.22s Find the "capture.subject.intent" Button
+    t =    29.27s Find the "capture.subject.intent" Button
+    t =    29.33s Find the "capture.subject.intent" Button
+    t =    29.38s Get all elements bound by index for: Descendants matching type StaticText
+    t =    29.43s Find the StaticText (Element at index 0)
+    t =    29.48s Find the "capture.subject.intent" Button
+    t =    29.53s Requesting snapshot of accessibility hierarchy for app with pid 7729
+    t =    29.60s Find: Descendants matching type Button
+    t =    29.60s Find: Elements matching predicate '"capture.subject.intent" IN identifiers'
+    t =    29.64s Requesting snapshot of accessibility hierarchy for app with pid 7729
+    t =    29.71s Find: Descendants matching type Button
+    t =    29.71s Find: Elements matching predicate '"capture.subject.intent" IN identifiers'
+    t =    29.72s Requesting snapshot of accessibility hierarchy for app with pid 7729
+    t =    29.79s Find: Descendants matching type Button
+    t =    29.79s Requesting snapshot of accessibility hierarchy for app with pid 7729
+    t =    29.93s Added attachment named 'Restored shooting intent'
+    t =    29.93s Find the "capture.rec" Button
+    t =    29.97s Find the "capture.subject.state" StaticText
+    t =    30.02s Tap "capture.closeToolbar" Button
+    t =    30.02s     Wait for com.oyabu.FrameRelay to idle
+    t =    30.22s     Find the "capture.closeToolbar" Button
+    t =    30.28s     Check for interrupting elements affecting "capture.closeToolbar" Button
+    t =    30.33s     Synthesize event
+    t =    30.62s     Wait for com.oyabu.FrameRelay to idle
+    t =    31.06s Waiting 5.0s for "product.capture" Button to exist
+    t =    32.10s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =    32.10s         Checking existence of `"product.capture" Button`
+    t =    32.15s Tear Down
+Test Case '-[FrameRelayUITests.ProductCaptureFlowTests testShootingIntentCanBeChosenWithoutCameraAndRestoresAfterRelaunch]' passed (32.438 seconds).
+Test Case '-[FrameRelayUITests.ProductCaptureFlowTests testStabilizationSettingsKeepCandidateUnconfirmedWithoutCameraAndDoNotInventFPS]' started.
+    t =     0.00s Start Test at 2026-10-23 22:20:43.890
+    t =     0.02s Set Up
+    t =     0.02s Open com.oyabu.FrameRelay
+    t =     0.03s     Launch com.oyabu.FrameRelay
+    t =     0.03s         Terminate com.oyabu.FrameRelay:7729
+2026-10-23 22:20:44.967 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-23 22:20:44.967 xcodebuild[7178:58053786] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.29s         Setting up automation session
+    t =     3.80s         Wait for com.oyabu.FrameRelay to idle
+    t =     5.61s Waiting 10.0s for "product.capture" Button to exist
+    t =     6.64s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =     6.64s         Checking existence of `"product.capture" Button`
+    t =     6.82s Tap "product.capture" Button
+    t =     6.82s     Wait for com.oyabu.FrameRelay to idle
+    t =     6.82s     Find the "product.capture" Button
+    t =     6.86s     Check for interrupting elements affecting "product.capture" Button
+    t =     6.90s     Synthesize event
+    t =     7.21s     Wait for com.oyabu.FrameRelay to idle
+    t =     7.24s Waiting 10.0s for "capture.settings" Button to exist
+    t =     8.28s     Checking `Expect predicate `existsNoRetry == 1` for object "capture.settings" Button`
+    t =     8.28s         Checking existence of `"capture.settings" Button`
+    t =     8.36s Find the "capture.desired" StaticText
+    t =     8.40s Tap "capture.settings" Button
+    t =     8.40s     Wait for com.oyabu.FrameRelay to idle
+    t =     8.41s     Find the "capture.settings" Button
+    t =     8.46s     Check for interrupting elements affecting "capture.settings" Button
+    t =     8.50s     Synthesize event
+    t =     8.79s     Wait for com.oyabu.FrameRelay to idle
+    t =     8.93s Waiting 5.0s for "capture.settings.fps" Button to exist
+    t =     9.93s     Checking `Expect predicate `existsNoRetry == 1` for object "capture.settings.fps" Button`
+    t =     9.93s         Checking existence of `"capture.settings.fps" Button`
+    t =    10.05s Find the "capture.settings.fps" Button
+    t =    10.12s Get all elements bound by index for: Descendants matching type StaticText
+    t =    10.19s Find the StaticText (Element at index 0)
+    t =    10.26s Find the "capture.settings.fps" Button
+    t =    10.33s Requesting snapshot of accessibility hierarchy for app with pid 7784
+    t =    10.44s Find: Descendants matching type Button
+    t =    10.44s Find: Elements matching predicate '"capture.settings.fps" IN identifiers'
+    t =    10.49s Requesting snapshot of accessibility hierarchy for app with pid 7784
+    t =    10.60s Find: Descendants matching type Button
+    t =    10.60s Find: Elements matching predicate '"capture.settings.fps" IN identifiers'
+    t =    10.61s Requesting snapshot of accessibility hierarchy for app with pid 7784
+    t =    10.71s Find: Descendants matching type Button
+    t =    10.72s Requesting snapshot of accessibility hierarchy for app with pid 7784
+    t =    10.89s Added attachment named 'Initial frame-rate picker'
+    t =    10.90s Find the "capture.settings.stabilization" Button
+    t =    10.97s Find the "capture.settings.stabilization" Button
+    t =    11.05s Find the "capture.settings.stabilization" Button
+    t =    11.13s Find the "capture.settings.stabilization" Button
+    t =    11.20s Find the "capture.settings.stabilization" Button
+    t =    11.28s Checking existence of `"capture.settings.stabilization" Button`
+    t =    11.35s Checking existence of `"capture.settings.stabilizationStatus" StaticText`
+    t =    11.41s Find the "capture.settings.stabilizationStatus" StaticText
+    t =    11.48s Find the "capture.settings.stabilization" Button
+    t =    11.55s Get all elements bound by index for: Descendants matching type StaticText
+    t =    11.61s Find the StaticText (Element at index 0)
+    t =    11.68s Find the "capture.settings.stabilization" Button
+    t =    11.76s Requesting snapshot of accessibility hierarchy for app with pid 7784
+    t =    11.86s Find: Descendants matching type Button
+    t =    11.86s Find: Elements matching predicate '"capture.settings.stabilization" IN identifiers'
+    t =    11.90s Requesting snapshot of accessibility hierarchy for app with pid 7784
+    t =    12.00s Find: Descendants matching type Button
+    t =    12.01s Find: Elements matching predicate '"capture.settings.stabilization" IN identifiers'
+    t =    12.01s Requesting snapshot of accessibility hierarchy for app with pid 7784
+    t =    12.11s Find: Descendants matching type Button
+    t =    12.11s Requesting snapshot of accessibility hierarchy for app with pid 7784
+    t =    12.28s Added attachment named 'Initial stabilization picker'
+    t =    12.28s Tap "capture.settings.close" Button
+    t =    12.28s     Wait for com.oyabu.FrameRelay to idle
+    t =    12.29s     Find the "capture.settings.close" Button
+    t =    12.36s     Check for interrupting elements affecting "capture.settings.close" Button
+    t =    12.42s     Synthesize event
+    t =    12.71s     Wait for com.oyabu.FrameRelay to idle
+    t =    13.42s Tap "capture.closeToolbar" Button
+    t =    13.42s     Wait for com.oyabu.FrameRelay to idle
+    t =    13.43s     Find the "capture.closeToolbar" Button
+    t =    13.49s     Check for interrupting elements affecting "capture.closeToolbar" Button
+    t =    13.54s     Synthesize event
+    t =    13.82s     Wait for com.oyabu.FrameRelay to idle
+    t =    14.27s Waiting 5.0s for "product.capture" Button to exist
+    t =    15.31s     Checking `Expect predicate `existsNoRetry == 1` for object "product.capture" Button`
+    t =    15.31s         Checking existence of `"product.capture" Button`
+    t =    15.37s Tear Down
+Test Case '-[FrameRelayUITests.ProductCaptureFlowTests testStabilizationSettingsKeepCandidateUnconfirmedWithoutCameraAndDoNotInventFPS]' passed (15.624 seconds).
+Test Suite 'ProductCaptureFlowTests' passed at 2026-10-23 22:20:59.514.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 63.383 (63.386) seconds
+Test Suite 'FrameRelayUITests.xctest' failed at 2026-10-23 22:20:59.515.
+	 Executed 6 tests, with 1 failure (0 unexpected) in 160.337 (160.344) seconds
+Test Suite 'Selected tests' failed at 2026-10-23 22:20:59.515.
+	 Executed 6 tests, with 1 failure (0 unexpected) in 160.337 (160.345) seconds
+2026-10-23 22:20:59.850 xcodebuild[7178:58053786] [MT] IDETestOperationsObserverDebug: 165.275 elapsed -- Testing started completed.
+2026-10-23 22:20:59.850 xcodebuild[7178:58053786] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-23 22:20:59.850 xcodebuild[7178:58053786] [MT] IDETestOperationsObserverDebug: 165.275 sec, +165.275 sec -- end
+
+Test session results, code coverage, and logs:
+	/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/final-ui-regression-24/result.xcresult
+
+Failing tests:
+	LibraryFlowTests.testListDetailSelectionHistoryAndRetainedStateAfterRelaunch()
+
+** TEST FAILED **
+
+Testing started

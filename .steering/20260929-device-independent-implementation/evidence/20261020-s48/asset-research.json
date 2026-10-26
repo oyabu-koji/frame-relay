@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-20",
+  "scope": "Read-only official-source investigation; no asset acquisition, login, license acceptance or quality adoption.",
+  "sources": [
+    {
+      "url": "https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog",
+      "finding": "Apple Log uses BT.2020 primaries and Apple Log transfer; standard LUT bytes/version/terms/numeric domain not obtained."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog2",
+      "finding": "Apple Log 2 uses Apple Gamut primaries; a BT.2020 YCbCr matrix alone does not establish BT.2020 gamut."
+    },
+    {
+      "url": "https://support.apple.com/ja-jp/guide/final-cut-pro/ver24f966423/mac",
+      "finding": "Separate Apple 3D LUTs for Log 1 and Log 2 to Rec.709 are described; external LUT artifact/version/terms/domain not obtained."
+    },
+    {
+      "url": "https://developer.apple.com/download/all/?q=Apple%20log%20profile",
+      "finding": "The unauthenticated curl path redirected to https://idmsa.apple.com/IDMSWebAuth/signin.html with HTTP 200 and title Sign In - Apple. Authenticated catalog not viewed; this does not establish that every acquisition path requires login."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/videotoolbox/kvtcompressionpropertykey_logtransferfunction",
+      "finding": "Specifying input Log transfer function is not evidence of an Apple-standard Log-to-Rec.709 display transform."
+    },
+    {
+      "url": "https://github.com/aces-aswf/aces-core/blob/528c78fe2c0f4e7eb322581e98aba05de79466cb/transforms/ctl/idt/vendorSupplied/apple/IDT.Apple.AppleLog_BT2020.ctl",
+      "finding": "Log1-to-ACES input transform is not a Rec.709 output transform, Log2 transform, or proof of Apple display LUT equivalence; not adopted."
+    }
+  ],
+  "missing": [
+    "standard artifact bytes per Log encoding",
+    "source/version/hash",
+    "usage terms",
+    "RGB/YCbCr and full/video range/LUT DOMAIN mapping",
+    "permitted known Log input and expected output"
+  ],
+  "qualityComparisonNotAgreed": true,
+  "productionStandardTransformsAvailable": false
+}

@@ -1,0 +1,562 @@
+{
+  "created_utc": "2026-10-22T13:18:24.581914+00:00",
+  "workflow": "validate-implementation (read-only)",
+  "steering": ".steering/20260929-device-independent-implementation/",
+  "verdict": "要修正",
+  "independent_reviewer": "implementation_validator /root/validate_device_independent",
+  "findings": [
+    {
+      "id": "P2-PLAYBACK-AX5-LAYOUT",
+      "priority": "P2",
+      "title": "最大文字サイズで再生秒数の折返しに伴い停止ボタン位置が不安定になる",
+      "file": "FrameRelay/Features/Playback/OriginalPlaybackView.swift",
+      "lines": [
+        21,
+        24,
+        28,
+        31
+      ],
+      "trigger": "iPhone 18 Pro / iOS27 Simulator / accessibility-extra-extra-extra-largeで原本再生中",
+      "evidence": "連続AX記録で5.7/7.7/9.7秒はelapsed高さ63.3pt・stop y643.3、6.8/8.8秒はelapsed高さ125.3pt・stop y705.3。elapsed上端y339.3は固定。最大UI初回は停止タップ後10秒待機失敗、表示は再生中のまま。",
+      "impact": "再生秒数の文字幅で停止操作位置が約62pt上下し、停止操作のUI検証が不安定。",
+      "uncertainty": "初回tap不受理の正確な因果は未確定。停止処理内部/reader解放不具合とは断定しない。",
+      "retry": "同じソース・同じAX5の当該1件限定再試験は成功。初回失敗は未解消として保持。",
+      "suggested_action": "最大文字でも秒数更新で操作位置が動かない表示へ調整し、停止tap到達と停止結果を検証する。",
+      "artifacts": [
+        "failure-elapsed-layout-sequence.json",
+        "failure-stop-observations.json",
+        "max-failure-attachments/manifest.json",
+        "ui-max-verified.xcresult",
+        "ui-max-stop-retry.xcresult"
+      ]
+    }
+  ],
+  "confirmed_scope": [
+    "前回P2のfresh fixture作成不整合の解消",
+    "前回P2のstrict AX4件を含む監査6件成功",
+    "通常UI18固有case成功",
+    "全Unitの有意味914展開ケース成功",
+    "postUI原本identity/digest一致・全reader解放"
+  ],
+  "configuration": {
+    "project": "FrameRelay.xcodeproj",
+    "scheme": "FrameRelay",
+    "test_plan": "FrameRelay (automatic)",
+    "configuration": "Debug",
+    "xcode": "27.0 (27A266a)",
+    "swift_compiler": "6.4",
+    "swift_language": "5.0",
+    "minimum_ios": "27.0",
+    "destination": "platform=iOS Simulator,id=4C0F4AD5-2229-4C42-9A18-31972512ABE1",
+    "test_targets": [
+      "FrameRelayTests",
+      "FrameRelayUITests"
+    ],
+    "enumeration": "enumeration-summary.json"
+  },
+  "ios_build": {
+    "actionTitle": "Build \"FrameRelay\"",
+    "analyzerWarningCount": 0,
+    "analyzerWarnings": [],
+    "destination": {
+      "architecture": "undefined_arch",
+      "deviceId": "dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder",
+      "deviceName": "Any iOS Device",
+      "modelName": "GenericiOS",
+      "osVersion": "",
+      "platform": "iOS"
+    },
+    "endTime": 1792672088.392,
+    "errorCount": 0,
+    "errors": [],
+    "startTime": 1792672064.115,
+    "status": "succeeded",
+    "warningCount": 0,
+    "warnings": []
+  },
+  "runs": [
+    {
+      "name": "ui-initial-connection",
+      "command": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-initial-connection-command.json",
+      "exit": {
+        "exit_code": 0,
+        "finished_at": "2026-10-22T12:29:58.855632+00:00",
+        "log": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-initial-connection.log"
+      },
+      "result": {
+        "result": "Passed",
+        "totalTestCount": 1,
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0,
+        "testFailures": [],
+        "runtimeWarnings": []
+      },
+      "build": {
+        "status": "succeeded",
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "xcresult": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-initial-connection.xcresult"
+    },
+    {
+      "name": "fresh-seed",
+      "command": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/fresh-seed-command.json",
+      "exit": {
+        "exit_code": 0,
+        "finished_at": "2026-10-22T12:31:09.993477+00:00",
+        "log": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/fresh-seed.log"
+      },
+      "result": {
+        "result": "Passed",
+        "totalTestCount": 3,
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 1,
+        "testFailures": [],
+        "runtimeWarnings": []
+      },
+      "build": {
+        "status": "succeeded",
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "xcresult": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/fresh-seed.xcresult"
+    },
+    {
+      "name": "unit",
+      "command": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/unit-command.json",
+      "exit": {
+        "exit_code": 0,
+        "finished_at": "2026-10-22T12:35:00.518098+00:00",
+        "log": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/unit.log"
+      },
+      "result": {
+        "result": "Passed",
+        "totalTestCount": 590,
+        "passedTests": 562,
+        "failedTests": 0,
+        "skippedTests": 28,
+        "testFailures": [],
+        "runtimeWarnings": []
+      },
+      "build": {
+        "status": "succeeded",
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "xcresult": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/unit.xcresult"
+    },
+    {
+      "name": "ui-normal",
+      "command": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-normal-command.json",
+      "exit": {
+        "exit_code": 0,
+        "finished_at": "2026-10-22T12:44:52.663188+00:00",
+        "log": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-normal.log"
+      },
+      "result": {
+        "result": "Passed",
+        "totalTestCount": 17,
+        "passedTests": 17,
+        "failedTests": 0,
+        "skippedTests": 0,
+        "testFailures": [],
+        "runtimeWarnings": []
+      },
+      "build": {
+        "status": "succeeded",
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "xcresult": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-normal.xcresult"
+    },
+    {
+      "name": "ui-max",
+      "command": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-max-command.json",
+      "exit": {
+        "exit_code": 75,
+        "finished_at": "2026-10-22T12:45:41.373300+00:00",
+        "log": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-max.log"
+      },
+      "result": {
+        "result": "Failed",
+        "totalTestCount": 1,
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0,
+        "testFailures": [
+          {
+            "failureText": "Testing was canceled",
+            "targetName": "FrameRelayUITests",
+            "testIdentifier": 1,
+            "testIdentifierString": "LibraryFlowTests/testHistoryAndSubmissionTextLayoutAtCurrentContentSize()",
+            "testIdentifierURL": "test://com.apple.xcode/FrameRelay/FrameRelayUITests/LibraryFlowTests/testHistoryAndSubmissionTextLayoutAtCurrentContentSize",
+            "testName": "testHistoryAndSubmissionTextLayoutAtCurrentContentSize()"
+          }
+        ],
+        "runtimeWarnings": []
+      },
+      "build": {
+        "status": "succeeded",
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "xcresult": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-max.xcresult"
+    },
+    {
+      "name": "ui-max-verified",
+      "command": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-max-verified-command.json",
+      "exit": {
+        "exit_code": 65,
+        "finished_at": "2026-10-22T12:52:22.295133+00:00",
+        "log": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-max-verified.log"
+      },
+      "result": {
+        "result": "Failed",
+        "totalTestCount": 4,
+        "passedTests": 3,
+        "failedTests": 1,
+        "skippedTests": 0,
+        "testFailures": [
+          {
+            "failureText": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\")",
+            "targetName": "FrameRelayUITests",
+            "testIdentifier": 3,
+            "testIdentifierString": "LibraryFlowTests/testOriginalPlaybackProgressStopBackgroundAndRestart()",
+            "testIdentifierURL": "test://com.apple.xcode/FrameRelay/FrameRelayUITests/LibraryFlowTests/testOriginalPlaybackProgressStopBackgroundAndRestart",
+            "testName": "testOriginalPlaybackProgressStopBackgroundAndRestart()"
+          }
+        ],
+        "runtimeWarnings": []
+      },
+      "build": {
+        "status": "succeeded",
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "xcresult": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-max-verified.xcresult"
+    },
+    {
+      "name": "ui-max-stop-retry",
+      "command": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-max-stop-retry-command.json",
+      "exit": {
+        "exit_code": 0,
+        "finished_at": "2026-10-22T13:14:22.155955+00:00",
+        "log": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-max-stop-retry.log"
+      },
+      "result": {
+        "result": "Passed",
+        "totalTestCount": 1,
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0,
+        "testFailures": [],
+        "runtimeWarnings": []
+      },
+      "build": {
+        "status": "succeeded",
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "xcresult": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/ui-max-stop-retry.xcresult"
+    },
+    {
+      "name": "post-ui",
+      "command": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/post-ui-command.json",
+      "exit": {
+        "exit_code": 0,
+        "finished_at": "2026-10-22T13:15:17.429950+00:00",
+        "log": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/post-ui.log"
+      },
+      "result": {
+        "result": "Passed",
+        "totalTestCount": 3,
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 1,
+        "testFailures": [],
+        "runtimeWarnings": []
+      },
+      "build": {
+        "status": "succeeded",
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      },
+      "xcresult": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-validation-20261022-ikt29oug/post-ui.xcresult"
+    }
+  ],
+  "unit_metrics": {
+    "declarations": {
+      "Passed": 562,
+      "Skipped": 28
+    },
+    "expanded": {
+      "Passed": 915,
+      "Skipped": 28
+    },
+    "empty_templates": [
+      "FrameRelayTests/example()"
+    ],
+    "meaningful_passed": 914,
+    "skipped": [
+      "BackgroundMediaSessionTests/emptySessionEnumeratesAndBuffersActualInvalidationBeforeConsumerStarts()",
+      "BackgroundMediaSessionTests/suspendedUploadAndDownloadEnumerateCancelAndActuallyCompleteWithoutResume()",
+      "BackgroundRemovalTerminalTests/suspendedUploadActuallyTerminatesBeforeOrdinaryRiskDiscard()",
+      "LegacyServerPlaybackProbeTests/actualHTTPRejectsMissingTokenAndReturnsTheFixedShortRange()",
+      "LegacyServerPlaybackProbeTests/actualPlayerAdvancesThenSDKLoaderAndNetworkReachTerminal()",
+      "NativePhotoLibraryTests/realCoordinatorPersistsIndependentTerminalAndRetiresReaderWithCorrectCopyRetention()",
+      "NativePhotoLibraryTests/diagnoseSameMovieBytesAtMovieAndLegacyExtensionlessPaths()",
+      "NativePhotoLibraryTests/realAdditionKeepsSourceUntilCallbackAndExactLookupPreservesDateAndAudio()",
+      "NativePhotoLibraryTests/deniedAddOnlyDoesNotInvokeAnAdditionAndReadLookupStaysUnavailable()",
+      "ProductLibrarySeedTests/seedNormalAppContainer()",
+      "ProductRemovalSeedTests/seedDedicatedNormalRoot()",
+      "ProductRemovalSeedTests/verifyDedicatedUIResultAndUntouchedData()",
+      "ProductStatusSynchronizationSeedTests/seedDedicatedRegisteredRoot()",
+      "ProductStatusSynchronizationSeedTests/verifyDedicatedRegisteredRoot()",
+      "StatusSynchronizationHTTPFixtureTests/metadataOnlyPageAndManifestUseCoordinator()",
+      "PublicationHTTPFixtureTests/canonicalPlaybackConfirmationInvalidationAndReplacement()",
+      "RegistrationServerProbeTests/testRegistrationCommitAndReopenUsesSameIdentity()",
+      "RegistrationServerProbeTests/testLostResponseAndLocalCommitRecovery()",
+      "RegistrationServerProbeTests/testWrongDestinationAndSecretAreRejected()",
+      "RegistrationTransportProbeTests/testRedirectIsRefusedAndSessionTerminates()",
+      "RegistrationTransportProbeTests/testOversizeMetadataIsBoundedAndSessionTerminates()",
+      "RegistrationTransportProbeTests/testCancellationAfterResponseTerminatesTaskAndSession()",
+      "RenditionHTTPFixtureTests/authenticatedStreamingAdvancesBeforeFullFileAndActuallyTerminates()",
+      "RenditionHTTPFixtureTests/rejectsMalformedFixedRangeAndWaitsForTerminal(mode:)",
+      "RenditionHTTPFixtureTests/exactRangeGateChangeAndStopDuringResponse()",
+      "RenditionHTTPFixtureTests/authenticationFailureAndGateLossDuringResponseDoNotDeliverBytes()",
+      "RenditionHTTPFixtureTests/httpRetrievalVerifiesWholeFileBeforePhotoUse()",
+      "RenditionFixtureGenerationTests/generateDisposableMovieAndManifest()"
+    ]
+  },
+  "aborted_run_explanation": "ui-maxはSimulator停止中で最大文字設定未適用のため親が取消。Testing was canceled 1件を成功へ含めない。ui-max-verifiedは設定の事前get確認済みで独立した実失敗。",
+  "tool_history": "xcresult添付export初回は同bundle読取との競合で失敗。逐次再実行でexport成功、旧失敗ログも保持。",
+  "prior_source_binding": {
+    "manifest": ".steering/20260929-device-independent-implementation/evidence/20261022-p2-ax-fixture/source-manifest.json",
+    "id": "P2-SOURCE-20261022-01",
+    "inputs": 389,
+    "mismatches": []
+  },
+  "preservation": {
+    "baseline_files": 16666,
+    "final_files": 16666,
+    "changed": [],
+    "added": [],
+    "removed": [],
+    "status_unchanged": true,
+    "diff_unchanged": true,
+    "staged_unchanged": true,
+    "head_unchanged": true
+  },
+  "simulator_final_state": {
+    "existing_state_changes": {},
+    "created_simulator_state": "Shutdown",
+    "new_device_ids": [
+      "4C0F4AD5-2229-4C42-9A18-31972512ABE1"
+    ]
+  },
+  "remaining_task_entries": [
+    {
+      "task": "S13 内容identity・read lease・ordering・原本再生Port",
+      "status": "blocked",
+      "line": 247
+    },
+    {
+      "task": "S1V 段階1の接続・検証・レビューを閉じる",
+      "status": "blocked",
+      "line": 361
+    },
+    {
+      "task": "S23 全媒体gate・本人意思・背景接続",
+      "status": "blocked",
+      "line": 460
+    },
+    {
+      "task": "S24I 試験実原本の転送・保存統合",
+      "status": "pending",
+      "line": 499
+    },
+    {
+      "task": "S26 検証後変換・標準Rec.709処理",
+      "status": "pending",
+      "line": 567
+    },
+    {
+      "task": "S27 配布・全公開gate・確認／失効commit",
+      "status": "blocked",
+      "line": 576
+    },
+    {
+      "task": "S28 状態同期・再登録・動画別操作UI",
+      "status": "blocked",
+      "line": 612
+    },
+    {
+      "task": "S2V 段階2の結合・障害・レビュー",
+      "status": "blocked",
+      "line": 629
+    },
+    {
+      "task": "S31 Photos実登録・必要時読取・不明照合",
+      "status": "blocked",
+      "line": 640
+    },
+    {
+      "task": "S34 写真・整理・破棄を一覧／履歴へ接続",
+      "status": "blocked",
+      "line": 704
+    },
+    {
+      "task": "S3V 段階3の結合・障害・レビュー",
+      "status": "pending",
+      "line": 729
+    },
+    {
+      "task": "S47 ズーム・構図予告・停止支援・レンズISO",
+      "status": "blocked",
+      "line": 911
+    },
+    {
+      "task": "S48 固定Rec.709撮影表示を接続",
+      "status": "blocked",
+      "line": 933
+    },
+    {
+      "task": "S49 REC・保存状態を媒体gateへ独立接続",
+      "status": "blocked",
+      "line": 952
+    },
+    {
+      "task": "S4V 撮影・全体接続の集約レビュー",
+      "status": "blocked",
+      "line": 969
+    },
+    {
+      "task": "Q01 実機環境・実施条件・品質事前合意を束縛",
+      "status": "pending",
+      "line": 992
+    },
+    {
+      "task": "H02 全要求・文書整合・完了範囲を照合",
+      "status": "pending",
+      "line": 1001
+    },
+    {
+      "task": "A01 / DV-01 形式・手動設定",
+      "status": "pending",
+      "line": 1292
+    },
+    {
+      "task": "A02 / DV-02 保存・復旧",
+      "status": "pending",
+      "line": 1310
+    },
+    {
+      "task": "A03 / DV-03 WB",
+      "status": "pending",
+      "line": 1329
+    },
+    {
+      "task": "A04 / DV-04 補正",
+      "status": "pending",
+      "line": 1349
+    },
+    {
+      "task": "A05 / DV-05 固定Rec.709表示",
+      "status": "pending",
+      "line": 1368
+    },
+    {
+      "task": "A06 / DV-06 人物AF",
+      "status": "pending",
+      "line": 1386
+    },
+    {
+      "task": "A07 / DV-07 ND",
+      "status": "pending",
+      "line": 1406
+    },
+    {
+      "task": "A08 / DV-08 ズーム",
+      "status": "pending",
+      "line": 1426
+    },
+    {
+      "task": "A09 / DV-09 レンズ・ISO",
+      "status": "pending",
+      "line": 1445
+    },
+    {
+      "task": "A10 / DV-10 音声・障害",
+      "status": "pending",
+      "line": 1464
+    },
+    {
+      "task": "A11 / DV-11 起動・次REC・負荷",
+      "status": "pending",
+      "line": 1483
+    },
+    {
+      "task": "A12 / DV-12 通信・背景",
+      "status": "pending",
+      "line": 1503
+    },
+    {
+      "task": "A13 / DV-13 軽量版品質",
+      "status": "pending",
+      "line": 1535
+    },
+    {
+      "task": "A14 / DV-14 再生・確認・失効",
+      "status": "pending",
+      "line": 1555
+    },
+    {
+      "task": "A15 / DV-15 新登録・旧登録",
+      "status": "pending",
+      "line": 1585
+    },
+    {
+      "task": "A16 / DV-16 写真保存",
+      "status": "pending",
+      "line": 1604
+    },
+    {
+      "task": "A17 / DV-17 容量整理・破棄",
+      "status": "pending",
+      "line": 1625
+    },
+    {
+      "task": "A18 / DV-18 実データ範囲・全AC照合",
+      "status": "pending",
+      "line": 1655
+    }
+  ],
+  "remaining_external_document_workflows": [
+    "M07",
+    "M08",
+    "M09",
+    "M10"
+  ],
+  "not_verified_this_run": [
+    "実機・実回線・実撮影原本・画質/音声/操作品質・PRD受入（Q01/A01〜18未実施）",
+    "opt-in実背景SDK・実Photos・HTTP probesの28skip対象",
+    "外部backend pytest/実HTTP再実行、専用metadata/removal UI（既存の限定証跡を参照）",
+    "全媒体制御/正式標準変換/未接続製品経路等の未完了task"
+  ],
+  "coverage": "固定閾値の合意なし。今回未計測を0%や成功に置換しない。",
+  "scope_limit": "今回のP2修正評価や自動試験成功を全steering・実機・PRD受入完了へ広げない。",
+  "next_workflow": "$implement-steering .steering/20260929-device-independent-implementation/",
+  "independent_review_complete": true,
+  "independent_review_final_verdict": "要修正（P2 1件）",
+  "independent_review_conclusion": "旧P2の実文字AX・fresh fixture修正は確認済み。最大文字時の再生秒数の折返しによる停止ボタン約62ptの位置変動を具体findingとして確認。限定再試験成功で初回失敗を解消扱いにしない。その他の静的確認に具体findingなし。"
+}

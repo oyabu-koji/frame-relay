@@ -1,0 +1,574 @@
+diff --git a/.steering/20260929-device-independent-implementation/tasklist.md b/.steering/20260929-device-independent-implementation/tasklist.md
+index 39c54dc..061292a 100644
+--- a/.steering/20260929-device-independent-implementation/tasklist.md
++++ b/.steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,7 +12,14 @@ Start／Finishを分けたタスクは、N01等のStartが満たされれば独
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-18、独立validation指摘2件の修正完了）
++## 現在の再開点（2026-10-20、S48独立描画基盤の実装・関連検証完了）
++
++- **S48 / blocked（適合標準資材・実Log変換・通常capture/UI接続待ち）**: 描画専用の3sourceと実画素/競合試験を追加した。空の標準catalogはLog1/2を個別に拒否し、生成cubeによるencoded BGRA技術描画だけを扱う。CGImage出力・原本入力の読取専用契約・1処理中＋1置換待機・世代/連番/停止後の旧結果拒否までを先行し、標準Rec.709完成とはしない。
++- **E-S48-01**: 新規DerivedDataのs48-test-02はUnit19宣言/24展開ケース（新規7/10）＋通常撮影UI1件が成功、失敗/skip/runtimeWarnings/compiler/analyzer診断0。Simulator test buildとs48-ios-build-01のgeneric iOS署名なしbuildが成功、224入力が各実行前後・最終版で一致。初回s48-test-01の新規test macro compile失敗/0件と5警告も保持した。stdoutの既存AppIntents metadata警告はコンパイラ診断と区別する。
++- **保全・main確認**: 開始git clean、証跡外240fileをhash付きでrepo外rootへ保全。既存変更は本tasklistとarchitectureの表示境界だけ、新規App/testは所有4fileだけ。mainが全diff・原本へ戻すAPIの不在・未接続・版一致を確認し、doc_reviewerは限定文書差分に指摘なし。証跡は `evidence/20261020-s48/`、raw xcresult/DerivedData/開始時copyは `/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-di-20261020-wa275djf/` に保持する。
++- **残件・再開条件**: S48本体には対象Logごとの標準資材実体・由来/版/hash・利用条件・数値域/入力適合を確認し、実Log変換と既存capture/UIの接続・検証が必要。入力不変はproducer契約、stopは描画SDK完了/資源解放の証拠ではない。実原本の非焼込み/録画両立/画質はDV-05へ残す。S47は前回ISO案を今回も確認したが未回答のため通常policy=nilを維持。他task・全steering/PRD受入・独立validationは未完了のまま。
++
++## 直前の再開点（履歴: 2026-10-18、独立validation指摘2件の修正完了）
+ 
+ - **S41 / done（validation差戻し2件の修正・必要検証完了）**: 同steeringへの明示implementにより、直前のP1テストcompile再現失敗とP2保存後ハッシュ/一覧更新による次REC抑止を修正した。全体の未完了taskやS47の未回答ISO方針は保持する。今回のmain確認は独立validationの代行ではない。
+ - **直前の独立validation**: App Simulator buildは成功。別々の空DerivedDataで通常Unit/撮影UI testを2回実行し、`ProductCaptureCoordinatorTests.swift` の3actor隔離診断で両方exit65/0件実行。保存結果commit後も全量digestと一覧更新を`isSaving`へ含める経路がarchitectureの次REC条件に違反。元ログ・xcresultは `/private/tmp/fr-validation-20261018-zzhjxcwh/` に保持する。
+@@ -793,7 +800,17 @@ Start／Finishを分けたタスクは、N01等のStartが満たされれば独
+ 
+ ### S48 固定Rec.709撮影表示を接続
+ 
+-- [ ] Status: pending
++- [ ] Status: blocked
++  - 再開/独立部着手（2026-10-20）: 明示implementに従いStart=N01の描画分離・資材/世代契約・既知入力の実描画試験を先行する。S47の未回答ISO判断は同taskだけへ保持。通常Rec.709変換と画面接続は適合標準資材待ちであり、独立部の成功で全体doneにしない。
++  - 保全/所有: 開始git clean。App/Unit/UI/project・関連docs・steeringの証跡外240fileをhash付きで `/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-di-20261020-wa275djf/baseline/` へ保全。mainはtasklist/新規証跡/構成確認/検証実行/最終diff、worker `s48_render` は新規 `FrameRelay/Platform/Render/CaptureDisplay*.swift` と `FrameRelayTests/Platform/Render/` のみを単独所有する。既存Native/Preview/Factory/project/storeと旧証跡は変更しない。他者の変更を戻さない。
++  - substatus / 着手時: 描画分離・資材/世代契約・既知入力試験=着手、標準資材適合/実Log変換/通常画面接続=未実装・資材待ち、実機品質=未確認。生成テストcubeは技術試験専用で、標準Log→Rec.709成立やFR-02受入の証拠にしない。
++  - 初回検証（s48-test-01）: 新規DerivedData/Debug/確認済みiOS27 Simulatorでexit65・0件実行。新試験の入れ子 `#require` がrecursive expansion、同様のmacro内呼出にcompiler warning5件。本体3fileの診断なし。失敗版4source/224入力hash/ログ/xcresultを保全し、test helperを事前letへ展開して意味を保持した。再度新規DerivedDataのs48-test-02で同じ対象が成功。失敗を成功件数へ含めない。
++  - substatus / 終了時: 描画分離/資材・世代契約/技術fixture実描画/関連自動検証/main確認=完了。標準資材適合/実Log変換/通常capture・UI接続=未実装・保留、実機品質=未確認。通常Native/Preview/Factoryは変更しておらず、生成cubeを製品へ供給しない。所有は上記worker4file、document_author `s48_docs` のarchitecture表示境界、mainのsteering/新証跡だけ。
++  - 実装境界: 技術fixtureの由来/版/用途/hash/0…1・opaque alphaと入力タグを照合し、Core Imageで別の即時CGImageへ描画する。出力はtechnicalFixture固定で、writerへ戻すpixel/sample buffer APIを持たない。原本入力と明示された未変換入力だけを読取り、表示context/連番と内部epochで旧世代・逆順・context往復/同context再有効化・停止後の旧結果を拒否する。保持は処理中1＋置換待機1。producerの同時書込防止と実SDK終端は別契約であり、stopを描画完了通知と扱わない。
++  - E-S48-01 / 検証構成・結果: Xcode27.0(27A266a)/Swift compiler6.4、実在project/scheme/test plan `FrameRelay`、Debug、Swift5/iOS27.0/既定MainActor、App/Unit/UI3targetを再確認。`-destination 'platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719' -parallel-testing-enabled NO -collect-test-diagnostics never` のtest-02でCaptureDisplayTests7宣言/10展開＋ExplorationCoordinatorTests12/14＋通常撮影UI1成功、失敗/skip/runtimeWarnings/compiler/analyzer0。別DerivedDataの `-destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build` も成功。全コマンド・設定・結果・224入力hash・初回失敗は証跡へ保持し、両最終run/現物の入力一致を確認。Simulatorの通常製品設定hashもcontainer移転後の相対pathで一致した。
++  - E-S48-01 / 受入対応と限界: 実画素identity/赤青swap、全入力byte/両attachment mode不変、出力即時detach、Log1/2の個別拒否、信号/不正cube/hash/二重変換拒否、1＋1置換・古い順序・停止/世代往復を確認した。既存D02拒否と通常画面の未対応表示・REC阻害/Library復帰は回帰成功。技術fixtureの成功は標準Log変換、実撮影原本の非焼込み、画角・色・負荷・FR-02受入を証明しない。
++  - 標準資材の読取再確認（2026-10-20）: 公式FCPガイドはLog1/2それぞれのRec.709 3D LUTを説明するが実体/版/利用条件/入力域は今回も未取得。Developer Downloadsへの今回の未認証経路はSign In画面へのredirectを観測し、認証後一覧は未閲覧。全取得経路で認証必須とは断定しない。一般的なSDK色プロパティとLogTransferFunction設定だけを標準変換保証にせず、ACESのLog1→ACES IDTもRec.709/Log2/Apple表示LUTの代用として採用しない。一次資料URLと不足項目を証跡へ記録する。
++  - V-REVIEW / 再開条件: mainが4source/testの全diff・実I/O試験・CGImageだけの出力・未接続・224入力一致を確認し、architecture限定差分のdoc_reviewer指摘なし。既存保護対象/旧証跡/project/README/memoの変更なし、空白診断成功。S48は適合標準資材を確認して変換本体/通常表示へ実接続し、既知Log入力・非焼込み/二重変換・必要UIを検証してから全体doneを判定する。独立validationは代行していない。
+   - Depends: Start＝N01（描画分離・既知入力試験準備）、変換本体はS26Aの当該適合資材取得。Finish＝S41,S26A（当該入力適合資材取得）の実接続。着手時に独立部分と接続部分を別substatusで記録し、接続まで満たす前はtask全体をdoneにしない。
+   - Owner / Files: O-CAPTURE／`FrameRelay/Platform/Render/`、`FrameRelay/Platform/Capture/` の表示分岐、`FrameRelay/Features/Capture/` と対応test。
+   - Done when: 由来／入力適合済み標準変換を表示経路へ実装し、記録経路へ流さず、確認状態と分離。
+@@ -936,8 +953,8 @@ M07〜M10の別Workflowがまだ明示されていない時は外部待ちを記
+ | FR-01 | AC-FR-01-02 | 3形式・カメラ対応・無断代替禁止 | P05/P06/P09;CF-02/08 | EC,ES | S41 | dep(S41)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 現能力照合・希望/実値・自動代替拒否を製品接続済 | E-S41-01/02: 設定/条件照合・build | D0 | 部分証拠、全組合せ未確認 | DV-01 |
+ | FR-01 | AC-FR-01-03 | 手動値維持・ND再評価 | P05/P06/P09;CF-02/08 | EC,ES | S41,S46 | dep(S41,S46)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 手動設定・ND実画素/失効と通常policy接続済 | E-S41-01/02、E-S46-01/02: 設定世代/時刻境界/期限・REC非阻害 | D0 | 実装/自動検証済、実機未受入 | DV-01、DV-07 |
+ | FR-01 | AC-FR-01-04 | 保存設定・WB/補正の条件復元 | P05/P06/P09;CF-02/08 | EC,ES,E-S44-01 | S41,S44 | dep(S41,S44)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | S41希望保存・S44補正候補/条件復元接続済 | E-S41-01/02/03、E-S44-01: store再open/条件照合/非代替/初期UI | D0 | 部分証拠、実機補正未受入 | DV-01、DV-04 |
+-| FR-02 | AC-FR-02-01 | 固定Rec.709表示・非焼込み | P06/P12;CF-05 | EC:表示拒否境界のみ | S48 | dep(S48)＋対応A/Q01 | O-CAPTURE | I0 | A1 | D0 | R0 | DV-05 |
+-| FR-02 | AC-FR-02-02 | 確認状態分離・描画/録画品質 | P06/P12;CF-05 | EC:表示拒否境界のみ | S48,S4V | dep(S48,S4V)＋対応A/Q01 | O-CAPTURE | I0 | A1 | D0 | R0 | DV-05、DV-11 |
++| FR-02 | AC-FR-02-01 | 固定Rec.709表示・非焼込み | P06/P12;CF-05 | EC:表示拒否境界,E-S48-01 | S48 | dep(S48)＋対応A/Q01 | O-CAPTURE | 表示専用CGImage/技術描画のみ実装、標準Log変換・通常接続は未実装 | E-S48-01:生成cube実描画/入力全byte・タグ不変/二重変換拒否 | D0 | 標準資材・実原本非焼込み・FR-02未受入 | DV-05 |
++| FR-02 | AC-FR-02-02 | 確認状態分離・描画/録画品質 | P06/P12;CF-05 | EC:表示拒否境界,E-S48-01 | S48,S4V | dep(S48,S4V)＋対応A/Q01 | O-CAPTURE | 未接続の表示専用基盤・1＋1保持/世代失効のみ実装 | E-S48-01:旧世代/逆順/停止失効・既存D02拒否/通常UI回帰 | D0 | 標準表示と記録の両立・品質・負荷未受入 | DV-05、DV-11 |
+ | FR-03 | AC-FR-03-01 | OFF＋複数実モード | P05/P06/P13;CF-06 | EC:能力/適用契約,E-S44-01 | S44 | dep(S44)＋対応A/Q01 | O-CAPTURE | OFF＋複数SDK候補・両出力支持/active照合/現在値UI接続済 | E-S44-01: 候補条件/connection拒否/実値差/REC前再照合 | D0 | 本体の部分証拠、実機効果/正式採用未受入 | DV-04 |
+ | FR-03 | AC-FR-03-02 | 初回候補・対応条件復元 | P05/P06/P13;CF-06 | EC:能力/適用契約,E-S44-01 | S41,S44 | dep(S41,S44)＋対応A/Q01 | O-CAPTURE | 初回standard候補・保存希望優先・条件復元/非代替を接続済 | E-S44-01: OFF/standard/cinematicExtendedの再open・条件照合・初期UI | D0 | 部分証拠、実機未受入 | DV-01、DV-04 |
+ | FR-03 | AC-FR-03-03 | 3場面品質・設定不変 | P05/P06/P13;CF-06 | EC:能力/適用契約,E-S44-01 | S44,S4V | dep(S44,S4V)＋対応A/Q01 | O-CAPTURE | 録画中の設定変更拒否・現在補正観測を接続、品質未評価 | E-S44-01: 録画中不変/観測・保存/音声回帰 | D0 | 3場面品質/全体継続性未受入 | DV-04、DV-11 |
+@@ -1297,6 +1314,7 @@ H01では各AC全文の正常・拒否・不明・失敗・順序・対象組合
+ | E-S46-02 | 2026-10-18、worker/document_author/doc_reviewer/main | S46本人合意・通常接続・限定回帰 | 最終210入力、test-02/ios-build-01/現物一致 | 各run/source hash、両候補Factory→実解析、250ms遅延/入力から1秒/更新、REC開始・継続、保存再生/通常UI | Unit26宣言34展開＋UI1全成功、Simulator/iOS build成功、最終失敗/skip/runtimeWarnings/compiler/analyzer0 | `evidence/20261018-s46-approved/`。初回compile失敗0件保持。実機DV-07/FR-06受入/独立validation未確認 |
+ 
+ | E-S47-01 | 2026-10-18、explorers/workers/document_author/doc_reviewer/main | S47部分、AC-FR-07/08・FR-03-04と回帰 | 最終220入力、final-test-09/ios-build-10/現物一致 | 各run/source hash、目標/途中停止・旧予告/命令・レンズ遅延補正と手動優先・保持/戻り・通常UI | 全Unit365宣言496展開/17skip/0fail、UI3成功、Simulator/iOS build成功。途中失敗保持、重複合算なし | `evidence/20261018-s47/`。ISO本人判断/通常注入待ちblocked、DV-08/09/11・独立validation未確認 |
++| E-S48-01 | 2026-10-20、explorers/worker/document_author/doc_reviewer/main | S48独立部、AC-FR-02-01/02と既存拒否/UI回帰 | 最終224入力、test-02/ios-build-01/現物一致 | 各command/run/source hash、実fixture描画/入力不変/二重変換拒否/有界保持/世代と停止失効 | Unit19宣言24展開＋UI1成功、Simulator/iOS build成功、失敗/skip/runtimeWarnings/compiler/analyzer0。初回compile失敗/0件・5警告保持 | `evidence/20261020-s48/`。S48本体は標準資材/実Log/通常接続待ちblocked、DV-05・独立validation未確認 |
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+ 
+diff --git a/docs/architecture.md b/docs/architecture.md
+index c4c136d..5cbbd1c 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -179,7 +179,7 @@ S41の共有記録契約では `RecordingStoreDocument` schema 7により、`Rec
+ | --- | --- | --- | --- |
+ | カメラ/記録 | AVFoundationでカメラ・format・出力を照合。4K/24・30fps/LT・422・Proxy/Apple Log、補正、WB、手動値の組合せを実機確認 | 未確認/非対応を区別。無断形式変更なし。絞り操作は実制御可能と確認したカメラだけ | カメラ用途説明と権限が必要。現projectで設定済みとは扱わない |
+ | 音声 | 入力到着、入力経路、音量、writer結果を分離して観測 | 入力確認中は準備中、確認済み障害で開始禁止/録画停止、部分保存を試行。有界復旧後も本人REC | マイク用途説明と権限。外部マイク等の対応を先取りしない |
+-| プレビュー/解析 | 記録のLog経路から分岐し表示だけ固定Rec.709変換。人物/ND/予告は有界の入力を使用 | 古い解析を保留。表示の成立・負荷は未検証。予告のための複数カメラ常時起動を前提にしない | 追加の顔識別サービス・クラウド権限は要求しない。人物のVision本体と通常経路への接続はS45、実機品質はDV-06。表示変換はS48 |
++| プレビュー/解析 | 記録のLog経路から分岐し表示だけ固定Rec.709変換。人物/ND/予告は有界の入力を使用 | 古い解析を保留。表示の成立・負荷は未検証。予告のための複数カメラ常時起動を前提にしない | 追加の顔識別サービス・クラウド権限は要求しない。人物のVision本体と通常経路への接続はS45、実機品質はDV-06。S48の独立描画境界と、標準資材待ちの通常表示接続を分ける |
+ | 動画通信 | 共通ゲートを通るURLSession等。cellular禁止設定と経路判定・停止を併用する案 | Wi-Fi消失/REC/保存で待機。停止要求と実停止を区別し、結果不明を照合 | 接続先に応じたローカルネットワーク用途説明、Bonjour等の要否を確認。通信経路未確定のまま権限/例外を一括追加しない |
+ | 再生 | ローカル原本、版固定したRec.709軽量版。軽量版確認は1本ずつstreamingを第一候補とし、AVFoundation/AVKitを検討 | ローカル再生はオフライン可。未取得の軽量版でオフライン再生は保証しない。既存配信/認証/版管理との成立性と一時使用量を検証し、大きな制約時は一時取得を比較 | Photosから読む方式を採る場合の権限はU2。再生不能を容量整理条件へ追加しない |
+ | Photos | PhotoKit追加、完了結果、取得可能な参照による照合 | 拒否/限定/権限変更/結果不明を分離。追加権限で読み取りが保証されるとはしない | 追加用途説明、読取を採る場合は読取用途説明と対応権限。初回要求時期・範囲はU2 |
+@@ -220,9 +220,11 @@ RECの受理前にcoordinatorが現在のsnapshotを希望設定と準備時のf
+ 
+ `CaptureFramingState` はS47の構図予告・停止候補の条件照合へ観測元とrevisionを供給する。`format.videoFieldOfView` は未補正のformat画角としてのみ保持し、補正後cropの数値へ換算しない。補正後の画角は取得不能、プレビューと記録の一致はOFFでも未確認のままとする。補正による実画角・3場面の品質・ズーム/切替との両立はDV-04/08/09等の実機検証へ残す。接続・検証証跡は現行tasklistを正本とし、SDK候補の保持をモード数・名称・強さの正式採用や全FR-03受入へ昇格させない。
+ 
+-S41のカメラ表示は構図確認用で、標準Rec.709変換を備えた表示の達成証拠にはしない。標準表示変換の実装と検証はS48の範囲として残す。
++S41のカメラ表示は構図確認用で、標準Rec.709変換を備えた表示の達成証拠にはしない。S48の `CaptureDisplayTransform` は技術試験用cubeの由来・版・用途・入力信号を明示し、cubeの数値範囲とSHA-256を照合する。`CaptureDisplayRenderer` はsRGB/Rec.709の色特性を持つ32BGRA入力だけを受け、暗黙の色管理を無効にした `CIColorCube` でencoded値を描画する。生成cubeによる技術描画を、標準Log→Rec.709変換の成立証拠にしない。
+ 
+-表示変換は入力Log種別と色特性が判明した経路だけに適用し、二重変換を避ける。Apple LogとApple Log 2には異なる色空間定義があるため、機種名やファイル名から一律に同じ変換を適用しない。採用するLog種別と変換係数・LUTの由来、表示とMac miniの変換整合は別途検証する。[AVCaptureColorSpace.appleLog](https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog)
++出力は技術試験用と識別した `CGImage` で、記録へ戻すpixel/sample bufferやwriter APIを持たない。変換済み入力は明示的な入力区分で拒否する。`CaptureDisplayPipeline` は処理中1件と置換可能な待機1件を保持し、セッション/設定世代・表示revision・単調な連番を照合して旧世代・重複/逆順を拒否する。再有効化や停止で処理中の旧結果の通知を失効させる。入力bufferの不変性はproducerとの契約であり、停止は描画処理の完了待ちやSDK資源解放を表さない。
++
++標準資材は未取得で、`CaptureDisplayTransformCatalog` はApple LogとApple Log 2を別キーで拒否する。実Log変換と通常capture/UIへの接続は未実装のままS48へ残す。標準表示変換は入力Log種別と色特性が判明した経路だけに適用し、二重変換を避ける。Apple LogとApple Log 2には異なる色空間定義があるため、機種名やファイル名から一律に同じ変換を適用しない。採用するLog種別と標準資材の由来・版・利用条件・入力適合、表示とMac miniの変換整合、実原本への非焼込み・記録との両立・実機品質は別途検証する。進捗と検証証跡はS48のtasklistを正本とする。[AVCaptureColorSpace.appleLog](https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog)
+ 
+ 解析用の待ち行列は有界とし、古い入力をためて追いつこうとしない。解析が追いつかない間は現在の有効なND/人物結果がないことを表す。どの処理頻度をどこまで下げるかはU7・実機測定で決め、シャッター/ISO/WB/補正や記録形式を勝手に変更しない。ND方向の有用性、同一主役の再捕捉、停止候補の画質は別の品質検証であり、無効化規則のテストだけで完成にしない。
+ 
+--- /dev/null
++++ b/FrameRelay/Platform/Render/CaptureDisplayPipeline.swift
+@@ -0,0 +1,95 @@
++import CoreVideo
++import Foundation
++
++/// One retained processing input plus one replaceable pending input, with a
++/// separate display queue. This is not connected to production capture/writers.
++/// @unchecked is confined to this owner: every mutable field is locked, retained
++/// input buffers are immutable by producer contract, and draw runs on one queue.
++nonisolated final class CaptureDisplayPipeline: @unchecked Sendable {
++    typealias Draw = @Sendable (CVPixelBuffer, CaptureDisplayRenderer.InputOrigin, CaptureDisplayContext, UInt64, CaptureDisplayTransform) throws -> CaptureDisplayFrame
++    private struct Input {
++        let buffer: CVPixelBuffer
++        let origin: CaptureDisplayRenderer.InputOrigin
++        let context: CaptureDisplayContext
++        let sequence: UInt64
++        let epoch: UInt64
++    }
++    // Publication and stop/activation share this lock. Recursive locking permits
++    // the output callback to stop its own pipeline, without a post-stop callback.
++    private let lock = NSRecursiveLock()
++    private let queue = DispatchQueue(label: "FrameRelay.CaptureDisplay", qos: .userInitiated)
++    private let transform: CaptureDisplayTransform
++    private let draw: Draw
++    private let output: @Sendable (Result<CaptureDisplayFrame, CaptureDisplayError>) -> Void
++    private var context: CaptureDisplayContext
++    private var epoch: UInt64 = 0
++    private var highestSubmitted: UInt64 = 0
++    private var highestPublished: UInt64 = 0
++    private var pending: Input?
++    private var running = false
++    private var stopped = false
++
++    init(context: CaptureDisplayContext, transform: CaptureDisplayTransform, draw: Draw? = nil,
++         output: @escaping @Sendable (Result<CaptureDisplayFrame, CaptureDisplayError>) -> Void) {
++        self.context = context; self.transform = transform; self.output = output
++        let renderer = CaptureDisplayRenderer()
++        self.draw = draw ?? { try renderer.render($0, origin: $1, context: $2, sequence: $3, transform: $4) }
++    }
++
++    /// The caller transfers a retained immutable view, never a mutable ownership
++    /// claim. Replaced pending buffers are immediately released. Sequence starts
++    /// at one and is monotonic within the supplied display context.
++    @discardableResult
++    func submit(_ buffer: CVPixelBuffer, origin: CaptureDisplayRenderer.InputOrigin,
++                context: CaptureDisplayContext, sequence: UInt64) -> CaptureDisplayError? {
++        lock.lock()
++        guard !stopped else { lock.unlock(); return .stopped }
++        guard self.context == context else { lock.unlock(); return .staleContext }
++        guard origin == .captureOriginal else { lock.unlock(); return .alreadyConverted }
++        guard sequence > highestSubmitted else { lock.unlock(); return .outOfOrder }
++        highestSubmitted = sequence
++        pending = .init(buffer: buffer, origin: origin, context: context, sequence: sequence, epoch: epoch)
++        let start = !running; running = true
++        lock.unlock()
++        if start { queue.async { [self] in drain() } }
++        return nil
++    }
++
++    /// Even an activation with the same context invalidates a processing result.
++    /// High-water sequence is retained when that context is unchanged.
++    func activate(context: CaptureDisplayContext) {
++        lock.lock(); defer { lock.unlock() }
++        if self.context != context { highestSubmitted = 0; highestPublished = 0 }
++        self.context = context; epoch &+= 1; pending = nil; stopped = false
++    }
++
++    func stop() {
++        lock.lock(); defer { lock.unlock() }
++        stopped = true; epoch &+= 1; pending = nil
++    }
++
++    private func drain() {
++        while true {
++            lock.lock()
++            guard !stopped, let input = pending else { running = false; lock.unlock(); return }
++            pending = nil; lock.unlock()
++            let result: Result<CaptureDisplayFrame, CaptureDisplayError> = autoreleasepool {
++                do { return .success(try draw(input.buffer, input.origin, input.context, input.sequence, transform)) }
++                catch let error as CaptureDisplayError { return .failure(error) }
++                catch { return .failure(.renderFailed) }
++            }
++            lock.lock()
++            if !stopped, input.epoch == epoch, input.context == context, input.sequence > highestPublished {
++                switch result {
++                case .success(let frame) where frame.context != input.context || frame.sequence != input.sequence
++                    || frame.transformID != transform.identifier || frame.transformVersion != transform.version || frame.transformSHA256 != transform.sha256:
++                    break
++                default:
++                    highestPublished = input.sequence
++                    output(result)
++                }
++            }
++            lock.unlock()
++        }
++    }
++}
+--- /dev/null
++++ b/FrameRelay/Platform/Render/CaptureDisplayRenderer.swift
+@@ -0,0 +1,60 @@
++import CoreGraphics
++import CoreImage
++import CoreVideo
++import Foundation
++
++nonisolated struct CaptureDisplayContext: Equatable, Sendable {
++    let generation: CaptureGeneration
++    let displayRevision: UInt64
++}
++
++/// A display-only immutable image. There is no output CVPixelBuffer, sample buffer,
++/// or writer handle. No product camera, preview, or factory consumes this yet.
++nonisolated struct CaptureDisplayFrame: Sendable {
++    enum Use: Equatable, Sendable { case technicalFixture }
++    let image: CGImage
++    let context: CaptureDisplayContext
++    let sequence: UInt64
++    let transformID: String
++    let transformVersion: String
++    let transformSHA256: String
++    let use = Use.technicalFixture
++}
++
++nonisolated final class CaptureDisplayRenderer: Sendable {
++    enum InputOrigin: Equatable, Sendable { case captureOriginal, displayConverted }
++    // CIContext is reusable across threads; all per-draw images/filters are local.
++    private let context = CIContext(options: [.workingColorSpace: NSNull(), .outputColorSpace: NSNull(), .cacheIntermediates: false])
++
++    /// The producer must keep the capture buffer immutable while this synchronous
++    /// read runs (and, for the pipeline, until its retained input is released).
++    /// Encoded fixture drawing disables implicit color management; it is not a
++    /// standard color-space conversion, even when the input is tagged Rec.709.
++    func render(_ buffer: CVPixelBuffer, origin: InputOrigin, context displayContext: CaptureDisplayContext,
++                sequence: UInt64, transform: CaptureDisplayTransform) throws -> CaptureDisplayFrame {
++        guard origin == .captureOriginal else { throw CaptureDisplayError.alreadyConverted }
++        guard CVPixelBufferGetPixelFormatType(buffer) == kCVPixelFormatType_32BGRA else {
++            throw CaptureDisplayError.unsupportedPixelFormat
++        }
++        func tag(_ key: CFString) -> String? { CVBufferCopyAttachment(buffer, key, nil) as? String }
++        let transfer = tag(kCVImageBufferTransferFunctionKey)
++        let expected = transform.inputSignal == .sRGB ? kCVImageBufferTransferFunction_sRGB : kCVImageBufferTransferFunction_ITU_R_709_2
++        guard tag(kCVImageBufferLogTransferFunctionKey) == nil,
++              tag(kCVImageBufferColorPrimariesKey) == kCVImageBufferColorPrimaries_ITU_R_709_2 as String,
++              transfer == expected as String,
++              tag(kCVImageBufferYCbCrMatrixKey) == nil || tag(kCVImageBufferYCbCrMatrixKey) == kCVImageBufferYCbCrMatrix_ITU_R_709_2 as String else {
++            throw CaptureDisplayError.signalMismatch
++        }
++        let input = CIImage(cvPixelBuffer: buffer, options: [.colorSpace: NSNull()])
++        guard let cube = CIFilter(name: "CIColorCube") else { throw CaptureDisplayError.renderFailed }
++        cube.setValue(input, forKey: kCIInputImageKey)
++        cube.setValue(transform.dimension, forKey: "inputCubeDimension")
++        cube.setValue(transform.rgbaCube, forKey: "inputCubeData")
++        guard let filtered = cube.outputImage,
++              let image = context.createCGImage(filtered, from: input.extent, format: .RGBA8, colorSpace: nil, deferred: false) else {
++            throw CaptureDisplayError.renderFailed
++        }
++        return .init(image: image, context: displayContext, sequence: sequence, transformID: transform.identifier,
++                     transformVersion: transform.version, transformSHA256: transform.sha256)
++    }
++}
+--- /dev/null
++++ b/FrameRelay/Platform/Render/CaptureDisplayTransform.swift
+@@ -0,0 +1,58 @@
++import CryptoKit
++import Foundation
++
++nonisolated enum CaptureDisplayError: Error, Equatable, Sendable {
++    case standardAssetUnavailable(CaptureLogEncoding)
++    case invalidFixture, digestMismatch, signalMismatch, alreadyConverted
++    case unsupportedPixelFormat, renderFailed, staleContext, outOfOrder, stopped
++}
++
++/// Encoded, normalized BGRA technical drawing only. This cannot certify a Log to
++/// Rec.709 transform. All cube bytes are supplied explicitly; no generated asset is
++/// shipped, loaded from a manifest, or installed into the standard catalog.
++nonisolated struct CaptureDisplayTransform: Sendable {
++    let identifier: String
++    let version: String
++    let source: String
++    let usage: String
++    let sha256: String
++    let inputSignal: CaptureNDSignal
++    let dimension: Int
++    let rgbaCube: Data
++
++    init(technicalFixtureID: String, version: String, source: String, usage: String,
++         inputSignal: CaptureNDSignal, dimension: Int, rgbaCube: Data, expectedSHA256: String) throws {
++        guard [technicalFixtureID, version, source, usage].allSatisfy({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }),
++              inputSignal == .sRGB || inputSignal == .rec709,
++              (2...64).contains(dimension),
++              rgbaCube.count == dimension * dimension * dimension * 4 * MemoryLayout<Float>.size else {
++            throw CaptureDisplayError.invalidFixture
++        }
++        // CIColorCube uses native Float RGBA. Apple iOS targets are little endian.
++        // The technical contract fixes the encoded numeric domain to [0, 1] and
++        // opaque alpha. It deliberately defines no Log range, gamut or transfer.
++        let valid = rgbaCube.withUnsafeBytes { bytes in
++            stride(from: 0, to: bytes.count, by: 4).allSatisfy { offset in
++                let value = Float(bitPattern: UInt32(littleEndian: bytes.loadUnaligned(fromByteOffset: offset, as: UInt32.self)))
++                return value.isFinite && (0...1).contains(value) && (offset / 4 % 4 != 3 || value == 1)
++            }
++        }
++        guard valid else { throw CaptureDisplayError.invalidFixture }
++        let digest = SHA256.hash(data: rgbaCube).map { String(format: "%02x", $0) }.joined()
++        guard digest == expectedSHA256 else { throw CaptureDisplayError.digestMismatch }
++        identifier = technicalFixtureID; self.version = version; self.source = source; self.usage = usage
++        sha256 = digest; self.inputSignal = inputSignal; self.dimension = dimension; self.rgbaCube = rgbaCube
++    }
++}
++
++/// No accepted standard asset exists yet. Only a reviewed, source-controlled
++/// integration can populate this table; fixture or manifest claims cannot do so.
++/// Log 1 and Log 2 remain separate keys, with neither inferred from a 2020 matrix.
++nonisolated struct CaptureDisplayTransformCatalog: Sendable {
++    private let accepted: [CaptureLogEncoding: CaptureDisplayTransform] = [:]
++
++    func standardTransform(for encoding: CaptureLogEncoding) throws -> CaptureDisplayTransform {
++        guard let transform = accepted[encoding] else { throw CaptureDisplayError.standardAssetUnavailable(encoding) }
++        return transform
++    }
++}
+--- /dev/null
++++ b/FrameRelayTests/Platform/Render/CaptureDisplayTests.swift
+@@ -0,0 +1,264 @@
++import CoreGraphics
++import CoreVideo
++import CryptoKit
++import Foundation
++import Testing
++@testable import FrameRelay
++
++struct CaptureDisplayTests {
++    private func context(_ settings: UInt64 = 1, revision: UInt64 = 1) -> CaptureDisplayContext {
++        .init(generation: .init(session: .init(rawValue: "display-fixture"), settings: settings), displayRevision: revision)
++    }
++
++    @Test(arguments: [CaptureLogEncoding.appleLog, .appleLog2])
++    func emptyProductCatalogRefusesEachLogIndependently(encoding: CaptureLogEncoding) {
++        #expect(throws: CaptureDisplayError.standardAssetUnavailable(encoding)) {
++            try CaptureDisplayTransformCatalog().standardTransform(for: encoding)
++        }
++    }
++
++    @Test(arguments: [CaptureNDSignal.sRGB, .rec709])
++    func actualRasterMatchesGeneratedCubeAndPreservesAllInputBytesAndAttachments(signal: CaptureNDSignal) throws {
++        for swap in [false, true] {
++            let buffer = try pixels(signal: signal)
++            let before = try pixelBytes(buffer)
++            let propagating = try #require(CVBufferCopyAttachments(buffer, .shouldPropagate))
++            let privateTags = try #require(CVBufferCopyAttachments(buffer, .shouldNotPropagate))
++            let transform = try fixture(swap: swap, signal: signal)
++            let frame = try CaptureDisplayRenderer().render(buffer, origin: .captureOriginal, context: context(),
++                                                            sequence: 7, transform: transform)
++            #expect(frame.use == .technicalFixture)
++            #expect(frame.context == context() && frame.sequence == 7)
++            #expect(frame.transformID == transform.identifier && frame.transformVersion == transform.version)
++            #expect(frame.transformSHA256 == transform.sha256)
++            #expect(frame.image.width == 4 && frame.image.height == 2)
++            #expect(try pixelBytes(buffer) == before)
++            let afterPropagating = try #require(CVBufferCopyAttachments(buffer, .shouldPropagate))
++            let afterPrivateTags = try #require(CVBufferCopyAttachments(buffer, .shouldNotPropagate))
++            #expect(CFEqual(propagating, afterPropagating))
++            #expect(CFEqual(privateTags, afterPrivateTags))
++
++            let output = try rgba(frame.image)
++            for y in 0..<2 {
++                for x in 0..<4 {
++                    let source = y * CVPixelBufferGetBytesPerRow(buffer) + x * 4
++                    let destination = y * frame.image.bytesPerRow + x * 4
++                    let expectedR = Int(before[source + (swap ? 0 : 2)])
++                    let expectedB = Int(before[source + (swap ? 2 : 0)])
++                    #expect(abs(Int(output[destination]) - expectedR) <= 1)
++                    #expect(abs(Int(output[destination + 1]) - Int(before[source + 1])) <= 1)
++                    #expect(abs(Int(output[destination + 2]) - expectedB) <= 1)
++                    #expect(output[destination + 3] == 255)
++                    if swap { #expect(abs(Int(output[destination]) - Int(before[source + 2])) > 50) }
++                }
++            }
++            // Immediate rasterization must detach the image from its input buffer.
++            try clear(buffer)
++            #expect(try rgba(frame.image) == output)
++        }
++    }
++
++    @Test func changedUnknownAndLogSignalsCannotBorrowTheFixtureContract() throws {
++        let transform = try fixture()
++        let renderer = CaptureDisplayRenderer()
++        let rec709 = try pixels(signal: .rec709)
++        #expect(throws: CaptureDisplayError.signalMismatch) {
++            try renderer.render(rec709, origin: .captureOriginal, context: context(), sequence: 1, transform: transform)
++        }
++        let unknown = try pixels()
++        CVBufferRemoveAttachment(unknown, kCVImageBufferTransferFunctionKey)
++        #expect(throws: CaptureDisplayError.signalMismatch) {
++            try renderer.render(unknown, origin: .captureOriginal, context: context(), sequence: 1, transform: transform)
++        }
++        for log in [kCVImageBufferLogTransferFunction_AppleLog, kCVImageBufferLogTransferFunction_AppleLog2] {
++            let tagged = try pixels()
++            CVBufferSetAttachment(tagged, kCVImageBufferLogTransferFunctionKey, log, .shouldPropagate)
++            #expect(throws: CaptureDisplayError.signalMismatch) {
++                try renderer.render(tagged, origin: .captureOriginal, context: context(), sequence: 1, transform: transform)
++            }
++        }
++        let wrongGamut = try pixels()
++        CVBufferSetAttachment(wrongGamut, kCVImageBufferColorPrimariesKey, kCVImageBufferColorPrimaries_ITU_R_2020, .shouldPropagate)
++        #expect(throws: CaptureDisplayError.signalMismatch) {
++            try renderer.render(wrongGamut, origin: .captureOriginal, context: context(), sequence: 1, transform: transform)
++        }
++    }
++
++    @Test func convertedInputIsRefusedWithoutChangingItsAttachments() throws {
++        let buffer = try pixels()
++        let tags = try #require(CVBufferCopyAttachments(buffer, .shouldPropagate))
++        let transform = try fixture()
++        #expect(throws: CaptureDisplayError.alreadyConverted) {
++            try CaptureDisplayRenderer().render(buffer, origin: .displayConverted, context: context(), sequence: 1, transform: transform)
++        }
++        let afterTags = try #require(CVBufferCopyAttachments(buffer, .shouldPropagate))
++        #expect(CFEqual(tags, afterTags))
++        let events = DisplayEvents()
++        let pipeline = CaptureDisplayPipeline(context: context(), transform: transform, output: events.receive)
++        #expect(pipeline.submit(buffer, origin: .displayConverted, context: context(), sequence: 1) == .alreadyConverted)
++        pipeline.stop()
++        #expect(events.sequences.isEmpty)
++    }
++
++    @Test func fixtureMustCarryProvenanceVersionExactHashAndFiniteNormalizedOpaqueValues() throws {
++        let bytes = cube()
++        for (version, source, usage) in [("", "generated-in-test", "technical-only"), ("v1", " ", "technical-only"), ("v1", "generated-in-test", "")] {
++            #expect(throws: CaptureDisplayError.invalidFixture) {
++                try CaptureDisplayTransform(technicalFixtureID: "test", version: version, source: source, usage: usage,
++                    inputSignal: .sRGB, dimension: 2, rgbaCube: bytes, expectedSHA256: digest(bytes))
++            }
++        }
++        #expect(throws: CaptureDisplayError.digestMismatch) {
++            try CaptureDisplayTransform(technicalFixtureID: "test", version: "v1", source: "generated-in-test", usage: "technical-only",
++                inputSignal: .sRGB, dimension: 2, rgbaCube: bytes, expectedSHA256: String(repeating: "0", count: 64))
++        }
++        for signal in [CaptureNDSignal.appleLog, .appleLog2] {
++            #expect(throws: CaptureDisplayError.invalidFixture) { try fixture(signal: signal) }
++        }
++        for value in [Float.nan, .infinity, -0.1, 1.1] {
++            var invalid = bytes
++            withUnsafeBytes(of: value) { invalid.replaceSubrange(0..<4, with: $0) }
++            #expect(throws: CaptureDisplayError.invalidFixture) { try fixture(bytes: invalid) }
++        }
++        var transparent = bytes
++        withUnsafeBytes(of: Float(0)) { transparent.replaceSubrange(12..<16, with: $0) }
++        #expect(throws: CaptureDisplayError.invalidFixture) { try fixture(bytes: transparent) }
++        #expect(throws: CaptureDisplayError.invalidFixture) { try fixture(bytes: bytes.dropLast()) }
++    }
++
++    @Test func pendingInputIsReplacedAndSequenceHighWaterRejectsOldFrames() throws {
++        let events = DisplayEvents()
++        let gate = DisplayDrawGate()
++        let buffer = try pixels()
++        let pipeline = CaptureDisplayPipeline(context: context(), transform: try fixture(), draw: gate.draw, output: events.receive)
++        defer { gate.release.signal(); pipeline.stop() }
++        #expect(pipeline.submit(buffer, origin: .captureOriginal, context: context(), sequence: 1) == nil)
++        try requireSignal(gate.entered)
++        #expect(pipeline.submit(buffer, origin: .captureOriginal, context: context(), sequence: 2) == nil)
++        #expect(pipeline.submit(buffer, origin: .captureOriginal, context: context(), sequence: 3) == nil)
++        #expect(pipeline.submit(buffer, origin: .captureOriginal, context: context(), sequence: 2) == .outOfOrder)
++        gate.release.signal()
++        try requireSignal(events.published)
++        try requireSignal(events.published)
++        #expect(events.sequences == [1, 3])
++        #expect(gate.sequences == [1, 3])
++        #expect(pipeline.submit(buffer, origin: .captureOriginal, context: context(), sequence: 3) == .outOfOrder)
++    }
++
++    @Test(arguments: [false, true])
++    func inFlightResultCannotReviveAfterContextRoundTripOrStopAndSameContextActivation(stop: Bool) throws {
++        let events = DisplayEvents()
++        let gate = DisplayDrawGate()
++        let buffer = try pixels()
++        let pipeline = CaptureDisplayPipeline(context: context(), transform: try fixture(), draw: gate.draw, output: events.receive)
++        defer { gate.release.signal(); pipeline.stop() }
++        #expect(pipeline.submit(buffer, origin: .captureOriginal, context: context(), sequence: 1) == nil)
++        try requireSignal(gate.entered)
++        if stop {
++            pipeline.stop()
++            #expect(pipeline.submit(buffer, origin: .captureOriginal, context: context(), sequence: 2) == .stopped)
++        } else {
++            pipeline.activate(context: context(2, revision: 2))
++            #expect(pipeline.submit(buffer, origin: .captureOriginal, context: context(), sequence: 2) == .staleContext)
++        }
++        pipeline.activate(context: context())
++        #expect(pipeline.submit(buffer, origin: .captureOriginal, context: context(), sequence: 2) == nil)
++        gate.release.signal()
++        try requireSignal(events.published)
++        #expect(events.sequences == [2])
++        pipeline.stop()
++        #expect(pipeline.submit(buffer, origin: .captureOriginal, context: context(), sequence: 3) == .stopped)
++    }
++
++    private func fixture(swap: Bool = true, signal: CaptureNDSignal = .sRGB, bytes: Data? = nil) throws -> CaptureDisplayTransform {
++        let bytes = bytes ?? cube(swap: swap)
++        return try .init(technicalFixtureID: swap ? "generated-red-blue-swap" : "generated-identity", version: "test-v1",
++            source: "generated-inside-CaptureDisplayTests", usage: "technical drawing only; no standard transform claim",
++            inputSignal: signal, dimension: 2, rgbaCube: bytes, expectedSHA256: digest(bytes))
++    }
++    private func cube(swap: Bool = true) -> Data {
++        var values: [Float] = []
++        for b in [Float(0), 1] { for g in [Float(0), 1] { for r in [Float(0), 1] {
++            values += swap ? [b, g, r, 1] : [r, g, b, 1]
++        } } }
++        return values.withUnsafeBufferPointer { Data(buffer: $0) }
++    }
++    private func digest(_ bytes: Data) -> String { SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined() }
++    private func pixels(signal: CaptureNDSignal = .sRGB) throws -> CVPixelBuffer {
++        var result: CVPixelBuffer?
++        let status = CVPixelBufferCreate(kCFAllocatorDefault, 4, 2, kCVPixelFormatType_32BGRA,
++                                        [kCVPixelBufferIOSurfacePropertiesKey: [:]] as CFDictionary, &result)
++        #expect(status == kCVReturnSuccess)
++        let buffer = try #require(result)
++        #expect(CVPixelBufferLockBaseAddress(buffer, []) == kCVReturnSuccess)
++        defer { CVPixelBufferUnlockBaseAddress(buffer, []) }
++        let pointer = try #require(CVPixelBufferGetBaseAddress(buffer))
++        let rowBytes = CVPixelBufferGetBytesPerRow(buffer)
++        memset(pointer, 0, rowBytes * 2)
++        for y in 0..<2 { for x in 0..<4 {
++            let pixel = pointer.advanced(by: y * rowBytes + x * 4)
++            pixel.storeBytes(of: UInt8(24 + 7 * x), as: UInt8.self)
++            pixel.storeBytes(of: UInt8(60 + 9 * y), toByteOffset: 1, as: UInt8.self)
++            pixel.storeBytes(of: UInt8(200 + 4 * x), toByteOffset: 2, as: UInt8.self)
++            pixel.storeBytes(of: UInt8(255), toByteOffset: 3, as: UInt8.self)
++        } }
++        CVBufferSetAttachment(buffer, kCVImageBufferColorPrimariesKey, kCVImageBufferColorPrimaries_ITU_R_709_2, .shouldPropagate)
++        CVBufferSetAttachment(buffer, kCVImageBufferTransferFunctionKey,
++            signal == .sRGB ? kCVImageBufferTransferFunction_sRGB : kCVImageBufferTransferFunction_ITU_R_709_2, .shouldPropagate)
++        CVBufferSetAttachment(buffer, "FrameRelay.fixture-note" as CFString, "retain-this-metadata" as CFString, .shouldNotPropagate)
++        return buffer
++    }
++    private func pixelBytes(_ buffer: CVPixelBuffer) throws -> Data {
++        #expect(CVPixelBufferLockBaseAddress(buffer, .readOnly) == kCVReturnSuccess)
++        defer { CVPixelBufferUnlockBaseAddress(buffer, .readOnly) }
++        let pointer = try #require(CVPixelBufferGetBaseAddress(buffer))
++        return Data(bytes: pointer,
++                    count: CVPixelBufferGetBytesPerRow(buffer) * CVPixelBufferGetHeight(buffer))
++    }
++    private func clear(_ buffer: CVPixelBuffer) throws {
++        #expect(CVPixelBufferLockBaseAddress(buffer, []) == kCVReturnSuccess)
++        defer { CVPixelBufferUnlockBaseAddress(buffer, []) }
++        let pointer = try #require(CVPixelBufferGetBaseAddress(buffer))
++        memset(pointer, 0, CVPixelBufferGetBytesPerRow(buffer) * CVPixelBufferGetHeight(buffer))
++    }
++    private func rgba(_ image: CGImage) throws -> Data {
++        #expect(image.bitsPerPixel == 32 && image.bitsPerComponent == 8)
++        let provider = try #require(image.dataProvider)
++        let data = try #require(provider.data)
++        return data as Data
++    }
++    private func requireSignal(_ semaphore: DispatchSemaphore) throws {
++        try #require(semaphore.wait(timeout: .now() + 5) == .success)
++    }
++}
++
++/// Test-only coordination makes replacement and invalidation races deterministic.
++private final class DisplayDrawGate: @unchecked Sendable {
++    let entered = DispatchSemaphore(value: 0)
++    let release = DispatchSemaphore(value: 0)
++    private let lock = NSLock()
++    private var drawn: [UInt64] = []
++    private let renderer = CaptureDisplayRenderer()
++    var sequences: [UInt64] { lock.lock(); defer { lock.unlock() }; return drawn }
++    func draw(_ buffer: CVPixelBuffer, _ origin: CaptureDisplayRenderer.InputOrigin, _ context: CaptureDisplayContext,
++              _ sequence: UInt64, _ transform: CaptureDisplayTransform) throws -> CaptureDisplayFrame {
++        lock.lock(); drawn.append(sequence); lock.unlock()
++        if sequence == 1 {
++            entered.signal()
++            guard release.wait(timeout: .now() + 5) == .success else { throw CaptureDisplayError.renderFailed }
++        }
++        return try renderer.render(buffer, origin: origin, context: context, sequence: sequence, transform: transform)
++    }
++}
++private final class DisplayEvents: @unchecked Sendable {
++    let published = DispatchSemaphore(value: 0)
++    private let lock = NSLock()
++    private var frames: [UInt64] = []
++    var sequences: [UInt64] { lock.lock(); defer { lock.unlock() }; return frames }
++    func receive(_ result: Result<CaptureDisplayFrame, CaptureDisplayError>) {
++        lock.lock()
++        if case .success(let frame) = result { frames.append(frame.sequence) }
++        lock.unlock()
++        published.signal()
++    }
++}

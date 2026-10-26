@@ -1,0 +1,49 @@
+{
+  "P2_AX": {
+    "cause": "SwiftUI Textの動的再配置で実描画とAXの文字領域・寸法の整合が崩れる条件を履歴/再生handoff/詳細navbar付近で再現。root eager化は無効。実幅で計測するnative UILabel本文へ限定置換したA/Bで、全文・同じ幾何位置・元ID/結合を保ったまま解消。SDK内部の不具合分類や可視色配合不良とは断定しない。",
+    "fix": "12箇所の本文をLibraryWrappingTextへ変更。UILabel numberOfLines=0、word wrapping、semantic body/headline、全12sizeCategory、実提案幅/無制限高のsizeThatFits、label color、native ID明示伝播。ScrollView/LazyVStack/nav/padding/順序/全文/AX groupingは開始版のまま。",
+    "strict_audit_unchanged": true,
+    "strict_handler_returns_false": true,
+    "ignored_issues": 0,
+    "font_size_cap": false,
+    "accessibility_target_exclusion": false,
+    "baseline": "ax-baseline-01: fresh作成fixtureで4失敗/32issue",
+    "ineffective": "ax-eager-01: root VStack比較3失敗、撤去",
+    "limited_native_status": "ax-native-status-01: contrastと説明DT 2成功/issue0",
+    "native_all_interim": "ax-native-all-01: 4成功/issue0だが子ID伝播不足で非最終",
+    "final_native_product_sha256": "d4caa8a8aa8f0352583a16bf4e4b81e24d005ce57a4061458a03be2bd7a77832"
+  },
+  "P2_fixture": {
+    "cause": "非legacy cleanupをreserveRemovalで予約し、実検査unknownの合成MOVをcleanup対象にしていた。現製品guardはreserveCleanupとsaved/検証/確認/reader照合のcontractを要求するためnotCommittedになった。通常opt-in seed skipが作成経路の不整合を隠していた。",
+    "fix": "既存test-only OriginalRemovalFixtureでcleanupにだけ明示合成saved/検証/確認・非開始reader事実とreserveCleanupを用意。discardはreserveRemoval、実再生原本は実検査unknownを維持。製品guardと通常factoryは変更しない。通常Unitに隔離tmp rootで同じ作成経路・再open・投影・digest/全readerを検査する回帰を追加。",
+    "product_guard_changed": false,
+    "normal_app_root_opt_in_remains": true,
+    "nonempty_unrelated_root_refused": true,
+    "CF_fixture_copy_used": false,
+    "fresh_creation_runs": [
+      "fresh-seed-01",
+      "fresh-seed-final-01"
+    ],
+    "normal_regression": "freshFixturesReopenWithRemovalProjectionsAndUnchangedOriginal()",
+    "proof_limits": "合成cleanup契約・投影であり、実Log/Rec709/通常strict通信/製品cleanup品質・受入を証明しない。"
+  },
+  "UI_observation_fixes": {
+    "selection": "ui-final-02でON描画/後のfresh tree両switch=1と選択本数1を観測した一方、tap前とtimeout snapshotは49650bytes/SHA256 3fcf9ee876f3c42fc1b2bc0cf544724f2b4ca5edc56ba752ff3e9337da979149で同一。固定pre-tap object predicateを同IDのfresh queryへ変更。5秒と親/実child String1の両条件、2本選択の結果を保持。",
+    "maximum_size": "ui-max-final-01の4失敗はsetupで親hit必須にした探索。max-query-01でfresh親でもfalseを再現し、同link配下の可視title/各文字はtrue、全文の拡大を記録。通常は従来親を使用し、親false時だけ同parent配下の元ID title/hitを通常tapし期待詳細titleまで検査する。35回/同swipe/未達失敗、共通reveal/top、全監査test本文/条件は保持。",
+    "maximum_complete_labels": "max-visible-title-01で7要素の全文とheight伸長。body/headline参照17pt→53pt、title21→126/removal21→188/phase43→374pt。画像/AXの実寸を主としreference文字計測だけで合否にしない。",
+    "voiceover": "最大字の実XCUIDevice VoiceOver outputでhistory removal/original absenceとsubmission title/action/phaseの既存5条件true。出力文字は観測範囲であり聴取品質評価ではない。"
+  },
+  "not_rerun": [
+    "限定SDK専用run",
+    "metadata HTTP専用run",
+    "279入力の公開HTTP専用run",
+    "登録済metadata専用UI"
+  ],
+  "not_performed": [
+    "実機試験",
+    "品質評価",
+    "PRD受入",
+    "独立したvalidate-implementation Workflow"
+  ],
+  "no_scope_promotion": "permit/Mac注入を通常strict開始/resumeや全媒体完成にしない。S23/S27/S28/S34/S49部分・blocked、H01準備のみ、その他task・全steering/全D0/R部分証拠を保持。"
+}

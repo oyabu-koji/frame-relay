@@ -1,0 +1,1152 @@
+{
+  "row_count": 76,
+  "dv_count": 18,
+  "prd_ac_count": 79,
+  "covered_count": 79,
+  "missing": [],
+  "unknown": [],
+  "rows": [
+    {
+      "dv": "DV-01",
+      "case": "c01",
+      "ac": [
+        "AC-FR-01-01",
+        "AC-FR-01-02",
+        "AC-FR-01-04"
+      ],
+      "old": "C01–03/U01; CF-01/02",
+      "condition": "全C×{4K24,4K30}×{LT,422,Proxy}×L×S×O。能力=対応/非対応/未確認、適用=成功/拒否/不明/失敗",
+      "action": "全セルの能力・希望を記録し、実行可能セルを読戻し後に音声付きREC/STOP。標準不能セルも残す",
+      "expected": "希望/能力/実値/原本の対応。自動代替なし。標準不能は制約/代案/要求再確認。原本の写真非追加",
+      "evidence": "能力全表、実値、原本codec/fps/色/音声/日時/向き、写真非追加",
+      "dependency": "S41/S43、当該SDK・保存経路、Q01",
+      "availability": "S41/S43の通常撮影接続・Unit/UI確認済。Q01後に実端末を観測可能、実Log/品質は未確認"
+    },
+    {
+      "dv": "DV-01",
+      "case": "c02",
+      "ac": [
+        "AC-FR-01-03",
+        "AC-FR-01-04"
+      ],
+      "old": "C04/U01",
+      "condition": "B0、シャッター/ISOの異なる有効値、絞り対応/非対応、設定なし/保存済/条件変化/再起動",
+      "action": "本人が各値を変更し前中後を比較、同条件と非対応条件で再openし再撮影",
+      "expected": "手動値維持、非対応絞りUIなし、WBは待機Auto、補正は対応条件復元。無断で戻さずND再評価",
+      "evidence": "設定store/再open、実値時系列、画面、原本",
+      "dependency": "S41/S44/S46、Q01",
+      "availability": "S41/S43の通常撮影接続・Unit/UI確認済。Q01後に実端末を観測可能、実Log/品質は未確認。補正/ND品質はDV-04/07"
+    },
+    {
+      "dv": "DV-02",
+      "case": "c01",
+      "ac": [
+        "AC-FR-10-02",
+        "AC-NFR-02-01",
+        "AC-NFR-02-03"
+      ],
+      "old": "C13/U03; CF-08",
+      "condition": "B0、通常STOP、正常/部分/不明/失敗の保存分類",
+      "action": "STOP受付→実記録終端→file確定→検査→結果commit→再open→再生を照合",
+      "expected": "存在/受付だけで正常にしない。内容と必要trackに基づく分類、未知/破損は証拠保持",
+      "evidence": "原本/intent/結果/画面の三者、各実到達時刻、再生・lease",
+      "dependency": "S12/S41/S43、Q01",
+      "availability": "S41/S43の通常撮影接続・Unit/UI確認済。Q01後に実端末を観測可能、実Log/品質は未確認"
+    },
+    {
+      "dv": "DV-02",
+      "case": "c02",
+      "ac": [
+        "AC-FR-10-02",
+        "AC-NFR-02-01",
+        "AC-NFR-02-03"
+      ],
+      "old": "C14–15/B1–B7/U03; CF-08",
+      "condition": "B1–B7各前/後×実OS中断/背景/ロック/本人終了再起動/制御注入。実到達の取れる枝を個別run",
+      "action": "許可した新規試験原本で中断、復帰/再openして旧clipと次clipを照合",
+      "expected": "受付≠実終端。救済を保証せず正常/部分/不明/失敗を区別、旧callbackが新clipを成功化しない",
+      "evidence": "中断到達hook、媒体/store前後、最終frame/WB、再open表示",
+      "dependency": "S12/S41/S43、該当保護・中断手段、Q01",
+      "availability": "S41/S43の通常撮影接続・Unit/UI確認済。Q01後に実端末を観測可能、実Log/品質は未確認。任意境界の実OS再現不能は未到達として保持"
+    },
+    {
+      "dv": "DV-02",
+      "case": "c03",
+      "ac": [
+        "AC-NFR-02-03"
+      ],
+      "old": "C14/U03",
+      "condition": "書込/検査/intent・結果commit×失敗/アクセス不能/容量相当注入、未知schema/破損/世代競合",
+      "action": "使い捨て領域へ障害を与え再openし、実端末の保護状態観測と分離",
+      "expected": "不明を未実行/正常にせず空storeへ置換しない。既存データ削除/端末容量埋めなし",
+      "evidence": "注入根拠、分類/エラー、原本/DB保持、実端末観測の別記",
+      "dependency": "S11/S12、Q01",
+      "availability": "disk境界は自動確認済。実保護・実中断はQ01後、注入を実容量枯渇の証拠にしない"
+    },
+    {
+      "dv": "DV-03",
+      "case": "c01",
+      "ac": [
+        "AC-FR-04-01"
+      ],
+      "old": "C05/U02; CF-03",
+      "condition": "B0、Auto安定前REC/ND判定完了/本人操作なし",
+      "action": "照明変化直後にRECし最初から最後の記録frameと固定値を観測",
+      "expected": "安定待ちで開始せず現在値固定、ND契機の固定なし、録画中Autoへ戻さない",
+      "evidence": "REC/固定/最初・最後frame、WB/手動値/色",
+      "dependency": "S42、当該A01記録経路、Q01",
+      "availability": "S42通常接続/順序試験済。実測WB/KVO/色はQ01後"
+    },
+    {
+      "dv": "DV-03",
+      "case": "c02",
+      "ac": [
+        "AC-FR-04-02"
+      ],
+      "old": "C05/U02",
+      "condition": "B0、明示再固定とSTOPの先行/後着/重複・旧通知、再測定開始/固定適用の拒否・unknown・失敗とSTOP先後",
+      "action": "録画中に本人再固定しSTOPを重ね、他の手動値/色/音声継続を照合",
+      "expected": "本人操作だけ更新、最終frameまで固定、ISO/絞り/シャッター無断変更なし。実固定済/未確認/失敗を表示で混同しない",
+      "evidence": "操作/SDK適用/終端時系列、原本比較、品質条件版",
+      "dependency": "S42、Q01",
+      "availability": "順序技術試験済。実カメラ再測定と品質は未確認"
+    },
+    {
+      "dv": "DV-03",
+      "case": "c03",
+      "ac": [
+        "AC-FR-04-03"
+      ],
+      "old": "C05/C15/B3/U02",
+      "condition": "異なる照明で連続二本、正常/障害STOP後",
+      "action": "一本目終端→待機Auto→二本目REC、ND解析も継続",
+      "expected": "一本目最終frameまで固定、待機Auto、二本目新測定。値の持越しなし",
+      "evidence": "二本の原本・設定/固定/Auto時系列",
+      "dependency": "S42/S43、Q01",
+      "availability": "通常接続済。二本の実frameはQ01後"
+    },
+    {
+      "dv": "DV-04",
+      "case": "c01",
+      "ac": [
+        "AC-FR-03-01",
+        "AC-FR-03-02",
+        "AC-FR-03-05",
+        "AC-FR-01-04"
+      ],
+      "old": "C09/U01/U04; CF-06",
+      "condition": "B全S、初回/同条件再open/非対応条件変更、適用成功/拒否/不明",
+      "action": "OFFと複数実モードを選択/読戻し。標準相当を初回候補、非対応条件で本人選択",
+      "expected": "表示=実適用、無断代替なし。標準不成立は未達・制約/代案を残す",
+      "evidence": "モード/能力/実値/保存希望、画面、条件表",
+      "dependency": "S44、当該A01セル、Q01",
+      "availability": "S44接続/復元試験済。実機対応はQ01後"
+    },
+    {
+      "dv": "DV-04",
+      "case": "c02",
+      "ac": [
+        "AC-FR-03-03",
+        "AC-NFR-03-02"
+      ],
+      "old": "C10; CF-06",
+      "condition": "B各モード×{歩き撮り,静止手持ち,ゆっくりパン}、OFF→候補→OFF",
+      "action": "同一場面/手動値/音源/長さで比較撮影し原本を評価",
+      "expected": "補正効果/構図/音声同期/継続を合意範囲で判定、録画中に形式/モード/方針を変えない",
+      "evidence": "比較原本、画角/揺れ/実値/音声・同期、合意条件",
+      "dependency": "S44、Q01品質合意、当該A01セル",
+      "availability": "制御接続済。補正品質/全セルは実機未確認"
+    },
+    {
+      "dv": "DV-04",
+      "case": "c03",
+      "ac": [
+        "AC-FR-03-04"
+      ],
+      "old": "C10–12; CF-06/07",
+      "condition": "B×有向E、補正維持可能/不能、予告/停止支援と実画角",
+      "action": "補正下で予告→ズーム→切替を行い画角/負荷を比較。不能Eは実行拒否",
+      "expected": "補正cropを予告/停止支援へ反映、維持不能を無通知実行しない",
+      "evidence": "前中後原本/予告/実倍率/crop/補正、制約",
+      "dependency": "S44/S47、Q01",
+      "availability": "S47規則/UIは部分、ISO方針未回答。統合の該当枝は未接続"
+    },
+    {
+      "dv": "DV-05",
+      "case": "c01",
+      "ac": [
+        "AC-FR-02-01"
+      ],
+      "old": "C08; CF-05",
+      "condition": "B0各Log×待機/録画、資材適合/不一致/欠落/二重変換",
+      "action": "Log別に由来/版/hash/利用条件/数値域を確認し標準参照と表示・原本を照合",
+      "expected": "実Rec.709だけ成功。原本非焼込み、Log不一致/二重変換を拒否",
+      "evidence": "資材/既知入力/期待出力、表示frame、実Log原本不変",
+      "dependency": "S26A適合資材/S48、Q01",
+      "availability": "標準資材未取得・通常表示未接続。生成cubeの技術描画だけ確認済"
+    },
+    {
+      "dv": "DV-05",
+      "case": "c02",
+      "ac": [
+        "AC-FR-02-02"
+      ],
+      "old": "C08/U04",
+      "condition": "記録単独→表示併用→単独、同一B0/場面/音源",
+      "action": "待機/録画で表示を重ね再生token・確認/Photos状態と描画/録画を観測",
+      "expected": "閲覧だけで軽量版確認/写真状態を生成せず、表示性能と記録安定性を別判定",
+      "evidence": "原本/描画時刻/落ち/AV同期、状態前後、品質条件",
+      "dependency": "S48、Q01品質合意",
+      "availability": "表示本体が未接続。実負荷は未実施"
+    },
+    {
+      "dv": "DV-06",
+      "case": "c01",
+      "ac": [
+        "AC-FR-05-01"
+      ],
+      "old": "U01/U04",
+      "condition": "意図3種/未選択、複数露出対象/一人主役、保存復元、人物なし",
+      "action": "本人が露出対象と主役を別選択、再open、人物なしで位置タップ",
+      "expected": "意図保存/復元、露出と主役を混同せず、人物なし位置AF",
+      "evidence": "選択/検出/AF命令/実合焦、保存希望と復元",
+      "dependency": "S45、Q01",
+      "availability": "本人承認済policyを通常接続/技術試験済。実合焦は未確認"
+    },
+    {
+      "dv": "DV-06",
+      "case": "c02",
+      "ac": [
+        "AC-FR-05-02"
+      ],
+      "old": "U02",
+      "condition": "同一主役復帰が暫定3秒前/境界/後、別人通過、再指定",
+      "action": "主役退出→同一復帰/別人/期限超過を別run、本人再指定",
+      "expected": "猶予内は同一主役のみ復帰、期限後保持/控えめ表示/再指定待ち、別人自動移行なし",
+      "evidence": "主役identity/時刻/猶予policy版/原本/状態",
+      "dependency": "S45、Q01品質合意",
+      "availability": "暫定3秒は承認済。実機採用と追跡品質は未確認"
+    },
+    {
+      "dv": "DV-06",
+      "case": "c03",
+      "ac": [
+        "AC-FR-05-03"
+      ],
+      "old": "U01/U02",
+      "condition": "検出未完了/古い世代/意図未選択/候補不確か",
+      "action": "条件中に本人RECし、停止後・カメラ変更後の古い解析も到着させる",
+      "expected": "必要記録条件成立ならREC可。不確か/旧結果を現在確定表示しない",
+      "evidence": "解析/世代/REC受理時系列、UI/原本",
+      "dependency": "S45/S41/S43、Q01",
+      "availability": "REC非阻害/世代技術試験済。実機解析は未確認"
+    },
+    {
+      "dv": "DV-06",
+      "case": "c04",
+      "ac": [
+        "AC-FR-05-04",
+        "AC-FR-05-05"
+      ],
+      "old": "U01/U04",
+      "condition": "通常合焦/前後移動×追跡ON/OFF、合意距離/照明/速度、人物＋背景",
+      "action": "ONで指定主役を前後移動、OFFで人物優先AFを独立比較",
+      "expected": "ON追従とOFF人物AFを各合意範囲で判定。選択/再捕捉だけで品質完成にしない",
+      "evidence": "実原本/合焦/距離/光/動き/方式/品質条件",
+      "dependency": "S45、Q01品質合意",
+      "availability": "SDK接続済。AF品質とOFF実動作は実機未確認"
+    },
+    {
+      "dv": "DV-07",
+      "case": "c01",
+      "ac": [
+        "AC-FR-06-01"
+      ],
+      "old": "U01/U04",
+      "condition": "意図別の濃く/薄く/現基準許容の合意場面",
+      "action": "本人判断とND方向/理由を同一場面で比較",
+      "expected": "方向/理由が本人判断に一致。常時保留だけで合格にしない",
+      "evidence": "場面/本人判断/解析入力信号/結果/暫定基準版",
+      "dependency": "S46、Q01品質合意",
+      "availability": "実画素解析/通常接続済。閾値は交換可能な暫定、品質未確認"
+    },
+    {
+      "dv": "DV-07",
+      "case": "c02",
+      "ac": [
+        "AC-FR-06-02"
+      ],
+      "old": "U01/U04",
+      "condition": "人物背景両立困難、太陽/反射/黒い服の有無",
+      "action": "各対象を加減し意図/評価対象を切替",
+      "expected": "単一対象を無条件正解にせず理由/難しさを示す。存在だけでNGにしない",
+      "evidence": "入力場面/露出対象/信号/方向理由/本人判定",
+      "dependency": "S46、Q01品質合意",
+      "availability": "制御/実画素試験済。シーン評価は未確認"
+    },
+    {
+      "dv": "DV-07",
+      "case": "c03",
+      "ac": [
+        "AC-FR-06-03",
+        "AC-FR-01-03",
+        "AC-NFR-03-02"
+      ],
+      "old": "U01/U02",
+      "condition": "遅延/停止/根拠不足/旧世代×暫定1秒前/境界/後、手動ISO/絞り変更",
+      "action": "解析を止め/遅延し設定変更、警告/保留中にREC",
+      "expected": "旧OK失効、精密段数量を捏造せずRECを妨げない。変更値で再評価し勝手に戻さない",
+      "evidence": "入力観測時刻/失効/世代/手動値/REC/原本",
+      "dependency": "S46/S41/S43、Q01",
+      "availability": "暫定1秒は承認済。実端末期限/信号適合は未確認"
+    },
+    {
+      "dv": "DV-07",
+      "case": "c04",
+      "ac": [
+        "AC-FR-06-04"
+      ],
+      "old": "U01/U04",
+      "condition": "待機Auto WB変化→REC固定、飽和/低情報入力",
+      "action": "WB前後でND評価継続、飽和入力で根拠を観測",
+      "expected": "RGB一致をWB目標にせず、飽和から正確な余裕を逆算しない",
+      "evidence": "WB/入力信号/ND根拠/時刻/原本",
+      "dependency": "S42/S46、Q01",
+      "availability": "WB/ND接続技術確認済。実Log入力は未確認"
+    },
+    {
+      "dv": "DV-08",
+      "case": "c01",
+      "ac": [
+        "AC-FR-07-01"
+      ],
+      "old": "C11/U04; CF-07; DI-11",
+      "condition": "B0×待機/録画、寄る/引く、camera/補正/倍率変更と旧予告",
+      "action": "目標選択→構図予告、開始前に実倍率と原本を照合",
+      "expected": "予告だけで実倍率不変、非焼込み、旧予告失効。別カメラ画質を完全再現としない",
+      "evidence": "予告/実倍率/camera/crop/原本frame",
+      "dependency": "S47/S48の当該予告、Q01",
+      "availability": "ズームUI/規則は部分。標準表示とISO関連は未接続"
+    },
+    {
+      "dv": "DV-08",
+      "case": "c02",
+      "ac": [
+        "AC-FR-07-02"
+      ],
+      "old": "C11; CF-07; DI-11/12",
+      "condition": "B0×寄る/引く×目標自動停止/本人途中停止、速度/精度/吸着設定版",
+      "action": "明示移動開始、目標/途中停止後も録画、別操作でREC停止",
+      "expected": "目標超過なし、ズームと録画停止を区別、合意範囲の滑らかさ/精度",
+      "evidence": "倍率/操作/SDK時刻/原本、暫定設定の目的/根拠/変更箇所/版",
+      "dependency": "S47、Q01品質合意",
+      "availability": "制御候補は部分、実機採用値は未決。未合意値を採用しない"
+    },
+    {
+      "dv": "DV-08",
+      "case": "c03",
+      "ac": [
+        "AC-FR-07-03"
+      ],
+      "old": "C10–11; CF-06/07; DI-12",
+      "condition": "B全補正×実経路、停止近傍候補あり/なし、ズーム中/停止後",
+      "action": "予告と実画角、近傍停止位置画質、引き方向と補正画角/負荷を別比較",
+      "expected": "整数倍率で画質保証せず、動作中/停止後の画質・画角差・負荷を各合意条件で評価",
+      "evidence": "停止候補根拠/camera/codec/解像度/比較原本/予告/負荷",
+      "dependency": "S44/S47、Q01品質合意",
+      "availability": "候補規則は部分。近傍支援の画質/数値採用は未確認"
+    },
+    {
+      "dv": "DV-09",
+      "case": "c01",
+      "ac": [
+        "AC-FR-08-01"
+      ],
+      "old": "C12; CF-07",
+      "condition": "B×全有向E、往路/復路、本人手動ISO変更前/後",
+      "action": "前→切替中→後、戻しと手動変更後の再移行を各run",
+      "expected": "限定区間だけISO補正し終了値保持、常時Autoなし、shutter/fps/WB方針無断変更なし",
+      "evidence": "実camera/ISO/WB/shutter/fps/補正/時刻、原本",
+      "dependency": "S47、Q01とISO方針合意",
+      "availability": "ISO戻り/上限/基準の本人回答待ち。通常policy=nil、該当機能不可"
+    },
+    {
+      "dv": "DV-09",
+      "case": "c02",
+      "ac": [
+        "AC-FR-08-02"
+      ],
+      "old": "C12/U04",
+      "condition": "対応/非対応E、形式不一致/補正維持不能/実適用失敗・不明",
+      "action": "本人切替要求と実値読戻し、非対応要求を観測",
+      "expected": "表示は実値、不能切替を無通知実行しない。未確認を対応済みにしない",
+      "evidence": "能力・実値・拒否/制約表示/対象経路",
+      "dependency": "S47/S44、Q01",
+      "availability": "拒否/規則候補は試験済。実レンズ経路未確認"
+    },
+    {
+      "dv": "DV-09",
+      "case": "c03",
+      "ac": [
+        "AC-FR-08-03"
+      ],
+      "old": "C12/C16; CF-07",
+      "condition": "全対応E、静止記録→移行あり→静止記録、同一場面/音源",
+      "action": "前中後の途切れ/明るさ/色/ピント/位置/時間/音声同期/継続を評価",
+      "expected": "各事前許容範囲を満たすか制約/代案を残す。試験実施だけで対応済みにしない",
+      "evidence": "比較原本/時系列/AV同期/品質条件/不成立分類",
+      "dependency": "S47、Q01品質合意",
+      "availability": "ISO方針/実経路/品質未成立のため該当評価不可"
+    },
+    {
+      "dv": "DV-10",
+      "case": "c01",
+      "ac": [
+        "AC-FR-09-01"
+      ],
+      "old": "C06/U02; CF-04",
+      "condition": "B0×待機/録画×通常音/静寂/小音量/安全な音割れ相当、初期化/再接続確認中",
+      "action": "レベル・入力有効性・データ到着・書込・保存音声を別照合",
+      "expected": "静寂だけで×/開始禁止/停止にしない、音割れ≠入力不能、確認中を区別",
+      "evidence": "メーター/音声到着/書込/原本音声/表示",
+      "dependency": "S43、当該A01記録、Q01",
+      "availability": "通常policy/メーター/実sample試験済。実聴取/入力品質は未確認"
+    },
+    {
+      "dv": "DV-10",
+      "case": "c02",
+      "ac": [
+        "AC-FR-09-02",
+        "AC-FR-09-04",
+        "AC-NFR-03-02"
+      ],
+      "old": "C07/C14/U02; CF-04",
+      "condition": "権限拒否/入力不達/経路中断/writer音声書込失敗×REC前/中×正常/部分/不明/失敗",
+      "action": "合意手段で障害、実抑止/停止/保存分類と画面を照合",
+      "expected": "確認済み障害だけ抑止/停止し可能部分保存を試す。保存成功や救済を保証せず音声非省略",
+      "evidence": "障害根拠/2秒到着猶予policy/停止/原本音声/分類/表示",
+      "dependency": "S43/S12、Q01",
+      "availability": "障害・保存境界は技術試験済。実OSと注入を分けてQ01後"
+    },
+    {
+      "dv": "DV-10",
+      "case": "c03",
+      "ac": [
+        "AC-FR-09-03"
+      ],
+      "old": "C07/U02",
+      "condition": "復旧成功/有限失敗/5秒期限/画面離脱、本人操作1回につき1試行",
+      "action": "明示復旧→結果→本人REC。権限不足なら設定案内、失敗なら保存結果と開き直し案内",
+      "expected": "復旧成功でも自動RECなし、無限retry/アプリ自動再起動/動画・App削除の手順なし。期限受付だけで待機を消さずSDK復旧/取消actual returnまで次REC/重複復旧を拒否",
+      "evidence": "復旧/取消actual return/期限/本人操作/保存結果",
+      "dependency": "S43/S49復旧wait、Q01",
+      "availability": "2秒/1試行/5秒policy承認・接続済。実機復旧能力は未確認"
+    },
+    {
+      "dv": "DV-11",
+      "case": "c01",
+      "ac": [
+        "AC-NFR-01-01"
+      ],
+      "old": "C01/C17; CF-09",
+      "condition": "初回権限/通常起動/背景復帰、保存設定あり/なし",
+      "action": "本人入力→準備→実記録可能/最初frameの時計対応と所要時間を測る",
+      "expected": "通常2〜3秒目標と制約を記録。初回権限と通常を混同せず音声を省略しない",
+      "evidence": "版/実値/起終点/時計誤差/全反復値/原本",
+      "dependency": "S41/S43、Q01",
+      "availability": "単独開始計時のコードは接続済。S49/S4V全完了不要、実測は未実施"
+    },
+    {
+      "dv": "DV-11",
+      "case": "c02",
+      "ac": [
+        "AC-NFR-01-01"
+      ],
+      "old": "C13/C17/B7; CF-09",
+      "condition": "連続二本以上、保存中/結果commit後/遅いhash・bind・一覧更新中の次REC",
+      "action": "STOP→保存境界→次RECを各条件で計時",
+      "expected": "保存実終端前は待機、後処理だけを次RECの一律条件にしない。旧saveが新REC状態を変えない",
+      "evidence": "clip別owner/時刻/保存結果/後処理/次REC原本",
+      "dependency": "S41/S43/S49保存境界、Q01",
+      "availability": "owner/通知両順序/次REC技術試験済。実録画での時間は未確認"
+    },
+    {
+      "dv": "DV-11",
+      "case": "c03",
+      "ac": [
+        "AC-NFR-01-01",
+        "AC-NFR-03-01",
+        "AC-NFR-03-02"
+      ],
+      "old": "C16/C17; CF-09",
+      "condition": "標準集合B全セル×手動/WB/音声/Rec709/補正/寄る・引く・停止/全対応E、代表長と連続二本以上",
+      "action": "単独基準と同時成立を同条件で比較し通常範囲の熱/空き容量/負荷を記録",
+      "expected": "全必須要素の動作と品質を別評価。不能経路も残し、LT以外で標準成功を代替しない",
+      "evidence": "全設定時系列/原本/描画/AV同期/保存/次REC/比較、品質条件",
+      "dependency": "該当S41–S49接続、Q01品質合意",
+      "availability": "標準表示/ISO/全媒体が不足。現在同時成立評価は不可、単独枝は継続可能"
+    },
+    {
+      "dv": "DV-11",
+      "case": "c04",
+      "ac": [
+        "AC-FR-16-02",
+        "AC-NFR-01-01"
+      ],
+      "old": "C16/C17/V07",
+      "condition": "各媒体実I/O/hash中REC、録画/保存/異常処理とWi-Fi待機の重畳",
+      "action": "local実停止→REC→保存actual return→全条件再照合、Mac既開始処理を並行観測",
+      "expected": "Mac ACKをREC条件にせずMac検証/変換は継続。未接続を実負荷確認済みにしない",
+      "evidence": "端末SDK/source/lease/recording/save、Macjob/通信byte、開始遅延",
+      "dependency": "S23/S49全媒体実接続、Q01",
+      "availability": "S23/S49は独立基盤のみ。通常strict通信・全媒体接続不足により製品実通信は不可"
+    },
+    {
+      "dv": "DV-12",
+      "case": "c01.01",
+      "ac": [
+        "AC-FR-11-01",
+        "AC-FR-11-04"
+      ],
+      "old": "V01/V03; BI-01/03/06",
+      "condition": "Wi-Fi、複数選択/選択だけ/開始済順番待ち/新撮影、個別送信・検証・変換失敗/共通回線・認証・Mac容量問題",
+      "action": "開始時集合固定し保存先全内容照合、未指示を追加せず動画別に処理",
+      "expected": "HTTP完了≠保存検証。個別失敗を残し独立残件続行、共通障害は影響集合だけ待機、変換失敗で原本再送なし",
+      "evidence": "固定集合/操作ID/端末・保存先hash/保存証拠/job/動画別状態",
+      "dependency": "S13/S23/S24/S24I/S28、当該G2B/G2C原本、Q01",
+      "availability": "S23/S49は独立基盤のみ。通常strict通信・全媒体接続不足により製品実通信は不可"
+    },
+    {
+      "dv": "DV-12",
+      "case": "c01.02",
+      "ac": [
+        "AC-FR-11-02",
+        "AC-FR-11-03",
+        "AC-NFR-02-01",
+        "AC-NFR-02-03"
+      ],
+      "old": "V03/V04; BI-04/05",
+      "condition": "chunk受信/組立/最終確定/独立全読戻し/証拠commit/job受付/応答の各前/後×切断/再起動/破損/不一致/容量相当",
+      "action": "許可隔離先で故障後同一操作を照合して必要処理だけ再開",
+      "expected": "不明を未実行/verified/整理可能にせず原本/登録/job無条件重複なし",
+      "evidence": "端末/サーバfile・DB・全hash/操作/応答欠落/exact照会",
+      "dependency": "S24I/S28、Q01",
+      "availability": "保存先S24境界は隔離試験済。端末通常転送結合は未接続"
+    },
+    {
+      "dv": "DV-12",
+      "case": "c01.03",
+      "ac": [
+        "AC-FR-16-01",
+        "AC-FR-11-02",
+        "AC-FR-15-04"
+      ],
+      "old": "V05; BI-07",
+      "condition": "原本upload/軽量download/stream・Range/一時取得/thumbnail×直接LAN/外出Wi-Fi+Tailscale×前景/背景/途中再開×Wi-Fi離脱/基礎回線切替",
+      "action": "各経路で実byte通信と実停止を観測。取得済ローカル再生を別観測",
+      "expected": "媒体cellular移行なし、VPN表示だけで判断せず待機。local再生はネット不要",
+      "evidence": "基礎回線/byte/SDK callback/固定identity/停止資源/画面",
+      "dependency": "S23/S24I/S25/S28の当該producer、Q01",
+      "availability": "S23/S49は独立基盤のみ。通常strict通信・全媒体接続不足により製品実通信は不可"
+    },
+    {
+      "dv": "DV-12",
+      "case": "c01.04",
+      "ac": [
+        "AC-FR-16-02",
+        "AC-FR-16-03"
+      ],
+      "old": "V07; BI-09/10",
+      "condition": "全媒体×REC/保存/異常終了×Wi-Fi離脱復帰×saving terminal先着/後着。Wi-Fi/REC・保存/認証の成立可能な全待機部分集合と解除順、三条件同時×本人継続/停止/取消（recording→saving実順序維持）",
+      "action": "通信中REC、STOP/保存を段階別に解消、本人意思・認証・対象/版を再照合",
+      "expected": "録画/保存中再開なし、全条件成立後の既開始未完了だけ再開。Mac停止ACK非条件、Mac既開始処理継続。最後のwait解消前は通信せず、停止/取消は全解消後も保持",
+      "evidence": "local actual stop/lease/hold/保存応答/再開/byte/Macjob時系列",
+      "dependency": "S23/S49/S28実接続、Q01",
+      "availability": "S23/S49は独立基盤のみ。通常strict通信・全媒体接続不足により製品実通信は不可"
+    },
+    {
+      "dv": "DV-12",
+      "case": "c01.05",
+      "ac": [
+        "AC-FR-16-03"
+      ],
+      "old": "V01/V04; BI-10/11/12",
+      "condition": "本人pause/resume/cancel/全件停止×実行中/指示済待ち/自動待機×Wi-Fi/REC/認証wait×再起動。Wi-Fi/REC・保存/認証の成立可能な全待機部分集合と解除順、三条件同時×本人継続/停止/取消（recording→saving実順序維持）",
+      "action": "各操作後に環境復帰、再open、本人再開も他wait残存中/解消後に行う",
+      "expected": "pause/cancelを解除せず、全件停止は指示済待ちも含む。未指示/完了/終了済再生/未実行削除/unknownPhotosを自動開始しない。最後のwait解消前は通信せず、停止/取消は全解消後も保持",
+      "evidence": "意図/固定集合/重畳wait/operation/再open/byte/表示",
+      "dependency": "S23/S28当該操作、REC重畳のみS49、Q01",
+      "availability": "S23/S49は独立基盤のみ。通常strict通信・全媒体接続不足により製品実通信は不可"
+    },
+    {
+      "dv": "DV-12",
+      "case": "c01.06",
+      "ac": [
+        "AC-FR-16-01",
+        "AC-FR-16-03"
+      ],
+      "old": "V08; BI-14",
+      "condition": "本人開始upload/download×別App/lock/OS待機・中断/強制終了復帰×Wi-Fi断/認証断/本人停止",
+      "action": "OS条件と実callback/結果を記録して復帰照合",
+      "expected": "OS許可範囲の継続/待機/中断を区別、本人意思と全再開条件維持。前景成功は背景証拠にしない",
+      "evidence": "端末/OS/保護/ネット/SDK task journal/実終端・source閉鎖/復帰結果",
+      "dependency": "S23通常adapter/S28、Q01",
+      "availability": "S23/S49は独立基盤のみ。通常strict通信・全媒体接続不足により製品実通信は不可"
+    },
+    {
+      "dv": "DV-12",
+      "case": "c01.07",
+      "ac": [
+        "AC-FR-16-01",
+        "AC-FR-16-03"
+      ],
+      "old": "V06; BI-08/24",
+      "condition": "モバイル状態照会/保存検証変換結果/版情報/既存確認outbox/失効commit・ACK、認証失敗/古い応答/媒体混入",
+      "action": "状態のみ同期し最終取得と最新照合/量・頻度を観測",
+      "expected": "媒体自動取得/再生/新確認なし。失効受信≠commit、commit後はWi-Fiなしでも整理不可",
+      "evidence": "要求種別/byte/版/commit/outbox/ACK/最終照合時刻/表示",
+      "dependency": "S27/S28制御同期、Q01",
+      "availability": "E-S28-01で既存登録の明示1page metadata同期/通常UI/実HTTP2要求・媒体0を確認。全mobile実網/頻度量・全producer/再登録は未確認"
+    },
+    {
+      "dv": "DV-12",
+      "case": "c02.01",
+      "ac": [
+        "AC-FR-11-01",
+        "AC-FR-11-02"
+      ],
+      "old": "V02; BI-02",
+      "condition": "書込中/normal/partial/unknown/failed/検査不足/アクセス不能/復旧未完了/別内容、内容対応commit前後/設定・store更新",
+      "action": "各状態で対象固定転送を要求し、正常だけG2B/G2C証拠を追加",
+      "expected": "拒否枝に正常撮影合格を前提追加せず、別file代替/正常化/原本削除なし",
+      "evidence": "状態準備とidentity/拒否/byte/前後file・store・表示",
+      "dependency": "S13/S24I入口、書込中だけS41、Q01",
+      "availability": "原本内容・lease規則は試験済。通常転送入口/UI未接続"
+    },
+    {
+      "dv": "DV-12",
+      "case": "c03.01",
+      "ac": [
+        "AC-FR-11-03",
+        "AC-FR-16-03"
+      ],
+      "old": "V01; BI-13",
+      "condition": "本人cancel→後発Mac成功→新本人再実行、応答喪失/再open",
+      "action": "前操作実結果をexact照合して新操作に必要な処理だけ実行",
+      "expected": "依頼終了とMac実成功を別表示、原本保持、無条件全量再送/新登録なし",
+      "evidence": "操作/登録/原本identity、cancel/成功/再操作/byte/永続結果",
+      "dependency": "S24I/S28、RECなしならS49不要、Q01",
+      "availability": "規則・exact照会基盤あり。通常転送再実行UIは未接続"
+    },
+    {
+      "dv": "DV-13",
+      "case": "c01",
+      "ac": [
+        "AC-FR-12-01",
+        "AC-FR-12-02",
+        "AC-FR-12-03"
+      ],
+      "old": "V10; BI-16/17",
+      "condition": "採用実Log別×縦/横×24/30×音声、標準資材適合/欠落/誤Log/二重変換",
+      "action": "保存検証証拠後に変換し元原本/出力を独立照合、旧compress-onlyも区別",
+      "expected": "実標準Rec709だけ成功、原本不変、高品質版追加なし、fps/向き/比率/構図/音声/日時/冒頭末尾/長さ/同期保持",
+      "evidence": "入力出力hash/特性/変換資材条件/実映像、禁止補正なし",
+      "dependency": "S26適合資材と実Logadapter、当該A01素材、Q01",
+      "availability": "標準資材/actual-log-parser未適合。正式変換不可、job周辺のみ確認済"
+    },
+    {
+      "dv": "DV-13",
+      "case": "c02",
+      "ac": [
+        "AC-FR-12-02",
+        "AC-NFR-03-01",
+        "AC-NFR-03-02"
+      ],
+      "old": "V10; BI-32",
+      "condition": "肌/空/暗部/細部/動き/音声、同一標準変換参照と圧縮候補、本人iPhone通常サイズ/通常再生",
+      "action": "G3事前条件で色と圧縮劣化を別比較、許容候補の容量/取得時間を比較",
+      "expected": "未合意/未測定/範囲外は合格なし。G5採用と技術生成を分け、写真最終結合はDV16",
+      "evidence": "比較入力/表示/方法/許容/有限候補数/出力版/本人判断/容量時間",
+      "dependency": "S26、Q01 G3品質事前合意",
+      "availability": "具体素材/表示/許容/候補数/出力設定未束縛。品質試験不可"
+    },
+    {
+      "dv": "DV-13",
+      "case": "c03",
+      "ac": [
+        "AC-FR-12-03"
+      ],
+      "old": "V12; BI-21",
+      "condition": "変換設定新版、V1公開/有効確認あり、V2生成成功/失敗",
+      "action": "旧原本を保持し候補だけ作成、公開/確認状態を別照合",
+      "expected": "原本上書きなし。V2生成だけでV1差替/確認失効/原本再転送をしない",
+      "evidence": "候補/claim/旧公開・確認/原本hash/失敗結果",
+      "dependency": "S26J/S27、品質比較はQ01",
+      "availability": "job/candidate技術確認済。正式映像はS26待ち"
+    },
+    {
+      "dv": "DV-14",
+      "case": "c01.01",
+      "ac": [
+        "AC-FR-10-01"
+      ],
+      "old": "C01/C13/V09; BI-15",
+      "condition": "保存対応済み実撮影原本1本、online/offline、途中停止/再open",
+      "action": "製品Library→対象原本playerで映像/音声を実再生し停止/再選択",
+      "expected": "媒体一致、実停止/lease解放、原本閲覧だけで軽量版確認/Photos状態を生成しない",
+      "evidence": "clip/内容世代/digest/保存証拠、player進行/音声/lease/前後状態",
+      "dependency": "S13/S15/S16、当該A01/A02原本、Q01",
+      "availability": "原本/通常UI/実AVPlayer技術確認済。P2 strict監査4件は未解消、実撮影原本は未確認"
+    },
+    {
+      "dv": "DV-14",
+      "case": "c01.02",
+      "ac": [
+        "AC-FR-10-03",
+        "AC-FR-16-01"
+      ],
+      "old": "V09; BI-15",
+      "condition": "取得済local/未取得軽量版/原本なし×Wi-Fiなし/Mac不通",
+      "action": "各所在状態から再生と表示を照合",
+      "expected": "取得済localのみoffline可。未取得を再生可能と偽らず、単なる不通では有効確認失効なし。整理へ接続/写真を強制しない",
+      "evidence": "所在/取得範囲/再生可否/確認/整理候補/画面",
+      "dependency": "S14/S25/S28の該当UI、Q01",
+      "availability": "local原本と保存済metadataの通常投影を接続。公開記録をoffline再生可能の証拠にしない。軽量版の通常再生UIは未接続"
+    },
+    {
+      "dv": "DV-14",
+      "case": "c02.01",
+      "ac": [
+        "AC-FR-13-01"
+      ],
+      "old": "V09/V11; BI-18/19",
+      "condition": "固定公開版1本、全量前の実再生/seek/Range・切断再開/認証失敗、同じ写真用映像、redirect/別版/MIME不一致/短い・過大body、同時Range/停止中buffer・reader遅延解放",
+      "action": "実進行後に本人1本確認しcommit。閲覧だけ/同期/背景/複数選択/撮影予告/未変換Logも別要求",
+      "expected": "全量/全編を要求せず実再生+本人+同版commitだけ確認。byte/認証/版混在拒否、確認だけでPhotos済にしない。redirectや版不一致を別媒体へのfallbackにせず資源終端を照合。一時量とSDK/FD/leaseの実終端を確認し、取消受付で解放済みにしない",
+      "evidence": "bytesAtProgress<total、decoded/音声/再生token/本人操作/commit/媒体identity/一時量",
+      "dependency": "S25/S27/S28、製品品質枝だけ当該A13採用版、Q01",
+      "availability": "S25とS27の技術証拠を参照。正式変換proofと通常軽量版/本人確認UI・再登録接続不足（S28既存登録metadata/UIのみ部分接続）、fixtureを製品受入にしない"
+    },
+    {
+      "dv": "DV-14",
+      "case": "c02.02",
+      "ac": [
+        "AC-FR-13-02",
+        "AC-NFR-02-01",
+        "AC-NFR-02-03"
+      ],
+      "old": "V04/V11; BI-20",
+      "condition": "確認受付/commit各前後×失敗/中断/応答欠落/旧版応答/失効競合",
+      "action": "本人確認後に障害、exact lookupと再openで対象/世代を照合",
+      "expected": "不明/拒否を有効確認/整理可能へしない。commit前未記録actionを自動生成せず旧tokenで復活なし",
+      "evidence": "完全mutation/commit/lookup/outbox/世代/画面",
+      "dependency": "S21/S27/S28、Q01",
+      "availability": "S25とS27の技術証拠を参照。正式変換proofと通常軽量版/本人確認UI・再登録接続不足（S28既存登録metadata/UIのみ部分接続）、fixtureを製品受入にしない"
+    },
+    {
+      "dv": "DV-14",
+      "case": "c02.03",
+      "ac": [
+        "AC-FR-13-03",
+        "AC-FR-13-05"
+      ],
+      "old": "V12; BI-21",
+      "condition": "初回V1変換失敗、未失効V1有効中のV2成功/失敗、失効前offline",
+      "action": "V2候補を生成/失敗させ、V1公開・有効確認・offline整理を照合",
+      "expected": "初回有効版なしは整理不可、未失効V1なら他条件維持。V2生成だけで無通知差替なし",
+      "evidence": "候補/公開head/旧確認/最後の保存証拠/整理可否",
+      "dependency": "S26J/S27、整理はS32/S34当該操作、Q01",
+      "availability": "S25とS27の技術証拠を参照。正式変換proofと通常軽量版/本人確認UI・再登録接続不足（S28既存登録metadata/UIのみ部分接続）、fixtureを製品受入にしない"
+    },
+    {
+      "dv": "DV-14",
+      "case": "c02.04",
+      "ac": [
+        "AC-FR-13-04",
+        "AC-FR-13-05",
+        "AC-NFR-02-02"
+      ],
+      "old": "V04/V12; BI-22/23",
+      "condition": "失効commit前/後→ACK前/後→公開前/後×切断/再open/V2失敗",
+      "action": "旧版受取登録（確認同期未到達を含む）へ失効、実owner終了後commit/ACKを照合",
+      "expected": "commit前は旧有効確認保持、後は再起動/保留/失敗でも非復活。全必要exact ACK前は公開不可",
+      "evidence": "recipient/registration/失効ID/SDK・FD・lease/commit/ACK/head時系列",
+      "dependency": "S27全owner終端/S28、Q01",
+      "availability": "S25とS27の技術証拠を参照。正式変換proofと通常軽量版/本人確認UI・再登録接続不足（S28既存登録metadata/UIのみ部分接続）、fixtureを製品受入にしない"
+    },
+    {
+      "dv": "DV-14",
+      "case": "c02.05",
+      "ac": [
+        "AC-FR-13-04"
+      ],
+      "old": "V12; BI-22/26",
+      "condition": "全公開入口、旧/別登録/別原本・映像/別世代ACK、ACK改変/欠落/timeout、旧登録応答不能。同一公開対象R1/R2（R2は確認同期未到達）＋待ち中の新受取R3、ACK一部/重複/全件、R1→R2とR2→R1の両順序、対応commit未確認のACK",
+      "action": "各ACKと再登録を与え公開を要求、該当動画と別動画を照合",
+      "expected": "旧登録の必要応答を代用せず該当差替無期限保留。正常別動画と利用可能旧版を妨げない。各required登録が別に確定するまで保留し、新受取を集合から落とさない。受信だけ/未commit ACKで集合を満たさない",
+      "evidence": "必要ACK集合/完全payload/exact lookup/公開pointer/動画別結果",
+      "dependency": "S27/S28、Q01",
+      "availability": "S25とS27の技術証拠を参照。正式変換proofと通常軽量版/本人確認UI・再登録接続不足（S28既存登録metadata/UIのみ部分接続）、fixtureを製品受入にしない"
+    },
+    {
+      "dv": "DV-14",
+      "case": "c02.06",
+      "ac": [
+        "AC-FR-13-04"
+      ],
+      "old": "V09/V12; BI-18/22",
+      "condition": "V1配布受理・台帳commit先行/V2公開pointer先行、manifestだけ→遅延GET/Range/再開、消費済ticket、全hash中の公開切替/受理済応答中のleaf差替",
+      "action": "両順序を再現し媒体byte前の判定、受理済V1応答と新要求を分離",
+      "expected": "V1受理先行は必要集合追加/公開待機、公開先行は新V1要求byte0。単回GET再利用拒否、受理済応答に別版混在なし。受理済旧応答のSDK実completion/invalidation・same-FD閉鎖・lease解放も確認。既知app writerはsealed aliasを拒否。任意外部in-place改変は検出中断の限界を記録し、送出済byte取消/全版混在防止を保証しない",
+      "evidence": "配布/commit/pointer/GET順序、same-FD digest/range/byte0、原本/登録identity",
+      "dependency": "S27全公開入口とS25/S28、Q01",
+      "availability": "S25とS27の技術証拠を参照。正式変換proofと通常軽量版/本人確認UI・再登録接続不足（S28既存登録metadata/UIのみ部分接続）、fixtureを製品受入にしない"
+    },
+    {
+      "dv": "DV-14",
+      "case": "c02.07",
+      "ac": [
+        "AC-FR-13-04",
+        "AC-FR-13-06",
+        "AC-NFR-02-02"
+      ],
+      "old": "V09/V12; BI-20/23/24",
+      "condition": "失効後の遅延受理済応答/local取得済V1再生/旧token確認、同版再取得/通常再open/Wi-Fi断だけ",
+      "action": "失効あり/なしを別runで再生・確認/整理状態照合、mobile失効commitも実施",
+      "expected": "失効済旧確認は復活なし、新版明示再確認まで整理不可。再取得/不通だけでは未失効確認を消さない",
+      "evidence": "版/epoch/失効commit/token/確認/ACK/実再生/画面",
+      "dependency": "S27/S28、local媒体はS25、Q01",
+      "availability": "S25とS27の技術証拠を参照。正式変換proofと通常軽量版/本人確認UI・再登録接続不足（S28既存登録metadata/UIのみ部分接続）、fixtureを製品受入にしない"
+    },
+    {
+      "dv": "DV-15",
+      "case": "c01",
+      "ac": [
+        "AC-FR-13-04"
+      ],
+      "old": "V13; BI-25",
+      "condition": "同store通常再起動/意図commit前後中断/結果応答欠落/端末commit前後/新store+残存Keychain/接続先不一致/bearerのみ",
+      "action": "同意図exact照会と新登録を分け、保護領域と世代を照合",
+      "expected": "重複初回登録なし、登録不明は媒体保留、新storeへ旧資格を無断採用しない",
+      "evidence": "storeUUID/intent/登録世代/Keychain束縛/exact結果/再open",
+      "dependency": "S22C、Q01",
+      "availability": "登録disk/Keychain/HTTP6件確認済。実端末交換/保護・許可操作は未実施"
+    },
+    {
+      "dv": "DV-15",
+      "case": "c02",
+      "ac": [
+        "AC-FR-13-04"
+      ],
+      "old": "V13; BI-25/26",
+      "condition": "新登録、旧有効確認/旧応答不能必要ACK、対象動画/独立別動画",
+      "action": "新登録へ状態取得→通常一覧/取得/再生→整理対象だけ本人再確認",
+      "expected": "旧確認を自動復元せず、全履歴再確認/一律原本再転送・再生成・写真再保存を要求しない",
+      "evidence": "登録世代/旧確認/required ACK/利用可能版/新確認/別動画状態",
+      "dependency": "S22C/S27/S28、Q01",
+      "availability": "S25とS27の技術証拠を参照。正式変換proofと通常軽量版/本人確認UI・再登録接続不足（S28既存登録metadata/UIのみ部分接続）、fixtureを製品受入にしない"
+    },
+    {
+      "dv": "DV-16",
+      "case": "c01",
+      "ac": [
+        "AC-FR-15-01",
+        "AC-FR-15-04"
+      ],
+      "old": "V05/V15; BI-30; DI-09",
+      "condition": "Wi-Fi本人開始、完全同一媒体/部分buffer/別版/範囲不足、取得中回線離脱/完全取得後offline",
+      "action": "同じ写真用映像を完全取得/使用権で渡しPhotosへ。部分/不一致は拒否。成功対象を写真で映像・音声・日時まで実再生する",
+      "expected": "取得完了≠Photos済。取得はWi-Fi待機、正当に取得済みlocal登録にWi-Fi継続を要求しない",
+      "evidence": "媒体ID/範囲/hash/usage/SDK結果/Photos再生/日時/音声/tmp",
+      "dependency": "S25/S31/S34写真操作、当該A13/A14版、Q01",
+      "availability": "S31 SDK/永続/照合は技術確認済。新規保存producerとS34写真開始/複数UI未接続"
+    },
+    {
+      "dv": "DV-16",
+      "case": "c02",
+      "ac": [
+        "AC-FR-15-01",
+        "AC-FR-15-02",
+        "AC-NFR-02-03"
+      ],
+      "old": "V04/V15; DI-09/10",
+      "condition": "追加初回/許可/拒否/制限、撮影起動/本人写真保存/不明照合、readWrite拒否/限定/許可未発見/対応不明",
+      "action": "保存時add-only、必要な照合時だけ対象/理由を示すreadWrite案内。撮影も操作",
+      "expected": "一律読取要求なし、拒否で無関係撮影を止めず、未発見/限定を未保存の証明にせず要照合",
+      "evidence": "権限/用途/意図/identifier/存在観測/理由/撮影UI",
+      "dependency": "S31/S34該当権限UI、Q01",
+      "availability": "理由付き照合UI/許可拒否SDK確認済。通常新規保存UI未接続"
+    },
+    {
+      "dv": "DV-16",
+      "case": "c03",
+      "ac": [
+        "AC-FR-15-02",
+        "AC-FR-15-03",
+        "AC-NFR-02-02",
+        "AC-NFR-02-03"
+      ],
+      "old": "V04/V15; DI-10",
+      "condition": "連打/本人retry/SDK未開始/SDK成功・失敗・unknown、登録直後/管理commit前後中断、写真側本人削除",
+      "action": "同版intent/結果/identifierを再open照合し必要時のみ理由付き照会",
+      "expected": "無条件再追加/写真自動復活なし、過去成功と現在存在別。不明copy/証拠を捨てず他写真削除なし。失敗一時copyの回収方式/容量上限/期限は未合意・未実装を明記し、無制限保持を採用済みにしない",
+      "evidence": "exact intent/terminal/FD閉鎖/usage/result/存在観測/実Photos件数",
+      "dependency": "S31/S34写真操作、Q01と当該写真側操作許可",
+      "availability": "S31 SDK/永続/照合は技術確認済。新規保存producerとS34写真開始/複数UI未接続"
+    },
+    {
+      "dv": "DV-16",
+      "case": "c04",
+      "ac": [
+        "AC-FR-15-01",
+        "AC-FR-15-05",
+        "AC-FR-10-01"
+      ],
+      "old": "V01/V14/V15; BI-30/33",
+      "condition": "複数開始固定集合、一部取得/登録失敗・unknown・未処理/既保存/結果不明、整理前/後",
+      "action": "順次取得・登録し動画別結果を再open、不要copyと他usageを照合",
+      "expected": "全件成功表示なし、既保存/不明へ無条件再追加なし。最後の使用者実終端/成功後だけ不要copy回収、整理順序非強制",
+      "evidence": "集合/動画別取得・登録・tmp/全usage/画面、同一映像・日時・音声",
+      "dependency": "S31/S34複数写真UIとproducer、Q01",
+      "availability": "S31 SDK/永続/照合は技術確認済。新規保存producerとS34写真開始/複数UI未接続"
+    },
+    {
+      "dv": "DV-17",
+      "case": "c01.01",
+      "ac": [
+        "AC-FR-14-01",
+        "AC-FR-14-03",
+        "AC-FR-14-05",
+        "AC-FR-10-03"
+      ],
+      "old": "V15; BI-27; DI-06",
+      "condition": "同一原本の有効保存検証+同一Rec709確認、Photosなし/backupなし、online/offline/Mac不通",
+      "action": "本人単数/複数整理、各unlink直前に証拠とreaderを再判定、再open照合",
+      "expected": "本人前は非削除、再接続/再生/Photos/高品質版非強制。実file不在+result一致後も通常一覧/独立状態を保持",
+      "evidence": "元identity/完全証拠/意図/全reader終端/直前guard/unlink/result/一覧",
+      "dependency": "S32/S34整理UI、当該A12/A14有効run、Q01",
+      "availability": "S32/S33実I/OとS34単数破棄UIは確認済。通常整理・複数UIは未接続。歴史的確定終端の単件破棄だけ追加接続、活動中/未知source/同operation複数attemptは保留"
+    },
+    {
+      "dv": "DV-17",
+      "case": "c02.01",
+      "ac": [
+        "AC-FR-17-01",
+        "AC-FR-17-02",
+        "AC-FR-17-03",
+        "AC-FR-17-04",
+        "AC-FR-17-05",
+        "AC-FR-10-01"
+      ],
+      "old": "V15; BI-28; DI-07",
+      "condition": "未転送/未検証/未確認/失効/部分/unknown対象、警告取消/別対象/リスク変化/明示単数指示",
+      "action": "対象と原本消失リスクを確認し一本ずつ破棄。Mac/Photosは前後保全",
+      "expected": "明示なし/一括/整理不適格から自動破棄なし。選択iPhone原本だけunlink、保存検証/確認は昇格せず成功だけ履歴、履歴は記録で非ゴミ箱",
+      "evidence": "本人操作/対象リスク/実file・batch result/履歴/外部sentinel/独立状態",
+      "dependency": "S33/S34単数破棄部分引渡し、当該保存対応、Q01",
+      "availability": "通常単数UI/実unlink/再openの合成fixtureと、確定履歴の実SDK終端→通常modelの明示リスク確認→実unlink/再openを確認。実原本と未知transportは未受入"
+    },
+    {
+      "dv": "DV-17",
+      "case": "c03.01",
+      "ac": [
+        "AC-FR-14-02",
+        "AC-FR-14-07"
+      ],
+      "old": "V02/V15; BI-27",
+      "condition": "online/offline×記録/対応=不明/欠落/失敗/失効/別内容/原本不在/未変換Log確認/旧候補だけ/再生だけ",
+      "action": "各枝で整理要求、正常G2Bや有効確認を拒否枝の前提にしない",
+      "expected": "全枝非削除・破棄へ非移行、証拠昇格なし。理由と要照合を保持",
+      "evidence": "準備根拠/identity/拒否/前後file・DB/画面",
+      "dependency": "S32/S34整理操作、Q01",
+      "availability": "S32/S33実I/OとS34単数破棄UIは確認済。通常整理・複数UIは未接続。歴史的確定終端の単件破棄だけ追加接続、活動中/未知source/同operation複数attemptは保留"
+    },
+    {
+      "dv": "DV-17",
+      "case": "c04.01",
+      "ac": [
+        "AC-FR-14-04"
+      ],
+      "old": "V15; BI-27",
+      "condition": "最後の有効証拠後offline、端末未取得のMac試験原本消失",
+      "action": "別明示許可した隔離先試験原本だけ外部消失→端末手動整理",
+      "expected": "最後の有効記録で許容、現在Mac存在を保証せず接続/再生/Photos非強制。外部消失≠連動削除",
+      "evidence": "外部操作許可/最後の取得時点/未取得証拠/表示/ローカルunlink照合",
+      "dependency": "S32/S34整理UI、当該A12/A14有効run、Q01と外部対象別許可",
+      "availability": "S32/S33実I/OとS34単数破棄UIは確認済。通常整理・複数UIは未接続。歴史的確定終端の単件破棄だけ追加接続、活動中/未知source/同operation複数attemptは保留"
+    },
+    {
+      "dv": "DV-17",
+      "case": "c05.01",
+      "ac": [
+        "AC-FR-14-07",
+        "AC-FR-10-01"
+      ],
+      "old": "V01/V14/V15; DI-06",
+      "condition": "適格/不適格混合固定集合、一部失敗/unknown/未処理、各対象直前失効/世代変化",
+      "action": "複数整理開始後に条件変化/中断を与え再open",
+      "expected": "毎本直前再判定、不適格は非削除/破棄非移行。動画別成否/必要照合、未実行自動削除なし",
+      "evidence": "固定集合/動画別guard・証拠/実file/結果/通常一覧/再open",
+      "dependency": "S32/S34複数整理UI、適格枝のみ当該A12/A14run、Q01",
+      "availability": "S32/S33実I/OとS34単数破棄UIは確認済。通常整理・複数UIは未接続。歴史的確定終端の単件破棄だけ追加接続、活動中/未知source/同operation複数attemptは保留"
+    },
+    {
+      "dv": "DV-17",
+      "case": "c06",
+      "ac": [
+        "AC-FR-14-06",
+        "AC-FR-17-06",
+        "AC-NFR-02-04"
+      ],
+      "old": "V04/V15; DI-08",
+      "condition": "整理/破棄×intent commit前/後・実unlink前/後・result commit前/後×失敗/中断/再open/応答喪失/アクセス不能",
+      "action": "境界actual到達を記録し再起動、照合だけを実施",
+      "expected": "実file/記録で削除済/未削除/要照合を分類。受付だけ成功化せず未実行unlink再試行なし、未知は通常導線で要照合",
+      "evidence": "batch/子intent/内容・dir/leaf identity/actual syscall/FD close/result/画面",
+      "dependency": "S32/S33/S34当該操作、Q01",
+      "availability": "S32/S33実I/OとS34単数破棄UIは確認済。通常整理・複数UIは未接続。歴史的確定終端の単件破棄だけ追加接続、活動中/未知source/同operation複数attemptは保留"
+    },
+    {
+      "dv": "DV-17",
+      "case": "c07",
+      "ac": [
+        "AC-FR-14-05",
+        "AC-FR-14-06",
+        "AC-FR-17-03",
+        "AC-FR-17-05",
+        "AC-FR-17-06"
+      ],
+      "old": "V02/V15; BI-28",
+      "condition": "転送/再生/検査/Photos等の複数reader、停止受付/SDK実終端/FD閉鎖/lease実解放の各遅延、未知旧owner",
+      "action": "各目的の削除を要求し資源を一つずつ終了、別内容差替/新reader取得も試す",
+      "expected": "全実解放前は非削除。不明旧ownerを空辞書で消さず、対象/同writer最終guardを通る時だけunlink",
+      "evidence": "reader全表/SDK/FD/lease/epoch/reservation/hash/対象限定実unlink/外部保全",
+      "dependency": "S13/S23/S25/S31終端の当該接続、S32/S33/S34、Q01",
+      "availability": "S32/S33実I/OとS34単数破棄UIは確認済。通常整理・複数UIは未接続。歴史的確定終端の単件破棄だけ追加接続、活動中/未知source/同operation複数attemptは保留。未知readerは拒否側だけ実施可能。E-S34-BG01は本物のsuspended1task終了から通常model破棄の技術証拠で、全owner/active停止の受入ではない"
+    },
+    {
+      "dv": "DV-17",
+      "case": "c08",
+      "ac": [
+        "AC-FR-14-02",
+        "AC-FR-14-06",
+        "AC-FR-13-04",
+        "AC-NFR-02-04"
+      ],
+      "old": "V12/V15; BI-29",
+      "condition": "同一原本で失効commit先行/削除最終予約先行、両目的、各commit/unlink前後再起動",
+      "action": "失効と整理/破棄を両順序で競合しACKまで照合",
+      "expected": "失効先行は整理不可（破棄は別明示規則）。削除確定区間先行は結果照合まで失効ACK待機、旧確認非復活",
+      "evidence": "同writer順序/予約/intent/unlink/result/tombstone/ACK/再open",
+      "dependency": "S27該当失効とS32/S33/S34当該操作、Q01",
+      "availability": "S32/S33実I/OとS34単数破棄UIは確認済。通常整理・複数UIは未接続。歴史的確定終端の単件破棄だけ追加接続、活動中/未知source/同operation複数attemptは保留。正式製品の失効結合は未接続"
+    },
+    {
+      "dv": "DV-18",
+      "case": "c01",
+      "ac": [
+        "AC-NFR-04-01"
+      ],
+      "old": "V16; BI-31",
+      "condition": "旧MediaVault原本の変換/preview、新規FrameRelay原本の転送、許可対象/対象外",
+      "action": "匿名対象/経路/許可/前後保全を対応させ対象だけ操作",
+      "expected": "旧写真原本削除/汎用移行/無断上書きなし。旧実データを未許可接続で保持確認しない",
+      "evidence": "対象別許可/前後hash/両repo差分/媒体・管理記録/実施範囲",
+      "dependency": "N00/S20/H01/Q01、実転送のみ該当A12",
+      "availability": "隔離snapshot保全は確認済。実旧媒体は未操作、対象束縛後の許可範囲だけ可"
+    },
+    {
+      "dv": "DV-18",
+      "case": "c02",
+      "ac": [
+        "AC-NFR-04-02"
+      ],
+      "old": "V16; BI-31/34; CF-11",
+      "condition": "リリース前試験データ整理、対象/方法/影響未合意→具体提示→対象別明示合意後",
+      "action": "消す/残す対象と復旧保全を提示し、合意後だけ整理結果を記録",
+      "expected": "この要求だけで旧実原本/本番相当記録を削除しない。未許可は未実施、deploy/本番DB移行へ派生なし",
+      "evidence": "対象・破壊操作別許可/保全/実行結果/未処理",
+      "dependency": "N00/H01/Q01/H02の当該範囲",
+      "availability": "整理操作は未実施。具体対象・方法と別許可が必要、H01準備だけで実施済みにしない"
+    },
+    {
+      "dv": "DV-18",
+      "case": "c03",
+      "ac": [
+        "AC-NFR-03-01",
+        "AC-NFR-03-02"
+      ],
+      "old": "C18/C19/V16; CF-10/11; BI-33/34",
+      "condition": "全失敗/不一致/証拠不足/原因未確認、全21要求79AC・CF11・BI34・DI18",
+      "action": "各runから原本・store・ログを辿り一要因比較/反証と影響AC/代案/次調査を記録",
+      "expected": "非対応/実装問題/原因不明を分離、一度失敗や機種名で断定せず、工程/実装/自動/実機/PRD/初期版を別判定",
+      "evidence": "実装版/条件版/全ACの部分証拠・残件・再試験/品質合意/判定",
+      "dependency": "H01/H02、該当本体修正とQ01",
+      "availability": "机上追跡は今実施可。全実機D0/R未評価、H02・M07–10は未完"
+    },
+    {
+      "dv": "DV-12",
+      "case": "c01.08",
+      "ac": [
+        "AC-FR-11-03",
+        "AC-FR-11-04",
+        "AC-FR-16-03",
+        "AC-NFR-02-01",
+        "AC-NFR-02-02"
+      ],
+      "old": "V04; BI-05/10/11/33",
+      "condition": "端末request/batch意図・本人停止・証拠・確認/失効outbox commit各前/後、送達前/後×応答欠落/再open/未知schema/破損/保護/容量相当/世代競合",
+      "action": "元mutation・固定集合・本人意思・outbox/exact結果を再openして照合。確認/失効の詳細はDV14、PhotosはDV16へ対応",
+      "expected": "未記録の本人actionを生成せずunknownを未実行にしない。停止意思/未確定証拠を維持、別登録へ付替・一律再送なし。HTTP受付だけでoutboxを退役しない",
+      "evidence": "各commit/送達の実到達、元payload/lookup/再open/保全/動画別状態",
+      "dependency": "S21/S22C/S23/S24I/S27/S28の該当永続操作、Q01",
+      "availability": "S23/S49は独立基盤のみ。通常strict通信・全媒体接続不足により製品実通信は不可"
+    },
+    {
+      "dv": "DV-18",
+      "case": "c04",
+      "ac": [
+        "AC-FR-10-01",
+        "AC-FR-10-02",
+        "AC-NFR-02-03"
+      ],
+      "old": "C01/C19/U05/V14; BI-33",
+      "condition": "実装済の撮影待機/開始/録画/保存/音声障害・復旧/設定/一覧通常・要照合・原本なし/詳細/履歴/原本・軽量player/登録/媒体操作結果×通常/最大文字×縦/横、読み上げとREC連打",
+      "action": "各実装状態の色以外の名称/値/理由/次操作を読み上げ、文字拡大/縦横/連打後も対象と結果を照合。未接続画面は未実施として残す",
+      "expected": "全文/操作到達/44pt等の既存規則と入力排他を確認し、受付/一部成功を確定・全件成功にしない。strict監査失敗を無視せずP2残件を区別",
+      "evidence": "画面/AX tree/読み上げ・文字/向き/二重command/永続証拠、strict監査結果・版",
+      "dependency": "当該画面S14/S16/S28/S34/S41–S49部分引渡し、Q01",
+      "availability": "通常UI/全文VoiceOverの部分成功あり。最新strict監査4失敗を保持、未接続画面は不可"
+    },
+    {
+      "dv": "DV-13",
+      "case": "c04",
+      "ac": [
+        "AC-FR-12-01"
+      ],
+      "old": "V03/V10; BI-03/16",
+      "condition": "保存証拠なし/unknown/失敗/旧file_verifiedだけ/別原本・登録・session対応",
+      "action": "各不適格証拠で変換job開始を要求し、原本/公開版/確認を照合",
+      "expected": "自動変換やverifiedへ進まない。LUT取得や正常G2B全体を拒否枝の前提にしない",
+      "evidence": "証拠payload/対象対応/拒否/job未開始/旧公開版保持",
+      "dependency": "S24/S26Jの保存証拠入口、Q01",
+      "availability": "入口拒否とjob技術試験済。実端末/隔離実行は当該条件束縛後、S26資材不要"
+    },
+    {
+      "dv": "DV-16",
+      "case": "c05",
+      "ac": [
+        "AC-FR-15-01",
+        "AC-FR-15-02"
+      ],
+      "old": "V15; BI-30",
+      "condition": "既知失敗+全usage実終端の不要copy/unknown照合に必要なcopy/他owner使用中/成功済",
+      "action": "回収候補と保持理由を分け、許可した使い捨て媒体だけで回収producerの実結果を照合",
+      "expected": "unknown証拠/他usageを捨てず、既知失敗payloadを無制限残留させない。方針未成立なら未達、TTL/容量値を新設しない",
+      "evidence": "結果分類/terminal/usage全件/copy前後/回収意図結果/保持理由",
+      "dependency": "S31/S34の回収producerと合意方針、Q01",
+      "availability": "成功限定回収は実装済。失敗copy回収・容量/期限policy未合意/未実装の該当枝は不可"
+    }
+  ],
+  "note": "main draft only; pending H01 task, no device execution or source binding yet"
+}

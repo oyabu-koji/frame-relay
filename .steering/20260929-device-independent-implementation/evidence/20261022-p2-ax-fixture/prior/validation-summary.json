@@ -1,0 +1,256 @@
+{
+  "created_UTC": "2026-10-21T23:51:21.823372+00:00",
+  "workflow": "$validate-implementation .steering/20260929-device-independent-implementation/",
+  "conclusion": "要修正",
+  "agents": [
+    "implementation_validator",
+    "doc_reviewer"
+  ],
+  "read_only_scope": "コード・設定・docs・steering・既存証跡は変更なし。検証出力は新規tmpのみ。既存Simulatorへの再seedなし。",
+  "environment": {
+    "project": "FrameRelay.xcodeproj",
+    "scheme": "FrameRelay",
+    "test_plan": "FrameRelay",
+    "configuration": "Debug",
+    "Xcode": "27.0 (27A266a)",
+    "Swift_compiler": "6.4",
+    "Swift_language_mode": "5.0",
+    "minimum_iOS": "27.0",
+    "test_targets": [
+      "FrameRelayTests",
+      "FrameRelayUITests"
+    ],
+    "destinations": {
+      "Unit_and_failed_fresh_seed": "14EE25EC-8B59-4CF8-93A3-8B901E78FC5C",
+      "UI_and_post_verify": "DDD99DE3-20A7-4A18-B766-F9ECE5EB8F97",
+      "unsigned_build": "generic/platform=iOS"
+    }
+  },
+  "source_binding": {
+    "bound_inputs": 389,
+    "mismatches": []
+  },
+  "findings": [
+    {
+      "severity": "P2",
+      "title": "厳格アクセシビリティ監査4件が現288入力でも失敗",
+      "locations": [
+        {
+          "path": "FrameRelay/Features/Library/LibraryView.swift",
+          "lines": [
+            61,
+            62
+          ]
+        },
+        {
+          "path": "FrameRelay/Features/Library/LibraryView.swift",
+          "lines": [
+            139,
+            147
+          ]
+        },
+        {
+          "path": "FrameRelay/Features/Library/LibraryView.swift",
+          "lines": [
+            357,
+            367
+          ]
+        },
+        {
+          "path": "FrameRelayUITests/Flows/LibraryFlowTests.swift",
+          "lines": [
+            578,
+            605
+          ]
+        }
+      ],
+      "reproduction": "新規iPhone 18 Pro / iOS 27 Simulator、light/large、既存CFの合成fixtureを読取コピーし、ui-strict-01-command.jsonで旧18件対象を現288入力に対して実行。監査全issueを未処理の失敗として保持。",
+      "failures": [
+        {
+          "failureText": "Contrast failed",
+          "targetName": "FrameRelayUITests",
+          "testIdentifier": 3,
+          "testIdentifierString": "LibraryFlowTests/testAccessibilityDetailActionsContrastOnly()",
+          "testIdentifierURL": "test://com.apple.xcode/FrameRelay/FrameRelayUITests/LibraryFlowTests/testAccessibilityDetailActionsContrastOnly",
+          "testName": "testAccessibilityDetailActionsContrastOnly()"
+        },
+        {
+          "failureText": "Text clipped",
+          "targetName": "FrameRelayUITests",
+          "testIdentifier": 4,
+          "testIdentifierString": "LibraryFlowTests/testAccessibilityFreshHistory()",
+          "testIdentifierURL": "test://com.apple.xcode/FrameRelay/FrameRelayUITests/LibraryFlowTests/testAccessibilityFreshHistory",
+          "testName": "testAccessibilityFreshHistory()"
+        },
+        {
+          "failureText": "Dynamic Type font sizes are partially unsupported",
+          "targetName": "FrameRelayUITests",
+          "testIdentifier": 5,
+          "testIdentifierString": "LibraryFlowTests/testAccessibilityHistoryAfterPlaybackHandoff()",
+          "testIdentifierURL": "test://com.apple.xcode/FrameRelay/FrameRelayUITests/LibraryFlowTests/testAccessibilityHistoryAfterPlaybackHandoff",
+          "testName": "testAccessibilityHistoryAfterPlaybackHandoff()"
+        },
+        {
+          "failureText": "Text clipped",
+          "targetName": "FrameRelayUITests",
+          "testIdentifier": 6,
+          "testIdentifierString": "LibraryFlowTests/testAccessibilityLibraryAndDetail()",
+          "testIdentifierURL": "test://com.apple.xcode/FrameRelay/FrameRelayUITests/LibraryFlowTests/testAccessibilityLibraryAndDetail",
+          "testName": "testAccessibilityLibraryAndDetail()"
+        }
+      ],
+      "impact": "必須V-UI未達。S14/S16のblocked維持が妥当。スクロール上端Contrastの画面可視性・原因の断定はしない。",
+      "evidence": [
+        "ui-strict-01-summary.json",
+        "ui-strict-01-issues.json",
+        "ui-strict-01-issue-index.json",
+        "ui-strict-01.xcresult"
+      ]
+    },
+    {
+      "severity": "P2",
+      "title": "新規Library UI fixtureが現行削除契約に適合せず作成失敗",
+      "locations": [
+        {
+          "path": "FrameRelayTests/Integration/Composition/ProductLibrarySeedTests.swift",
+          "lines": [
+            166,
+            169
+          ]
+        },
+        {
+          "path": "FrameRelay/Platform/LocalStore/OriginalStoreDocument.swift",
+          "lines": [
+            147,
+            154
+          ]
+        },
+        {
+          "path": "FrameRelay/Platform/LocalStore/RecordingStoreDocument.swift",
+          "lines": [
+            4,
+            16
+          ]
+        }
+      ],
+      "reproduction": "新規Simulatorの新規App rootで TEST_RUNNER_FR_LIBRARY_SEED=1、ProductLibrarySeedTests/seedNormalAppContainer() を実行。s16v2-cleanup Movie完成直後 .notCommitted。",
+      "cause": "helperはcleanup目的でもreserveRemovalを送り、非legacyの現行storeはineligibleOriginalとして拒否する。通常Unitではopt-in helperがskipされる。",
+      "impact": "新規環境でUI監査の前提を再構築できず、過去fixtureに依存。今回発見した現行不整合で、今回追加差分が導入した退行とは断定しない。",
+      "remedy": "製品guardを保持し、test専用fixtureを現行契約へ整合して新規root作成・UI・再open照合を確認する。",
+      "evidence": [
+        "new-library-seed-01-command.json",
+        "new-library-seed-01-summary.json",
+        "new-library-seed-01.log",
+        "new-library-seed-01.xcresult"
+      ]
+    }
+  ],
+  "current_reruns": {
+    "Unit": {
+      "label": "unit-01",
+      "source_count": 288,
+      "declarations": {
+        "totalTestCount": 589,
+        "passedTests": 560,
+        "failedTests": 0,
+        "skippedTests": 29
+      },
+      "expanded": {
+        "Passed": 913,
+        "Skipped": 29
+      },
+      "empty_templates": [
+        "FrameRelayTests/example()"
+      ],
+      "meaningful_passed_expanded": 912,
+      "build": {
+        "status": "succeeded",
+        "errorCount": 0,
+        "warningCount": 0,
+        "analyzerWarningCount": 0
+      }
+    },
+    "UI_including_strict": {
+      "totalTestCount": 18,
+      "passedTests": 14,
+      "failedTests": 4,
+      "skippedTests": 0
+    },
+    "fresh_fixture_creation": {
+      "totalTestCount": 2,
+      "passedTests": 0,
+      "failedTests": 1,
+      "skippedTests": 1
+    },
+    "post_UI_fixture_identity_and_readers": {
+      "totalTestCount": 2,
+      "passedTests": 1,
+      "failedTests": 0,
+      "skippedTests": 1
+    },
+    "generic_unsigned_iOS_build": {
+      "status": "succeeded",
+      "errorCount": 0,
+      "warningCount": 0,
+      "analyzerWarningCount": 0
+    }
+  },
+  "UI_fixture_limit": "fresh helper失敗を保持したまま、別新規SimulatorへCFの既存合成fixtureをbyteコピーした。コピー元15ファイルは前後hash一致。最新UI成功部分はfresh seed成功の証拠ではない。",
+  "prior_evidence_not_rerun": {
+    "limited_SDK": "288入力1成功。permit/Mac観測注入あり、通常strict通信開始・resumeや全媒体完成を証明しない。",
+    "metadata_HTTP": "288入力1成功。今回実HTTP再実行なし。",
+    "registered_metadata_UI": "過去288入力1成功。今回専用S28 fixture試験は対象外。",
+    "publication_HTTP": "279入力の過去証跡。現288入力の再実行ではない。",
+    "prior_strict_UI": "260入力の14成功4失敗。今回の現288入力18件結果と分離。"
+  },
+  "task_and_document_consistency": {
+    "S32_S33": "削除基盤のdoneとして整合。製品全動線/実機合格を含まない。",
+    "S26A": "資材調査doneのみ。正式資材取得・変換・品質採用を含まない。",
+    "M02_M06": "文書同期のdoneとして整合。",
+    "S23_S27_S28_S34_S49": "部分実装とblocked/再開条件の区別は整合。",
+    "H01": "引渡し準備done。18実機票pending、全79AC D0、PRD未評価。",
+    "documentation_checks": {
+      "local_links_checked": 212,
+      "missing_links": 0,
+      "PRD_AC_rows": 79,
+      "DV_tickets": 18,
+      "mother_rows": 76,
+      "new_document_findings": 0
+    }
+  },
+  "remaining": [
+    "AX監査失敗と新規fixture不整合の修正",
+    "通常strict通信開始/resume・全媒体/Photos/複数操作の接続",
+    "標準変換資材・正式proof・品質採用",
+    "S47 ISO判断",
+    "Q01実機条件束縛・実機試験・品質評価・PRD受入",
+    "M07〜M10の別途明示Workflow"
+  ],
+  "preservation": {
+    "baseline_files": 15851,
+    "changed_or_missing_files": [],
+    "new_repository_files": [],
+    "git_status_unchanged": true,
+    "tracked_diff_unchanged": true,
+    "staged_diff_unchanged": true,
+    "HEAD_unchanged": true,
+    "CF_protected_files": 15,
+    "CF_changed_files": [],
+    "preexisting_simulator_state_changes": [],
+    "new_simulators": [
+      {
+        "udid": "DDD99DE3-20A7-4A18-B766-F9ECE5EB8F97",
+        "name": "FrameRelay AX Validation 20261022 lh5wn0r",
+        "state": "Shutdown"
+      },
+      {
+        "udid": "14EE25EC-8B59-4CF8-93A3-8B901E78FC5C",
+        "name": "FrameRelay Validation 20261022 lh5wn0r",
+        "state": "Shutdown"
+      }
+    ],
+    "git_diff_check_exit": 0,
+    "git_diff_check_output": ""
+  },
+  "next_workflow": "$implement-steering .steering/20260929-device-independent-implementation/"
+}

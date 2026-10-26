@@ -1,0 +1,114 @@
+import Foundation
+
+/// All read contracts belong to the same writer. No Library database or recovery writes.
+actor LibraryStoreReader: LibraryReadPort {
+    private let store: any RecordingStorePort & OriginalStorePort & MediaOperationStorePort
+    private let files: any RecordingOriginalFilePort
+
+    init(store: any RecordingStorePort & OriginalStorePort & MediaOperationStorePort,
+         files: any RecordingOriginalFilePort) {
+        self.store = store
+        self.files = files
+    }
+
+    func loadLibrary() async -> LibraryLoadResult {
+        // Bound retries prevent a busy capture writer from indefinitely blocking the UI.
+        for _ in 0..<3 {
+            let recordings = await store.loadRecordings()
+            guard case .loaded(let saved) = recordings else { return .unavailable(failure(recordings)) }
+            let originalResult = await store.loadOriginalState()
+            guard case .succeeded(let originals) = originalResult else {
+                switch originalResult {
+                case .failed(.unknownSchema): return .unavailable(.unknownSchema)
+                case .failed(.corruptStore): return .unavailable(.corruptStore)
+                case .failed(.contentMismatch): return .unavailable(.identityMismatch)
+                default: return .unavailable(.inaccessible)
+                }
+            }
+            guard saved.revision == originals.revision else { continue }
+            let backendResult = await store.load()
+            guard case .loaded(let backend) = backendResult else {
+                switch backendResult {
+                case .unavailable(.unknownSchema): return .unavailable(.unknownSchema)
+                case .unavailable(.corruptStore): return .unavailable(.corruptStore)
+                case .unavailable(.contentMismatch): return .unavailable(.identityMismatch)
+                default: return .unavailable(.inaccessible)
+                }
+            }
+            guard backend.revision == saved.revision else { continue }
+            guard Set(saved.recordings.map { $0.intent.context.capture }).count == saved.recordings.count,
+                  Set(originals.originals.map { $0.binding.original.capture }).count == originals.originals.count else {
+                return .unavailable(.identityMismatch)
+            }
+            var items: [LibraryItem] = []
+            for recording in saved.recordings {
+                let state = originals.originals.first { $0.binding.original.capture == recording.intent.context.capture }
+                let file = await files.observeFile(recording.intent.original)
+                let photos = backend.photoRegistrations.filter {
+                    $0.registration.intent.key.capture == recording.intent.context.capture
+                }
+                var item = LibraryProjection.item(recording, file: file, state: state, photoRegistrations: photos, backend: backend)
+                let operations = originals.removalBatches.flatMap { batch in
+                    batch.targets.filter { $0.target.original.capture == item.id }.map { row in
+                        LibraryRemovalOperation(batch: batch.batch.operation, purpose: batch.batch.purpose,
+                            target: row.target, status: row.status, failure: row.failure)
+                    }
+                }
+                item.removalOperations = operations
+                item.operationResults = operations.map { operation in
+                    let outcome: LibraryRecordedOutcome
+                    switch operation.status {
+                    case .unprocessed: outcome = .notProcessed
+                    case .reserved: outcome = .unknown
+                    case .notExecuted(let reason):
+                        outcome = .failed(reason == .terminationUnconfirmed ? "原本の使用終了を確認できないため、削除していません。" : "前回は削除を実行していません。")
+                    case .resolved(let resolution):
+                        let latest = state?.resolvedRemoval?.operation == operation.id
+                        let expected: LibraryRemoval = resolution == .removed ? .removed(operation.purpose) : .notRemoved(operation.purpose)
+                        if latest && item.removal != expected { outcome = .unknown }
+                        else { outcome = resolution == .removed ? .succeeded : .failed("原本は削除していません。") }
+                    }
+                    return .init(id: operation.batch, action: operation.action, outcome: outcome)
+                }
+                if state?.removal != nil { item.removalUnavailableReason = "前の削除結果を照合してください。" }
+                else if state?.invalidation != nil { item.removalUnavailableReason = "確認の失効を照合中です。完了後に操作してください。" }
+                else if let original = item.original,
+                        !OriginalRemovalTransportHistory.neverStarted(original, backend: backend),
+                        OriginalRemovalTransportHistory.stoppedTasks(original, backend: backend) == nil {
+                    item.removalUnavailableReason = "以前の通信の終了を確認できません。原本を保持しています。"
+                }
+                let bytes = item.original?.content.byteCount ?? recording.result?.file.byteCount
+                let size = bytes.map { ByteCountFormatter.string(fromByteCount: Int64(clamping: $0), countStyle: .file) } ?? "不明"
+                let verification = item.original.flatMap { original in
+                    backend.verifications.last(where: { $0.expected.target == .original(original) })
+                }
+                let valid = verification.flatMap { proof -> StoredVerificationEvidence? in
+                    guard let original = item.original, proof.isCommitted,
+                          let registration = backend.registrations.last(where: {
+                              $0.server.registration.destination == proof.expected.registration.destination
+                          }), registration.isCommitted, registration.server.registration == proof.expected.registration,
+                          proof.evidence.verifies(original, destination: proof.expected.registration.destination,
+                            supportedSchemas: ["fr-final-read-v1"]) else { return nil }
+                    return proof
+                }
+                let verifiedAt = valid.map { $0.evidence.observedAt.formatted(date: .abbreviated, time: .standard) } ?? "記録なし"
+                item.removalReviewInformation = "対象：\(item.title)。\(item.captureDateDescription)。原本のサイズ：\(size)。最後の有効な保存検証：\(verifiedAt)。"
+                items.append(item)
+            }
+            // A deletion or capture commit during the file scan invalidates this mixed snapshot.
+            let after = await store.loadRecordings()
+            guard case .loaded(let latest) = after else { return .unavailable(failure(after)) }
+            guard latest.revision == saved.revision else { continue }
+            return .loaded(.init(revision: saved.revision, items: items.sorted { $0.id.rawValue < $1.id.rawValue }))
+        }
+        return .unavailable(.changing)
+    }
+
+    private func failure(_ result: RecordingStoreLoadResult) -> LibraryReadFailure {
+        switch result {
+        case .unrecognizedSchema: .unknownSchema
+        case .corruptStore: .corruptStore
+        default: .inaccessible
+        }
+    }
+}

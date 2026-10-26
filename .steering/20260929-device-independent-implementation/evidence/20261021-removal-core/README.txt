@@ -1,0 +1,1 @@
+S32実装途中の証跡。s32-focused-01はcompiler error4/警告7とbuild取消1、test0件で失敗。成功へ含めない。以後の関連結果と版はtasklistへ追記する。raw xcresult/DerivedData/全開始copyは /private/tmp/fr-implement-20261021-j6xbqszu に保持。新規専用Simulatorだけの合成媒体を使用する。

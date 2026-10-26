@@ -1,0 +1,885 @@
+--- /dev/null
++++ b/backend/app/api/registrations.py
+@@ -0,0 +1,64 @@
++import re
++
++from fastapi import APIRouter, Depends, Header
++from fastapi.responses import JSONResponse
++
++from app.api.deps import require_bearer_token
++from app.repositories.registrations import RegistrationError
++from app.schemas.registrations import (
++    CanonicalID, RegistrationCapabilities, RegistrationReceipt, RegistrationRequest,
++)
++from app.services import registrations as service
++
++
++router = APIRouter(prefix="/frame-relay/v1", tags=["frame-relay-registration"],
++                   dependencies=[Depends(require_bearer_token)])
++
++
++def require_registration_secret(
++    value: str | None = Header(default=None, alias="X-FrameRelay-Registration-Secret"),
++) -> str:
++    # Manual validation keeps the credential out of reflected validation details.
++    if value is None or re.fullmatch(r"[0-9a-f]{64}", value) is None:
++        from fastapi import HTTPException
++        raise HTTPException(status_code=401, detail="Invalid registration credentials")
++    return value
++
++
++def _error(error: RegistrationError) -> JSONResponse:
++    code = error.code
++    status = {"destination_mismatch": 409, "registration_credentials_invalid": 403,
++              "registration_generation_exhausted": 409}.get(code, 503)
++    return JSONResponse(status_code=status, content={"code": code, "retryable": status == 503},
++                        headers={"Cache-Control": "no-store"})
++
++
++@router.get("/capabilities", response_model=RegistrationCapabilities)
++def capabilities():
++    try:
++        return JSONResponse(content=service.capabilities(), headers={"Cache-Control": "no-store"})
++    except RegistrationError as error:
++        return _error(error)
++
++
++@router.post("/registrations", response_model=RegistrationReceipt)
++def register(request: RegistrationRequest, secret: str = Depends(require_registration_secret)):
++    try:
++        receipt = service.register(**request.model_dump(), secret=secret)
++        return JSONResponse(content=receipt, headers={"Cache-Control": "no-store"})
++    except RegistrationError as error:
++        return _error(error)
++
++
++@router.get("/registration-intents/{operation_id}", response_model=RegistrationReceipt)
++def lookup(operation_id: CanonicalID, destination_id: CanonicalID,
++           secret: str = Depends(require_registration_secret)):
++    try:
++        receipt = service.lookup(destination_id=destination_id, operation_id=operation_id, secret=secret)
++        if receipt is None:
++            return JSONResponse(status_code=404, content={"code": "registration_not_executed",
++                "destination_id": destination_id, "operation_id": operation_id, "retryable": False},
++                headers={"Cache-Control": "no-store"})
++        return JSONResponse(content=receipt, headers={"Cache-Control": "no-store"})
++    except RegistrationError as error:
++        return _error(error)
+--- /dev/null
++++ b/backend/app/db/frame_relay_migrations.py
+@@ -0,0 +1,60 @@
++"""FrameRelay's separate ledger; never append versions to the legacy ledger."""
++import hashlib
++from pathlib import Path
++import sqlite3
++from uuid import uuid4
++
++
++SCHEMA = Path(__file__).parent / "frame_relay_schema/001_registrations.sql"
++VERSION = "001_registrations"
++
++
++class FrameRelaySchemaError(sqlite3.DatabaseError):
++    pass
++
++
++def validate_frame_relay_schema(conn: sqlite3.Connection) -> None:
++    digest = hashlib.sha256(SCHEMA.read_bytes()).hexdigest()
++    versions = [tuple(row) for row in conn.execute(
++        "SELECT version, sha256 FROM fr_schema_migrations ORDER BY version"
++    )]
++    if versions != [(VERSION, digest)]:
++        raise FrameRelaySchemaError("Unsupported FrameRelay schema identity")
++
++
++def run_frame_relay_migrations(conn: sqlite3.Connection) -> None:
++    if conn.in_transaction:
++        raise RuntimeError("FrameRelay migration requires its own transaction")
++    sql = SCHEMA.read_text(encoding="utf-8")
++    digest = hashlib.sha256(sql.encode("utf-8")).hexdigest()
++    try:
++        conn.execute("BEGIN IMMEDIATE")
++        conn.execute("""CREATE TABLE IF NOT EXISTS fr_schema_migrations (
++            version TEXT PRIMARY KEY, sha256 TEXT NOT NULL
++        )""")
++        versions = [tuple(row) for row in conn.execute(
++            "SELECT version, sha256 FROM fr_schema_migrations ORDER BY version"
++        )]
++        if versions and versions != [(VERSION, digest)]:
++            raise FrameRelaySchemaError("Unsupported FrameRelay schema identity")
++        if not versions:
++            # executescript would implicitly commit; execute complete statements
++            # individually so DDL, destination and ledger stay in one transaction.
++            statement = ""
++            for line in sql.splitlines(keepends=True):
++                statement += line
++                if sqlite3.complete_statement(statement):
++                    conn.execute(statement)
++                    statement = ""
++            if statement.strip():
++                raise RuntimeError("Incomplete FrameRelay migration")
++            conn.execute("INSERT INTO fr_destination (singleton, destination_id) VALUES (1, ?)",
++                         (str(uuid4()),))
++            conn.execute("INSERT INTO fr_schema_migrations (version, sha256) VALUES (?, ?)",
++                         (VERSION, digest))
++        if conn.execute("SELECT COUNT(*) FROM fr_destination WHERE singleton = 1").fetchone()[0] != 1:
++            raise FrameRelaySchemaError("FrameRelay destination missing; refusing replacement identity")
++        conn.commit()
++    except BaseException:
++        conn.rollback()
++        raise
+--- /dev/null
++++ b/backend/app/db/frame_relay_schema/001_registrations.sql
+@@ -0,0 +1,46 @@
++CREATE TABLE fr_destination (
++    singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
++    destination_id TEXT NOT NULL UNIQUE,
++    last_generation INTEGER NOT NULL DEFAULT 0
++        CHECK (typeof(last_generation) = 'integer' AND last_generation >= 0)
++);
++
++CREATE TABLE fr_registrations (
++    destination_id TEXT NOT NULL REFERENCES fr_destination(destination_id),
++    operation_id TEXT NOT NULL,
++    registration_id TEXT NOT NULL UNIQUE,
++    generation INTEGER NOT NULL
++        CHECK (typeof(generation) = 'integer' AND generation > 0),
++    secret_sha256 TEXT NOT NULL CHECK (length(secret_sha256) = 64),
++    created_at TEXT NOT NULL,
++    PRIMARY KEY (destination_id, operation_id),
++    UNIQUE (destination_id, generation)
++);
++
++CREATE TRIGGER fr_registration_no_update BEFORE UPDATE ON fr_registrations
++BEGIN
++    SELECT RAISE(ABORT, 'registration receipts are immutable');
++END;
++
++CREATE TRIGGER fr_registration_no_delete BEFORE DELETE ON fr_registrations
++BEGIN
++    SELECT RAISE(ABORT, 'registration receipts are retained');
++END;
++
++CREATE TRIGGER fr_destination_no_identity_change
++BEFORE UPDATE OF destination_id, singleton ON fr_destination
++BEGIN
++    SELECT RAISE(ABORT, 'destination identity is immutable');
++END;
++
++CREATE TRIGGER fr_destination_no_delete BEFORE DELETE ON fr_destination
++BEGIN
++    SELECT RAISE(ABORT, 'destination identity is retained');
++END;
++
++CREATE TRIGGER fr_generation_no_decrease
++BEFORE UPDATE OF last_generation ON fr_destination
++WHEN NEW.last_generation <= OLD.last_generation
++BEGIN
++    SELECT RAISE(ABORT, 'registration generation must increase');
++END;
+--- a/backend/app/main.py
++++ b/backend/app/main.py
+@@ -1,4 +1,4 @@
+-from contextlib import asynccontextmanager
++from contextlib import asynccontextmanager, closing
+ 
+ from fastapi import FastAPI, Request
+ from fastapi.exceptions import RequestValidationError
+@@ -9,10 +9,12 @@
+ from app.api.health import router as health_router
+ from app.api.presets import router as presets_router
+ from app.api.renditions import router as renditions_router
++from app.api.registrations import router as registrations_router
+ from app.api.upload_sessions import router as upload_sessions_router
+ from app.core.settings import load_settings
+ from app.db.connection import connect
+ from app.db.migrations import run_migrations
++from app.db.frame_relay_migrations import run_frame_relay_migrations
+ from app.services.processed_result_backfill import backfill_eligible_processed_results
+ from app.services.storage import initialize_storage
+ from app.services.initial_release_guard import (
+@@ -25,8 +27,9 @@
+     settings = load_settings()
+     assert_generated_apple_log_conversion_disabled(settings)
+     initialize_storage(settings.media_root)
+-    with connect(settings.database_path, settings.sqlite_busy_timeout_ms) as conn:
++    with closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms)) as conn:
+         run_migrations(conn)
++        run_frame_relay_migrations(conn)
+     backfill_eligible_processed_results(settings=settings)
+     yield
+ 
+@@ -49,3 +52,5 @@
+ app.include_router(capabilities_router)
+ app.include_router(presets_router)
+ app.include_router(renditions_router)
++
++app.include_router(registrations_router)
+--- /dev/null
++++ b/backend/app/repositories/registrations.py
+@@ -0,0 +1,133 @@
++"""Append-only receipts bound to one DB identity, intent and private credential."""
++from collections.abc import Callable
++from datetime import datetime, timezone
++import hashlib
++import hmac
++import re
++import sqlite3
++from uuid import uuid4
++
++from pydantic import ValidationError
++
++from app.db.frame_relay_migrations import validate_frame_relay_schema
++from app.schemas.registrations import RegistrationReceipt
++
++
++MAX_GENERATION = (1 << 63) - 1
++
++
++class RegistrationError(Exception):
++    def __init__(self, code: str):
++        self.code = code
++        super().__init__(code)
++
++
++def destination_identity(conn: sqlite3.Connection) -> str:
++    validate_frame_relay_schema(conn)
++    row = conn.execute("SELECT destination_id, last_generation FROM fr_destination WHERE singleton = 1").fetchone()
++    if row is None or type(row["last_generation"]) is not int or not 0 <= row["last_generation"] <= MAX_GENERATION:
++        raise RegistrationError("registration_unavailable")
++    if not isinstance(row["destination_id"], str) or re.fullmatch(
++        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", row["destination_id"]
++    ) is None:
++        raise RegistrationError("registration_unavailable")
++    return row["destination_id"]
++
++
++def _check_destination(conn: sqlite3.Connection, destination_id: str) -> None:
++    if destination_identity(conn) != destination_id:
++        raise RegistrationError("destination_mismatch")
++
++
++def _secret_digest(destination_id: str, operation_id: str, secret: str) -> str:
++    bound = "frame-relay-registration-v1\0" + destination_id + "\0" + operation_id + "\0" + secret
++    return hashlib.sha256(bound.encode("ascii")).hexdigest()
++
++
++def _authenticate(row: sqlite3.Row, secret: str) -> None:
++    _receipt(row)  # Reject damaged identity/timestamp before digest computation.
++    if type(row["secret_sha256"]) is not str or re.fullmatch(r"[0-9a-f]{64}", row["secret_sha256"]) is None:
++        raise RegistrationError("registration_unavailable")
++    expected = _secret_digest(row["destination_id"], row["operation_id"], secret)
++    if not hmac.compare_digest(row["secret_sha256"], expected):
++        raise RegistrationError("registration_credentials_invalid")
++
++
++def _receipt(row: sqlite3.Row) -> dict[str, str]:
++    if type(row["generation"]) is not int or not 1 <= row["generation"] <= MAX_GENERATION:
++        raise RegistrationError("registration_unavailable")
++    values = {key: row[key] for key in (
++        "destination_id", "operation_id", "registration_id", "generation", "created_at"
++    )}
++    values["generation"] = str(values["generation"])
++    try:
++        return RegistrationReceipt.model_validate(values).model_dump()
++    except ValidationError:
++        raise RegistrationError("registration_unavailable") from None
++
++
++def lookup_registration(conn: sqlite3.Connection, *, destination_id: str,
++                        operation_id: str, secret: str) -> dict[str, str] | None:
++    _check_destination(conn, destination_id)
++    row = conn.execute("SELECT * FROM fr_registrations WHERE destination_id = ? AND operation_id = ?",
++                       (destination_id, operation_id)).fetchone()
++    if row is None:
++        return None  # Only successful, correctly bound DB lookup proves absence.
++    _authenticate(row, secret)
++    return _receipt(row)
++
++
++def authenticate_registration(conn: sqlite3.Connection, *, destination_id: str,
++                              registration_id: str, generation: int, secret: str) -> dict[str, str]:
++    """Future consumers must check the exact registration/generation, never latest."""
++    if type(generation) is not int or not 1 <= generation <= MAX_GENERATION:
++        raise RegistrationError("registration_credentials_invalid")
++    _check_destination(conn, destination_id)
++    row = conn.execute("""SELECT * FROM fr_registrations
++        WHERE destination_id = ? AND registration_id = ? AND generation = ?""",
++        (destination_id, registration_id, generation)).fetchone()
++    if row is None:
++        raise RegistrationError("registration_credentials_invalid")
++    _authenticate(row, secret)
++    return _receipt(row)
++
++
++def register(conn: sqlite3.Connection, *, destination_id: str, operation_id: str,
++             secret: str, fault: Callable[[str], None] | None = None) -> dict[str, str]:
++    """Serialize allocations and atomically persist identity, digest and receipt.
++
++    fault is an in-process test seam, never configured by an HTTP request.
++    A post-commit exception is deliberately NOT evidence of nonexecution.
++    """
++    if conn.in_transaction:
++        raise RuntimeError("Registration requires its own transaction")
++    try:
++        conn.execute("BEGIN IMMEDIATE")
++        existing = lookup_registration(conn, destination_id=destination_id,
++                                       operation_id=operation_id, secret=secret)
++        if existing is not None:
++            conn.commit()
++            return existing
++        current = conn.execute("SELECT last_generation FROM fr_destination WHERE singleton = 1").fetchone()[0]
++        if current >= MAX_GENERATION:
++            raise RegistrationError("registration_generation_exhausted")
++        generation = current + 1
++        conn.execute("UPDATE fr_destination SET last_generation = ? WHERE singleton = 1", (generation,))
++        conn.execute("""INSERT INTO fr_registrations
++            (destination_id, operation_id, registration_id, generation, secret_sha256, created_at)
++            VALUES (?, ?, ?, ?, ?, ?)""",
++            (destination_id, operation_id, str(uuid4()), generation,
++             _secret_digest(destination_id, operation_id, secret),
++             datetime.now(timezone.utc).isoformat(timespec="microseconds")))
++        receipt = lookup_registration(conn, destination_id=destination_id,
++                                      operation_id=operation_id, secret=secret)
++        if fault is not None:
++            fault("before_commit")
++        conn.commit()
++    except BaseException:
++        conn.rollback()
++        raise
++    if fault is not None:
++        fault("after_commit")
++    assert receipt is not None
++    return receipt
+--- /dev/null
++++ b/backend/app/schemas/registrations.py
+@@ -0,0 +1,44 @@
++from datetime import datetime, timezone
++from typing import Annotated, Literal
++
++from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
++
++
++CanonicalID = Annotated[str, StringConstraints(
++    strict=True, pattern=r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
++    min_length=36, max_length=36,
++)]
++
++
++class RegistrationRequest(BaseModel):
++    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
++    destination_id: CanonicalID
++    operation_id: CanonicalID
++
++
++class RegistrationReceipt(RegistrationRequest):
++    registration_id: CanonicalID
++    generation: Annotated[str, StringConstraints(strict=True, pattern=r"^[1-9][0-9]{0,18}$")]
++    created_at: Annotated[str, StringConstraints(strict=True,
++        pattern=r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{6}\+00:00$")]
++
++    @field_validator("generation")
++    @classmethod
++    def generation_in_range(cls, value: str) -> str:
++        if int(value) > (1 << 63) - 1:
++            raise ValueError("Generation out of range")
++        return value
++
++    @field_validator("created_at")
++    @classmethod
++    def timestamp_is_utc(cls, value: str) -> str:
++        parsed = datetime.fromisoformat(value)
++        if parsed.tzinfo != timezone.utc or parsed.isoformat(timespec="microseconds") != value:
++            raise ValueError("Timestamp must be canonical UTC")
++        return value
++
++
++class RegistrationCapabilities(BaseModel):
++    protocol_version: Literal[1] = 1
++    destination_id: CanonicalID
++    capabilities: list[Literal["registration-intent-v1"]]
+--- /dev/null
++++ b/backend/app/services/registrations.py
+@@ -0,0 +1,32 @@
++from contextlib import closing
++import sqlite3
++
++from app.core.settings import load_settings
++from app.db.connection import connect
++from app.repositories import registrations as repository
++from app.repositories.registrations import RegistrationError
++
++
++def _with_connection(operation, **arguments):
++    settings = load_settings()
++    try:
++        with closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms)) as conn:
++            return operation(conn, **arguments)
++    except sqlite3.DatabaseError:
++        # DB failure is not proof that a registration did not execute.
++        raise RegistrationError("registration_unavailable") from None
++
++
++def capabilities():
++    return {"protocol_version": 1, "destination_id": _with_connection(repository.destination_identity),
++            "capabilities": ["registration-intent-v1"]}
++
++
++def register(*, destination_id: str, operation_id: str, secret: str):
++    return _with_connection(repository.register, destination_id=destination_id,
++                            operation_id=operation_id, secret=secret)
++
++
++def lookup(*, destination_id: str, operation_id: str, secret: str):
++    return _with_connection(repository.lookup_registration, destination_id=destination_id,
++                            operation_id=operation_id, secret=secret)
+--- /dev/null
++++ b/backend/tests/test_frame_relay_registrations.py
+@@ -0,0 +1,447 @@
++"""Synthetic registration identities; real disposable SQLite and ASGI requests."""
++from concurrent.futures import ThreadPoolExecutor
++from contextlib import closing
++import json
++import sqlite3
++from threading import Barrier
++from uuid import uuid4
++
++from fastapi.testclient import TestClient
++from pydantic import ValidationError
++import pytest
++
++from app.db.connection import connect
++from app.db import frame_relay_migrations as migrations
++from app.db.migrations import run_migrations
++from app.main import app
++from app.repositories import registrations as repository
++from app.repositories.assets import insert_asset
++from app.repositories.jobs import insert_job
++from app.schemas.registrations import RegistrationReceipt
++from app.services import registrations as service
++
++
++SECRET = "a" * 64
++OTHER_SECRET = "b" * 64
++PREFIX = "/frame-relay/v1"
++
++
++def _headers(secret=SECRET):
++    result = {"Authorization": "Bearer disposable-bootstrap"}
++    if secret is not None:
++        result["X-FrameRelay-Registration-Secret"] = secret
++    return result
++
++
++def _environment(monkeypatch, tmp_path):
++    path = tmp_path / "registration.sqlite3"
++    monkeypatch.setenv("DATABASE_PATH", str(path))
++    monkeypatch.setenv("MEDIA_ROOT", str(tmp_path / "media"))
++    monkeypatch.setenv("API_TOKEN", "disposable-bootstrap")
++    return path
++
++
++def _database(tmp_path):
++    path = tmp_path / "registration.sqlite3"
++    with closing(connect(path, 5000)) as conn:
++        run_migrations(conn)
++        migrations.run_frame_relay_migrations(conn)
++        destination = repository.destination_identity(conn)
++    return path, destination
++
++
++def _intent(destination):
++    return {"destination_id": destination, "operation_id": str(uuid4())}
++
++
++def _lookup(client, intent, headers=None):
++    return client.get(PREFIX + "/registration-intents/" + intent["operation_id"],
++                      params={"destination_id": intent["destination_id"]},
++                      headers=_headers() if headers is None else headers)
++
++
++def _capability(client):
++    response = client.get(PREFIX + "/capabilities", headers=_headers(None))
++    assert response.status_code == 200
++    assert response.headers["cache-control"] == "no-store"
++    assert response.json()["capabilities"] == ["registration-intent-v1"]
++    return response.json()
++
++
++def _legacy_snapshot(conn):
++    schema = [tuple(row) for row in conn.execute(
++        "SELECT type, name, tbl_name, sql FROM sqlite_master "
++        "WHERE name NOT LIKE 'fr_%' AND tbl_name NOT LIKE 'fr_%' ORDER BY name"
++    )]
++    tables = [row[1] for row in schema if row[0] == "table"]
++    rows = {name: [tuple(row) for row in conn.execute('SELECT * FROM "' + name + '" ORDER BY rowid')]
++            for name in tables}
++    return schema, rows
++
++
++def test_capabilities_identity_is_persistent_and_does_not_advertise_future_work(monkeypatch, tmp_path):
++    _environment(monkeypatch, tmp_path)
++    with TestClient(app) as client:
++        first = _capability(client)
++    with TestClient(app) as client:
++        assert _capability(client) == first
++    assert first["protocol_version"] == 1
++
++
++def test_api_replay_and_response_loss_recover_same_receipt_after_restart(monkeypatch, tmp_path):
++    path = _environment(monkeypatch, tmp_path)
++    with TestClient(app) as client:
++        intent = _intent(_capability(client)["destination_id"])
++        first = client.post(PREFIX + "/registrations", json=intent, headers=_headers())
++        assert first.status_code == 200
++        receipt = first.json()  # Simulate losing this response before client commit.
++    with TestClient(app) as client:
++        recovered = _lookup(client, intent)
++        replay = client.post(PREFIX + "/registrations", json=intent, headers=_headers())
++        assert recovered.status_code == replay.status_code == 200
++        assert recovered.json() == replay.json() == receipt
++    assert receipt["generation"] == "1"
++    with closing(connect(path, 5000)) as conn:
++        assert conn.execute("SELECT COUNT(*) FROM fr_registrations").fetchone()[0] == 1
++
++
++def test_api_all_routes_require_bootstrap_authentication(monkeypatch, tmp_path):
++    _environment(monkeypatch, tmp_path)
++    with TestClient(app) as client:
++        intent = _intent(_capability(client)["destination_id"])
++        for headers in ({}, {"Authorization": "Bearer wrong", "X-FrameRelay-Registration-Secret": SECRET}):
++            assert client.get(PREFIX + "/capabilities", headers=headers).status_code == 401
++            assert client.post(PREFIX + "/registrations", json=intent, headers=headers).status_code == 401
++            assert _lookup(client, intent, headers).status_code == 401
++
++
++def test_api_secret_required_and_never_reflected(monkeypatch, tmp_path, caplog):
++    path = _environment(monkeypatch, tmp_path)
++    with TestClient(app) as client:
++        intent = _intent(_capability(client)["destination_id"])
++        for secret in (None, "invalid-private-credential", "A" * 64, "a" * 63):
++            headers = _headers(secret)
++            for response in (client.post(PREFIX + "/registrations", json=intent, headers=headers),
++                             _lookup(client, intent, headers)):
++                assert response.status_code == 401
++                assert secret is None or secret not in response.text
++        valid = client.post(PREFIX + "/registrations", json=intent, headers=_headers())
++        assert valid.status_code == 200 and SECRET not in valid.text
++    with closing(connect(path, 5000)) as conn:
++        dump = "\n".join(conn.iterdump())
++    assert SECRET not in dump and SECRET not in caplog.text
++    assert "invalid-private-credential" not in caplog.text
++
++
++def test_api_payload_extra_fields_and_noncanonical_ids_rejected_without_reflection(monkeypatch, tmp_path):
++    _environment(monkeypatch, tmp_path)
++    with TestClient(app) as client:
++        intent = _intent(_capability(client)["destination_id"])
++        invalid_payloads = [dict(intent, secret="private-body-secret"), dict(intent, generation=2),
++                            dict(intent, operation_id=intent["operation_id"].upper()),
++                            dict(intent, destination_id="not-an-id"), dict(intent, operation_id=42)]
++        for payload in invalid_payloads:
++            response = client.post(PREFIX + "/registrations", json=payload, headers=_headers())
++            assert response.status_code == 422
++            assert response.json() == {"code": "validation_error", "retryable": False}
++        assert _lookup(client, intent).status_code == 404
++
++
++def test_api_existing_intent_cannot_be_claimed_with_new_secret(monkeypatch, tmp_path):
++    path = _environment(monkeypatch, tmp_path)
++    with TestClient(app) as client:
++        intent = _intent(_capability(client)["destination_id"])
++        first = client.post(PREFIX + "/registrations", json=intent, headers=_headers()).json()
++        for response in (client.post(PREFIX + "/registrations", json=intent, headers=_headers(OTHER_SECRET)),
++                         _lookup(client, intent, _headers(OTHER_SECRET))):
++            assert response.status_code == 403
++            assert response.json()["code"] == "registration_credentials_invalid"
++            assert OTHER_SECRET not in response.text
++        assert _lookup(client, intent).json() == first
++    with closing(connect(path, 5000)) as conn:
++        assert conn.execute("SELECT last_generation FROM fr_destination").fetchone()[0] == 1
++
++
++def test_api_wrong_destination_is_not_absence_or_new_registration(monkeypatch, tmp_path):
++    path = _environment(monkeypatch, tmp_path)
++    with TestClient(app) as client:
++        intent = _intent(str(uuid4()))
++        for response in (client.post(PREFIX + "/registrations", json=intent, headers=_headers()),
++                         _lookup(client, intent)):
++            assert response.status_code == 409
++            assert response.json()["code"] == "destination_mismatch"
++    with closing(connect(path, 5000)) as conn:
++        assert conn.execute("SELECT COUNT(*) FROM fr_registrations").fetchone()[0] == 0
++
++
++def test_api_only_verified_absence_returns_bound_not_executed(monkeypatch, tmp_path):
++    _environment(monkeypatch, tmp_path)
++    with TestClient(app) as client:
++        intent = _intent(_capability(client)["destination_id"])
++        response = _lookup(client, intent)
++        assert response.status_code == 404
++        assert response.json() == dict(intent, code="registration_not_executed", retryable=False)
++        assert response.headers["cache-control"] == "no-store"
++
++
++def test_database_open_failure_is_not_absence(monkeypatch, tmp_path):
++    _environment(monkeypatch, tmp_path)
++    with TestClient(app) as client:
++        intent = _intent(_capability(client)["destination_id"])
++        def fail_open(*args):
++            raise sqlite3.OperationalError("synthetic DB open failure")
++        monkeypatch.setattr(service, "connect", fail_open)
++        response = _lookup(client, intent)
++        assert response.status_code == 503
++        assert response.json() == {"code": "registration_unavailable", "retryable": True}
++
++
++def test_real_busy_database_does_not_report_registration_success(monkeypatch, tmp_path):
++    path = _environment(monkeypatch, tmp_path)
++    with TestClient(app) as client:
++        intent = _intent(_capability(client)["destination_id"])
++        monkeypatch.setenv("SQLITE_BUSY_TIMEOUT_MS", "1")
++        with closing(connect(path, 5000)) as locked:
++            locked.execute("BEGIN IMMEDIATE")
++            response = client.post(PREFIX + "/registrations", json=intent, headers=_headers())
++            locked.rollback()
++        assert response.status_code == 503
++        assert _lookup(client, intent).status_code == 404
++
++
++def test_corrupt_database_is_not_absence(monkeypatch, tmp_path):
++    _environment(monkeypatch, tmp_path)
++    with TestClient(app) as client:
++        intent = _intent(_capability(client)["destination_id"])
++        corrupt = tmp_path / "corrupt.sqlite3"
++        corrupt.write_bytes(b"not a SQLite database" * 50)
++        monkeypatch.setenv("DATABASE_PATH", str(corrupt))
++        assert _lookup(client, intent).status_code == 503
++
++
++def test_unknown_schema_is_not_absence_and_startup_refuses_it(monkeypatch, tmp_path):
++    path = _environment(monkeypatch, tmp_path)
++    with TestClient(app) as client:
++        intent = _intent(_capability(client)["destination_id"])
++        with closing(connect(path, 5000)) as conn, conn:
++            conn.execute("INSERT INTO fr_schema_migrations VALUES ('999_unknown', 'unknown')")
++        assert _lookup(client, intent).status_code == 503
++    with closing(connect(path, 5000)) as conn:
++        with pytest.raises(migrations.FrameRelaySchemaError):
++            migrations.run_frame_relay_migrations(conn)
++
++
++def test_parallel_same_intent_creates_one_receipt_and_one_generation(tmp_path):
++    path, destination = _database(tmp_path)
++    intent = _intent(destination)
++    barrier = Barrier(6)
++    def create(_):
++        with closing(connect(path, 5000)) as conn:
++            barrier.wait(timeout=10)
++            return repository.register(conn, **intent, secret=SECRET)
++    with ThreadPoolExecutor(max_workers=6) as pool:
++        receipts = list(pool.map(create, range(6)))
++    assert all(receipt == receipts[0] for receipt in receipts)
++    with closing(connect(path, 5000)) as conn:
++        assert conn.execute("SELECT COUNT(*) FROM fr_registrations").fetchone()[0] == 1
++        assert conn.execute("SELECT last_generation FROM fr_destination").fetchone()[0] == 1
++
++
++def test_parallel_distinct_intents_allocate_strictly_unique_generations(tmp_path):
++    path, destination = _database(tmp_path)
++    barrier = Barrier(6)
++    def create(_):
++        with closing(connect(path, 5000)) as conn:
++            barrier.wait(timeout=10)
++            return repository.register(conn, **_intent(destination), secret=SECRET)
++    with ThreadPoolExecutor(max_workers=6) as pool:
++        receipts = list(pool.map(create, range(6)))
++    assert sorted(int(receipt["generation"]) for receipt in receipts) == list(range(1, 7))
++    assert len({receipt["registration_id"] for receipt in receipts}) == 6
++
++
++def test_before_commit_fault_rolls_back_and_reopen_proves_absence(tmp_path):
++    path, destination = _database(tmp_path)
++    intent = _intent(destination)
++    def fault(boundary):
++        if boundary == "before_commit":
++            raise RuntimeError("simulated interruption before commit")
++    with closing(connect(path, 5000)) as conn:
++        with pytest.raises(RuntimeError):
++            repository.register(conn, **intent, secret=SECRET, fault=fault)
++    with closing(connect(path, 5000)) as reopened:
++        assert repository.lookup_registration(reopened, **intent, secret=SECRET) is None
++        assert reopened.execute("SELECT last_generation FROM fr_destination").fetchone()[0] == 0
++        assert repository.register(reopened, **intent, secret=SECRET)["generation"] == "1"
++
++
++def test_after_commit_fault_reopens_exact_receipt_without_reallocation(tmp_path):
++    path, destination = _database(tmp_path)
++    intent = _intent(destination)
++    observed = []
++    def fault(boundary):
++        if boundary == "after_commit":
++            # An independent connection observes the durable receipt before loss.
++            with closing(connect(path, 5000)) as reader:
++                observed.append(repository.lookup_registration(reader, **intent, secret=SECRET))
++            raise RuntimeError("simulated lost response after commit")
++    with closing(connect(path, 5000)) as conn:
++        with pytest.raises(RuntimeError):
++            repository.register(conn, **intent, secret=SECRET, fault=fault)
++    with closing(connect(path, 5000)) as reopened:
++        assert repository.lookup_registration(reopened, **intent, secret=SECRET) == observed[0]
++        assert repository.register(reopened, **intent, secret=SECRET) == observed[0]
++        assert reopened.execute("SELECT last_generation FROM fr_destination").fetchone()[0] == 1
++
++
++def test_new_registration_preserves_old_receipt_and_cannot_authenticate_as_old(tmp_path):
++    path, destination = _database(tmp_path)
++    old_intent, new_intent = _intent(destination), _intent(destination)
++    with closing(connect(path, 5000)) as conn:
++        old = repository.register(conn, **old_intent, secret=SECRET)
++        new = repository.register(conn, **new_intent, secret=OTHER_SECRET)
++    with closing(connect(path, 5000)) as conn:
++        assert int(new["generation"]) > int(old["generation"])
++        assert old["registration_id"] != new["registration_id"]
++        assert repository.lookup_registration(conn, **old_intent, secret=SECRET) == old
++        actor = dict(destination_id=destination, registration_id=old["registration_id"], generation=int(old["generation"]))
++        assert repository.authenticate_registration(conn, **actor, secret=SECRET) == old
++        with pytest.raises(repository.RegistrationError, match="registration_credentials_invalid"):
++            repository.authenticate_registration(conn, **actor, secret=OTHER_SECRET)
++        actor["generation"] = int(new["generation"])
++        with pytest.raises(repository.RegistrationError, match="registration_credentials_invalid"):
++            repository.authenticate_registration(conn, **actor, secret=SECRET)
++
++
++def test_sql_guards_preserve_receipt_destination_and_monotonic_counter(tmp_path):
++    path, destination = _database(tmp_path)
++    with closing(connect(path, 5000)) as conn:
++        receipt = repository.register(conn, **_intent(destination), secret=SECRET)
++        for sql in ("DELETE FROM fr_registrations", "UPDATE fr_registrations SET secret_sha256 = 'changed'",
++                    "DELETE FROM fr_destination", "UPDATE fr_destination SET destination_id = 'changed'",
++                    "UPDATE fr_destination SET last_generation = 0"):
++            with pytest.raises(sqlite3.IntegrityError):
++                conn.execute(sql)
++            conn.rollback()
++        assert conn.execute("SELECT COUNT(*) FROM fr_registrations").fetchone()[0] == 1
++        assert repository.destination_identity(conn) == destination
++        assert conn.execute("SELECT last_generation FROM fr_destination").fetchone()[0] == int(receipt["generation"])
++
++
++def test_generation_upper_bound_allows_replay_but_refuses_new_allocation(tmp_path):
++    path, destination = _database(tmp_path)
++    intent = _intent(destination)
++    with closing(connect(path, 5000)) as conn:
++        with conn:
++            conn.execute("UPDATE fr_destination SET last_generation = ?", (repository.MAX_GENERATION - 1,))
++        receipt = repository.register(conn, **intent, secret=SECRET)
++        assert receipt["generation"] == str(repository.MAX_GENERATION)
++        assert repository.register(conn, **intent, secret=SECRET) == receipt
++        with pytest.raises(repository.RegistrationError, match="registration_generation_exhausted"):
++            repository.register(conn, **_intent(destination), secret=SECRET)
++    with closing(connect(path, 5000)) as conn:
++        assert conn.execute("SELECT COUNT(*) FROM fr_registrations").fetchone()[0] == 1
++
++
++def test_corrupted_counter_type_is_unavailable_not_absence(tmp_path):
++    path, destination = _database(tmp_path)
++    with closing(connect(path, 5000)) as conn:
++        with conn:
++            conn.execute("PRAGMA ignore_check_constraints = ON")
++            conn.execute("UPDATE fr_destination SET last_generation = 'corrupt'")
++        for action in (repository.register, repository.lookup_registration):
++            with pytest.raises(repository.RegistrationError, match="registration_unavailable"):
++                action(conn, **_intent(destination), secret=SECRET)
++        assert conn.execute("SELECT COUNT(*) FROM fr_registrations").fetchone()[0] == 0
++
++
++def test_wire_generation_rejects_numeric_negative_noncanonical_and_overflow(tmp_path):
++    path, destination = _database(tmp_path)
++    with closing(connect(path, 5000)) as conn:
++        receipt = repository.register(conn, **_intent(destination), secret=SECRET)
++    assert RegistrationReceipt.model_validate(receipt).generation == "1"
++    for generation in (1, 0, "0", "-1", "01", "+1", "1.0", str(1 << 63)):
++        with pytest.raises(ValidationError):
++            RegistrationReceipt.model_validate(dict(receipt, generation=generation))
++
++
++def test_legacy_schema_rows_ledger_and_triggers_unchanged_by_registration(tmp_path):
++    path = tmp_path / "registration.sqlite3"
++    with closing(connect(path, 5000)) as conn:
++        run_migrations(conn)
++        with conn:
++            asset = insert_asset(conn, type="video", filename="synthetic.mov", original_path="originals/synthetic.mov",
++                                 size_bytes=10, server_sha256="a" * 64, taken_at=None, latitude=None,
++                                 longitude=None, exif_json=None, is_log=False)
++            insert_job(conn, job_type="synthetic_unsupported", asset_id=asset["id"], payload_json="{}")
++        before = _legacy_snapshot(conn)
++        migrations.run_frame_relay_migrations(conn)
++        destination = repository.destination_identity(conn)
++        repository.register(conn, **_intent(destination), secret=SECRET)
++        repository.register(conn, **_intent(destination), secret=OTHER_SECRET)
++        migrations.run_frame_relay_migrations(conn)
++        assert _legacy_snapshot(conn) == before
++
++
++def test_migration_failure_rolls_back_new_tables_identity_and_ledger(tmp_path, monkeypatch):
++    path = tmp_path / "registration.sqlite3"
++    broken = tmp_path / "broken-migration.sql"
++    broken.write_text(migrations.SCHEMA.read_text() + "\nSELECT missing FROM nonexistent;\n")
++    monkeypatch.setattr(migrations, "SCHEMA", broken)
++    with closing(connect(path, 5000)) as conn:
++        run_migrations(conn)
++        before = _legacy_snapshot(conn)
++        with pytest.raises(sqlite3.OperationalError):
++            migrations.run_frame_relay_migrations(conn)
++        assert conn.execute("SELECT COUNT(*) FROM sqlite_master WHERE name LIKE 'fr_%'").fetchone()[0] == 0
++        assert _legacy_snapshot(conn) == before
++
++
++def test_applied_migration_never_recreates_missing_destination(tmp_path):
++    path, destination = _database(tmp_path)
++    with closing(connect(path, 5000)) as conn:
++        with conn:
++            conn.execute("DROP TRIGGER fr_destination_no_delete")
++            conn.execute("DELETE FROM fr_destination")
++        with pytest.raises(migrations.FrameRelaySchemaError):
++            migrations.run_frame_relay_migrations(conn)
++        assert conn.execute("SELECT COUNT(*) FROM fr_destination").fetchone()[0] == 0
++        with pytest.raises(repository.RegistrationError, match="registration_unavailable"):
++            repository.lookup_registration(conn, **_intent(destination), secret=SECRET)
++
++
++def test_corrupt_receipt_fields_and_digest_are_not_success(monkeypatch, tmp_path):
++    path = _environment(monkeypatch, tmp_path)
++    with TestClient(app) as client:
++        intent = _intent(_capability(client)["destination_id"])
++        response = client.post(PREFIX + "/registrations", json=intent, headers=_headers())
++        assert response.status_code == 200
++        with closing(connect(path, 5000)) as conn:
++            original = dict(conn.execute("SELECT * FROM fr_registrations").fetchone())
++            with conn:
++                conn.execute("DROP TRIGGER fr_registration_no_update")
++                conn.execute("PRAGMA ignore_check_constraints = ON")
++            for field, value in (("registration_id", "invalid-uuid"), ("registration_id", b"bytes"),
++                                 ("created_at", "2026-02-30T00:00:00.000000+00:00"),
++                                 ("created_at", "2026-10-06T00:00:00.000000+09:00"),
++                                 ("created_at", b"bytes"), ("generation", "corrupt"),
++                                 ("secret_sha256", b"a" * 64), ("secret_sha256", "z" * 64)):
++                with conn:
++                    conn.execute("UPDATE fr_registrations SET " + field + " = ?", (value,))
++                for failure in (_lookup(client, intent),
++                                client.post(PREFIX + "/registrations", json=intent, headers=_headers())):
++                    assert failure.status_code == 503
++                    assert failure.json()["code"] == "registration_unavailable"
++                with conn:
++                    conn.execute("UPDATE fr_registrations SET " + field + " = ?", (original[field],))
++        assert _lookup(client, intent).json() == response.json()
++
++
++def test_registration_actor_rejects_bool_nonint_and_out_of_range_generation(tmp_path):
++    path, destination = _database(tmp_path)
++    with closing(connect(path, 5000)) as conn:
++        receipt = repository.register(conn, **_intent(destination), secret=SECRET)
++        for generation in (True, False, "1", 1.0, 0, -1, 1 << 63):
++            with pytest.raises(repository.RegistrationError, match="registration_credentials_invalid"):
++                repository.authenticate_registration(conn, destination_id=destination,
++                    registration_id=receipt["registration_id"], generation=generation, secret=SECRET)

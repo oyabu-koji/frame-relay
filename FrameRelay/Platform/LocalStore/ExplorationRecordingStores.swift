@@ -37,7 +37,23 @@ actor AtomicFileRecordingStore: RecordingStorePort, OriginalStorePort, MediaOper
     func loadUnfinished() -> UnfinishedRecordingLoadResult { disk.loadUnfinished() }
     func loadRecordings() -> RecordingStoreLoadResult { disk.loadRecordings() }
     func loadOriginalState() -> BackendOutcome<OriginalStoreSnapshot> { disk.loadOriginalState() }
+    // Match the async requirement explicitly so a concrete actor call cannot
+    // select the nonisolated protocol extension's unavailable default.
+    func loadRemovalTransportInventory(_ original: OriginalContent) async -> BackendOutcome<OriginalRemovalTransportInventory> {
+        disk.loadRemovalTransportInventory(original)
+    }
     func commitOriginal(_ mutation: OriginalStoreMutation) -> OriginalStoreCommitResult { disk.commitOriginal(mutation) }
+    func lookupOriginalCommit(_ mutation: OriginalStoreMutation) -> BackendOutcome<OriginalStoreCommitReceipt> {
+        disk.lookupOriginalCommit(mutation)
+    }
+    func commitRemovalObservation(_ mutation: OriginalStoreMutation,
+        check: @Sendable () throws -> Void) -> OriginalStoreCommitResult {
+        disk.commitRemovalObservation(mutation, check: check)
+    }
+    func performRemovalBoundary(_ boundary: OriginalRemovalBoundary,
+        effect: @Sendable () throws -> Void) -> BackendOutcome<RemovalResolutionReceipt> {
+        disk.performRemovalBoundary(boundary, effect: effect)
+    }
     func establishRegistrationIdentity(expectedRevision: UInt64,
         expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity {
         try disk.establishRegistrationIdentity(expectedRevision: expectedRevision, expectedIdentity: expectedIdentity)
@@ -45,6 +61,14 @@ actor AtomicFileRecordingStore: RecordingStorePort, OriginalStorePort, MediaOper
     func load() -> BackendStoreLoadResult { disk.loadBackend() }
     func commit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.commitBackend(mutation) }
     func lookupCommit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.lookupBackend(mutation) }
+    func performPhotoSaveIfCurrent(_ command: PhotoLibraryAddCommand,
+        action: @Sendable () -> Void) async -> Bool {
+        disk.performPhotoSaveIfCurrent(command, action: action)
+    }
+    func performUploadMetadataIfCurrent(_ query: CommittedUploadMetadataQuery,
+        action: @Sendable () -> Void) async -> Bool {
+        disk.performUploadMetadataIfCurrent(query, action: action)
+    }
     func lookupInvalidation(_ acknowledgement: InvalidationAcknowledgement) async -> BackendOutcome<InvalidationID> {
         disk.lookupInvalidation(acknowledgement)
     }
@@ -64,7 +88,21 @@ actor SQLiteRecordingStore: RecordingStorePort, OriginalStorePort, MediaOperatio
     func loadUnfinished() -> UnfinishedRecordingLoadResult { disk.loadUnfinished() }
     func loadRecordings() -> RecordingStoreLoadResult { disk.loadRecordings() }
     func loadOriginalState() -> BackendOutcome<OriginalStoreSnapshot> { disk.loadOriginalState() }
+    func loadRemovalTransportInventory(_ original: OriginalContent) async -> BackendOutcome<OriginalRemovalTransportInventory> {
+        disk.loadRemovalTransportInventory(original)
+    }
     func commitOriginal(_ mutation: OriginalStoreMutation) -> OriginalStoreCommitResult { disk.commitOriginal(mutation) }
+    func lookupOriginalCommit(_ mutation: OriginalStoreMutation) -> BackendOutcome<OriginalStoreCommitReceipt> {
+        disk.lookupOriginalCommit(mutation)
+    }
+    func commitRemovalObservation(_ mutation: OriginalStoreMutation,
+        check: @Sendable () throws -> Void) -> OriginalStoreCommitResult {
+        disk.commitRemovalObservation(mutation, check: check)
+    }
+    func performRemovalBoundary(_ boundary: OriginalRemovalBoundary,
+        effect: @Sendable () throws -> Void) -> BackendOutcome<RemovalResolutionReceipt> {
+        disk.performRemovalBoundary(boundary, effect: effect)
+    }
     func establishRegistrationIdentity(expectedRevision: UInt64,
         expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity {
         try disk.establishRegistrationIdentity(expectedRevision: expectedRevision, expectedIdentity: expectedIdentity)
@@ -72,6 +110,14 @@ actor SQLiteRecordingStore: RecordingStorePort, OriginalStorePort, MediaOperatio
     func load() -> BackendStoreLoadResult { disk.loadBackend() }
     func commit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.commitBackend(mutation) }
     func lookupCommit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.lookupBackend(mutation) }
+    func performPhotoSaveIfCurrent(_ command: PhotoLibraryAddCommand,
+        action: @Sendable () -> Void) async -> Bool {
+        disk.performPhotoSaveIfCurrent(command, action: action)
+    }
+    func performUploadMetadataIfCurrent(_ query: CommittedUploadMetadataQuery,
+        action: @Sendable () -> Void) async -> Bool {
+        disk.performUploadMetadataIfCurrent(query, action: action)
+    }
     func lookupInvalidation(_ acknowledgement: InvalidationAcknowledgement) async -> BackendOutcome<InvalidationID> {
         disk.lookupInvalidation(acknowledgement)
     }
@@ -265,13 +311,24 @@ nonisolated private final class ExplorationRecordingDisk {
     func loadOriginalState() -> BackendOutcome<OriginalStoreSnapshot> {
         do {
             return .succeeded(try transaction(write: false) {
-                let originals = try $0.replayStore().originals
-                return .init(revision: $0.transactionRevision, originals: originals.compactMap(\.localProjection),
-                             logicalOriginals: originals, reconciliationEpoch: reconciliationEpoch)
+                let projection = try $0.replayStore()
+                return .init(revision: $0.transactionRevision, originals: projection.originals.compactMap(\.localProjection),
+                             logicalOriginals: projection.originals, reconciliationEpoch: reconciliationEpoch,
+                             removalBatches: projection.removalBatches)
             })
         } catch ExplorationStorageError.unknownSchema { return .failed(.unknownSchema) }
         catch ExplorationStorageError.corruptStore { return .failed(.corruptStore) }
         catch { return .failed(.inaccessible) }
+    }
+
+    func loadRemovalTransportInventory(_ original: OriginalContent) -> BackendOutcome<OriginalRemovalTransportInventory> {
+        do {
+            return .succeeded(try transaction(write: false) { document in
+                try document.removalTransportInventory(original, epoch: reconciliationEpoch, projection: document.replayStore())
+            })
+        } catch ExplorationStorageError.unknownSchema { return .failed(.unknownSchema) }
+        catch ExplorationStorageError.corruptStore { return .failed(.corruptStore) }
+        catch { return .unknown }
     }
 
     func commitOriginal(_ mutation: OriginalStoreMutation) -> OriginalStoreCommitResult {
@@ -282,6 +339,73 @@ nonisolated private final class ExplorationRecordingDisk {
             return .committed(receipt)
         } catch let error as BackendContractError { return .rejected(error) }
         catch { return .unavailable(.inaccessible) }
+    }
+
+    func commitRemovalObservation(_ mutation: OriginalStoreMutation,
+        check: @Sendable () throws -> Void) -> OriginalStoreCommitResult {
+        guard case .resolveRemoval = mutation.change else { return .rejected(.wrongStage) }
+        do {
+            let receipt = try transaction(write: true) { document in
+                if let previous = document.originalJournal.first(where: { $0.mutation.operation == mutation.operation }) {
+                    guard previous.mutation == mutation else { throw BackendContractError.identityMismatch }
+                    return previous.receipt
+                }
+                guard document.transactionRevision == mutation.expectedRevision else { throw BackendContractError.revisionConflict }
+                // The file check and descriptor close happen before persistence,
+                // under the same process-shared writer lock as physical unlink.
+                try check()
+                return try document.applyOriginal(mutation, supportedVerificationSchemas: supportedVerificationSchemas,
+                    reconciliationEpoch: reconciliationEpoch)
+            }
+            if fault == .afterDiskCommitBeforeReply { return .unavailable(.inaccessible) }
+            return .committed(receipt)
+        } catch let error as BackendContractError { return .rejected(error) }
+        catch { return .unavailable(.inaccessible) }
+    }
+
+    func lookupOriginalCommit(_ mutation: OriginalStoreMutation) -> BackendOutcome<OriginalStoreCommitReceipt> {
+        do {
+            return try transaction(write: false) { document in
+                guard let stored = document.originalJournal.first(where: { $0.mutation.operation == mutation.operation }) else { return .notExecuted }
+                guard stored.mutation == mutation else { return .failed(.rejected) }
+                return .succeeded(stored.receipt)
+            }
+        } catch { return .unknown }
+    }
+
+    func performRemovalBoundary(_ boundary: OriginalRemovalBoundary,
+        effect: @Sendable () throws -> Void) -> BackendOutcome<RemovalResolutionReceipt> {
+        do {
+            return try transaction(write: false) { document in
+                let projection = try document.replayStore()
+                let inventory = try boundary.transportFence.map { _ in
+                    try document.removalTransportInventory(boundary.target.original, epoch: reconciliationEpoch, projection: projection)
+                }
+                let backend: BackendStoreSnapshot?
+                if boundary.transportFence == nil { backend = nil }
+                else { backend = try projection.snapshot(revision: document.transactionRevision, storeIdentity: document.storeIdentity) }
+                try projection.validatesRemovalBoundary(boundary,
+                    revision: document.transactionRevision, epoch: reconciliationEpoch, transportInventory: inventory,
+                    backend: backend)
+                if boundary.intent.purpose == .cleanup {
+                    guard let reservation = document.originalJournal.last(where: { entry in
+                        if case .reserveCleanup(let intent, _, _, _) = entry.mutation.change { return intent == boundary.intent }
+                        return false
+                    }), case .reserveCleanup(_, let selection, _, _) = reservation.mutation.change else {
+                        throw BackendContractError.notCommitted
+                    }
+                    let currentSchema = try projection.cleanupSchema(original: boundary.intent.original, selection: selection)
+                    guard reservation.acceptedVerificationSchema == currentSchema,
+                          supportedVerificationSchemas.contains(currentSchema) else { throw BackendContractError.unsupportedVersion }
+                }
+                // The durable reservation cannot be resolved or replaced while
+                // this short writer transaction holds its process-shared lock.
+                do { try effect() }
+                catch { return .failed(.inaccessible) }
+                return .succeeded(.init(intent: boundary.intent, resolution: .removed))
+            }
+        } catch is BackendContractError { return .notExecuted }
+        catch { return .unknown }
     }
 
     func establishRegistrationIdentity(expectedRevision: UInt64,
@@ -324,6 +448,46 @@ nonisolated private final class ExplorationRecordingDisk {
         catch ExplorationStorageError.unknownSchema { return .unavailable(.unknownSchema) }
         catch ExplorationStorageError.corruptStore { return .unavailable(.corruptStore) }
         catch { return .unavailable(.inaccessible) }
+    }
+
+    func performPhotoSaveIfCurrent(_ command: PhotoLibraryAddCommand, action: @Sendable () -> Void) -> Bool {
+        do {
+            return try transaction(write: false) { document in
+                try PhotoSaveStartStoreBoundary.require(command, document: document, epoch: reconciliationEpoch)
+                action()
+                return true
+            }
+        } catch { return false }
+    }
+
+    func performUploadMetadataIfCurrent(_ query: CommittedUploadMetadataQuery, action: @Sendable () -> Void) -> Bool {
+        do {
+            return try transaction(write: false) { document in
+                guard query.isCommitted, document.storeIdentity == query.expectedStoreIdentity,
+                      query.query.request.storeIdentity == document.storeIdentity,
+                      case .committed(let receipt) = document.lookupBackend(query.mutation),
+                      UploadMetadataValidation.exact(receipt, query.commit) else { return false }
+                let projection = try document.replayStore()
+                let index = try projection.uploadMetadataRequestIndex(query.query.request)
+                guard let saved = projection.uploadMetadataQueries.first(where: { $0.query.id == query.query.id }),
+                      UploadMetadataValidation.exact(saved, query),
+                      projection.uploadMetadataQueries.filter({ $0.query.request.operation == query.query.request.operation })
+                        .map({ $0.query.generation.rawValue }).max() == query.query.generation.rawValue,
+                      !projection.uploadMetadataObservations.contains(where: { $0.observation.query.query.id == query.query.id }),
+                      projection.requests[index].uploadMetadataPending == query.query.generation,
+                      projection.requests[index].lastObservation.map({ $0.rawValue < query.query.generation.rawValue }) ?? true else { return false }
+                switch query.query.kind {
+                case .create: try projection.requireUploadMetadataCreate(index: index, source: query.query.request)
+                case .lookup(let session):
+                    guard UploadMetadataValidation.exact(projection.requests[index].session, Optional(session)) else { return false }
+                }
+                // The process-shared writer lock remains held through this
+                // single native suspended-data-task resume. No journal/SDK
+                // completion, reader release or network success is inferred.
+                action()
+                return true
+            }
+        } catch { return false }
     }
 
     func lookupInvalidation(_ acknowledgement: InvalidationAcknowledgement) -> BackendOutcome<InvalidationID> {

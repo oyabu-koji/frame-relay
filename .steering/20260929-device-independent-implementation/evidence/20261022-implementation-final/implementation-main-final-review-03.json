@@ -1,0 +1,256 @@
+{
+  "created_UTC": "2026-10-21T20:46:49.232321+00:00",
+  "kind": "main implementation final scope and evidence review; not independent validation, not device acceptance",
+  "request": "$implement-steering .steering/20260929-device-independent-implementation/; fix P2 and continue tasks with ready direct dependencies",
+  "tasklist_sha256": "968a2f8246b912203a435e1a5869e24ddae12d86684d0ee1cf4bb1309b5e054b",
+  "source_binding": {
+    "evidence": ".steering/20260929-device-independent-implementation/evidence/20261022-device-handoff/source-binding.json",
+    "sourceRevision": "64fc455c0af071234a04486b058065a1d01704fc",
+    "source_manifest_sha256": "b67c2456b99bb207f6e27a4e03bcc933f1f7bd4284da3045431a2a897405866f",
+    "dirty_difference_sha256": "f638a48ca3a2ceb896387a8d6ea182366eb940fc6280ab942f28fe8f4bb3dab3",
+    "input_counts": {
+      "App_Unit_UI_project": 288,
+      "server_support": 93,
+      "stable_docs": 6,
+      "steering_inputs": 2,
+      "total": 389
+    },
+    "current_mismatches": []
+  },
+  "implementation_unit": "one writing task/owner at a time; operation + actual I/O + same-writer persistence + composition/UI + reopen and relevant verification grouped into coherent handoffs",
+  "main_diff_review": "reviewed each task source delta/correction, final tracked diff and new-file inventories; current 288 App inputs equal candidate02 tested inputs. Initial dirty project/S31/S48 changes distinguished from this session.",
+  "session_scope": {
+    "baseline_files": 8910,
+    "changed_existing_files": 47,
+    "new_App_inputs": 43,
+    "modified_existing_App_inputs": 29,
+    "unexpected_protected_changes": [],
+    "unexpected_new_files": [],
+    "project_unchanged_since_session_start": true,
+    "HEAD_unchanged": true
+  },
+  "ready_work_status": {
+    "completed_subtasks": [
+      "S32",
+      "S33",
+      "S26A",
+      "M02",
+      "M03",
+      "M04",
+      "M05",
+      "M06",
+      "H01 preparation"
+    ],
+    "partial_handoffs_whole_tasks_blocked": [
+      "S23",
+      "S27",
+      "S28",
+      "S34",
+      "S49"
+    ],
+    "partial_aggregations_whole_stages_blocked": [
+      "S2V",
+      "S4V"
+    ],
+    "further_ready_independent_implementation": "exhausted under recorded direct dependencies; tasklist contains local resumption conditions",
+    "whole_steering_complete": false
+  },
+  "P2": {
+    "run": "s34-regression-10",
+    "App_source_count": 260,
+    "passed": 14,
+    "failed": 4,
+    "skip": 0,
+    "LibraryView_SHA256": "9306556d1ce61247686efc78d98be5995385e815161a1d6edacc6d5eb0d54737",
+    "current_LibraryView_same_hash": true,
+    "full_strict_audit_run_on_current288": false,
+    "failure_ids": [
+      "testAccessibilityDetailActionsContrastOnly",
+      "testAccessibilityFreshHistory",
+      "testAccessibilityHistoryAfterPlaybackHandoff",
+      "testAccessibilityLibraryAndDetail"
+    ],
+    "unresolved": true,
+    "no_ignore_or_handler_acceptance_added": true,
+    "evidence_metrics": ".steering/20260929-device-independent-implementation/evidence/20261022-removal-composition/s34-regression-10-metrics.json"
+  },
+  "latest_App_288_verification": {
+    "full_Unit": {
+      "passed_declarations": 560,
+      "passed_expanded": 913,
+      "meaningful_passed_expanded": 912,
+      "empty_template": 1,
+      "skipped_declarations": 29,
+      "failed": 0
+    },
+    "normal_UI_passed": 7,
+    "normal_UI_skipped": 0,
+    "generic_iOS_unsigned_build": "passed",
+    "compiler_runtime_analyzer_diagnostics": 0,
+    "actual_background_SDK_passed": 1,
+    "actual_metadata_HTTP_passed": 1,
+    "metadata_HTTP_requests": 2,
+    "metadata_media_bytes": 0,
+    "metadata_new_confirmation_ACK": 0,
+    "SQLite_reopen_status_check_passed": 1,
+    "CF_preservation_passed": 1,
+    "CF_seed_intentionally_skipped": 1,
+    "execution_binding_evidence": ".steering/20260929-device-independent-implementation/evidence/20261022-device-handoff/source-binding.json#execution_binding"
+  },
+  "execution_layer_limits": {
+    "strict_audit_source_count": 260,
+    "full_strict_rerun_on_current288": false,
+    "strict_LibraryView_same_hash": true,
+    "publication_HTTP_source_count": 279,
+    "publication_HTTP_rerun_on_current288": false,
+    "backend_snapshot_count": 273,
+    "HTTP_snapshot_inputs": 9,
+    "HTTP_executable_sources": 8,
+    "HTTP_executable_sources_current_equal": true,
+    "HTTP_README_only_postrun_documentation_change": true,
+    "HTTP_count_note": "explicit 9-input/8-executable fields and h01-HTTP-layer-clarification-02.json supersede earlier broad nine-source labels",
+    "SDK_permit_and_Mac_notExecuted_injected": true,
+    "own_retained_source_FD_close_observed": true,
+    "SDK_owned_FD_inventory_observed": false,
+    "strict_production_network_start_resume_verified": false
+  },
+  "stable_docs": {
+    "final_sha256": {
+      "functional-design.md": "8b60056361b9b8e7013d4eee29ecf4ba0f227d79e2c10ed8f7f3a22a78428413",
+      "architecture.md": "9e46899de199d2a83279a5bb32a512127df7b13917c1d8087555ee75378a5a90",
+      "repository-structure.md": "4645b907713ad2f3aa62ba86971577a5dcd67b81234a433d0f7f80d4e1d01025",
+      "development-guidelines.md": "c5f9c63b84fb6622e609a5a417a8cbe6358999d39b2895e00998fd979cbfd7f6",
+      "glossary.md": "512044c2fc4c18450d158b6ed616f9af6c3edeb73a7225c2b645145352b95fed"
+    },
+    "final_doc_reviewer_findings": [],
+    "M05_P3_purpose_wording_fixed": true,
+    "all_other_documents_and_sources_preserved_per_phase": true,
+    "evidence_directory": ".steering/20260929-device-independent-implementation/evidence/20261022-stable-docs"
+  },
+  "handoff": {
+    "static_evidence": ".steering/20260929-device-independent-implementation/evidence/20261022-device-handoff/h01-final-static-03.json",
+    "PRD_conditions": 79,
+    "mother_rows": 76,
+    "DV_tickets": 18,
+    "all_D0": true,
+    "all_A_pending": true,
+    "device_execution": false,
+    "PRD_acceptance": "unassessed",
+    "Q01_actual_environment_build_media_quality_permissions_combinations_counts_repetitions": "unbound"
+  },
+  "preservation": {
+    "baseline_report": ".steering/20260929-device-independent-implementation/evidence/20261022-implementation-final/final-preservation-02.json",
+    "scope_report": ".steering/20260929-device-independent-implementation/evidence/20261022-implementation-final/final-source-scope-02.json",
+    "all_initial_8910_files_retained": true,
+    "protected_files": 8649,
+    "protected_hash_changes": 0,
+    "CF_original_and_preferences_unchanged": true,
+    "only_two_session_created_simulators_shutdown_data_retained": true,
+    "preexisting_simulators_untouched": true
+  },
+  "archive_integrity": {
+    "created_UTC": "2026-10-21T20:45:40.777193+00:00",
+    "new_execution_and_document_archives": [
+      {
+        "directory": "20261021-discard-core",
+        "files": 18,
+        "bytes": 1104906,
+        "hash_or_size_errors": []
+      },
+      {
+        "directory": "20261021-library-accessibility",
+        "files": 510,
+        "bytes": 8453210,
+        "hash_or_size_errors": []
+      },
+      {
+        "directory": "20261021-removal-core",
+        "files": 172,
+        "bytes": 4171126,
+        "hash_or_size_errors": []
+      },
+      {
+        "directory": "20261022-background-media",
+        "files": 655,
+        "bytes": 8673693,
+        "hash_or_size_errors": []
+      },
+      {
+        "directory": "20261022-capture-media",
+        "files": 641,
+        "bytes": 8811544,
+        "hash_or_size_errors": []
+      },
+      {
+        "directory": "20261022-device-handoff",
+        "files": 413,
+        "bytes": 7762430,
+        "hash_or_size_errors": []
+      },
+      {
+        "directory": "20261022-publication",
+        "files": 833,
+        "bytes": 25119148,
+        "hash_or_size_errors": []
+      },
+      {
+        "directory": "20261022-removal-composition",
+        "files": 1409,
+        "bytes": 22722610,
+        "hash_or_size_errors": []
+      },
+      {
+        "directory": "20261022-removal-terminal",
+        "files": 780,
+        "bytes": 12755488,
+        "hash_or_size_errors": []
+      },
+      {
+        "directory": "20261022-stable-docs",
+        "files": 73,
+        "bytes": 2577852,
+        "hash_or_size_errors": []
+      },
+      {
+        "directory": "20261022-stage-aggregation",
+        "files": 6,
+        "bytes": 55214,
+        "hash_or_size_errors": []
+      },
+      {
+        "directory": "20261022-status-sync",
+        "files": 1114,
+        "bytes": 14207682,
+        "hash_or_size_errors": []
+      },
+      {
+        "directory": "20261022-transform-research",
+        "files": 4,
+        "bytes": 80236,
+        "hash_or_size_errors": []
+      }
+    ],
+    "archive_directories": 13,
+    "archived_files": 6628,
+    "errors": [],
+    "scope": "all manifests newly created this session; final report archive excluded to avoid self-reference. Initial evidence protected separately by baseline hash comparison."
+  },
+  "final_static": {
+    "bound_current_inputs": 389,
+    "bound_source_changes": 0,
+    "tasklist_copy_exact": true,
+    "new_evidence_rows_columns": 7,
+    "new_review_rows_columns": 5,
+    "git_diff_check": 0
+  },
+  "remaining": [
+    "P2 strict accessibility four failures",
+    "normal strict dispatch/resume and all media owners, full Photos/multi-item operation flows",
+    "standard Log/Rec709 asset provenance and formal proof/quality",
+    "S47 ISO policy remains unanswered/nil",
+    "A01-A18/Q01 actual device runs and PRD acceptance",
+    "M07-M10 require separate explicit workflows"
+  ],
+  "next_workflow": "$validate-implementation .steering/20260929-device-independent-implementation/ (explicit invocation; not started here)",
+  "prohibited_or_unrequested_actions_performed": []
+}

@@ -1,0 +1,50 @@
+{
+  "baselineHead": "64fc455c0af071234a04486b058065a1d01704fc",
+  "initialGitClean": true,
+  "baselineFiles": 240,
+  "changedExisting": [
+    ".steering/20260929-device-independent-implementation/tasklist.md",
+    "docs/architecture.md"
+  ],
+  "newSourceFiles": [
+    "FrameRelay/Platform/Render/CaptureDisplayPipeline.swift",
+    "FrameRelay/Platform/Render/CaptureDisplayRenderer.swift",
+    "FrameRelay/Platform/Render/CaptureDisplayTransform.swift",
+    "FrameRelayTests/Platform/Render/CaptureDisplayTests.swift"
+  ],
+  "missingBaselineFiles": [],
+  "outsideOwnershipChanges": [],
+  "sourceInputs": 224,
+  "testAndIOSBuildAndCurrentSourcesMatch": true,
+  "all79ACIDsAndOrderRetained": true,
+  "diffCheck": "passed",
+  "mainReview": [
+    "Reviewed full source/test diff and macro fix without reducing assertions.",
+    "Renderer output is technicalFixture CGImage; there is no writer/sample-buffer return API.",
+    "Input pixel buffers and attachments are read only; caller must retain immutability.",
+    "Single processing plus replaceable pending input; sequence/context/epoch checks reject stale publication.",
+    "No native camera, UI, factory, project, store or existing evidence changed.",
+    "S48 remains blocked for standard assets, real Log conversion and product connection; no FR-02 or device-quality acceptance."
+  ],
+  "documentReview": {
+    "agent": "s48_docs_review",
+    "scope": "docs/architecture.md limited S48 diff",
+    "findings": []
+  },
+  "verification": {
+    "test01": "compile failure, exit65, zero tests, five warnings retained",
+    "test02": "19 unit declarations/24 expanded cases and one UI test passed; no failures/skips/runtime/compiler/analyzer diagnostics",
+    "newTests": "7 declarations/10 cases",
+    "iosBuild": "generic iOS, CODE_SIGNING_ALLOWED=NO, succeeded",
+    "knownStdoutWarning": "Existing AppIntents metadata extraction skipped warning; structured build diagnostics empty"
+  },
+  "remaining": [
+    "Standard transform asset acquisition and adaptation",
+    "Real Log conversion and native/UI integration",
+    "Device original non-burn-in, framing/color/recording load and DV-05 quality",
+    "S47 ISO policy user decision (ordinary injection unchanged nil)",
+    "All other steering known remaining tasks",
+    "Independent validation not run"
+  ],
+  "rawResultRoot": "/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-di-20261020-wa275djf"
+}

@@ -1,0 +1,47 @@
+--- baseline/docs/repository-structure.md
++++ docs/repository-structure.md
+@@ -90,9 +90,9 @@
+ | 共通store・原本・組立 | `Composition/ProductLibraryFactory.swift`、`Platform/LocalStore/ExplorationRecordingStores.swift`、`RecordingStoreDocument.swift`、`Platform/OriginalStore/ManagedOriginalStore.swift`、`ManagedOriginalAccess.swift` | 製品rootの`SQLiteRecordingStore`、原本領域、内容対応・read leaseを共有。`Exploration`という既存名だけで探索専用と判断しない |
+ | 撮影・補助表示 | `Composition/ProductCaptureFactory.swift`、`Application/Capture/ProductCaptureCoordinator.swift`、`Platform/Capture/NativeExplorationCapture.swift`、`Features/Capture/ProductCaptureView.swift` | 通常の設定・REC/保存・WB・音声・補正・人物/ND・ズームへ接続。レンズISO policyの通常注入は保留。実方式・能力・品質は実機未確認 |
+ | 一覧・原本再生 | `Application/Library/LibraryStoreReader.swift`、`LibrarySnapshot.swift`、`Features/Library/LibraryModel.swift`、`Features/Playback/OriginalPlaybackModel.swift`、`Platform/Playback/AVOriginalPlayback.swift` | 単一storeから一覧/履歴を投影し、原本再生と既存写真記録の明示照合を接続。画面の操作候補があることを新規写真保存・削除等の製品接続と扱わない |
+-| 写真登録・存在照合 | `Platform/Photos/NativePhotoLibrary.swift`、`Application/MediaOperations/PhotoSaveCoordinator.swift`、`PhotoRegistrationReconciler.swift`、`Application/Library/LibraryPhotoReconciliation.swift` | 実SDK追加・同writerへの意図/結果保存・完全取得媒体の受渡し、既存記録の過去結果/現在存在の表示と明示照合。正式Rec.709媒体を取得して通常保存を開始するproducerは未接続 |
++| 写真登録・存在照合 | `Platform/Photos/NativePhotoLibrary.swift`、`Application/MediaOperations/PhotoSaveCoordinator.swift`、`PhotoRegistrationReconciler.swift`、`Application/Library/LibraryPhotoReconciliation.swift` | 実SDK追加・同writerへの意図/結果/終端証拠保存・完全取得媒体の受渡し、過去結果/現在存在の表示と明示照合。終端後は結果と独立して元photo useを解放し、復元/owner閉鎖を失効時の全reader解放へ接続する。正式Rec.709媒体の通常取得・複数保存producerは未接続 |
+ | 接続・登録 | `Application/MediaOperations/RegistrationCoordinator.swift`、`Platform/Remote/URLSessionRegistrationRemote.swift`、`Platform/Credentials/KeychainRegistrationVault.swift`、`Features/Connection/ConnectionModel.swift` | 製品store・資格保管・登録画面へ接続。全媒体を統括する実通信・背景producerの接続は未完 |
+-| 固定軽量版・一時媒体 | `Platform/Playback/AVRenditionPlayback.swift`、`Platform/Network/FixedRenditionRangeReader.swift`、`Platform/TemporaryMedia/ManagedTemporaryMedia.swift`、`Application/MediaIO/RenditionScopeRegistry.swift` | 固定版の実再生・取得・lease/一時媒体管理の独立実装。通常Libraryの軽量版操作への接続は未完 |
++| 固定軽量版・一時媒体 | `Platform/Playback/AVRenditionPlayback.swift`、`Platform/Network/FixedRenditionRangeReader.swift`、`Platform/TemporaryMedia/ManagedTemporaryMedia.swift`、`Application/MediaIO/RenditionScopeRegistry.swift` | 固定版の実再生・取得・lease/一時媒体管理の独立実装。写真終端の元use解放とコピー本体の回収を分け、unknown/failed/notAttemptedのコピーを保持する。通常Libraryの軽量版操作への接続は未完 |
+ | 確認・失効・公開の周辺 | `Application/MediaOperations/MediaConfirmationCoordinator.swift`、`MediaInvalidationCoordinator.swift`、`BackendOutboxCoordinator.swift`、`Composition/ProductMediaTermination.swift`、`Platform/Remote/PublicationWire.swift` | S27の部分実装と製品rootの原本player/同writerを共有する終端窓口。全媒体gate・通常の確認/失効操作・公開の完了とは区別する |
+ | 表示描画 | `Platform/Render/CaptureDisplayTransform.swift`、`CaptureDisplayRenderer.swift`、`CaptureDisplayPipeline.swift` | 生成cubeを使うencoded-BGRA技術描画。標準資材未取得、実Log変換・通常capture/UI接続は未実装 |
+ | 探索 | `Composition/ExplorationComposition.swift`、`Application/Capture/ExplorationCoordinator.swift`、`Features/Capture/ExplorationView.swift` | 試験票・方式候補・試験runを持つ独立入口。探索条件や結果を製品採用へ昇格しない |
+@@ -130,9 +130,9 @@
+ | `Application/Library/` | 撮影IDから動画別の状態・成否/未処理を統合した読取専用の一覧/詳細投影。`LibraryPhotoReconciliation`は既存写真記録の表示と明示照合の橋渡し | snapshotと読取契約、写真照合担当へのcommand。保存結果・確認・失効を直接変更しない |
+ | `Application/Recovery/` | 起動時の未完了操作照合と操作担当への復旧要求 | 照合commandと結果。未実行削除・結果不明の写真追加を自動再実行せず、終了済み再生を自動再開しない |
+ | `Application/MediaIO/` | 現在は`RenditionReadLeases`、`RenditionMediaScope`、`RenditionScopeRegistry`、`RenditionTemporaryRetrieval`による軽量版の使用権・owner終端・一時取得。全媒体gateの製品接続はS23/S49 | ゲート契約と理由付き状態。Wi-Fi/REC/保存/本人停止を下位でも照合し、本人が開始した未完了通信だけ条件付き自動再開。OSが許す背景/ロック中の継続や媒体を含まない状態同期の確定要件を縮小しない |
+-| `Application/Ports/` | Capture/Analysis/OperationStore/Original/Remote/Photos/Playback/一時媒体/認証保管等のI/O契約、層を越えるcommand・snapshot・eventの契約。`PhotoLibraryPorts.swift`は追加/権限/識別情報照合/成功使用権復旧の窓口 | protocolと値の契約。Domainの型を利用し、具象サービス・DB entity・HTTP DTO・SDKオブジェクトを公開契約へ漏らさない |
++| `Application/Ports/` | Capture/Analysis/OperationStore/Original/Remote/Photos/Playback/一時媒体/認証保管等のI/O契約、層を越えるcommand・snapshot・eventの契約。`PhotoLibraryPorts.swift`は追加/権限/識別情報照合/成功・終端証拠に基づく使用権復旧の窓口 | protocolと値の契約。Domainの型を利用し、具象サービス・DB entity・HTTP DTO・SDKオブジェクトを公開契約へ漏らさない |
+ | `Domain/Capture/` | 希望値/実適用/対応条件、WB・音声・人物・ND・ズームの値と純粋規則（D1/D2） | 理由付き判定と型。フレーム処理・時計照会・カメラ制御は置かない |
+-| `Domain/Media/` | 原本同一性、保存証拠、版、確認/失効、容量整理と破棄の別規則（D3〜D7）。`PhotoRegistration.swift`は写真登録キー/意図/追加結果/存在観測/成功使用権解放の値 | 副作用のない値・判定。永続化表現・パス操作・リモート削除を置かない |
++| `Domain/Media/` | 原本同一性、保存証拠、版、確認/失効、容量整理と破棄の別規則（D3〜D7）。`PhotoRegistration.swift`は写真登録キー/意図/追加結果/存在観測と、結果から独立した終端証拠・使用権解放の値。旧成功限定解放の値も保持 | 副作用のない値・判定。永続化表現・パス操作・リモート削除を置かない |
+ | `Domain/Operations/` | 開始指示と固定対象集合、動画別の操作ID/世代、本人意思、待機理由、結果採否、再開可否（D8） | 時刻・能力・証拠を入力とする判定。選択と指示済み順番待ちを区別し、task・queue・通信・DBを所有しない |
+ 
+ 容量整理と破棄はDomainの規則とApplicationのcommandを別にし、共通化は対象限定の削除実行・照合に留める。失効保存と容量整理の順序はMediaOperationsで一元化し、Libraryや画面に別の更新経路を作らない。
+@@ -151,8 +151,8 @@
+ | --- | --- | --- |
+ | `Capture/` | カメラ/音声能力照会、セッション、記録出力、SDKのqueue/callback橋渡し | SwiftUI状態、容量整理判定。記録と表示/解析入力を分岐し、型付き事実を返す |
+ | `Capture/`内の解析、`Render/` | `NativeCaptureSubjectAnalysis`・`NativeCaptureNDAnalysis`等のフレーム解析、`CaptureDisplay…`の独立技術描画。`Analysis/`は未作成 | NDに基づく露出の無断変更、原本への表示変換/予告の焼込み。標準Rec.709変換と通常表示の接続は資材待ち |
+-| `LocalStore/` | 撮影/原本/操作/確認・失効等の単一writerとschema/migration、設定保存。`PhotoStoreProjection.swift`は同じjournalから写真登録を投影。Core Data/SQLiteのmodelは`ExplorationRecordingStores.swift`内で組み立てる | 動画本体、表示状態の正本化、feature専用の重複DB。独立した`.xcdatamodeld`は使っていない |
+-| `OriginalStore/`、`TemporaryMedia/` | 原本の予約・固定参照・内容検査・read leaseと、`ManagedTemporaryMedia`による一時ファイル/使用量/解放管理。完全取得媒体は`TemporaryLocalMediaPort`から扱う。一時媒体は全使用権解放後の実unlinkを実装済み | 独自の削除許可、外部パス/Photos/Mac miniの削除、原本の自動回収。原本の容量整理/破棄に伴う実unlinkは未実装。使用中の媒体や復旧証拠を無断回収せず、部分バッファをPhotos登録用の完全ファイルとしない |
++| `LocalStore/` | 撮影/原本/操作/確認・失効等の単一writerとschema/migration、設定保存。`PhotoStoreProjection.swift`は同じschema7 journalから写真登録/終端/元use解放を投影し、登録結果によるコピー保持を判定。Core Data/SQLiteのmodelは`ExplorationRecordingStores.swift`内で組み立てる | 動画本体、表示状態の正本化、feature専用の重複DB。独立した`.xcdatamodeld`は使っていない |
++| `OriginalStore/`、`TemporaryMedia/` | 原本の予約・固定参照・内容検査・read leaseと、`ManagedTemporaryMedia`による一時ファイル/使用量/解放管理。完全取得媒体は`TemporaryLocalMediaPort`から扱う。写真用はexact終端または旧成功証拠による元use解放と、登録成功かつ全使用権解放後の実unlinkを分ける | 独自の削除許可、外部パス/Photos/Mac miniの削除、原本の自動回収。原本の容量整理/破棄に伴う実unlinkは未実装。使用中の媒体や復旧証拠を無断回収せず、unknown/failed/notAttemptedの登録用コピーを保持。部分バッファをPhotos登録用の完全ファイルとしない |
+ | `Remote/`、`Network/` | 登録・publicationのwire/HTTP adapter、固定版Range通信。原本/変換版/映像IDと配信内容の対応を固定し、軽量版streaming・実送受信の下位処理を置く | サーバー本体、撮影制御、旧削除候補フラグの直接利用。具体的な契約実装と、全媒体の製品接続・実機成立を区別する |
+ | `Playback/`、`Photos/` | `AVOriginalPlayback`・`AVRenditionPlayback`とresource loaderによる実再生/停止。`Photos/NativePhotoLibrary.swift`は実PhotoKit追加/完了と保存済み識別情報だけの照合 | 確認の自動確定、独自の通信経路、写真削除。取得と一時参照は注入されたPortを利用し、streaming再生とPhotos登録を分離 |
+ | `Credentials/`、`Diagnostics/` | 認証保管adapter、最小限の診断出力 | 接続秘密や家族動画をソース/ログへ保存しない。診断ログを復旧証拠の代わりにしない |
+@@ -165,7 +165,8 @@
+ | --- | --- | --- |
+ | `FrameRelayTests/Domain/`、`Application/` | `FrameRelayTests`、Swift Testing | 純粋規則、固定対象集合と動画別結果、条件付き自動再開、Portへの失敗/遅延/逆順注入、表示投影と入力。`@Test`を入口とし`@testable import FrameRelay`で参照。独立した`Presentation/`は未作成 |
+ | `FrameRelayTests/Platform/`、`Integration/` | 同上 | adapter契約、使い捨てのdiskストア/ファイルを用いた復旧・削除照合、制御可能な通信先との契約。実環境の実行条件は計画で区別 |
+-| `FrameRelayTests/Integration/Photos/` | 同上 | `PhotoSaveCoordinatorTests`、`PhotoTemporaryRecoveryTests`と`PhotoSaveFixture`。`NativePhotoLibraryTests`は明示opt-inの専用Simulator実Photos試験。値検証は`Domain/PhotoRegistrationTests.swift`、同writer再openは`Integration/Storage/PhotoRegistrationStoreTests.swift` |
++| `FrameRelayTests/Integration/Photos/` | 同上 | `PhotoSaveCoordinatorTests`、`PhotoTemporaryRecoveryTests`と`PhotoSaveFixture`。結果と終端の独立commit・元use解放・コピー保持を試験する。`NativePhotoLibraryTests`は明示opt-inの専用Simulator実Photos試験。値検証は`Domain/PhotoRegistrationTests.swift`、同writer再openは`Integration/Storage/PhotoRegistrationStoreTests.swift` |
++| `FrameRelayTests/Integration/Publication/PhotoInvalidationBoundaryTests.swift` | 同上 | 実MOV・実disk・実`ProductMediaTermination`を用い、Photos終端順序のfixtureと失効時の全reader解放を接続する境界試験。実PhotoKit completionや通常保存producer・実機品質の成立とは区別 |
+ | `FrameRelayTests/Support/`、`Fixtures/Subjects/` | 同上 | Portのfake、`Support/Storage/SyntheticMovieFixture.swift`の合成動画、人物解析用の公開画像と`provenance.json`。アプリtargetへ含めず、実原本や認証秘密をfixture化しない。独立した`Support/Fakes/`は未作成 |
+ | `FrameRelayUITests/Flows/` | `FrameRelayUITests`、XCTest | 製品撮影・Library・接続・探索の操作と状態表示。`XCUIApplication`を通す。今後のPhotos・削除等も対応するflowへ追加し、現ファイルの存在で未実装操作の受入を満たしたとしない |
+ 

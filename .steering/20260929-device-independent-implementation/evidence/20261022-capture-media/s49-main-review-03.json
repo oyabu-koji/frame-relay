@@ -1,0 +1,22 @@
+{
+  "task": "S49 final candidate03 main incremental review",
+  "time": 1792603510.832336,
+  "input_count": 279,
+  "changes_since_candidate01": [
+    "FrameRelayTests/Application/ProductCaptureMediaBoundaryTests.swift",
+    "FrameRelayTests/Integration/Remote/BackgroundEventDrainTests.swift",
+    "FrameRelay/Application/Capture/ProductCaptureCoordinator.swift"
+  ],
+  "test_first_red": "s49-order-red-02:13pass/2fail, zero diagnostics; same additional test bytes retained",
+  "checks": [
+    "all12 initial source/test diffs reviewed in candidate01; only3 permitted inputs changed afterward",
+    "exact buffered file/unconfirmed consumed once after nonaccepted recordingEnded actual return",
+    "file actual return retires only old owner; no new capture UI mutation",
+    "save drain UUID prevents old deferred return clearing newer drain",
+    "conditional closure uses explicit Sendable type; source/store/SDK/UI/project unchanged"
+  ],
+  "remaining": [
+    "strict resume/admission atomic boundary and normal actual media are closed",
+    "S25/all-media capture stop and real active network REC unverified; wholeS49 blocked even if this partial candidate passes"
+  ]
+}

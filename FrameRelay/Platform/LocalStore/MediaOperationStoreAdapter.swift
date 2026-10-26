@@ -13,6 +13,8 @@ nonisolated struct ReceivedRendition: Hashable {
 /// Disposable projections of the one persisted document; never a second store.
 nonisolated struct MediaStoreProjection {
     var originals: [LogicalOriginalState] = []
+    var removalBatches: [OriginalRemovalBatchRecord] = []
+    var removalChildOperations: Set<MediaOperationID> = []
     var registrationIntents: [CommittedRegistrationIntent] = []
     var registrations: [DeviceRegistration] = []
     var batches: [TransferBatch] = []
@@ -28,6 +30,16 @@ nonisolated struct MediaStoreProjection {
     var mediaUses: [MediaReadLease] = []
     var distributionObservations: [StoredMediaDistributionObservation] = []
     var temporaryMedia: [TemporaryMediaState] = []
+    var photoRegistrations: [PhotoRegistrationRecord] = []
+    var photoSaveBatches: [PhotoSaveBatchRecord] = []
+    var backgroundTasks: [BackgroundMediaTaskState] = []
+    var remoteInventory: [StoredRemoteInventoryPage] = []
+    var publicationManifests: [StoredPublicationManifest] = []
+    var personControls: [StoredMediaPersonControlPlan] = []
+    var originalUploadAcceptances: [StoredOriginalUploadAcceptance] = []
+    var uploadMetadataQueries: [CommittedUploadMetadataQuery] = []
+    var uploadMetadataObservations: [StoredUploadMetadataObservation] = []
+    var backendCommands = Set<String>()
 
     func snapshot(revision: UInt64, storeIdentity: RegistrationStoreIdentity? = nil) throws -> BackendStoreSnapshot {
         .init(revision: revision, registrationIntents: registrationIntents, registrations: registrations,
@@ -37,7 +49,11 @@ nonisolated struct MediaStoreProjection {
             storeIdentity: storeIdentity, publications: publications,
             confirmationStates: try confirmationStates.map { try $0.atStoreRevision(revision) },
             deliveries: deliveries, distributionObservations: distributionObservations,
-            temporaryMedia: temporaryMedia)
+            temporaryMedia: temporaryMedia, photoRegistrations: photoRegistrations, photoSaveBatches: try photoSaveBatchSnapshot(),
+            backgroundTasks: backgroundTasks,
+            remoteInventory: remoteInventory, publicationManifests: publicationManifests, personControls: personControls,
+            originalUploadAcceptances: originalUploadAcceptances,
+            uploadMetadataQueries: uploadMetadataQueries, uploadMetadataObservations: uploadMetadataObservations)
     }
 
     mutating func ensureOriginal(_ original: OriginalContent) throws -> Int {
@@ -97,6 +113,9 @@ extension RecordingStoreDocument {
             $0.mutation.change.key.operationIdentity == mutation.change.key.operationIdentity
         }) {
             guard previous.mutation == mutation else { throw BackendContractError.identityMismatch }
+            if requiresExactBackendMutation(previous.mutation) || requiresExactBackendMutation(mutation) {
+                guard PublicationStoreBoundary.exact(previous.mutation, mutation) else { throw BackendContractError.identityMismatch }
+            }
             return previous.receipt
         }
         guard mutation.expectedRevision == transactionRevision, transactionRevision < UInt64.max else {
@@ -106,6 +125,42 @@ extension RecordingStoreDocument {
             switch change {
             case .acquire(_, let use), .release(_, let use):
                 guard use.lease.epoch == reconciliationEpoch else { throw BackendContractError.staleGeneration }
+            default: break
+            }
+        }
+        if case .photo(_, .intent(let intent)) = mutation.change {
+            guard intent.usage.epoch == reconciliationEpoch else { throw BackendContractError.staleGeneration }
+        }
+        if case .photoBatch = mutation.change {
+            guard mutation.expectedStoreIdentity != nil else { throw BackendContractError.identityMismatch }
+        }
+        if case .personControl(let plan) = mutation.change {
+            guard mutation.expectedStoreIdentity == plan.storeIdentity, storeIdentity == plan.storeIdentity else {
+                throw BackendContractError.identityMismatch
+            }
+        }
+        if case .originalUploadAcceptance(let plan) = mutation.change {
+            guard mutation.expectedStoreIdentity == plan.request.storeIdentity, storeIdentity == plan.request.storeIdentity else {
+                throw BackendContractError.identityMismatch
+            }
+            try MediaStoredValueValidation.originalUploadAcceptance(plan)
+            try requireOriginalUploadCurrentRecordings(plan, projection: replayStore())
+        }
+        if case .uploadMetadata(let change) = mutation.change {
+            guard mutation.expectedStoreIdentity == change.request.storeIdentity, storeIdentity == change.request.storeIdentity else {
+                throw BackendContractError.identityMismatch
+            }
+            try MediaStoredValueValidation.uploadMetadata(change)
+            try requireUploadMetadataCurrentRecordings(change)
+        }
+        if case .backgroundTask(_, let change) = mutation.change {
+            guard mutation.expectedStoreIdentity == change.intent.context.storeIdentity,
+                  storeIdentity == change.intent.context.storeIdentity else { throw BackendContractError.identityMismatch }
+            switch change {
+            case .prepared, .resumeRequested:
+                if case .download(_, _, let lease) = change.intent.source {
+                    guard lease.epoch == reconciliationEpoch else { throw BackendContractError.staleGeneration }
+                }
             default: break
             }
         }
@@ -128,7 +183,28 @@ extension RecordingStoreDocument {
         guard let stored = backendJournal.first(where: {
             $0.mutation.change.key.operationIdentity == mutation.change.key.operationIdentity
         }) else { return .unknown }
+        if requiresExactBackendMutation(stored.mutation) || requiresExactBackendMutation(mutation) {
+            return PublicationStoreBoundary.exact(stored.mutation, mutation)
+                ? .committed(stored.receipt) : .rejected(.identityMismatch)
+        }
         return stored.mutation == mutation ? .committed(stored.receipt) : .rejected(.identityMismatch)
+    }
+
+    nonisolated private func requiresExactBackendMutation(_ mutation: BackendStoreMutation) -> Bool {
+        switch mutation.change {
+        case .publicationManifest, .photoBatch, .personControl, .originalUploadAcceptance, .uploadMetadata: return true
+        case .backgroundTask(_, let value):
+            if case .uploadChunk = value.intent.source { return true }
+            return false
+        case .photo(_, let value):
+            // Include canonically equivalent operation aliases in this test so
+            // an alias cannot borrow a batch child's earlier receipt.
+            return backendJournal.contains { entry in
+                guard case .photoBatch(_, .accept(let batch)) = entry.mutation.change else { return false }
+                return batch.targets.contains { $0.operation == value.intent.operation }
+            }
+        default: return false
+        }
     }
 
     nonisolated func replayStore() throws -> MediaStoreProjection {
@@ -180,7 +256,36 @@ extension RecordingStoreDocument {
                                                projection: inout MediaStoreProjection) throws {
         let change = entry.mutation.change
         let receipt = entry.receipt
+        try projection.requireUploadMetadataNamespace(change)
+        try projection.requirePersonControlNamespace(change)
+        try projection.requireOriginalUploadNamespace(change)
         switch change {
+        case .uploadMetadata(let value):
+            try projection.applyUploadMetadata(value, receipt: receipt, expectedStoreIdentity: entry.mutation.expectedStoreIdentity)
+        case .originalUploadAcceptance(let plan):
+            try projection.applyOriginalUploadAcceptance(plan, receipt: receipt, expectedStoreIdentity: entry.mutation.expectedStoreIdentity)
+        case .personControl(let plan):
+            try projection.applyPersonControl(plan, receipt: receipt, expectedStoreIdentity: entry.mutation.expectedStoreIdentity)
+        case .photoBatch(let command, let value):
+            try projection.applyPhotoBatch(command: command, change: value, receipt: receipt,
+                expectedStoreIdentity: entry.mutation.expectedStoreIdentity)
+        case .publicationManifest(let value):
+            try projection.applyPublicationManifest(value, receipt: receipt,
+                expectedStoreIdentity: entry.mutation.expectedStoreIdentity)
+        case .remoteInventory(let value):
+            try projection.applyRemoteInventory(value, receipt: receipt,
+                expectedStoreIdentity: entry.mutation.expectedStoreIdentity)
+        case .backgroundTask(let command, let value):
+            switch value {
+            case .prepared, .resumeRequested:
+                try requireUploadChunkHistory(value.intent, through: receipt.previousRevision, projection: projection)
+            default: break
+            }
+            try projection.applyBackgroundTask(command: command, change: value, receipt: receipt,
+                expectedStoreIdentity: entry.mutation.expectedStoreIdentity)
+        case .photo(let command, let value):
+            try projection.applyPhoto(command: command, change: value, receipt: receipt,
+                                      expectedStoreIdentity: entry.mutation.expectedStoreIdentity)
         case .temporary(let command, let value):
             try MediaStoredValueValidation.text(command.rawValue)
             try projection.applyTemporary(value)
@@ -377,6 +482,7 @@ extension RecordingStoreDocument {
             }
             projection.distributionObservations.append(.init(observation: observation, commit: receipt))
         }
+        projection.backendCommands.insert(change.key.commandText)
     }
 
     nonisolated private func validateInitialRequest(_ request: MediaRequest, projection: MediaStoreProjection) throws {

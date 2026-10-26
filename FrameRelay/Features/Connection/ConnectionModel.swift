@@ -3,22 +3,75 @@ import Observation
 
 @MainActor @Observable final class ConnectionModel {
     private let coordinator: RegistrationCoordinator
+    private let statusSynchronization: (any StatusSynchronizationPort)?
+    private let remoteInventory: (any RemoteInventoryPort)?
+    private let didSynchronize: @MainActor @Sendable () async -> Void
+    private let synchronizationTargetDescription: @MainActor @Sendable (OriginalContent) -> String
     private(set) var state: RegistrationState = .needsConnection
     private(set) var isWorking = false
+    private(set) var isSynchronizing = false
+    private(set) var isDiscoveringRemoteInventory = false
     private(set) var hasLoaded = false
     private(set) var permitsInitialInput = false
+    private(set) var permitsNewStoreRegistration = false
+    private(set) var showsNewStoreRegistrationInput = false
+    private(set) var synchronizationReport: StatusSynchronizationReport?
+    private(set) var remoteInventoryReport: RemoteInventoryReport?
     var origin = ""
     var destination = ""
     var bearer = ""
 
-    init(coordinator: RegistrationCoordinator) { self.coordinator = coordinator }
+    init(coordinator: RegistrationCoordinator, statusSynchronization: (any StatusSynchronizationPort)? = nil,
+         remoteInventory: (any RemoteInventoryPort)? = nil,
+         didSynchronize: @escaping @MainActor @Sendable () async -> Void = {},
+         synchronizationTargetDescription: @escaping @MainActor @Sendable (OriginalContent) -> String = { _ in
+             "撮影日時不明（対応する日時の記録を確認できません）"
+         }) {
+        self.coordinator = coordinator; self.statusSynchronization = statusSynchronization
+        self.remoteInventory = remoteInventory
+        self.didSynchronize = didSynchronize
+        self.synchronizationTargetDescription = synchronizationTargetDescription
+    }
+
+    func description(for item: StatusSynchronizationItem) -> String { synchronizationTargetDescription(item.original) }
+
+    var supportsStatusSynchronization: Bool { statusSynchronization != nil }
+    var supportsRemoteInventory: Bool { remoteInventory != nil }
+    var canDiscoverRemoteInventory: Bool {
+        if case .registered = state { return remoteInventory != nil && !isWorking }
+        return false
+    }
+    func discoverRemoteInventory() async {
+        guard canDiscoverRemoteInventory, let remoteInventory,
+              case .registered(let connection, let registration) = state else { return }
+        isWorking = true; isDiscoveringRemoteInventory = true
+        defer { isWorking = false; isDiscoveringRemoteInventory = false }
+        remoteInventoryReport = await remoteInventory.discover(connection: connection, registration: registration)
+        await didSynchronize()
+    }
+    var canSynchronize: Bool {
+        if case .registered = state { return statusSynchronization != nil && !isWorking }
+        return false
+    }
+    func synchronizeStatus() async {
+        guard canSynchronize, let statusSynchronization, case .registered(let connection, let registration) = state else { return }
+        isWorking = true
+        isSynchronizing = true
+        defer { isWorking = false; isSynchronizing = false }
+        synchronizationReport = await statusSynchronization.synchronize(connection: connection, registration: registration)
+        await didSynchronize()
+    }
 
     func restore() async {
         guard !isWorking else { return }
         isWorking = true
         defer { isWorking = false; hasLoaded = true }
+        let previousState = state
         state = await coordinator.restore()
+        if state != previousState { synchronizationReport = nil; remoteInventoryReport = nil }
         permitsInitialInput = await coordinator.permitsInitialInput()
+        permitsNewStoreRegistration = await coordinator.permitsNewStoreRegistration()
+        if !permitsNewStoreRegistration { cancelNewStoreRegistrationInput() }
     }
     func register() async {
         guard !isWorking else { return }
@@ -33,6 +86,7 @@ import Observation
             if case .registered = state { origin = ""; destination = "" }
         } catch { state = .unavailable(.configuration) }
         permitsInitialInput = await coordinator.permitsInitialInput()
+        permitsNewStoreRegistration = await coordinator.permitsNewStoreRegistration()
     }
     func registerSavedConnection() async {
         guard !isWorking else { return }
@@ -40,6 +94,31 @@ import Observation
         defer { isWorking = false }
         state = await coordinator.registerSavedConnection()
         permitsInitialInput = await coordinator.permitsInitialInput()
+        permitsNewStoreRegistration = await coordinator.permitsNewStoreRegistration()
+    }
+
+    func openNewStoreRegistrationInput() {
+        guard permitsNewStoreRegistration, !isWorking else { return }
+        origin = ""; destination = ""; bearer = ""
+        showsNewStoreRegistrationInput = true
+    }
+    func cancelNewStoreRegistrationInput() {
+        bearer = ""
+        if showsNewStoreRegistrationInput { origin = ""; destination = "" }
+        showsNewStoreRegistrationInput = false
+    }
+    func registerNewStore() async {
+        guard permitsNewStoreRegistration, showsNewStoreRegistrationInput, !isWorking else { return }
+        isWorking = true
+        let token = bearer; bearer = ""
+        defer { isWorking = false }
+        do {
+            let connection = try RegistrationConnection(endpoint: .init(httpsOrigin: origin), destination: .init(rawValue: destination))
+            state = await coordinator.registerNewStore(connection: connection, bearer: token)
+        } catch { state = .unavailable(.configuration) }
+        permitsInitialInput = await coordinator.permitsInitialInput()
+        permitsNewStoreRegistration = await coordinator.permitsNewStoreRegistration()
+        if !permitsNewStoreRegistration { cancelNewStoreRegistrationInput() }
     }
     var message: String {
         switch state {

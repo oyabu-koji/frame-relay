@@ -1,6 +1,7 @@
 """Bound, resumable FR receiving. Transport completion is not storage evidence."""
 from contextlib import closing
 import hashlib
+import json
 from uuid import uuid4
 
 from app.core.settings import MAX_UPLOAD_CHUNKS, MAX_UPLOAD_SESSION_SIZE_BYTES
@@ -8,12 +9,52 @@ from app.db.connection import connect
 from app.repositories import frame_relay_storage as repository
 from app.repositories.frame_relay_storage import StorageError
 from app.repositories.jobs import insert_or_return_job
-from app.schemas.frame_relay_storage import StorageBindingRequest
+from app.schemas.frame_relay_storage import OriginalInventoryRequest, StorageBindingRequest
 from app.services import frame_relay_files as files
 
 
 def open_database(settings):
     return closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms))
+
+
+INVENTORY_RESPONSE_MAX_BYTES = 256 * 1024
+
+
+def original_inventory(settings, request, secret):
+    """Observe saved original identities without producing media or local proof.
+
+    This is historical durable metadata. It does not reopen media, guarantee its
+    current existence, adopt old confirmations, or create a distribution/ACK.
+    """
+    request = OriginalInventoryRequest.model_validate(request).model_dump()
+    with open_database(settings) as conn:
+        conn.execute("BEGIN")
+        try:
+            after, sessions = repository.inventory_sessions(conn, request, secret)
+
+            def item(session_id):
+                repository.inventory_capture_bound(conn, session_id, request["destination_id"])
+                value = repository.binding(conn, session_id)
+                if value["destination_id"] != request["destination_id"] or evidence(conn, value) is None:
+                    raise StorageError("storage_inventory_evidence_missing")
+                return {key: str(value[key]) if key in ("content_generation", "byte_count") else value[key]
+                    for key in ("capture_id", "content_generation", "sha256", "byte_count")}
+
+            if after is not None:
+                item(after)  # The scoped boundary must still be a real saved original.
+            values = [item(session_id) for session_id in sessions]
+            limit = int(request["limit"])
+            result = {key: request[key] for key in ("destination_id", "registration_id", "registration_generation")}
+            result.update({"request_cursor": request["cursor"], "items": values[:limit],
+                "next_cursor": repository.inventory_cursor(request, sessions[limit-1]) if len(sessions) > limit else None})
+            # Conservative escaped JSON bound also covers JSONResponse's UTF-8
+            # representation. Never truncate an identity or silently drop a row.
+            encoded = json.dumps(result, ensure_ascii=True, allow_nan=False, separators=(",", ":")).encode("ascii")
+            if len(encoded) > INVENTORY_RESPONSE_MAX_BYTES:
+                raise StorageError("storage_inventory_response_too_large")
+            return result
+        finally:
+            conn.rollback()
 
 
 def create(settings, request, secret):

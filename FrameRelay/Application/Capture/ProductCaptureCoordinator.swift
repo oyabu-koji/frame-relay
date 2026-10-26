@@ -4,6 +4,11 @@ import Observation
 /// Composition-lived owner. View disappearance never cancels an in-flight intent or save.
 @MainActor @Observable
 final class ProductCaptureCoordinator {
+    private struct UncertainMediaOwner {
+        let intent: RecordingIntent
+        let owner: CaptureMediaOwner
+        var finishing = false
+    }
     private(set) var preferences = ProductCapturePreferences()
     private(set) var cameras: [ExplorationCameraDescription] = []
     private(set) var prepared: ExplorationPrepared?
@@ -35,6 +40,11 @@ final class ProductCaptureCoordinator {
     @ObservationIgnored private let makeDevice: @Sendable (ExplorationOutputCandidate) async throws -> any ProductCaptureDevicePort
     @ObservationIgnored private let save: any ProductCaptureSavePort
     @ObservationIgnored private let postSave: ProductCapturePostSave
+    @ObservationIgnored private let mediaBoundary: (any CaptureMediaBoundaryPort)?
+    @ObservationIgnored private var mediaOwner: CaptureMediaOwner?
+    @ObservationIgnored private var mediaPhases: Set<CaptureMediaPhase> = []
+    @ObservationIgnored private var preflightOwner: CaptureMediaOwner?
+    @ObservationIgnored private var uncertainMediaOwners: [CaptureContext: UncertainMediaOwner] = [:]
     @ObservationIgnored private let calendarNow: (@Sendable () -> Date)?
     @ObservationIgnored private let captureNow: @Sendable () -> CaptureTimeObservation
     @ObservationIgnored private var device: (any ProductCaptureDevicePort)?
@@ -64,6 +74,7 @@ final class ProductCaptureCoordinator {
     @ObservationIgnored private var endDelivered = false
     @ObservationIgnored private var saveFinished = false
     @ObservationIgnored private var drainingSave = false
+    @ObservationIgnored private var drainingSaveOwner: UUID?
     @ObservationIgnored private var leaveRequested = false
     @ObservationIgnored private var eventEpoch = UUID()
     @ObservationIgnored private var preparationOwner: UUID?
@@ -79,6 +90,7 @@ final class ProductCaptureCoordinator {
          save: any ProductCaptureSavePort,
          bindOriginal: @escaping @Sendable (CaptureOriginalReference) async -> Bool,
          didSave: @escaping @MainActor @Sendable () async -> Void,
+         mediaBoundary: (any CaptureMediaBoundaryPort)? = nil,
          audioPolicy: ProductCaptureAudioPolicy? = nil,
          subjectPolicy: CaptureSubjectPolicy? = nil,
          ndPolicy: CaptureNDPolicy? = nil,
@@ -87,6 +99,7 @@ final class ProductCaptureCoordinator {
          captureNow: @escaping @Sendable () -> CaptureTimeObservation = { .unavailable(.notMeasured) }) {
         preferenceStore = preferences; self.makeDevice = makeDevice; self.save = save
         postSave = ProductCapturePostSave(bindOriginal: bindOriginal, didSave: didSave)
+        self.mediaBoundary = mediaBoundary
         self.calendarNow = calendarNow; self.captureNow = captureNow
         self.audioPolicy = audioPolicy
         self.subjectPolicy = subjectPolicy
@@ -102,7 +115,11 @@ final class ProductCaptureCoordinator {
     }
 
     var canRecord: Bool {
-        guard !isBusy, !isUpdatingZoom, zoom.snapshot?.phase.isMoving != true,
+        !isBusy && recordingConditionsReady
+    }
+
+    private var recordingConditionsReady: Bool {
+        guard !isPreparing, !isSaving, !isRecoveringAudio, !isUpdatingZoom, zoom.snapshot?.phase.isMoving != true,
               !hasZoomObservation || zoom.snapshot != nil,
               !leaveRequested, captureVisit != nil, preferencesLoaded, issue == nil, calendarNow != nil, let generation, let prepared,
               preferences.desired != nil, preferences.outputCandidate != nil,
@@ -318,34 +335,58 @@ final class ProductCaptureCoordinator {
     }
 
     func record() async {
-        guard canRecord, let generation, let prepared, let desired = currentDesired, let applied = currentApplied, let calendarNow else { return }
+        guard canRecord, let generation, let prepared, let desired = currentDesired, let applied = currentApplied,
+              let calendarNow, let visit = captureVisit else { return }
         invalidateND(.contextChanged)
         isStarting = true
         let context = CaptureContext(generation: generation, capture: .init(rawValue: UUID().uuidString))
-        let operation = CaptureOperationID(rawValue: UUID().uuidString)
-        // Calendar observation is independent of the monotonic capture timeline.
-        // Millisecond precision is shared by store and QuickTime creation-date metadata.
+        let owner = CaptureMediaOwner(context: context, visit: visit, nonce: UUID())
+        preflightOwner = owner
+        mediaBoundary?.begin(owner, phases: [.recording])
+        // Freeze the person's REC acceptance before local-stop suspension.
+        let acceptedAt = captureNow()
         let observed = calendarNow()
         let capturedAt = Date(timeIntervalSince1970: floor(observed.timeIntervalSince1970 * 1_000) / 1_000)
+        let stopped = await mediaBoundary?.waitForLocalStop(owner) ?? .ready
+        // STOP/leave can revoke this ticket while local SDK teardown is pending.
+        // An obsolete return must not clear or start a later REC/visit.
+        guard preflightOwner == owner else { return }
+        guard stopped == .ready, accepts(visit), self.generation == generation,
+              currentDesired == desired, currentApplied == applied, recordingConditionsReady,
+              readiness(generation: generation, prepared: prepared).blockers.isEmpty else {
+            cancelPreflight()
+            if stopped == .unknown, accepts(visit) { issue = "端末上の媒体処理の停止を確認できません。処理の状態を確認してから再試行してください。" }
+            await finishLeavingIfPossible()
+            return
+        }
+        preflightOwner = nil
+        mediaOwner = owner; mediaPhases = [.recording]
+        let operation = CaptureOperationID(rawValue: UUID().uuidString)
         let intent = RecordingIntent(context: context, operation: operation,
             original: .init(rawValue: UUID().uuidString), desired: desired, applied: applied,
-            acceptedAt: captureNow(), capturedAt: capturedAt)
+            acceptedAt: acceptedAt, capturedAt: capturedAt)
         var initialAudio = currentAudio ?? prepared.audio
         initialAudio.writing = .notStarted
         observedAudio = initialAudio
         var lifecycle = CaptureLifecycle(context: context, audio: initialAudio)
         let transition = lifecycle.begin(intent, readiness: readiness(generation: generation, prepared: prepared), expectedStoreRevision: 0)
+        if case .accepted = transition {} else { finishMediaOwner(context) }
         capture = lifecycle
         activeIntent = intent
         pendingEnd = nil; pendingFile = nil; intentReady = false
         fileFinalizationUnconfirmed = false
         endDelivered = false; saveFinished = false; saveResult = nil
         await perform(transition)
-        isStarting = false
+        if capture?.context == context { isStarting = false }
         await finishLeavingIfPossible()
     }
 
     func stop() async {
+        if preflightOwner != nil {
+            cancelPreflight()
+            await finishLeavingIfPossible()
+            return
+        }
         guard var lifecycle = capture else { return }
         let transition = lifecycle.stop(operation: .init(rawValue: UUID().uuidString))
         capture = lifecycle
@@ -370,6 +411,7 @@ final class ProductCaptureCoordinator {
         // Revoke the visit before the first suspension; an old stop completion
         // must never clear a later visit or send a command to its device.
         leaveRequested = true
+        cancelPreflight()
         zoom.invalidate()
         zoomTask?.cancel(); zoomTask = nil
         invalidateND(.stopped)
@@ -494,6 +536,15 @@ final class ProductCaptureCoordinator {
               let failure = currentAudio?.confirmedFailure, let visit = captureVisit else { return }
         isRecoveringAudio = true
         let context = CaptureContext(generation: generation, capture: .init(rawValue: "audio-recovery-" + UUID().uuidString))
+        let owner = CaptureMediaOwner(context: context, visit: visit, nonce: UUID())
+        mediaBoundary?.begin(owner, phases: [.recovery])
+        defer { mediaBoundary?.end(owner) }
+        let stopped = await mediaBoundary?.waitForLocalStop(owner) ?? .ready
+        guard stopped == .ready, accepts(visit), self.generation == generation else {
+            isRecoveringAudio = false
+            await finishLeavingIfPossible()
+            return
+        }
         var recovery = CaptureAudioRecovery(context: context, policy: policy.recovery)
         guard var attempt = try? recovery.begin(after: failure) else { isRecoveringAudio = false; return }
         while accepts(visit) {
@@ -702,9 +753,14 @@ final class ProductCaptureCoordinator {
     private func perform(_ transition: CaptureTransition) async {
         guard let device else { return }
         guard case .accepted(let effects) = transition else { return }
+        let effectContext = capture?.context
         // WB may complete or STOP may arrive while common-save begin is suspended.
         for effect in effects {
-            if case .store(.commitIntent) = effect { isSaving = true }
+            if case .store(.commitIntent) = effect {
+                isSaving = true
+                mediaPhases.insert(.saving)
+                if let owner = mediaOwner { mediaBoundary?.update(owner, phases: mediaPhases) }
+            }
         }
         for effect in effects {
             if case .capture(let command) = effect {
@@ -737,12 +793,18 @@ final class ProductCaptureCoordinator {
                     await drainSave()
                     if !intentReady {
                         isSaving = false
+                        finishMediaOwner(intent.context)
                         postSave.enqueue(intent.original, needsBinding: false)
                     }
                 }
             case .store(.commitResult): break // Result writes belong exclusively to OriginalSaveCoordinator.
             case .recordingCeased(let end):
+                guard activeIntent?.context == effectContext else { break }
                 pendingEnd = end
+                if mediaOwner?.context == effectContext {
+                    mediaPhases.remove(.recording)
+                    if let owner = mediaOwner, !mediaPhases.isEmpty { mediaBoundary?.update(owner, phases: mediaPhases) }
+                }
                 await drainSave()
             }
         }
@@ -765,11 +827,20 @@ final class ProductCaptureCoordinator {
             capture = lifecycle
             await perform(transition)
         case .fileFinalized(let file):
+            if let old = uncertainMediaOwners[file.context], old.intent.original == file.original {
+                await finishUncertainMediaOwner(file.context, file: file)
+                break
+            }
             guard let intent = activeIntent, file.context == intent.context, file.original == intent.original,
                   !saveFinished, pendingFile == nil else { return }
             pendingFile = file
             await drainSave()
         case .observation(let observation):
+            if observation.code == "file_finalization_unconfirmed", let context = observation.context,
+               uncertainMediaOwners[context] != nil {
+                await finishUncertainMediaOwner(context, unconfirmed: true)
+                break
+            }
             if observation.code == "file_finalization_unconfirmed", let intent = activeIntent,
                observation.context == intent.context, !saveFinished {
                 fileFinalizationUnconfirmed = true
@@ -783,13 +854,32 @@ final class ProductCaptureCoordinator {
 
     private func drainSave() async {
         guard !drainingSave, intentReady, !saveFinished, let intent = activeIntent, let end = pendingEnd else { return }
+        let drainOwner = UUID()
         drainingSave = true
-        defer { drainingSave = false }
+        drainingSaveOwner = drainOwner
+        defer {
+            if drainingSaveOwner == drainOwner { drainingSave = false; drainingSaveOwner = nil }
+        }
         if !endDelivered {
             guard case .accepted = await save.recordingEnded(context: intent.context, evidence: end) else {
                 issue = "記録終端の保存照合が必要です。"; saveFinished = true
                 isSaving = false
+                // A failed end-persistence reply is not proof that a pending
+                // output file has finalized. Keep this owner's saving hold.
+                if end.writer == .notStarted { finishMediaOwner(intent.context) }
+                else if let owner = mediaOwner, owner.context == intent.context {
+                    uncertainMediaOwners[intent.context] = .init(intent: intent, owner: owner)
+                    mediaOwner = nil; mediaPhases = []
+                }
                 postSave.enqueue(intent.original, needsBinding: false)
+                // A terminal can precede this failed response. Transfer that
+                // exact buffered input to the old owner's path once; do not
+                // wait for a duplicate SDK event to release its saving hold.
+                let file = pendingFile.flatMap { $0.context == intent.context && $0.original == intent.original ? $0 : nil }
+                let unconfirmed = activeIntent?.context == intent.context && fileFinalizationUnconfirmed
+                if drainingSaveOwner == drainOwner { drainingSave = false; drainingSaveOwner = nil }
+                if let file { await finishUncertainMediaOwner(intent.context, file: file) }
+                else if unconfirmed { await finishUncertainMediaOwner(intent.context, unconfirmed: true) }
                 return
             }
             endDelivered = true
@@ -798,6 +888,7 @@ final class ProductCaptureCoordinator {
             issue = "録画は開始されませんでした。保存意図は一覧で要確認として残ります。"
             saveFinished = true
             isSaving = false
+            finishMediaOwner(intent.context)
             postSave.enqueue(intent.original, needsBinding: false)
             return
         }
@@ -811,6 +902,7 @@ final class ProductCaptureCoordinator {
         // library projection have their own original-scoped lifetime after it.
         saveFinished = true
         isSaving = false
+        finishMediaOwner(intent.context)
         switch result {
         case .committed(let record, _):
             saveResult = record.result
@@ -825,13 +917,45 @@ final class ProductCaptureCoordinator {
         issue = "録画は停止しましたがファイルの確定を確認できません。一覧で照合してください。"
         saveFinished = true
         isSaving = false
+        finishMediaOwner(intent.context)
         postSave.enqueue(intent.original, needsBinding: false)
+    }
+
+    private func finishUncertainMediaOwner(_ context: CaptureContext, file: CaptureFileEvidence? = nil,
+                                          unconfirmed: Bool = false) async {
+        guard var old = uncertainMediaOwners[context], !old.finishing else { return }
+        if let file {
+            guard file.context == context, file.original == old.intent.original else { return }
+            old.finishing = true
+            uncertainMediaOwners[context] = old
+            let token = CaptureCommandToken(context: context, operation: old.intent.operation, ordinal: 100)
+            _ = await save.fileFinalized(file, resultToken: token)
+        } else if !unconfirmed { return }
+        // Neither this result nor the old drain's deferred return changes the
+        // current capture's UI, save drain, generation or media owner.
+        if uncertainMediaOwners[context]?.owner == old.owner {
+            uncertainMediaOwners.removeValue(forKey: context)
+            mediaBoundary?.end(old.owner)
+        }
     }
 
     private func finishLeavingIfPossible() async {
         guard leaveRequested, !isPreparing, !isStarting, !isSaving, !isRecoveringAudio,
               capture == nil || capture?.phase == .ended || capture?.phase == .ready else { return }
         await releaseDevice()
+    }
+
+    private func cancelPreflight() {
+        guard let owner = preflightOwner else { return }
+        preflightOwner = nil
+        isStarting = false
+        mediaBoundary?.end(owner)
+    }
+
+    private func finishMediaOwner(_ context: CaptureContext) {
+        guard let owner = mediaOwner, owner.context == context else { return }
+        mediaOwner = nil; mediaPhases = []
+        mediaBoundary?.end(owner)
     }
 
     private func releaseDevice() async {

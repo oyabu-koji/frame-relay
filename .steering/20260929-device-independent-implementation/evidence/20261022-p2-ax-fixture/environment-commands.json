@@ -1,0 +1,61 @@
+{
+  "project-list": [
+    "xcodebuild",
+    "-list",
+    "-project",
+    "FrameRelay.xcodeproj",
+    "-disableAutomaticPackageResolution"
+  ],
+  "test-plans": [
+    "xcodebuild",
+    "-project",
+    "FrameRelay.xcodeproj",
+    "-scheme",
+    "FrameRelay",
+    "-showTestPlans",
+    "-disableAutomaticPackageResolution"
+  ],
+  "destinations-before": [
+    "xcodebuild",
+    "-project",
+    "FrameRelay.xcodeproj",
+    "-scheme",
+    "FrameRelay",
+    "-showdestinations",
+    "-disableAutomaticPackageResolution"
+  ],
+  "build-settings": [
+    "xcodebuild",
+    "-project",
+    "FrameRelay.xcodeproj",
+    "-scheme",
+    "FrameRelay",
+    "-configuration",
+    "Debug",
+    "-showBuildSettings",
+    "-disableAutomaticPackageResolution"
+  ],
+  "Xcode": [
+    "xcodebuild",
+    "-version"
+  ],
+  "Swift": [
+    "xcrun",
+    "swift",
+    "--version"
+  ],
+  "runtimes": [
+    "xcrun",
+    "simctl",
+    "list",
+    "runtimes",
+    "--json"
+  ],
+  "device-types": [
+    "xcrun",
+    "simctl",
+    "list",
+    "devicetypes",
+    "--json"
+  ]
+}

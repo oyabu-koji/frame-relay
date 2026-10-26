@@ -1,0 +1,114 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination "platform=iOS Simulator,id=DB985305-B55C-4694-8307-77E3BFD2E11D" -derivedDataPath /private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData -resultBundlePath /private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/final-regression-post-26/result.xcresult -disableAutomaticPackageResolution -parallel-testing-enabled NO -collect-test-diagnostics never "-only-testing:FrameRelayTests/ProductLibrarySeedTests" test
+
+2026-10-23 22:26:18.846 xcodebuild[9586:58078658] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+Writing result bundle at path:
+	/private/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/final-regression-post-26/result.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (3 targets)
+    Target 'FrameRelayUITests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelayTests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelay' in project 'FrameRelay' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: 8a5012238605abc5b5e54bafc564218f
+Build description path: /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/XCBuildData/8a5012238605abc5b5e54bafc564218f.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/oyabu/dev/rep/FrameRelay/FrameRelay.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist -producttype com.apple.product-type.application -genpkginfo /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/assetcatalog_generated_info.plist -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist
+
+CopySwiftLibs /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/SystemExtensions --scan-folder /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist
+
+ProcessInfoPlistFile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/ProductTypeInfoPlistAdditions.plist -o /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/DerivedData/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+2026-10-23 22:26:21.374137+0900 FrameRelay[9600:58079011] [XPCErrors] non-launching port is incompatible with service identifier "com.apple.PointerUI.pointeruid.default-service"
+2026-10-23 22:26:21.374965+0900 FrameRelay[9600:58079011] [API] cannot add handler to 0 from 0 - dropping
+2026-10-23 22:26:21.375342+0900 FrameRelay[9600:58079011] [API] cannot add handler to 0 from 0 - dropping
+2026-10-23 22:26:21.462879+0900 FrameRelay[9600:58079011] [API] cannot add handler to 0 from 0 - dropping
+2026-10-23 22:26:21.462954+0900 FrameRelay[9600:58079011] [API] cannot add handler to 0 from 0 - dropping
+Test Suite 'Selected tests' started at 2026-10-23 22:26:21.650.
+Test Suite 'FrameRelayTests.xctest' started at 2026-10-23 22:26:21.651.
+Test Suite 'FrameRelayTests.xctest' passed at 2026-10-23 22:26:21.651.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-10-23 22:26:21.651.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64-apple-ios17.0-simulator
+◇ Suite ProductLibrarySeedTests started.
+​➜ Test seedNormalAppContainer() skipped.
+​◇ Test verifySeedIdentityAndReleasedReadersAfterUI() started.
+S16_POST_UI_IDENTITY_MATCH previousRoot=/Users/oyabu/Library/Developer/CoreSimulator/Devices/DB985305-B55C-4694-8307-77E3BFD2E11D/data/Containers/Data/Application/6E5E30C6-CA88-4C08-8E82-46E0171E0308/Library/Application Support/FrameRelayLibrary previousContainer=/Users/oyabu/Library/Developer/CoreSimulator/Devices/DB985305-B55C-4694-8307-77E3BFD2E11D/data/Containers/Data/Application/6E5E30C6-CA88-4C08-8E82-46E0171E0308 currentRoot=/Users/oyabu/Library/Developer/CoreSimulator/Devices/DB985305-B55C-4694-8307-77E3BFD2E11D/data/Containers/Data/Application/309C1421-CBC8-4259-BDA5-80C5614A7BA2/Library/Application Support/FrameRelayLibrary currentContainer=/Users/oyabu/Library/Developer/CoreSimulator/Devices/DB985305-B55C-4694-8307-77E3BFD2E11D/data/Containers/Data/Application/309C1421-CBC8-4259-BDA5-80C5614A7BA2 bundle=com.oyabu.FrameRelay readers=0 digest=d12f2dfd375e4cbbf64883e43f697416a6794b6675bba434e3e290b418294751
+✔ Test verifySeedIdentityAndReleasedReadersAfterUI() passed after 0.074 seconds.
+◇ Test freshFixturesReopenWithRemovalProjectionsAndUnchangedOriginal() started.
+S16_SEED_MOVIE_BEGIN capture=s16v2-original url=/Users/oyabu/Library/Developer/CoreSimulator/Devices/DB985305-B55C-4694-8307-77E3BFD2E11D/data/Containers/Data/Application/309C1421-CBC8-4259-BDA5-80C5614A7BA2/tmp/FrameRelay-library-seed-6A55D83B-D5DA-4859-B539-54E8EBDBA234/FrameRelayLibrary/synthetic-original-s16v2-original.mov durationSeconds=30
+2026-10-23 22:26:21.882665+0900 FrameRelay[9600:58079112] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-23 22:26:21.885021+0900 FrameRelay[9600:58079112] [] (Fig) signalled err=-12900 at <>:2705
+S16_SEED_MOVIE_COMPLETE capture=s16v2-original
+2026-10-23 22:26:21.930394+0900 FrameRelay[9600:58079110] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+2026-10-23 22:26:22.012775+0900 FrameRelay[9600:58079110] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-23 22:26:22.013434+0900 FrameRelay[9600:58079110] [] (Fig) signalled err=-12900 at <>:2705
+CoreData: debug: PostSaveMaintenance: incremental_vacuum with freelist_count - 6 and pages_to_free 1
+S16_SEED_MOVIE_BEGIN capture=s16v2-discard url=/Users/oyabu/Library/Developer/CoreSimulator/Devices/DB985305-B55C-4694-8307-77E3BFD2E11D/data/Containers/Data/Application/309C1421-CBC8-4259-BDA5-80C5614A7BA2/tmp/FrameRelay-library-seed-6A55D83B-D5DA-4859-B539-54E8EBDBA234/FrameRelayLibrary/synthetic-original-s16v2-discard.mov durationSeconds=30
+2026-10-23 22:26:22.092629+0900 FrameRelay[9600:58079112] [] (Fig) signalled err=-12900 at <>:2705
+2026-10-23 22:26:22.093279+0900 FrameRelay[9600:58079112] [] (Fig) signalled err=-12900 at <>:2705
+S16_SEED_MOVIE_COMPLETE capture=s16v2-discard
+2026-10-23 22:26:22.124594+0900 FrameRelay[9600:58079102] [] <<<< FigExportCommmon >>>> signalled err=-12785 at <>:4048
+✔ Test freshFixturesReopenWithRemovalProjectionsAndUnchangedOriginal() passed after 0.508 seconds.
+✔ Suite ProductLibrarySeedTests passed after 0.583 seconds.
+✔ Test run with 3 tests in 1 suite passed after 0.583 seconds.
+2026-10-23 22:26:22.528 xcodebuild[9586:58078658] [MT] IDETestOperationsObserverDebug: 2.788 elapsed -- Testing started completed.
+2026-10-23 22:26:22.529 xcodebuild[9586:58078658] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-23 22:26:22.529 xcodebuild[9586:58078658] [MT] IDETestOperationsObserverDebug: 2.788 sec, +2.788 sec -- end
+
+Test session results, code coverage, and logs:
+	/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-implementation-20261023-_coslmwo/final-regression-post-26/result.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

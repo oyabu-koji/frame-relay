@@ -1,0 +1,43 @@
+--- baseline/FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift
++++ FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift
+@@ -105,7 +105,7 @@
+     }
+ }
+ 
+-actor PhotoSaveMedia: TemporaryMediaPort, TemporaryLocalMediaPort {
++actor PhotoSaveMedia: TemporaryMediaPort, TemporaryLocalMediaPort, PhotoTemporaryUsageRecoveryPort {
+     let base: ManagedTemporaryMedia
+     private var finishFails = false
+     private var releaseBlocked = false
+@@ -132,12 +132,22 @@
+         guard !finishFails else { throw BackendContractError.unavailable }
+         try await base.finishPhotoMedia(usage)
+     }
++    func photoUsageTerminal(_ registration: CommittedPhotoRegistrationIntent,
++                            termination: PhotoUsageTermination) async throws -> PhotoUsageTerminal {
++        try await base.photoUsageTerminal(registration, termination: termination)
++    }
++    func recoverSuccessfulPhotoUsage(_ record: PhotoRegistrationRecord) async -> BackendOutcome<TemporaryMediaID> {
++        releaseBlocked ? .unknown : await base.recoverSuccessfulPhotoUsage(record)
++    }
++    func recoverTerminalPhotoUsage(_ record: PhotoRegistrationRecord) async -> BackendOutcome<TemporaryMediaID> {
++        releaseBlocked ? .unknown : await base.recoverTerminalPhotoUsage(record)
++    }
+ }
+ 
+ /// Faults surround the real common writer; an after-commit fault leaves actual
+ /// durable bytes for a fresh writer/reconciler to find.
+ @MainActor final class PhotoSaveFaultStore: RecordingStorePort, OriginalStorePort, MediaOperationStorePort {
+-    enum Stage: Sendable { case intent, result, presence, releaseUsage }
++    enum Stage: Sendable { case intent, result, presence, releaseUsage, terminal, releaseTerminalUsage }
+     private let base: any MediaDiskStore
+     private var stage: Stage?
+     private var afterCommit = false
+@@ -154,6 +164,7 @@
+         guard case .photo(_, let value) = mutation.change else { return false }
+         return switch (stage, value) {
+         case (.intent?, .intent), (.result?, .result), (.presence?, .presence), (.releaseUsage?, .releaseUsage): true
++        case (.terminal?, .terminal), (.releaseTerminalUsage?, .releaseTerminalUsage): true
+         default: false
+         }
+     }

@@ -60,4 +60,11 @@ nonisolated protocol OriginalPlaybackTerminationPort: Sendable {
     /// The composition producer verifies this exact durable ACK and the fresh
     /// writer's reservation/generation before admitting a new session.
     func resumeAfterInvalidation(_ acknowledgement: InvalidationAcknowledgement) async throws
+    func stopForRemoval(_ seal: OriginalRemovalAdmissionSeal) async throws -> OriginalPlaybackTermination
+    func resumeAfterRemoval(_ release: OriginalRemovalAdmissionRelease) async throws
+}
+
+extension OriginalPlaybackTerminationPort {
+    nonisolated func stopForRemoval(_ seal: OriginalRemovalAdmissionSeal) async throws -> OriginalPlaybackTermination { throw BackendContractError.unavailable }
+    nonisolated func resumeAfterRemoval(_ release: OriginalRemovalAdmissionRelease) async throws { throw BackendContractError.unavailable }
 }

@@ -44,12 +44,14 @@ struct ProductCapturePostSaveTests {
         let device = ProductCaptureTestDevice(fixture: fixture)
         let save = ProductCaptureTestSave(fileGate: fileGate)
         let probe = PostSaveProbe(bindGate: bindGate, bindSucceeds: bindSucceeds)
-        let model = makeModel(fixture: fixture, devices: [device], save: save, probe: probe)
+        let boundary = CaptureBoundaryProbe()
+        let model = makeModel(fixture: fixture, devices: [device], save: save, probe: probe, boundary: boundary)
         await model.load(); await model.prepare(); await model.record()
         await eventually { model.capture?.phase == .recording }
         await model.stop()
         await fileGate.waitUntilHeld()
         #expect(model.isSaving)
+        #expect(boundary.admission.snapshot().waits == [.saving])
         #expect(!model.canRecord)
         await model.record()
         await model.updatePreferences(.init())
@@ -60,6 +62,7 @@ struct ProductCapturePostSaveTests {
         await eventually { model.canRecord }
         #expect(model.saveResult == .unknown(.notMeasured))
         #expect(!model.isSaving)
+        #expect(!boundary.admission.snapshot().isHeld)
         await model.record()
         await eventually { model.capture?.phase == .recording }
         await model.stop()
@@ -75,6 +78,7 @@ struct ProductCapturePostSaveTests {
         #expect(model.capture?.context == third)
         #expect(model.capture?.phase == .recording)
         #expect(model.isSaving)
+        #expect(boundary.admission.snapshot().waits == [.recording, .saving])
         #expect(model.saveResult == nil)
         #expect(model.issue == nil)
         await device.repeatLastEndAndFile()
@@ -165,11 +169,11 @@ struct ProductCapturePostSaveTests {
     }
 
     private func makeModel(fixture: CaptureFixture, devices: [ProductCaptureTestDevice],
-                           save: ProductCaptureTestSave, probe: PostSaveProbe) -> ProductCaptureCoordinator {
+                           save: ProductCaptureTestSave, probe: PostSaveProbe, boundary: CaptureBoundaryProbe? = nil) -> ProductCaptureCoordinator {
         let factory = ProductCaptureTestDeviceFactory(devices)
         let model = ProductCaptureCoordinator(preferences: ProductCaptureTestPreferences(fixture: fixture),
             makeDevice: { await factory.make(candidate: $0) }, save: save,
-            bindOriginal: { await probe.bind($0) }, didSave: { await probe.refresh() }, calendarNow: { Date() })
+            bindOriginal: { await probe.bind($0) }, didSave: { await probe.refresh() }, mediaBoundary: boundary, calendarNow: { Date() })
         model.enterCapture()
         return model
     }

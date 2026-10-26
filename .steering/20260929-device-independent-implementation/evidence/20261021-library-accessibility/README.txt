@@ -1,0 +1,1 @@
+P2修正の途中証跡。失敗を保持し、成功扱いしない。raw xcresult/DerivedData/動画・UI Snapshot binaryと全開始copyは /private/tmp/fr-implement-20261021-j6xbqszu に保持。manifestのstored_in_repository=falseは元rootに保持した大きなbinaryを示す。以後の結果はtasklistと最終証跡を参照。

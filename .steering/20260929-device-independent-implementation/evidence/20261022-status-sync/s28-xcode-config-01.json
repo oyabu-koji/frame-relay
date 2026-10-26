@@ -1,0 +1,54 @@
+{
+  "versions": {
+    "command": [
+      "xcodebuild",
+      "-version"
+    ],
+    "exit": 0,
+    "log": "s28-xcode-versions-01.log"
+  },
+  "swift": {
+    "command": [
+      "xcrun",
+      "swift",
+      "--version"
+    ],
+    "exit": 0,
+    "log": "s28-xcode-swift-01.log"
+  },
+  "developer": {
+    "command": [
+      "xcode-select",
+      "-p"
+    ],
+    "exit": 0,
+    "log": "s28-xcode-developer-01.log"
+  },
+  "list": {
+    "command": [
+      "xcodebuild",
+      "-list",
+      "-json",
+      "-project",
+      "FrameRelay.xcodeproj",
+      "-disableAutomaticPackageResolution"
+    ],
+    "exit": 0,
+    "log": "s28-xcode-list-01.log"
+  },
+  "destinations": {
+    "command": [
+      "xcodebuild",
+      "-project",
+      "FrameRelay.xcodeproj",
+      "-scheme",
+      "FrameRelay",
+      "-showdestinations",
+      "-disableAutomaticPackageResolution"
+    ],
+    "exit": 0,
+    "log": "s28-xcode-destinations-01.log"
+  },
+  "scope": "configuration inspection only during S28 editing; no executed build/test source version asserted",
+  "time_UTC": "2026-10-21T18:38:29.311731+00:00"
+}

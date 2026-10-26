@@ -23,6 +23,55 @@ actor RegistrationCoordinator {
         } catch { return false }
     }
 
+    func permitsNewStoreRegistration() async -> Bool {
+        do {
+            let initial = try await load()
+            guard initial.registrationIntents.isEmpty, initial.registrations.isEmpty,
+                  try await vault.permitsNewStoreRegistration(storeIdentity: initial.storeIdentity) else { return false }
+            let current = try await load()
+            return current.storeIdentity == initial.storeIdentity && current.registrationIntents.isEmpty && current.registrations.isEmpty
+        } catch { return false }
+    }
+
+    /// Separate user action: never adopt, replace or erase the foreign binding.
+    /// The local UUID must be durably established before discovery or Keychain writes.
+    func registerNewStore(connection: RegistrationConnection, bearer: String) async -> RegistrationState {
+        guard !running else { return .unavailable(.busy) }
+        running = true
+        defer { running = false }
+        do {
+            let initial = try await load()
+            guard initial.registrationIntents.isEmpty, initial.registrations.isEmpty,
+                  try await vault.permitsNewStoreRegistration(storeIdentity: initial.storeIdentity) else {
+                return .unavailable(.credentialConflict)
+            }
+            let current = try await load()
+            guard current.storeIdentity == initial.storeIdentity,
+                  current.registrationIntents.isEmpty, current.registrations.isEmpty else {
+                return .unavailable(.credentialConflict)
+            }
+            let identity: RegistrationStoreIdentity
+            if let existing = current.storeIdentity { identity = existing }
+            else {
+                identity = try await store.establishRegistrationIdentity(expectedRevision: current.revision, expectedIdentity: nil)
+            }
+            _ = try await requireFreshStore(identity)
+            guard try await vault.permitsNewStoreRegistration(storeIdentity: identity) else {
+                return .unavailable(.credentialConflict)
+            }
+            _ = try await requireFreshStore(identity)
+            let discovery = await remote.checkConnection(connection, bearer: bearer)
+            _ = try await requireFreshStore(identity)
+            guard case .succeeded(let capabilities) = discovery,
+                  capabilities.supports([.registration, .registrationLookup], versions: ["1"], destination: connection.destination) else {
+                return .unavailable(issue(discovery))
+            }
+            try await vault.saveNewStoreConnection(connection, bearer: bearer, storeIdentity: identity)
+            _ = try await requireFreshStore(identity)
+            return try await begin(connection, identity: identity, requireFreshRegistration: true)
+        } catch { return .unavailable(issue(error)) }
+    }
+
     /// Normal launches use a committed registration without POST or capability discovery.
     /// Only a writer-committed pending intent may be reconciled automatically.
     func restore() async -> RegistrationState {
@@ -95,11 +144,15 @@ actor RegistrationCoordinator {
         } catch { return .unavailable(issue(error)) }
     }
 
-    private func begin(_ connection: RegistrationConnection, identity: RegistrationStoreIdentity) async throws -> RegistrationState {
+    private func begin(_ connection: RegistrationConnection, identity: RegistrationStoreIdentity,
+                       requireFreshRegistration: Bool = false) async throws -> RegistrationState {
         _ = try await load(expectedIdentity: identity)
+        if requireFreshRegistration { _ = try await requireFreshStore(identity) }
         let intent = try await vault.prepareIntent(for: connection.destination, storeIdentity: identity)
         guard intent.destination == connection.destination else { return .unavailable(.identity) }
-        guard try await persist(.registrationIntent(intent), identity: identity) else { return .pending(connection, intent) }
+        if requireFreshRegistration { _ = try await requireFreshStore(identity) }
+        guard try await persist(.registrationIntent(intent), identity: identity,
+            requireFreshRegistration: requireFreshRegistration) else { return .pending(connection, intent) }
         // Lookup also covers a process death after an earlier POST; no new intent is allocated.
         let current = try await load(expectedIdentity: identity)
         return try await resume(connection, snapshot: current, identity: identity)
@@ -144,7 +197,8 @@ actor RegistrationCoordinator {
     }
 
     /// Rebase only a definite revision conflict. Unknown responses retain the exact mutation for lookup.
-    private func persist(_ change: BackendStoreChange, identity: RegistrationStoreIdentity) async throws -> Bool {
+    private func persist(_ change: BackendStoreChange, identity: RegistrationStoreIdentity,
+                         requireFreshRegistration: Bool = false) async throws -> Bool {
         for _ in 0..<3 {
             let snapshot = try await load(expectedIdentity: identity)
             switch change {
@@ -152,6 +206,9 @@ actor RegistrationCoordinator {
                 if let saved = snapshot.registrationIntents.first(where: { $0.intent.operation == intent.operation }) {
                     guard saved.intent == intent, saved.isCommitted else { throw BackendContractError.identityMismatch }
                     return true
+                }
+                if requireFreshRegistration, !snapshot.registrationIntents.isEmpty || !snapshot.registrations.isEmpty {
+                    throw RegistrationAccessError.credentialConflict
                 }
             case .registration(let receipt):
                 if let saved = snapshot.registrations.first(where: { $0.server.intent.operation == receipt.intent.operation }) {
@@ -177,6 +234,13 @@ actor RegistrationCoordinator {
             }
         }
         return false
+    }
+    private func requireFreshStore(_ identity: RegistrationStoreIdentity) async throws -> BackendStoreSnapshot {
+        let snapshot = try await load(expectedIdentity: identity)
+        guard snapshot.registrationIntents.isEmpty, snapshot.registrations.isEmpty else {
+            throw RegistrationAccessError.credentialConflict
+        }
+        return snapshot
     }
     private func load(expectedIdentity: RegistrationStoreIdentity? = nil) async throws -> BackendStoreSnapshot {
         guard case .loaded(let value) = await store.load() else { throw BackendContractError.unavailable }

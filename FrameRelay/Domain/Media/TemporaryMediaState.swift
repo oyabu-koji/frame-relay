@@ -1,5 +1,37 @@
 import Foundation
 
+/// Local filenames preserve the declared container for native media consumers.
+/// A suffix is not evidence of the bytes' format. Legacy UUID-only names remain
+/// readable without renaming files or rewriting their persisted records.
+nonisolated enum TemporaryMediaLeaf {
+    static func make(contentType: String) throws -> String {
+        UUID().uuidString + "." + (try suffix(contentType))
+    }
+
+    static func validate(_ leaf: String, contentType: String) throws {
+        let expected = try suffix(contentType)
+        // The original generator used UUID.uuidString. Retain the previous
+        // case-insensitive UUID-only read contract, with exact UUID punctuation.
+        if let uuid = UUID(uuidString: leaf), uuid.uuidString.caseInsensitiveCompare(leaf) == .orderedSame { return }
+        let ending = "." + expected
+        guard leaf.hasSuffix(ending) else { throw BackendContractError.invalidValue }
+        let stem = String(leaf.dropLast(ending.count))
+        // New names have one canonical spelling. In particular, mixed/upper
+        // suffixes and MIME aliases are not accepted on case-insensitive disks.
+        guard let uuid = UUID(uuidString: stem), uuid.uuidString == stem else {
+            throw BackendContractError.invalidValue
+        }
+    }
+
+    private static func suffix(_ contentType: String) throws -> String {
+        switch contentType {
+        case "video/quicktime": "mov"
+        case "video/mp4": "mp4"
+        default: throw BackendContractError.invalidValue
+        }
+    }
+}
+
 /// Metadata in the common recording writer. The leaf is allocated locally,
 /// never copied from a server filename or treated as evidence of file contents.
 nonisolated struct TemporaryMediaState: Equatable, Sendable, Codable {

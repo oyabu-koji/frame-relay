@@ -64,12 +64,13 @@ def make_fixture(helper, config, settings, movie, registration_secret):
         raise RuntimeError("Fixture candidates must be distinct versions of one original")
     service = fixture_service(settings)
     initial = service.publish_initial(operation_id=str(uuid4()), candidate_id=v1["candidate_id"], expected_revision=0)
+    factory_source = helper.record(factory_path)
     metadata = {"schema_version": "fr-publication-fixture-v1", "run_identity": config["run_identity"],
         "fixture_only": True, "wire_sha256": helper.WIRE_SHA256, "source_sha256": config["fixture"]["sha256"],
         "media_type": "video/quicktime", "registration_receipt": receipt,
         "original": v1["original"], "v1": initial["rendition"], "v2": None,
         "provenance": {"authority": "tests.frame_relay_publication_fixture.FixturePublicationAuthority",
-            "factory_source": helper.record(factory_path),
+            "factory_source": {**factory_source, "size": str(factory_source["size"])},
             "candidate_v1_id": v1["candidate_id"], "candidate_v2_id": v2["candidate_id"],
             "meaning": "technical copy only; no Rec.709 proof or product quality acceptance"}}
     application = FastAPI(docs_url=None, redoc_url=None, openapi_url=None, redirect_slashes=False)
@@ -78,6 +79,10 @@ def make_fixture(helper, config, settings, movie, registration_secret):
 
 
 def run_fixture(helper, lifecycle, runtime, config, settings, movie):
+    # Seed/import-created workers belong to this run too. A baseline taken after
+    # make_fixture would silently exempt finalize/conversion seed threads.
+    before_threads = set(threading.enumerate())
+    mode = helper.probe_mode(config)
     from starlette.concurrency import run_in_threadpool
     from app.repositories.frame_relay_publication import PublicationError
 
@@ -85,7 +90,7 @@ def run_fixture(helper, lifecycle, runtime, config, settings, movie):
     application, service, registration, candidate_v2, metadata = make_fixture(
         helper, config, settings, movie, registration_secret)
     started = time.monotonic()
-    report = {"run_identity": config["run_identity"], "pid": os.getpid(), "fixture_only": True,
+    report = {"probe_mode": mode, "run_identity": config["run_identity"], "pid": os.getpid(), "fixture_only": True,
         "started_monotonic": started, "deadline_monotonic": started + 1200,
         "ready": False, "signals": [], "stop_reason": None, "server_terminated": False,
         "requests": [], "controls": [], "request_limit": 4096, "passed": False,
@@ -93,11 +98,12 @@ def run_fixture(helper, lifecycle, runtime, config, settings, movie):
         "throttle": {"block_bytes": 4096, "delay_seconds": 0.01,
             "meaning": "fixture ASGI scheduling only; canonical body/headers unchanged; not product performance tuning"},
         "response_loss_meaning": "successful committed confirmation receipt replaced with fixture 503; not TCP loss",
+        "thread_baseline_before_seed": [{"id": thread.ident, "name": thread.name}
+            for thread in sorted(before_threads, key=lambda value: (value.name, value.ident or 0))],
         "unverified": ["production Rec.709 authority", "real network loss", "production external owners",
             "re-registration and old ACK races on this HTTP path"]}
     state = {"phase": "v1-current", "loss_armed": False, "replacement": None, "publication": None}
     secret_path = runtime / "fixture-env.json"
-    before_threads = set(threading.enumerate())
     events = (runtime / "listener-events.jsonl").open("x")
 
     def note(event, detail):
@@ -176,6 +182,10 @@ def run_fixture(helper, lifecycle, runtime, config, settings, movie):
                 raise RuntimeError("Unexpected fixture scope")
             path, method = scope.get("path", ""), scope.get("method", "")
             if path == "/__s27_fixture__/control" and method == "POST":
+                if mode == "metadata-only":
+                    report["blocked_route_count"] = report.get("blocked_route_count", 0) + 1
+                    await fixed(send, 404, {"code": "fixture_route_not_allowed"})
+                    return
                 await control(scope, receive, send)
                 return
             prefix = "/frame-relay/v1/publication/"
@@ -184,6 +194,8 @@ def run_fixture(helper, lifecycle, runtime, config, settings, movie):
                 endpoint = "media"
             allowed = ((method == "GET" and endpoint == "media") or (method == "POST" and endpoint in
                 ("manifest", "distributions", "operations/lookup", "confirmations", "invalidations", "acknowledgements")))
+            if mode == "metadata-only":
+                allowed = method == "POST" and endpoint in ("invalidations", "manifest")
             if not allowed:
                 report["blocked_route_count"] = report.get("blocked_route_count", 0) + 1
                 await fixed(send, 404, {"code": "fixture_route_not_allowed"})
@@ -192,7 +204,7 @@ def run_fixture(helper, lifecycle, runtime, config, settings, movie):
                 report["request_limit_exceeded"] = True
                 await fixed(send, 503, {"code": "fixture_request_limit"})
                 return
-            row = {"sequence": len(report["requests"]) + 1, "endpoint": endpoint, "phase": state["phase"],
+            row = {"sequence": len(report["requests"]) + 1, "method": method, "endpoint": endpoint, "phase": state["phase"],
                 "started_monotonic": time.monotonic(), "status": None, "underlying_status": None,
                 "content_type": None, "body_bytes_emitted": 0, "media_bytes_emitted": 0,
                 "first_body_monotonic": None, "headers_sent_monotonic": None,
@@ -286,6 +298,7 @@ def run_fixture(helper, lifecycle, runtime, config, settings, movie):
                             row["current_rendition_id"] = (response["result"]["current"] or {}).get("rendition_id")
                         if endpoint == "invalidations":
                             row["invalidation_count"] = len(response["result"]["invalidations"])
+                            row["next_after_is_null"] = response["result"]["next_after"] is None
                     else:
                         row["error_code"] = response.get("code")
                 if lose_receipt and row["underlying_status"] == 200:
@@ -309,11 +322,13 @@ def run_fixture(helper, lifecycle, runtime, config, settings, movie):
         environment = {"FR_S27_HTTP_FIXTURE": "1", "FR_S27_ORIGIN": origin,
             "FR_S27_BEARER": settings.api_token, "FR_S27_REGISTRATION_SECRET": registration_secret,
             "FR_S27_FIXTURE_SECRET": control_secret, "FR_S27_FIXTURE_JSON": fixture_json}
+        if mode == "metadata-only":
+            environment["FR_S28_METADATA_ONLY"] = "1"
         helper.write_json(secret_path, {"run_identity": config["run_identity"], "listener_pid": os.getpid(),
-            "url": origin, "environment": environment}, private=True)
+            "probe_mode": mode, "url": origin, "environment": environment}, private=True)
         report["ready"] = True
         helper.write_json(runtime / "listener-ready.json", {"pid": os.getpid(), "url": origin,
-            "run_identity": config["run_identity"], "started_monotonic": started,
+            "probe_mode": mode, "run_identity": config["run_identity"], "started_monotonic": started,
             "deadline_monotonic": started + 1200, "deadline_seconds": 1200})
 
     def should_stop():
@@ -337,13 +352,23 @@ def run_fixture(helper, lifecycle, runtime, config, settings, movie):
         report["failure_type"] = type(error).__name__
     finally:
         created_threads = [thread for thread in threading.enumerate() if thread not in before_threads]
+        report["created_threads"], report["thread_join_failures"] = [], []
         for thread in created_threads:
-            thread.join(timeout=5)
-        report["all_created_threads_joined"] = all(not thread.is_alive() for thread in created_threads)
+            row = {"id": thread.ident, "name": thread.name, "daemon": thread.daemon, "join_returned": False}
+            try:
+                thread.join(timeout=5)
+                row["join_returned"] = True
+            except BaseException as error:
+                row["failure_type"] = type(error).__name__
+                report["thread_join_failures"].append(dict(row))
+            row["alive_after_join"] = thread.is_alive()
+            report["created_threads"].append(row)
+        report["all_created_threads_joined"] = (not report["thread_join_failures"] and
+            all(row["join_returned"] and not row["alive_after_join"] for row in report["created_threads"]))
         if secret_path.exists():
             secret_path.unlink()
         report["secret_deleted"] = not secret_path.exists()
-        report["wire_observation"] = helper.publication_observations(report)
+        report["wire_observation"] = helper.wire_observations(report, config)
         report["passed"] = (all(report.get(key) is True for key in ("ready", "server_terminated", "listener_fd_closed",
             "all_created_threads_joined", "secret_deleted")) and report.get("remaining_server_connections") == 0 and
             report.get("remaining_server_tasks") == 0 and report["stop_reason"] == "reviewed-stop" and not report["signals"] and
@@ -358,12 +383,16 @@ def run_fixture(helper, lifecycle, runtime, config, settings, movie):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, required=True)
+    parser.add_argument("--probe-mode", choices=("publication", "metadata-only"), default="publication")
     args = parser.parse_args()
     if sys.version_info[:2] != (3, 12) or sys.platform != "darwin" or not (
             sys.flags.isolated and sys.flags.no_site and sys.dont_write_bytecode):
         raise RuntimeError("Require reviewed macOS Python 3.12 -I -B -S")
     helper = load_helper()
     config, checkpoint = helper.verified_config(args.config)
+    mode = helper.probe_mode(config)
+    if args.probe_mode != mode:
+        raise RuntimeError("Listener probe mode mismatch")
     support, preparation = Path(__file__).resolve().parent, Path(config["preparation"])
     if support != preparation / "source-snapshot":
         raise RuntimeError("Use frozen publication listener sources")
@@ -393,10 +422,11 @@ def main():
     os.chdir(runtime)
     os.environ["PWD"] = str(runtime)
     sys.path.extend((str(backend), provenance["site_packages_root"]))
-    result = {"run_identity": config["run_identity"], "pid": os.getpid(), "passed": False, "fixture_only": True,
+    result = {"probe_mode": mode, "run_identity": config["run_identity"], "pid": os.getpid(), "passed": False, "fixture_only": True,
         "initial_fds": initial_fds, "settings_environment": {
             key: "<redacted ephemeral token>" if key == "API_TOKEN" else value for key, value in explicit.items()},
         "home_inherited_unchanged": os.environ.get("HOME") == inherited_home}
+    threads_before_backend = set(threading.enumerate())
     try:
         from app.core.settings import load_settings
         settings = load_settings()
@@ -424,18 +454,31 @@ def main():
             secret.unlink()
         os.environ.pop("API_TOKEN", None)
         explicit.pop("API_TOKEN", None)
-        result["fd_before_explicit_sqlite_close"] = runner.fd_inventory(guard)
-        result["guard"] = guard.finish()
-        result["fd_after_explicit_close"] = runner.fd_inventory(guard)
-        pending, unclosed_gc = set(), []
-        for event in result["guard"]["sqlite_connection_events"]:
-            if event["event"] == "opened":
-                pending.add(event["id"])
-            elif event["event"] == "closed":
-                pending.discard(event["id"])
-            elif event["event"] == "garbage_collected" and event["id"] in pending:
-                unclosed_gc.append(event["id"])
-        result["sqlite_explicit_close_complete"] = not pending and not unclosed_gc
+        # Preserve owner evidence BEFORE Guard.finish attempts rescue-close of
+        # main-thread survivors. Keep weak-set survivors strongly referenced
+        # during this snapshot; GC cannot make a live connection look closed.
+        owner_observation = {"passed": False, "sqlite_owner_explicit_close_complete": False,
+            "database_media_fds_remaining": None}
+        result["fd_before_guard_finish"] = None
+        result["remaining_created_threads_before_guard_finish"] = [{"id": thread.ident, "name": thread.name}
+            for thread in threading.enumerate() if thread not in threads_before_backend]
+        try:
+            owner_survivors = tuple(guard.connections)
+            owner_events = [dict(event) for event in guard.connection_events]
+            owner_tracked = [{"id": id(connection), "owner_thread": connection._s20_thread}
+                for connection in owner_survivors]
+            result["fd_before_guard_finish"] = runner.fd_inventory(guard)
+            owner_observation = helper.owner_close_observation(owner_events, owner_tracked,
+                result["fd_before_guard_finish"], initial_fds, runtime)
+            result["owner_close_before_guard_finish"] = {"connection_events": owner_events,
+                "tracked_connections": owner_tracked, "observation": owner_observation}
+        except BaseException as error:
+            result["owner_close_audit_failure_type"] = type(error).__name__
+            result["owner_close_before_guard_finish"] = {"observation": owner_observation, "incomplete": True}
+        finally:
+            result["guard"] = guard.finish()
+        result["fd_after_guard_finish"] = runner.fd_inventory(guard)
+        result["sqlite_explicit_close_complete"] = owner_observation["sqlite_owner_explicit_close_complete"]
         helper.verify_inputs(config, checkpoint)
         result["inputs_unchanged"] = True
         result["sources_unchanged"] = helper.tree(support) == checkpoint["source_files"]
@@ -445,12 +488,18 @@ def main():
         unexpected = {name: path for name, path in origins.items() if not any(Path(path).is_relative_to(root) for root in allowed)}
         result["unexpected_import_origins"] = unexpected
         helper.write_json(runtime / "import-origins.json", origins)
-        result["database_media_fds_remaining"] = [fd for fd in result["fd_after_explicit_close"] if fd.get("path") and
-            (Path(fd["path"]).is_relative_to(runtime / "media") or fd["path"].startswith(str(runtime / "db.sqlite3")))]
+        result["database_media_fds_remaining"] = owner_observation["database_media_fds_remaining"]
+        post_rescue_fds = helper.owner_close_observation([], [], result["fd_after_guard_finish"], initial_fds, runtime)
+        result["database_media_fds_after_guard_finish"] = post_rescue_fds["database_media_fds_remaining"]
+        result["unresolved_new_regular_fds_after_guard_finish"] = post_rescue_fds["unresolved_new_regular_fds"]
         result["passed"] = (result.get("listener_passed") is True and "failure_type" not in result and
             result["inputs_unchanged"] and result["sources_unchanged"] and result["snapshot_unchanged"] and
-            result["sqlite_explicit_close_complete"] and not result["guard"]["foreign_thread_connections_not_explicitly_closed"] and
+            owner_observation["passed"] is True and result["sqlite_explicit_close_complete"] and
+            not result["remaining_created_threads_before_guard_finish"] and
+            result["guard"]["sqlite_connections_alive_before_explicit_close"] == 0 and
+            not result["guard"]["foreign_thread_connections_not_explicitly_closed"] and
             not result["guard"]["sqlite_close_failures"] and result["guard"]["sqlite_connections_alive_after_explicit_close"] == 0 and
+            post_rescue_fds["passed"] is True and
             not unexpected and not guard.denials and not result["database_media_fds_remaining"] and
             guard.listener_bind_count == 1 and not secret.exists())
         helper.write_json(runtime / "result.json", result)

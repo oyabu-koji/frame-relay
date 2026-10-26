@@ -1,0 +1,67 @@
+--- baseline/FrameRelayTests/Integration/Photos/NativePhotoLibraryTests.swift
++++ FrameRelayTests/Integration/Photos/NativePhotoLibraryTests.swift
+@@ -12,6 +12,64 @@
+ /// for `denied`. This suite never deletes Photos assets, including on failure.
+ /// Its black H.264 frames and silent PCM are not Log/Rec.709 quality evidence.
+ @Suite(.serialized) @MainActor struct NativePhotoLibraryTests {
++    @Test(.enabled(if: photoProbeIsSimulator
++        && ["authorized", "denied"].contains(ProcessInfo.processInfo.environment["FR_PHOTOS_INTEGRATION"] ?? "")))
++    func realCoordinatorPersistsIndependentTerminalAndRetiresReaderWithCorrectCopyRetention() async throws {
++        let authorized = ProcessInfo.processInfo.environment["FR_PHOTOS_INTEGRATION"] == "authorized"
++        let completion = PhotoProbeCompletion()
++        let photos = NativePhotoLibrary(observeCompletion: { value in completion.value.withLock { $0 = value } })
++        try #require(await photos.authorizationStatus(for: .addOnly) == (authorized ? .authorized : .denied))
++        try await withStorageRun { run in
++            let source = run.url.appendingPathComponent("coordinator-photo-probe.mov")
++            try await SyntheticMovieFixture.write(to: source, withAudio: true, durationSeconds: 3,
++                capturedAt: RenditionFixture.capturedAt)
++            let bytes = try Data(contentsOf: source)
++            let media = try await RenditionFixture.make(run: run, content: renditionContent(bytes))
++            let complete = try await media.complete(bytes)
++            guard case .succeeded(let usage) = await media.temporary.acquireUsage(complete.id, purpose: .photoHandoff,
++                usageID: .init(rawValue: "native-coordinator-photo-use")) else { throw BackendContractError.ineligibleOriginal }
++            let receipt = try await media.temporary.stateFor(complete.id).receipt(for: usage)
++            try #require(await media.temporary.releaseUsage(complete.usage) == .succeeded(complete.id))
++            let snapshot = try await mediaSnapshot(media.store)
++            let identity = try await media.store.establishRegistrationIdentity(expectedRevision: snapshot.revision, expectedIdentity: nil)
++            let coordinator = PhotoSaveCoordinator(store: media.store, identity: identity, temporaryMedia: media.temporary, library: photos)
++            let action = MediaOperationID(rawValue: "explicit-native-coordinator-save")
++            guard case .succeeded(let saved) = await coordinator.save(receipt, action: action) else {
++                Issue.record("Native coordinator did not settle its terminal: \(String(describing: completion.value.withLock { $0 }))")
++                return
++            }
++            let terminal = try #require(saved.usageTerminal)
++            let released = try #require(saved.terminalUsageRelease)
++            #expect(terminal.terminal.termination == (authorized ? .sdkCompleted : .notStarted))
++            #expect(terminal.terminal.mediaUse == saved.registration.mediaUse)
++            #expect(terminal.terminal.intent == saved.registration.intent)
++            #expect(await media.store.lookupCommit(saved.registration.mutation) == .committed(saved.registration.commit))
++            #expect(await media.store.lookupCommit(terminal.mutation) == .committed(terminal.commit))
++            #expect(await media.store.lookupCommit(released.mutation) == .committed(released.commit))
++            let state = try await media.temporary.stateFor(receipt.id)
++            let copy = run.url.appendingPathComponent("temporary").appendingPathComponent(state.leaf)
++            let disk = try await media.temporary.usageSnapshot(receipt.id)
++            #expect(disk.uses == 0 && disk.openHandles == 0)
++            if authorized {
++                guard case .succeeded(let identifier)? = saved.outcome else { Issue.record("Native SDK did not succeed"); return }
++                #expect(identifier != nil && completion.value.withLock { $0?.succeeded } == true)
++                #expect(state.reclaimed && disk.fileBytes == 0 && !FileManager.default.fileExists(atPath: copy.path))
++            } else {
++                #expect(saved.outcome == .notAttempted(.authorizationRequired) && saved.localIdentifier == nil)
++                #expect(completion.value.withLock { $0 } == nil)
++                #expect(!state.reclaiming && !state.reclaimed && disk.fileBytes == UInt64(bytes.count))
++                #expect(try Data(contentsOf: copy) == bytes)
++            }
++            #expect(try await mediaOriginalSnapshot(media.store).logicalOriginals.first?.mediaReaders.isEmpty == true)
++            #expect(await coordinator.save(receipt, action: action) == .succeeded(saved))
++            #expect(await coordinator.save(receipt, action: .init(rawValue: "unlinked-native-retry")) == .failed(.rejected))
++            _ = try await media.scope.close()
++            let reopened = try SQLiteRecordingStore(run: run, mode: .openExisting)
++            #expect(try await mediaSnapshot(reopened).photoRegistrations == [saved])
++            #expect(try await mediaSnapshot(reopened).temporaryMedia.first?.reclaimed == authorized)
++        }
++    }
++
+     /// Raw SDK compatibility diagnosis of the legacy extensionless layout.
+     /// These test-only copies do not exercise the current S25 file producer or
+     /// produce a product Photos intent/result.

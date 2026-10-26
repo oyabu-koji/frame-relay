@@ -1,0 +1,26 @@
+S31終端・使用権/失効接続の実装検証記録（2026-10-21）
+
+S31の今回対象は実装・自動検証完了。通常Rec.709供給・保存開始/複数集合等が未接続のためS31全体はblocked。
+SDK終端と追加結果を分離し、exactな元photo useだけを解放。unknown/failed/notAttemptedの結果・identifier・本体は保持。
+旧unknown/意図のみから終端を推定しない。旧成功回収・非再追加・原本保持を継承。
+
+構成: FrameRelay.xcodeproj / FrameRelay scheme・test plan / Debug、Xcode27.0(27A266a)、Swift compiler6.4、言語5.0、iOS27.0。App/Unit/UI3target。
+専用Simulator: iPhone18Pro iOS27.0 52DFD2D6-682C-4567-B77F-F9859A2D84D7（新規作成、終了後shutdown）。
+test-01: Unit440宣言/653展開成功・21skip、UI4成功、失敗0。既存空example1件を除くUnit有意味実行652。
+新規境界: PhotoTerminalRecoveryTests 10宣言27展開、PhotoInvalidationBoundaryTests 1宣言8展開成功。
+photos-authorized-02 / photos-denied-03: 各2成功/2skip。実NativePhotoLibrary/coordinatorの終端保存・使用権解放と成功回収/拒否保持、従来adapter確認。
+ios-build-01: generic/platform=iOS、CODE_SIGNING_ALLOWED=NO、空DerivedDataからbuild成功。
+全4run前後と現物245入力一致、runtime/compiler/analyzer診断0。stdoutの既存AppIntents metadata warningは別。
+初回xcresulttool summary抽出は同bundleの遅延DB生成競合でexit64。逐次抽出で成功、test再実行なし。元ログを保持。
+
+35新規展開caseは実disk/FD・両store・commit応答欠落・元mutation保持・exact proof改変拒否・後日成功・明示retry・SDK遅延/取消し・2scope失効ACK/再openを確認。
+実MOV/実ProductMediaTerminationとPhotos SDK順序fixtureを区別。実Photosは新規専用Simulatorのadd/read事前grant/revoke、初回OS許諾画面/limited/本人削除後/実機品質の証拠ではない。
+unknown等コピーの保持期限/自動回収、旧終端証拠不足use、legacy extensionless再利用、正式producer/複数保存とDVは残件。
+
+開始8480fileは17fileだけ加算変更、旧証跡/Render/project/Composition/README/仕様/旧steering変更0、削除0。新規test2file。
+文書3件はdocument_authorの限定同期・doc_reviewer指摘なし。79AC・全task状態を保持し、E-S31-02を台帳へ加算。
+mainは最終差分/所有/版一致を確認。独立implementation validationは実行していない。
+
+実コマンド・環境・exit・入力hashはruns/、集計はmetadata/、凍結245入力はfinal-source/、既存変更の前はbaseline/とreview-diff/。
+raw xcresult/DerivedData/全開始copyのroot:
+/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-di-resume-20261021-xxox35mt

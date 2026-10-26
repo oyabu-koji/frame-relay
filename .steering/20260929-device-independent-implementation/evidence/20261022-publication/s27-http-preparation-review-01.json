@@ -1,0 +1,56 @@
+{
+  "config": {
+    "action": "publication-fixture-only",
+    "derived_data": "/private/tmp/fr-di-20261015-s27/PublicationDerivedData20261022-001",
+    "destination": "platform=iOS Simulator,id=CA378511-84F8-415D-A025-CD7CB59B54D3",
+    "fixture": {
+      "byteCount": 969998,
+      "fixtureOnly": true,
+      "mime": "video/quicktime",
+      "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261015-s25-test03/synthetic-rendition-60s.mov",
+      "sha256": "8a77b6c2cfdedbe850148210eada8851956f10942203aec4eae8f9e552a8b984"
+    },
+    "fixture_record": {
+      "kind": "file",
+      "sha256": "8a77b6c2cfdedbe850148210eada8851956f10942203aec4eae8f9e552a8b984",
+      "size": 969998
+    },
+    "interpreter": "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+    "listener_deadline_seconds": 1200,
+    "preparation": "/private/tmp/fr-di-20261015-s27/S27/http-preparation-001",
+    "run_identity": "02dc0960-4549-4121-bcbe-95fbf8fb2f38",
+    "runtime": "/private/tmp/fr-di-20261015-s27/S27/runtime-publication-001",
+    "snapshot": "/private/tmp/fr-di-20261015-s27/S27/http-snapshot-001",
+    "tests": [
+      "FrameRelayTests/PublicationHTTPFixtureTests/canonicalPlaybackConfirmationInvalidationAndReplacement()"
+    ]
+  },
+  "commands": {
+    "dry_run": [
+      "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+      "-I",
+      "-B",
+      "-S",
+      "/private/tmp/fr-di-20261015-s27/S27/http-preparation-001/source-snapshot/run_publication_fixture.py",
+      "--config",
+      "/private/tmp/fr-di-20261015-s27/S27/http-preparation-001/config.json",
+      "--checkpoint-sha256",
+      "bf7c7b9b66ba6d8b171b3e227bf4a88307db03dd5e45f75ac99ee33d21074ddf"
+    ],
+    "execute": [
+      "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+      "-I",
+      "-B",
+      "-S",
+      "/private/tmp/fr-di-20261015-s27/S27/http-preparation-001/source-snapshot/run_publication_fixture.py",
+      "--config",
+      "/private/tmp/fr-di-20261015-s27/S27/http-preparation-001/config.json",
+      "--checkpoint-sha256",
+      "bf7c7b9b66ba6d8b171b3e227bf4a88307db03dd5e45f75ac99ee33d21074ddf",
+      "--execute-reviewed-integration"
+    ]
+  },
+  "checkpoint_sha256": "bf7c7b9b66ba6d8b171b3e227bf4a88307db03dd5e45f75ac99ee33d21074ddf",
+  "review": "new fixture-only HTTP snapshot; canonical fixed wire and1test; live disposable127.0.0.1:0-only binding byguard; 22 runtime settings generated; new createdsim/dedicatedDD; sources/dependencies/movie reverified; credentials only live privatefiles/env and redacted",
+  "executed": false
+}

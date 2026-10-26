@@ -1,0 +1,32 @@
+{
+  "review_status": "A nine files read and hash-verified by main; integrated build/tests pending B/C",
+  "files": {
+    "FrameRelay/Domain/Operations/BackgroundMediaTask.swift": "36000d5e4b48f205827bcf782db1928e14329466ef7696879f40b5d72248dbe2",
+    "FrameRelay/Application/Ports/BackgroundMediaPorts.swift": "83bdc9340dc29377c8bd4e5268f6af200bd3ce3d674c90d32ca0743cefe389b2",
+    "FrameRelay/Platform/LocalStore/BackgroundMediaStoreProjection.swift": "1589c8bdd26e4a338527d52e251d37c81e36ac91f5fbef3a9dd55e92cd8ea1ed",
+    "FrameRelay/Domain/Operations/BackendCommit.swift": "9f50d848a2bc37112d49bdf53fea4e97f819b2161e95ee3c5249a2ab78e72b7a",
+    "FrameRelay/Application/Ports/MediaOperationStorePort.swift": "f8a5558b4e853b21b87459b6369dcc609595a1d79d95bf27410a1a566757e261",
+    "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift": "c6244ce9647d05441b02ee1ef5c27001eaa83de0ec5ae63335b75344d3f76593",
+    "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift": "04693b58984325b3dee1e472b53f41b81f1cc4f51dbe64c6bea349a57acdc396",
+    "FrameRelayTests/Domain/BackgroundMediaTaskTests.swift": "0f419b48c5618cbe44a9e75b66707e7327d1dcbdece826f279dc910bb2b2e9fb",
+    "FrameRelayTests/Integration/Storage/BackgroundMediaStoreTests.swift": "b568e4df1c1230d683405fcf38ac9896a47216675d73aa9bb77cd9f74d76348b"
+  },
+  "expected_tests": {
+    "declarations": 13,
+    "expanded": 56
+  },
+  "checks": [
+    "same schema7 single backend journal; no new database/downgrade promise",
+    "prepare/resume require current registration/request/exact live lease; access advance by another reader is allowed",
+    "old exact terminal/owner closure stays with old context and does not promote remote or release leases",
+    "full mutation lookup/replay plus expected store identity live and replay checks",
+    "OS identifier cannot change generation or reuse numeric task binding; prepared create/attach gap stays unresolved",
+    "all 6 event commit before/after faults on both stores; schema6/7 read-only compatibility tests",
+    "private test argument access-control corrected before compiler invocation"
+  ],
+  "limitations": [
+    "build/test not yet executed",
+    "strict policy producer absent; normal dispatch closed",
+    "SDK/source/resource facts have separate B/C tests"
+  ]
+}

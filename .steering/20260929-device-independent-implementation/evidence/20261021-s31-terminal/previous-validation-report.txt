@@ -1,0 +1,129 @@
+FrameRelay 実装検証報告（2026-10-20）
+
+対象: /Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/
+判定: 要修正（steering全体は未完了）
+新規finding: 指摘なし。
+前回S41のテストcompileおよび保存後処理による次REC抑止の2件は解消を確認した。
+未完了taskを含むため、steering全体・製品完成・PRD受入を合格とはしない。
+
+独立評価:
+- implementation_validatorが内部 $steering を明示使用し、requirements/design/tasklist、関連仕様、永続文書、App/Unit/UI、backend supportと証跡をread-onlyで評価した。
+- doc_reviewerがM04のrepository-structureと最新S48のarchitecture差分を限定レビュー。指摘なし。ローカルリンク28件に切れなし、証跡のSwift参照62件は実在、完了snapshotと一致。
+- mainが重要な実行出力、最終diff、所有範囲と保全結果を照合した。
+
+根拠と確認範囲:
+- PROJECT_CONTEXT.md、対象steeringの3文書、docs/ideas/20260929-device-independent-implementation.mdおよび関連仕様、関連6永続文書。
+- 共通store、原本identity/read lease/ローカル再生、登録、backend overlay、S41〜S48、関連testsと主要証跡。
+- PRDとtasklistの79ACは集合一致、欠落・重複・余分0。
+- S48実行版224入力、S41修正版223入力は現物と一致。
+- 主要archive（S48、M04、S41修正、S24、S26J）をsize/hash照合し不一致0。
+- server supportのPython72件は非実行compileで構文エラー0。backend import/pytest/HTTPの今回の再実行ではない。
+- git diff --check成功。
+
+実在構成:
+- 入口: FrameRelay.xcodeproj。内部project.xcworkspaceはself参照。
+- Xcode 27.0 (27A266a)、Apple Swift 6.4。
+- scheme/test plan: FrameRelay（CLI一覧とTest actionから確認）。
+- configuration: Debug。App/FrameRelayTests/FrameRelayUITests全3targetを確認。
+- Swift言語モード5.0、最低iOS27.0、AppのMainActor既定/Approachable Concurrency設定を維持。
+- test destination: iPhone 18 Pro / iOS27.0 / arm64 / EF0AAC9B-A617-4479-9A7B-77ECDE42843A。
+- iOS build destination: 確認済みAny iOS Deviceに対応するgeneric/platform=iOS。コマンドでCODE_SIGNING_ALLOWED=NO、設定ファイル変更なし。
+- テスト列挙: Unit398宣言/UI18宣言、disabled0、errors0。
+
+今回の検証結果:
+- 空のrepo外DerivedDataからiOS build成功(exit0)。compiler/analyzer診断0。
+- 別の空のrepo外DerivedDataから全FrameRelayTestsとProductCaptureFlowTestsを実行、test成功(exit0)。Simulator build診断0。
+- Unit: 成功381宣言/520展開、skip17宣言。UI: 撮影画面3件成功。
+- 合計: 成功384宣言/523展開、skip17、失敗0、expectedFailures0、runtimeWarnings0。
+- Unit成功にはFrameRelayTests/FrameRelayTests.swift:13の空example1件を含む。これを除く有意味な成功はUnit519展開+UI3=522件。
+- 初期XCTest hostの0件表示とは別に、後続Swift TestingとUIの実行をxcresultで確認。0件を成功根拠としていない。
+- skip内訳: 旧HTTP2、Library seed/verify2、publication HTTP1、registration HTTP6、rendition HTTP5、fixture生成1。明示opt-in条件がないため未実行であり、今回の実通信成功ではない。
+- 既存AppIntents metadata extraction skipped警告はstdoutに保持。xcresultのcompiler/analyzer警告0とは区別する。
+- iOS build、testの入力227file（App/Test/fixture/asset/project関連）と最終現物は一致。
+- coverageは固定閾値の合意がない（docs/development-guidelines.md:149）ため閾値判定せず、今回は取得していない。
+
+既知の未完了・未検証（新規コードfindingとは分離）:
+- tasklist.md:201〜305: S13/S14/S16/S1V、内容対応/readerの残件、Libraryとアクセシビリティ監査。
+- tasklist.md:404〜550: S23全媒体gate、S24I転送統合、S26A/26標準資材/変換、S27公開gate、S28状態同期/再登録UIなど。
+- tasklist.md:559〜606: S31〜S34/S3V、Photos、実原本削除/復旧、操作導線。
+- tasklist.md:781〜838: S47 ISO本人判断/通常注入、S48標準資材/実Log変換/通常capture・UI接続、S49媒体gate結合とS4V。
+- tasklist.md:840〜886: 引渡し・品質条件・全要求照合と、M02/M03/M05〜M10の文書同期。
+- tasklist.md:1098以降: 実機DV18票。カメラ能力、品質、WB/音声/AF/ND/ズーム、背景通信、実Photos/削除、全P0の実機受入は未確認。
+- 外部serverへのoverlay適用や稼働環境の今回検証は行っていない。
+- S48の技術cube/CGImage/有界処理と、標準Log→Rec.709製品表示の未完成は台帳・文書・実装で区別されている。
+- 未実装・未接続・実機未確認を今回の自動試験成功で完了へ昇格していない。
+
+保全:
+- HEAD: 64fc455c0af071234a04486b058065a1d01704fc（既存dirty/untrackedを含む作業ツリーが検証対象）。
+- 開始/終了各8,119file、変更0/追加0/削除0。git statusとgit diffは開始時と完全一致。
+- コード、設定、docs、steering、既存証跡は変更していない。
+- Simulatorのcapture-preferencesは開始時不存在へ復元、選定deviceは開始時Shutdownへ戻した。cache/DerivedData/result bundle/Simulatorへの検証上必要な書込みは区別している。
+- 構成確認時のapp container照会は初期Shutdownのため一度未取得となり、boot後に成功。終了時terminateは既にプロセス終了済み(code3/found nothing to terminate)、設定復元とshutdownは成功。
+
+次工程:
+修正・未完了実装の再開には同じpathで以下を明示する。
+$implement-steering .steering/20260929-device-independent-implementation/
+本検証ではコード修正やtasklist更新、別Workflowの開始は行っていない。
+
+証跡一覧:
+- baseline-files.json / final-files.json / preservation-result.json
+- git-status-before.txt / git-status-after.txt / git-diff-before.patch / git-diff-after.patch
+- test-enumeration.json / test-enumeration-summary.json / test-settings.log
+- ios-build.xcresult / ios-build.log / ios-build-result.log
+- unit-capture-ui.xcresult / unit-capture-ui.log / test-result-summary.log / simulator-test-build-result.log
+- capture-preferences-state.json / capture-preferences-restoration.json
+- 各実行の*-run.jsonと*-sources-before.json / *-sources-after.json
+
+実行コマンドと結果:
+
+xcode-select: exit=0, 0.015s, inputs=227, unchanged=True
+xcode-select -p
+log: /private/tmp/fr-validation-20261020-6rjehf5d/xcode-select.log
+
+xcode-version: exit=0, 0.257s, inputs=227, unchanged=True
+xcodebuild -version
+log: /private/tmp/fr-validation-20261020-6rjehf5d/xcode-version.log
+
+swift-version: exit=0, 0.103s, inputs=227, unchanged=True
+xcrun swift --version
+log: /private/tmp/fr-validation-20261020-6rjehf5d/swift-version.log
+
+project-list: exit=0, 0.657s, inputs=227, unchanged=True
+xcodebuild -list -project FrameRelay.xcodeproj -disableAutomaticPackageResolution
+log: /private/tmp/fr-validation-20261020-6rjehf5d/project-list.log
+
+test-plans: exit=0, 0.599s, inputs=227, unchanged=True
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -showTestPlans -disableAutomaticPackageResolution
+log: /private/tmp/fr-validation-20261020-6rjehf5d/test-plans.log
+
+destinations: exit=0, 0.609s, inputs=227, unchanged=True
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -showdestinations -disableAutomaticPackageResolution
+log: /private/tmp/fr-validation-20261020-6rjehf5d/destinations.log
+
+test-settings: exit=0, 0.895s, inputs=227, unchanged=True
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination 'platform=iOS Simulator,id=EF0AAC9B-A617-4479-9A7B-77ECDE42843A' -testPlan FrameRelay -derivedDataPath /private/tmp/fr-validation-20261020-6rjehf5d/DerivedData -disableAutomaticPackageResolution test -showBuildSettings -json
+log: /private/tmp/fr-validation-20261020-6rjehf5d/test-settings.log
+
+test-enumeration: exit=0, 76.739s, inputs=227, unchanged=True
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination 'platform=iOS Simulator,id=EF0AAC9B-A617-4479-9A7B-77ECDE42843A' -testPlan FrameRelay -derivedDataPath /private/tmp/fr-validation-20261020-6rjehf5d/DerivedData -disableAutomaticPackageResolution test -enumerate-tests -test-enumeration-style flat -test-enumeration-format json -test-enumeration-output-path /private/tmp/fr-validation-20261020-6rjehf5d/test-enumeration.json
+log: /private/tmp/fr-validation-20261020-6rjehf5d/test-enumeration.log
+
+ios-build: exit=0, 12.939s, inputs=227, unchanged=True
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination generic/platform=iOS -derivedDataPath /private/tmp/fr-validation-20261020-6rjehf5d/DerivedData-ios -resultBundlePath /private/tmp/fr-validation-20261020-6rjehf5d/ios-build.xcresult -disableAutomaticPackageResolution CODE_SIGNING_ALLOWED=NO build
+log: /private/tmp/fr-validation-20261020-6rjehf5d/ios-build.log
+
+unit-capture-ui: exit=0, 150.82s, inputs=227, unchanged=True
+xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination 'platform=iOS Simulator,id=EF0AAC9B-A617-4479-9A7B-77ECDE42843A' -testPlan FrameRelay -derivedDataPath /private/tmp/fr-validation-20261020-6rjehf5d/DerivedData-tests -resultBundlePath /private/tmp/fr-validation-20261020-6rjehf5d/unit-capture-ui.xcresult -disableAutomaticPackageResolution -parallel-testing-enabled NO -collect-test-diagnostics never -only-testing:FrameRelayTests -only-testing:FrameRelayUITests/ProductCaptureFlowTests test
+log: /private/tmp/fr-validation-20261020-6rjehf5d/unit-capture-ui.log
+
+ios-build-result: exit=0, 0.165s, inputs=227, unchanged=True
+xcrun xcresulttool get build-results --path /private/tmp/fr-validation-20261020-6rjehf5d/ios-build.xcresult
+log: /private/tmp/fr-validation-20261020-6rjehf5d/ios-build-result.log
+
+test-result-summary: exit=0, 0.163s, inputs=227, unchanged=True
+xcrun xcresulttool get test-results summary --path /private/tmp/fr-validation-20261020-6rjehf5d/unit-capture-ui.xcresult
+log: /private/tmp/fr-validation-20261020-6rjehf5d/test-result-summary.log
+
+simulator-test-build-result: exit=0, 0.034s, inputs=227, unchanged=True
+xcrun xcresulttool get build-results --path /private/tmp/fr-validation-20261020-6rjehf5d/unit-capture-ui.xcresult
+log: /private/tmp/fr-validation-20261020-6rjehf5d/simulator-test-build-result.log

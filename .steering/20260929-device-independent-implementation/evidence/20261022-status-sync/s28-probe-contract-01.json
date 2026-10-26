@@ -1,0 +1,40 @@
+{
+  "S28_HTTP": {
+    "method": "FrameRelayTests/StatusSynchronizationHTTPFixtureTests/metadataOnlyPageAndManifestUseCoordinator()",
+    "env_gates": [
+      "FR_S27_HTTP_FIXTURE=1",
+      "FR_S28_METADATA_ONLY=1"
+    ],
+    "mode": "metadata-only",
+    "attachment": "s28-metadata-observation.json",
+    "report_schema": "fr-s28-metadata-observation-v1",
+    "required": {
+      "invalidationsStarted": 1,
+      "invalidationsCompleted": 1,
+      "manifestStarted": 1,
+      "manifestCompleted": 1,
+      "confirmationSend": 0,
+      "ackSend": 0,
+      "operationLookup": 0,
+      "distribute": 0,
+      "lookupDistribution": 0,
+      "durablePublicationCount": 1,
+      "newConfirmations": 0,
+      "reopenMatches": true,
+      "coordinatorAwaitCompleted": true,
+      "sdkTerminalCountsObserved": false
+    },
+    "SDK_limit": "source contract of unchanged PublicationURLSessionRequest awaits completion+invalidation; actual new-run SDK terminal counts are not observed or invented",
+    "server": "actual two metadata requests; zero media/control/confirmation/ACK; before-rescue resources all clean; source/settings/external unchanged"
+  },
+  "S28_UI": {
+    "fresh_synthetic_sim_required": true,
+    "seed": "ProductStatusSynchronizationSeedTests.seedDedicatedRegisteredRoot",
+    "verify": "ProductStatusSynchronizationSeedTests.verifyDedicatedRegisteredRoot",
+    "method": "ConnectionFlowTests.testRegisteredMetadataSynchronizationPreservesSavedPublication",
+    "guard": "explicit canonical UUID nonce, empty normal root/store identity, no product Keychain connection; reject existing data without modifying",
+    "endpoint": "https://127.0.0.1:1",
+    "scope": "normal product screen and local connection refusal/partial results, not successful HTTP",
+    "no_product_fixture_branch": true
+  }
+}

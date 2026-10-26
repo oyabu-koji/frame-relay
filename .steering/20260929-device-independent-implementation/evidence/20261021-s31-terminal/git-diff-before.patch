@@ -1,0 +1,1330 @@
+diff --git a/.steering/20260929-device-independent-implementation/tasklist.md b/.steering/20260929-device-independent-implementation/tasklist.md
+index 39c54dc..279e3d0 100644
+--- a/.steering/20260929-device-independent-implementation/tasklist.md
++++ b/.steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,7 +12,28 @@ Start／Finishを分けたタスクは、N01等のStartが満たされれば独
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-18、独立validation指摘2件の修正完了）
++## 現在の再開点（2026-10-20、S31独立下位処理・関連検証完了、製品接続は保留）
++
++- **S31 / blocked**: Photos共有契約、同writerの登録意図/結果/存在観測、実PhotoKit adapter、S25完全媒体/使用権、成功commit後の限定回収、Libraryの理由付き明示照合を実装した。通常の新規写真保存開始・正式Rec.709媒体producer・複数取得操作は未接続であり、利用可能に見せない。
++- **E-S31-01**: 最終Unit429宣言/618展開ケース成功・既存/opt-in20skip、実Photos許可/拒否各1成功、通常Library/撮影UI4成功、generic iOS署名なしbuild成功。最終5runと現物の243入力は一致、各run前後の変更0、runtime/compiler/analyzer診断0。初回compile失敗2版、Photos拒否2版、同bytes適合probeも保持した。
++- **保全・文書**: 開始8119fileのうち変更は許可済み20file、新規source/test16file、削除/旧証跡/既存Render変更0。Photos関連の永続3文書を部分同期し、doc_reviewerのD7指摘を修正後、追加命名境界も指摘なし。証跡は `evidence/20261020-s31/`、raw xcresult/DerivedData/全開始copyは `/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-di-s31-20261020-00r0892r/` に保持。新規専用Simulatorだけを試験後shutdownした。
++- **残件・再開条件**: S23/S27と正式Rec.709供給、通常保存coordinator/固定複数集合の製品接続が必要。unknown/失敗の一時本体・使用権回収と失効/全reader解放への接続、旧extensionless媒体のPhotos再利用も未実装。期限/容量policyや無断移行は追加していない。初回OS許諾・限定選択・本人の写真側削除後・実機品質はDV-16。S47 ISO、S48資材、他task/全steering/PRD受入は未完のまま。独立validationは未開始。
++
++## 直前の再開点（履歴: 2026-10-20、S31 Photos登録・結果照合に着手）
++
++- **S31 / in-progress**: 明示implementにより、既存S25の完全媒体・使用権とS21の同一writerを再利用してPhotos登録を先行する。共有契約/永続化→SDK下位処理→媒体接続→権限理由UIを所有別に引き渡す。標準Rec.709製品媒体の未成立を技術fixtureで補わず、Finish不足は局所保留する。
++- **既存変更の保護方針**: S48/M04のdirty/untrackedを現状のまま保全し、加算変更だけを行う。開始8119file/186,781,360bytesをhash照合し、証跡外398fileのcopy・git status/diff/HEADを `/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-di-s31-20261020-00r0892r/` へ保存。reset/revert/stashを使わず、旧証跡・既存Render・repository-structureは凍結する。
++- **残件の分離**: S47のISO本人判断、S48の標準資材、S23/S27の未完はその直接依存へ保持し、S31下位処理の追加依存にしない。独立validationは開始しない。
++
++## 直前の再開点（履歴: 2026-10-20、S48独立描画基盤の関連検証・M04文書同期完了）
++
++- **S48 / blocked（適合標準資材・実Log変換・通常capture/UI接続待ち）**: 描画専用の3sourceと実画素/競合試験を追加した。空の標準catalogはLog1/2を個別に拒否し、生成cubeによるencoded BGRA技術描画だけを扱う。CGImage出力・原本入力の読取専用契約・1処理中＋1置換待機・世代/連番/停止後の旧結果拒否までを先行し、標準Rec.709完成とはしない。
++- **E-S48-01**: 新規DerivedDataのs48-test-02はUnit19宣言/24展開ケース（新規7/10）＋通常撮影UI1件が成功、失敗/skip/runtimeWarnings/compiler/analyzer診断0。Simulator test buildとs48-ios-build-01のgeneric iOS署名なしbuildが成功、224入力が各実行前後・最終版で一致。初回s48-test-01の新規test macro compile失敗/0件と5警告も保持した。stdoutの既存AppIntents metadata警告はコンパイラ診断と区別する。
++- **S48の保全・main確認**: 開始git clean、証跡外240fileをhash付きでrepo外rootへ保全。S48時点の既存変更は本tasklistとarchitectureの表示境界だけ、新規App/testは所有4fileだけ。mainが全diff・原本へ戻すAPIの不在・未接続・版一致を確認し、doc_reviewerは限定文書差分に指摘なし。証跡は `evidence/20261020-s48/`、raw xcresult/DerivedData/開始時copyは `/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-di-20261020-wa275djf/` に保持する。
++- **M04 / done**: S48の証跡固定後、同じimplement内でrepository-structureだけを同期した。実在配置・製品接続/未接続・単一writer/原本/Ports/Composition所有・test媒体・履歴責務を更新。main指摘の設計例外化を戻し、doc_reviewerの一時媒体/原本unlinkの曖昧さを修正して最終指摘なし。15ローカルリンク切れ0、実在path/表構造/所有を確認、224ソース入力はS48検証版のまま。文書のみのためbuild/testは再実行せず、証跡は `evidence/20261020-m04/` に保存する。
++- **残件・再開条件**: S48本体には対象Logごとの標準資材実体・由来/版/hash・利用条件・数値域/入力適合を確認し、実Log変換と既存capture/UIの接続・検証が必要。入力不変はproducer契約、stopは描画SDK完了/資源解放の証拠ではない。実原本の非焼込み/録画両立/画質はDV-05へ残す。S47は前回ISO案を今回も確認したが未回答のため通常policy=nilを維持。他task・全steering/PRD受入・独立validationは未完了のまま。
++
++## 直前の再開点（履歴: 2026-10-18、独立validation指摘2件の修正完了）
+ 
+ - **S41 / done（validation差戻し2件の修正・必要検証完了）**: 同steeringへの明示implementにより、直前のP1テストcompile再現失敗とP2保存後ハッシュ/一覧更新による次REC抑止を修正した。全体の未完了taskやS47の未回答ISO方針は保持する。今回のmain確認は独立validationの代行ではない。
+ - **直前の独立validation**: App Simulator buildは成功。別々の空DerivedDataで通常Unit/撮影UI testを2回実行し、`ProductCaptureCoordinatorTests.swift` の3actor隔離診断で両方exit65/0件実行。保存結果commit後も全量digestと一覧更新を`isSaving`へ含める経路がarchitectureの次REC条件に違反。元ログ・xcresultは `/private/tmp/fr-validation-20261018-zzhjxcwh/` に保持する。
+@@ -550,8 +571,27 @@ Start／Finishを分けたタスクは、N01等のStartが満たされれば独
+ 
+ ### S31 Photos実登録・必要時読取・不明照合
+ 
+-- [ ] Status: pending
++- [ ] Status: blocked
++  - 着手/保全（2026-10-20）: mainが指定3文書・関連永続文書と既存変更を確認し、内部 `$steering` を明示使用。上記rootへ開始manifest/copyを保存して既存S48/M04変更の保護方針を確定した。mainは本tasklist/新規証跡/構成照会/検証実行/最終diffを所有し、explorer `s31_contract_map` と `s31_ui_map` はread-only。実装workerの所有は引渡し前に下欄へ追記する。一度に進行中の書込みtaskはS31だけとする。
++  - 共有契約/永続化の所有引渡し: worker `s31_core` に新PhotoRegistration値/PhotoLibraryPorts、既存BackendCommit・MediaOperationStorePort、同writerのMediaOperationStoreAdapter/MediaStoredValueValidationと新PhotoStoreProjection、必要最小のRecordingStoreDocument互換変更、専用新規Domain/Storage試験だけを単独割当。既存mutation/lookup/journalとS25 resolverを再利用する。共有APIを確定してからSDK/consumerへ引き渡し、同じファイルの重複所有を避ける。既存他testの変更はmainへの事前引渡し後に限る。
++  - SDK/用途文の所有引渡し: worker `s31_photokit` は新規Platform/Photos/NativePhotoLibraryと専用Integration/Photos試験だけを所有し、共有API凍結後に実装する。O-COMPOSEの前提追加としてprojectのApp Debug/ReleaseにPhotos追加/必要時読取の用途文4行だけを同workerへ割当。既存言語/OS/署名/他設定は凍結。実Photos試験には既存Simulatorの写真を変更せず、新規専用 `7FD88306-1CFD-4181-83E6-ED765F8830B0`（iOS27/iPhone18Pro）を作成・起動し、同project/schemeからdestinationを再確認する。新規合成媒体と写真だけを使用する。
++  - consumerの所有引渡し: worker `s31_coordinator` は新PhotoSaveCoordinatorと専用Integration/Photos/PhotoSaveCoordinatorTests・PhotoSaveFixtureだけを単独所有する。core/SDK/consumerでファイルを分け、同一S31の内部を接続する。起動時の旧photo使用権はowner/epochだけで奪取せず、実終端/FD閉鎖後の成功commitと元useの照合を必要とする。追加の既存ファイル変更はmainによる所有引渡し後に限る。
++  - 限定回収/Libraryの追加引渡し: `s31_coordinator`へ新PhotoRegistrationReconcilerと専用PhotoTemporaryRecoveryTests、ManagedTemporaryMediaの成功proof限定回収、RenditionMediaPortsのcontentType optional追加/終端コメントだけを追加所有する。`s31_core`が成功record/元use限定の新photo releaseUsage commandを同writerへ追加し、一般temporaryの旧epoch規則を緩めない。`s31_library`は既存LibraryStoreReader/Snapshot/Model/View、新LibraryPhotoReconciliation、ProductComposition/ProductLibraryFactoryの読取接続と専用試験だけを所有する。通常保存startの未接続を維持し、既存記録の明示照合導線だけを接続する。
++  - 文書の部分同期: document_author `s31_docs`へarchitectureのPhotos関係だけを単独割当。既存S48差分/他節/他文書を保持し、M03全体doneを先取りしない。必要な別文書の引渡しとread-only doc_reviewerはmainが後段で直列に行う。
++  - 軽微可逆判断 S31-P01（main）: 同じ撮影/変換版のsuccess・unknown・意図のみ中断は新追加を拒否する。SDK未実行の権限拒否等はnotAttemptedとして実SDK失敗/不明と分離し、未追加が確定した直前操作に明示retryOfを束縛した本人再試行だけを許す。写真側未発見/本人削除は再保存の許可にしない。既存journalのenum加算と派生projectionを使用し、別DB/非optional保存項目を追加せずschema7を維持する。
++  - substatus / 着手時: Photos共有契約・同writer意図/結果=未実装、実PhotoKit下位処理=未実装、S25完全媒体使用権/終端との接続=未実装、権限理由UI=未実装、正式製品媒体/全操作導線=後続接続待ち、実機権限/品質=未確認。
++  - 初回検証 s31-unit-01: 確認済みXcode27/Debug/専用iOS27 Simulator、全Unit指定でcompile exit65・0件。新LibraryPhotoReconciliationのsubmitからMainActor availabilityへの同期呼出し1error、compiler warning0。243入力は実行前後一致、全実行source/command/log/xcresultを上記rootへ保持。所有workerが利用不可説明をnonisolated static定数へ分離し、unsafe解除なしで修正・再凍結。新run s31-unit-02で再検証する。
++  - 中間検証: s31-unit-02は新fault fixtureのasync witness隔離6error/unused switch値2warningでcompile exit65・0件。@MainActor witnessとreturn switchへ修正し、SDK後result commitの確定拒否もunknownへ揃えた。s31-unit-03は全Unit425宣言/614展開ケース成功・既存/opt-in19skip・失敗0、runtime/compiler/analyzer診断0、243入力前後一致。stdoutの既存AppIntents metadata warningは別記する。後続reconcilerの遅延応答対象を厳密化する修正1件を加えて最終Unitを再実行予定。
++  - 実Photos初回 s31-photos-authorized-04: 新規専用Simulatorでphotos-add/photosを明示grantし実1件を実行、PhotoKitが合成MOVをinvalidMediaとして拒否しexit65/1失敗。243入力前後一致を確認し、失敗版source/command/log/xcresultを保持。未実行やfake成功へ置換せず、Native担当がMIME/拡張子/fixture適合を限定調査した。初回OS許諾dialog/限定アクセス/実機品質の確認ではない。
++  - 実Photos適合修正: originalFilenameをMIMEに揃えたauthorized-05もPHPhotosErrorDomain3302で1失敗。compatibility-06は同一H264/PCM8k MOVの元.mov URLが成功、実S25 extensionless URLが3302拒否と観測した（raw SDK診断で製品成功commitなし）。追加所有を同coordinator workerへ直列引渡しし、TemporaryMediaState内TemporaryMediaLeaf・TemporaryMediaStoreProjection.create・ManagedTemporaryMedia.create/openFileの共通規則を変更。新規だけMIME完全一致のUUID.mov/mp4とし、旧UUID-onlyのread/reopen互換と同inode/bytesを保持、schema7/既存fileのrename・移行なし。原本や音声/動画bytesは変えていない。診断testは現在、明示opt-inの元.mov/legacy-extensionless比較として製品S25と分離する。
++  - substatus / 終了時: 共有契約/同writer/SDK下位処理/S25完全媒体・真終端/成功限定回収/明示照合UI/技術検証/main確認=完了。正式Rec.709媒体と通常保存開始/固定複数集合/全媒体gate・失効との製品接続=未完。unknown/失敗copy/use回収・旧extensionlessのPhotos再利用=未対応。実機権限/品質=未確認。これらはS31 Finish残件であり、下位処理の成功だけでtask全体をdoneにしない。
++  - E-S31-01 / 構成・コマンド: Xcode27.0(27A266a)/Swift compiler6.4、実在project/scheme/test plan FrameRelay、App/Unit/UI3target・Debug・Swift5/iOS27/既定MainActorを確認。testは `-destination 'platform=iOS Simulator,id=7FD88306-1CFD-4181-83E6-ED765F8830B0' -parallel-testing-enabled NO -collect-test-diagnostics never`、各runの専用DerivedData/resultBundleを指定。実Photosは `TEST_RUNNER_FR_PHOTOS_INTEGRATION=authorized/denied` を明示、通常Unitではopt-in実行しない。generic iOSは `-destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build`。全引数/実行版/exit/resultは証跡の各command/result JSONを参照。
++  - E-S31-01 / 最終結果: authorized-07で実PhotoKit callback成功、完全登録resource bytes一致、撮影日時/video/audio track/AVPlayer進行・decode、SDK終端前のFD/use保持→結果commit後の実unlinkを確認。denied-08は実addOnly/readWrite拒否下でSDK未開始/照合不可/媒体と未実行証拠の保持を確認。unit-final-09は429宣言/618展開成功・20skip・失敗0（既存17＋実Photos/診断opt-in3を成功へ含めない）。ui-10は新規1＋通常撮影3成功、写真拒否でもLibrary refresh/撮影移動・設定復元・再起動を確認。ios-build-11成功。runtimeWarnings/compiler/analyzer各0、stdoutの既存AppIntents metadata/Simulatorログは診断と区別して保持。最終5runと現物243入力は一致。
++  - E-S31-01 / 境界・限界: intent/結果commit前後欠落→instance破棄/reopen、success/unknown/identifierなし非再追加、明示retryOf、limited/denied/authorized未発見、古い照合応答、遅延SDK/取消し/finish失敗、成功proofだけの旧photo use回収/他use・他動画保持、旧leaf読取・危険なleaf原子拒否を検証。実OSの初回dialog/limited選択/本人による写真側削除後は未実施。notFound実試験はランダムidentifierであり本人削除の代替ではない。新規合成媒体はLog/Rec.709/実撮影品質の採用証拠ではない。再open試験は同processのinstance破棄で実process終了・電源断の証明ではない。
++  - V-REVIEW / 保全: mainが全所有diff・未追跡source・副作用順/実I/O/用途文4行・未接続を確認。開始既存変更へ加算し、20file変更/16新規source以外の変更なし、旧証跡/Render/README/memo/入力仕様/旧steeringを保持。文書authorが3文書をPhotos範囲だけ更新し、doc_reviewerのD7指摘を修正、命名追補も最終指摘なし。全79ACのIDと他task状態を保持。`evidence/20261020-s31/` にcommand/結果/失敗版/版hash/範囲確認を保全し、raw xcresultとDerivedDataは上記repo外rootに保持する。独立validationは代行していない。
++  - blocked / 再開条件: 正式Rec.709版の通常取得producer・S23/S27と、ProductCompositionへの保存coordinator/固定複数集合・使用権ownerの製品接続を実装/検証する。unknown/失敗の復旧記録を保持した一時本体/use回収、失効時の全解放・旧extensionless再利用も必要。未知結果を未保存へ丸めず、容量/保持期限や写真側削除後の新しい再保存を勝手に採用しない。実機はDV-16で別判定する。
+   - 読取引渡し（2026-10-10、registration_probe_audit/main）: TemporaryMediaReceipt.photoHandoffは完全範囲/同版/content/未解放photoHandoff使用権/capturedAtの値検証を既存試験付きで再利用可能。ただしPhotoKitが読めるlocal媒体の解決/実保持Port、Photos intent/result/localIdentifier/権限/現在存在の型・同writer commandは未実装。MediaRequestはupload/download/playbackだけのため遠隔自動再開規則をPhotosへ転用しない。O-PORT/STOREがschema5/journal/exact commitを加算し、S25未完でも専用resolver＋合成MOV/明示fixture日時による実PhotoKit下位処理・disk再open・非再追加を先行できる。SDK performChangesに取消しhandleなし、Task取消しを未実行/解放とせず完了まで媒体保持、shouldMoveFile=false。用途文2件はO-COMPOSEの前提追加が必要。製品暦日時producerはS41未接続、対応不明/限定/未発見は要確認、日時・名前による推定同定は不可。アルバム/手動再保存/上限期限は未合意のまま。調査のみで書込/PhotoKit/新試験なし。
++  - 読取更新（2026-10-20、remaining_tasks/main）: 上記は当時の履歴。現S25には `TemporaryLocalMediaPort` と `ManagedTemporaryMedia.resolvePhotoMedia/finishPhotoMedia` があり、完全媒体/同版/hash/photoHandoff使用権、PhotoKit実終端までのFD保持と終端後解放を再利用できる。resolverを重複作成しない。S41の暦日時producerも接続済み、現共有storeはschema7。Photos専用型/Port・意図/結果/識別子の同writer command・実PhotoKit adapter/通常導線は未実装で、S31本体は今回未着手。次は共有契約→実下位処理→同writer永続接続→S25媒体→製品導線を所有別に引き渡す。登録成功→管理commit前にidentifier自体が失われ得るため、名前/日時で推定同定せず、不明/未発見を未保存や再追加許可へ変えない。S23/S27や正式Rec.709 proof未成立をfixtureで補わず、製品媒体接続は別substatusで判定する。
+   - Depends: Start＝N01・既存T03の完全媒体／使用権・操作契約。登録下位処理・権限UI・不明照合規則は試験実媒体で先行可。永続接続＝S21の単一writer、製品媒体接続＝S25。Finish＝両接続と必須検証を含む全substatus。
+   - Owner / Files: O-PHOTOS／新規 `FrameRelay/Platform/Photos/`、`FrameRelay/Application/MediaOperations/PhotoSaveCoordinator.swift`、O-LIBRARY／`FrameRelay/Features/Library/` の権限理由UI。O-STOREが同じstoreへPhotos意図／結果commandを追加し、共有PortはO-PORT、project用途文はO-COMPOSEだけが更新する。各対応testを含めファイル別直列。
+   - Partial handoff: 下位処理／権限UIは実Photos adapter・拒否／限定／未発見規則・実行可能Simulatorの検証をS34へ渡す。永続接続は意図→登録→結果commitとinstance破棄→再open・不明時非再追加の証拠を渡す。製品媒体接続はS25の同一完全媒体・使用権と解放までを照合する。各substatusに版・所有・証拠・残件を記録し、S25待ちでも下位処理・永続接続を進める。
+@@ -793,7 +833,17 @@ Start／Finishを分けたタスクは、N01等のStartが満たされれば独
+ 
+ ### S48 固定Rec.709撮影表示を接続
+ 
+-- [ ] Status: pending
++- [ ] Status: blocked
++  - 再開/独立部着手（2026-10-20）: 明示implementに従いStart=N01の描画分離・資材/世代契約・既知入力の実描画試験を先行する。S47の未回答ISO判断は同taskだけへ保持。通常Rec.709変換と画面接続は適合標準資材待ちであり、独立部の成功で全体doneにしない。
++  - 保全/所有: 開始git clean。App/Unit/UI/project・関連docs・steeringの証跡外240fileをhash付きで `/var/folders/8g/jlksky052tn269bzjt7lbgyr0000gn/T/fr-di-20261020-wa275djf/baseline/` へ保全。mainはtasklist/新規証跡/構成確認/検証実行/最終diff、worker `s48_render` は新規 `FrameRelay/Platform/Render/CaptureDisplay*.swift` と `FrameRelayTests/Platform/Render/` のみを単独所有する。既存Native/Preview/Factory/project/storeと旧証跡は変更しない。他者の変更を戻さない。
++  - substatus / 着手時: 描画分離・資材/世代契約・既知入力試験=着手、標準資材適合/実Log変換/通常画面接続=未実装・資材待ち、実機品質=未確認。生成テストcubeは技術試験専用で、標準Log→Rec.709成立やFR-02受入の証拠にしない。
++  - 初回検証（s48-test-01）: 新規DerivedData/Debug/確認済みiOS27 Simulatorでexit65・0件実行。新試験の入れ子 `#require` がrecursive expansion、同様のmacro内呼出にcompiler warning5件。本体3fileの診断なし。失敗版4source/224入力hash/ログ/xcresultを保全し、test helperを事前letへ展開して意味を保持した。再度新規DerivedDataのs48-test-02で同じ対象が成功。失敗を成功件数へ含めない。
++  - substatus / 終了時: 描画分離/資材・世代契約/技術fixture実描画/関連自動検証/main確認=完了。標準資材適合/実Log変換/通常capture・UI接続=未実装・保留、実機品質=未確認。通常Native/Preview/Factoryは変更しておらず、生成cubeを製品へ供給しない。所有は上記worker4file、document_author `s48_docs` のarchitecture表示境界、mainのsteering/新証跡だけ。
++  - 実装境界: 技術fixtureの由来/版/用途/hash/0…1・opaque alphaと入力タグを照合し、Core Imageで別の即時CGImageへ描画する。出力はtechnicalFixture固定で、writerへ戻すpixel/sample buffer APIを持たない。原本入力と明示された未変換入力だけを読取り、表示context/連番と内部epochで旧世代・逆順・context往復/同context再有効化・停止後の旧結果を拒否する。保持は処理中1＋置換待機1。producerの同時書込防止と実SDK終端は別契約であり、stopを描画完了通知と扱わない。
++  - E-S48-01 / 検証構成・結果: Xcode27.0(27A266a)/Swift compiler6.4、実在project/scheme/test plan `FrameRelay`、Debug、Swift5/iOS27.0/既定MainActor、App/Unit/UI3targetを再確認。`-destination 'platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719' -parallel-testing-enabled NO -collect-test-diagnostics never` のtest-02でCaptureDisplayTests7宣言/10展開＋ExplorationCoordinatorTests12/14＋通常撮影UI1成功、失敗/skip/runtimeWarnings/compiler/analyzer0。別DerivedDataの `-destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build` も成功。全コマンド・設定・結果・224入力hash・初回失敗は証跡へ保持し、両最終run/現物の入力一致を確認。Simulatorの通常製品設定hashもcontainer移転後の相対pathで一致した。
++  - E-S48-01 / 受入対応と限界: 実画素identity/赤青swap、全入力byte/両attachment mode不変、出力即時detach、Log1/2の個別拒否、信号/不正cube/hash/二重変換拒否、1＋1置換・古い順序・停止/世代往復を確認した。既存D02拒否と通常画面の未対応表示・REC阻害/Library復帰は回帰成功。技術fixtureの成功は標準Log変換、実撮影原本の非焼込み、画角・色・負荷・FR-02受入を証明しない。
++  - 標準資材の読取再確認（2026-10-20）: 公式FCPガイドはLog1/2それぞれのRec.709 3D LUTを説明するが実体/版/利用条件/入力域は今回も未取得。Developer Downloadsへの今回の未認証経路はSign In画面へのredirectを観測し、認証後一覧は未閲覧。全取得経路で認証必須とは断定しない。一般的なSDK色プロパティとLogTransferFunction設定だけを標準変換保証にせず、ACESのLog1→ACES IDTもRec.709/Log2/Apple表示LUTの代用として採用しない。一次資料URLと不足項目を証跡へ記録する。
++  - V-REVIEW / 再開条件: mainが4source/testの全diff・実I/O試験・CGImageだけの出力・未接続・224入力一致を確認し、architecture限定差分のdoc_reviewer指摘なし。既存保護対象/旧証跡/project/README/memoの変更なし、空白診断成功。S48は適合標準資材を確認して変換本体/通常表示へ実接続し、既知Log入力・非焼込み/二重変換・必要UIを検証してから全体doneを判定する。独立validationは代行していない。
+   - Depends: Start＝N01（描画分離・既知入力試験準備）、変換本体はS26Aの当該適合資材取得。Finish＝S41,S26A（当該入力適合資材取得）の実接続。着手時に独立部分と接続部分を別substatusで記録し、接続まで満たす前はtask全体をdoneにしない。
+   - Owner / Files: O-CAPTURE／`FrameRelay/Platform/Render/`、`FrameRelay/Platform/Capture/` の表示分岐、`FrameRelay/Features/Capture/` と対応test。
+   - Done when: 由来／入力適合済み標準変換を表示経路へ実装し、記録経路へ流さず、確認状態と分離。
+@@ -858,7 +908,7 @@ M01完了記録（2026-10-04）: mainが確定仕様との対応と全diffを確
+ | M01／done | `docs/product-requirements.md` | N00／新しい明示 `$implement-steering` 内でdocument_author | FR-07の確定操作と暫定値、FR-10／14／17の一覧・履歴・実本体削除、FR-15追加／読取照合限界、PRD-Q01〜PRD-Q05の確定部分、順序と受入分離を反映。21要求79ID・禁止・品質を保持して差分照合 |
+ | M02／pending | `docs/functional-design.md` | N00、該当実装の更新時snapshot／同implement | U1／U2／U4、F1〜F5のズーム／権限／整理／履歴と不明遷移、機能設計T01〜T21の先行試験／実機残件を整合。U3の背景・携帯状態同期・個別失敗続行はbackend確定事項を反映し未合意へ戻さない |
+ | M03／pending | `docs/architecture.md` | N00、S11／S13／S21等の判断が生じる都度／同implement | D01非依存共通store、単一writer／原本／lease、削除管理記録、Photos限界、暫定設定、候補接続と実採用、4軸と層別検証。内部方式採用は実装証拠付き、実機能力は未確認を保持 |
+-| M04／pending | `docs/repository-structure.md` | N00、各taskの実ファイル確定時／同implement | 雛形だけとする古い現状を修正し、既存部分実装・新モジュール責務・共通store／原本／Ports／Composition単独所有・試験媒体分離・履歴責務を実在配置へ対応。整理目的だけの全面移動なし |
++| M04／done | `docs/repository-structure.md` | N00、各taskの実ファイル確定時／同implement | 2026-10-20、document_author s48_docsが同文書だけを同期。実在配置/接続状態/所有/試験媒体/履歴責務を対応。15ローカルリンク切れ0、主要App35path/代表test path実在、未作成7path/表構造/禁止規則保持を確認。main/doc_reviewerの指摘2件を修正後、最終指摘なし。証跡 `evidence/20261020-m04/`。コード/構成移動なし |
+ | M05／pending | `docs/development-guidelines.md` | N00／同implement | 直接依存だけの保留、4段階、軽微可逆裁量、4軸・レビュー証拠、分割本体doneと製品DoD、まとめた実機票を反映。必須検証／品質事前合意／実データ許可／coverage方針維持 |
+ | M06／pending | `docs/glossary.md` | N00／同implement | 原本本体／管理記録、履歴≠ゴミ箱、削除成功／要照合、追加権限／読取照合限界、未実装／探索／未接続／実装済み実機未確認、暫定／採用値、4軸／局所保留を他5文書と照合 |
+ | M07／pending | `docs/ideas/20260926-capture-foundation-feasibility.md` | N00／別途明示 `$define-requirements`（この旧仕様の整合を対象指定） | 新confirmed仕様の限定差分を相互参照しP06限定先行→4段階、D04とD01分離、CF受入・方式品質保持を追記。過去合意を削除しない。新規要求判断が生じればその箇所だけ確認 |
+@@ -936,8 +986,8 @@ M07〜M10の別Workflowがまだ明示されていない時は外部待ちを記
+ | FR-01 | AC-FR-01-02 | 3形式・カメラ対応・無断代替禁止 | P05/P06/P09;CF-02/08 | EC,ES | S41 | dep(S41)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 現能力照合・希望/実値・自動代替拒否を製品接続済 | E-S41-01/02: 設定/条件照合・build | D0 | 部分証拠、全組合せ未確認 | DV-01 |
+ | FR-01 | AC-FR-01-03 | 手動値維持・ND再評価 | P05/P06/P09;CF-02/08 | EC,ES | S41,S46 | dep(S41,S46)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 手動設定・ND実画素/失効と通常policy接続済 | E-S41-01/02、E-S46-01/02: 設定世代/時刻境界/期限・REC非阻害 | D0 | 実装/自動検証済、実機未受入 | DV-01、DV-07 |
+ | FR-01 | AC-FR-01-04 | 保存設定・WB/補正の条件復元 | P05/P06/P09;CF-02/08 | EC,ES,E-S44-01 | S41,S44 | dep(S41,S44)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | S41希望保存・S44補正候補/条件復元接続済 | E-S41-01/02/03、E-S44-01: store再open/条件照合/非代替/初期UI | D0 | 部分証拠、実機補正未受入 | DV-01、DV-04 |
+-| FR-02 | AC-FR-02-01 | 固定Rec.709表示・非焼込み | P06/P12;CF-05 | EC:表示拒否境界のみ | S48 | dep(S48)＋対応A/Q01 | O-CAPTURE | I0 | A1 | D0 | R0 | DV-05 |
+-| FR-02 | AC-FR-02-02 | 確認状態分離・描画/録画品質 | P06/P12;CF-05 | EC:表示拒否境界のみ | S48,S4V | dep(S48,S4V)＋対応A/Q01 | O-CAPTURE | I0 | A1 | D0 | R0 | DV-05、DV-11 |
++| FR-02 | AC-FR-02-01 | 固定Rec.709表示・非焼込み | P06/P12;CF-05 | EC:表示拒否境界,E-S48-01 | S48 | dep(S48)＋対応A/Q01 | O-CAPTURE | 表示専用CGImage/技術描画のみ実装、標準Log変換・通常接続は未実装 | E-S48-01:生成cube実描画/入力全byte・タグ不変/二重変換拒否 | D0 | 標準資材・実原本非焼込み・FR-02未受入 | DV-05 |
++| FR-02 | AC-FR-02-02 | 確認状態分離・描画/録画品質 | P06/P12;CF-05 | EC:表示拒否境界,E-S48-01 | S48,S4V | dep(S48,S4V)＋対応A/Q01 | O-CAPTURE | 未接続の表示専用基盤・1＋1保持/世代失効のみ実装 | E-S48-01:旧世代/逆順/停止失効・既存D02拒否/通常UI回帰 | D0 | 標準表示と記録の両立・品質・負荷未受入 | DV-05、DV-11 |
+ | FR-03 | AC-FR-03-01 | OFF＋複数実モード | P05/P06/P13;CF-06 | EC:能力/適用契約,E-S44-01 | S44 | dep(S44)＋対応A/Q01 | O-CAPTURE | OFF＋複数SDK候補・両出力支持/active照合/現在値UI接続済 | E-S44-01: 候補条件/connection拒否/実値差/REC前再照合 | D0 | 本体の部分証拠、実機効果/正式採用未受入 | DV-04 |
+ | FR-03 | AC-FR-03-02 | 初回候補・対応条件復元 | P05/P06/P13;CF-06 | EC:能力/適用契約,E-S44-01 | S41,S44 | dep(S41,S44)＋対応A/Q01 | O-CAPTURE | 初回standard候補・保存希望優先・条件復元/非代替を接続済 | E-S44-01: OFF/standard/cinematicExtendedの再open・条件照合・初期UI | D0 | 部分証拠、実機未受入 | DV-01、DV-04 |
+ | FR-03 | AC-FR-03-03 | 3場面品質・設定不変 | P05/P06/P13;CF-06 | EC:能力/適用契約,E-S44-01 | S44,S4V | dep(S44,S4V)＋対応A/Q01 | O-CAPTURE | 録画中の設定変更拒否・現在補正観測を接続、品質未評価 | E-S44-01: 録画中不変/観測・保存/音声回帰 | D0 | 3場面品質/全体継続性未受入 | DV-04、DV-11 |
+@@ -988,11 +1038,11 @@ M07〜M10の別Workflowがまだ明示されていない時は外部待ちを記
+ | FR-14 | AC-FR-14-05 | 実削除と記録一致・一覧保持 | T03/T21;BI-27/29（旧は契約まで） | EB:整理証拠/順序規則 | S32,S34 | dep(S32,S34)＋対応A/Q01 | O-ORIGINAL/O-STORE | I1 | A1 | D0 | R0 | DV-17 |
+ | FR-14 | AC-FR-14-06 | 削除境界中断・要照合 | T03/T21;BI-27/29（旧は契約まで） | EB:整理証拠/順序規則 | S32 | dep(S32)＋対応A/Q01 | O-ORIGINAL/O-STORE | I1 | A1 | D0 | R0 | DV-17 |
+ | FR-14 | AC-FR-14-07 | 複数動画別再判定・結果 | T03/T21;BI-27/29（旧は契約まで） | EB:整理証拠/順序規則 | S32,S34 | dep(S32,S34)＋対応A/Q01 | O-ORIGINAL/O-STORE | I1 | A1 | D0 | R0 | DV-17 |
+-| FR-15 | AC-FR-15-01 | 手動写真保存・実登録・一時解放 | T03/T15/T21;BI-10/30（旧は契約まで） | EB:完全媒体/使用権契約 | S31,S34 | dep(S31,S34)＋対応A/Q01 | O-PHOTOS | I1 | A1 | D0 | R0 | DV-16 |
+-| FR-15 | AC-FR-15-02 | 同撮影同版・連打/再試行非重複 | T03/T15/T21;BI-10/30（旧は契約まで） | EB:完全媒体/使用権契約 | S31 | dep(S31)＋対応A/Q01 | O-PHOTOS | I1 | A1 | D0 | R0 | DV-16 |
+-| FR-15 | AC-FR-15-03 | 登録直後中断・写真側削除非復活 | T03/T15/T21;BI-10/30（旧は契約まで） | EB:完全媒体/使用権契約 | S31 | dep(S31)＋対応A/Q01 | O-PHOTOS | I1 | A1 | D0 | R0 | DV-16 |
+-| FR-15 | AC-FR-15-04 | 回線離脱/復帰・整理順序非強制 | T03/T15/T21;BI-10/30（旧は契約まで） | EB:完全媒体/使用権契約 | S23,S31 | dep(S23,S31)＋対応A/Q01 | O-PHOTOS | I1 | A1 | D0 | R0 | DV-12、DV-16 |
+-| FR-15 | AC-FR-15-05 | 複数保存・動画別結果/不明 | T03/T15/T21;BI-10/30（旧は契約まで） | EB:完全媒体/使用権契約 | S31,S34 | dep(S31,S34)＋対応A/Q01 | O-PHOTOS | I1 | A1 | D0 | R0 | DV-16 |
++| FR-15 | AC-FR-15-01 | 手動写真保存・実登録・一時解放 | T03/T15/T21;BI-10/30（旧は契約まで） | EB:完全媒体/使用権契約,E-S31-01 | S31,S34 | dep(S31,S34)＋対応A/Q01 | O-PHOTOS | 実PhotoKit/同writer/S25完全媒体接続済・通常保存開始未接続 | E-S31-01:実Photos登録/resource bytes/日時/音声/再生/解放、Unit/UI成功（合成） | D0 | 下位処理の部分証拠・正式Rec.709/製品導線/実機未確認 | DV-16 |
++| FR-15 | AC-FR-15-02 | 同撮影同版・連打/再試行非重複 | T03/T15/T21;BI-10/30（旧は契約まで） | EB:完全媒体/使用権契約,E-S31-01 | S31 | dep(S31)＋対応A/Q01 | O-PHOTOS | 登録キー排他/意図exact/unknown非再追加/確定未追加の明示retryOf実装済 | E-S31-01:連打/取消し/遅延終端/commit前後欠落/reopenで非再追加成功 | D0 | 重複防止の部分証拠・製品接続/実機未確認 | DV-16 |
++| FR-15 | AC-FR-15-03 | 登録直後中断・写真側削除非復活 | T03/T15/T21;BI-10/30（旧は契約まで） | EB:完全媒体/使用権契約,E-S31-01 | S31 | dep(S31)＋対応A/Q01 | O-PHOTOS | 追加結果/過去成功/現在存在を分離し中断後の再追加を抑止 | E-S31-01:実disk結果commit前後/reopen・限定/拒否/未発見保持成功、実notFoundは別identifier | D0 | 中断規則の部分証拠・実OS登録境界/本人写真削除後未確認 | DV-16 |
++| FR-15 | AC-FR-15-04 | 回線離脱/復帰・整理順序非強制 | T03/T15/T21;BI-10/30（旧は契約まで） | EB:完全媒体/使用権契約,E-S31-01 | S23,S31 | dep(S23,S31)＋対応A/Q01 | O-PHOTOS | 完全取得後local登録はWi-Fi非依存、取得/復帰gateはS23未接続 | E-S31-01:S25完全local媒体からSDK登録/解放成功、実回線切替は未実行 | D0 | local部分証拠・実Wi-Fi/条件付き取得再開/製品接続未達 | DV-12、DV-16 |
++| FR-15 | AC-FR-15-05 | 複数保存・動画別結果/不明 | T03/T15/T21;BI-10/30（旧は契約まで） | EB:完全媒体/使用権契約,E-S31-01 | S31,S34 | dep(S31,S34)＋対応A/Q01 | O-PHOTOS | 動画別意図/結果/Library表示済、固定複数集合の保存開始未接続 | E-S31-01:複数記録/別動画回収非阻害のUnit・通常UI4成功 | D0 | 動画別状態の部分証拠・複数保存開始/取得/実機未確認 | DV-16 |
+ | FR-16 | AC-FR-16-01 | 全媒体Wi-Fi・local offline再生 | T03/T05/T09/T11/T15/T23;BI-07〜15 | EB,ER,E-S15,E-S25 | S15,S23,S25 | dep(S15,S23,S25)＋対応A/Q01 | O-IOS-BI/O-CAPTURE | 原本/取得済軽量版local実再生と遠隔各read gate実装済、全媒体/背景/VPN制約はS23未完 | E-S15:33成功、E-S25新Unit27/HTTP10成功・localはnetwork gate非依存・cache hit/応答後のgate再照合、実回線断未検証 | D0 | localと固定版下位通信の部分証拠、全媒体Wi-Fi/VPN/実機は未達 | DV-12、DV-14 |
+ | FR-16 | AC-FR-16-02 | REC実停止・保存優先・Mac継続 | T03/T05/T09/T11/T15/T23;BI-07〜15 | EB,ER:契約/部分観測 | S23,S49 | dep(S23,S49)＋対応A/Q01 | O-IOS-BI/O-CAPTURE | I1 | A1 | D0 | R0 | DV-11、DV-12 |
+ | FR-16 | AC-FR-16-03 | 開始済対象だけ全条件再確認再開 | T03/T05/T09/T11/T15/T23;BI-07〜15 | EB,ER:契約/部分観測,E-S21 | S23,S28,S49 | dep(S23,S28,S49)＋対応A/Q01 | O-IOS-BI/O-CAPTURE | 本人意思/複合待機/試行世代を同writerへ永続化・全媒体gate/SDK未接続 | E-S21:複合待機/取消後成功/古いcallback拒否のdisk成功 | D0 | 再開規則の永続境界だけ部分証拠・実回線/REC/OS未確認 | DV-12 |
+@@ -1004,8 +1054,8 @@ M07〜M10の別Workflowがまだ明示されていない時は外部待ちを記
+ | FR-17 | AC-FR-17-06 | 破棄境界中断・要照合 | T03/T21;BI-28/29（旧は契約まで） | EB:破棄/解放/順序規則 | S33 | dep(S33)＋対応A/Q01 | O-ORIGINAL/O-STORE | I1 | A1 | D0 | R0 | DV-17 |
+ | NFR-01 | AC-NFR-01-01 | 起動/次REC/通信停止の実測 | P18,T23;CF-09,BI-09 | EC,EB:時刻/抑止契約 | S41,S43,S49,S4V | dep(S41,S43,S49,S4V)＋対応A/Q01 | O-CAPTURE/O-IOS-BI | I1 | A1 | D0 | R0 | DV-11、DV-12 |
+ | NFR-02 | AC-NFR-02-01 | 保存/検証受信/確認の中断 | P09/P19,T10/T18/T21/T22;CF-08,BI-04/05/20/23/29/30/33 | ES,EB,E-S11,E-S12,E-S21,E-S24 | S12,S21,S24I,S27 | dep(S12,S21,S24I,S27)＋対応A/Q01 | O-STORE/O-ORIGINAL/O-PHOTOS | S12保存/復旧＋S21確認/証拠disk＋S24 server保存復旧実装済、端末実転送/確認未接続 | E-S12:54実行、E-S21:commit前後中断/reopen、E-S24:境界失敗/旧claim/全readと別process再起動成功 | D0 | 保存/連携commit境界の部分証拠・製品統合/実機未確認 | DV-02、DV-12、DV-14 |
+-| NFR-02 | AC-NFR-02-02 | 失効維持・写真直後中断 | P09/P19,T10/T18/T21/T22;CF-08,BI-04/05/20/23/29/30/33 | ES,EB:境界規則とdisk部分,E-S21 | S21,S27,S31 | dep(S21,S27,S31)＋対応A/Q01 | O-STORE/O-ORIGINAL/O-PHOTOS | 同writer失効維持/ACK実装済・Photos未接続 | E-S21:失効前後fault/reopen/非復活成功 | D0 | 失効永続境界の部分証拠・写真直後中断未確認 | DV-14、DV-16 |
+-| NFR-02 | AC-NFR-02-03 | 不明/失敗と復旧表示 | P09/P19,T10/T18/T21/T22;CF-08,BI-04/05/20/23/29/30/33 | ES,EB:境界規則とdisk部分 | S14,S28,S31,S34 | dep(S14,S28,S31,S34)＋対応A/Q01 | O-STORE/O-ORIGINAL/O-PHOTOS | S14保存/削除不明投影済・Photos/製品UI未接続 | E-S14:44実行成功、read失敗/不明保持部分 | D0 | 部分証拠・Photos/実機未確認 | DV-02、DV-14、DV-16 |
++| NFR-02 | AC-NFR-02-02 | 失効維持・写真直後中断 | P09/P19,T10/T18/T21/T22;CF-08,BI-04/05/20/23/29/30/33 | ES,EB:境界規則とdisk部分,E-S21,E-S31-01 | S21,S27,S31 | dep(S21,S27,S31)＋対応A/Q01 | O-STORE/O-ORIGINAL/O-PHOTOS | 同writer失効維持/ACKとPhotos意図/結果/非再追加実装済・全体製品接続未完 | E-S21:失効fault/reopen、E-S31-01:Photos結果commit前後欠落/reopen/成功限定回収成功 | D0 | 失効/写真commit境界の部分証拠・実OS中断/製品統合未確認 | DV-14、DV-16 |
++| NFR-02 | AC-NFR-02-03 | 不明/失敗と復旧表示 | P09/P19,T10/T18/T21/T22;CF-08,BI-04/05/20/23/29/30/33 | ES,EB:境界規則とdisk部分,E-S31-01 | S14,S28,S31,S34 | dep(S14,S28,S31,S34)＋対応A/Q01 | O-STORE/O-ORIGINAL/O-PHOTOS | S14保存/削除不明とS31 Photos過去結果/存在照合の独立投影・明示UI接続済 | E-S14:44成功、E-S31-01:denied/limited/notFound/identifier欠落保持・通常UI成功 | D0 | 状態表示の部分証拠・通常取得/保存開始/実機未確認 | DV-02、DV-14、DV-16 |
+ | NFR-02 | AC-NFR-02-04 | 整理/破棄の実削除境界復旧 | P09/P19,T10/T18/T21/T22;CF-08,BI-04/05/20/23/29/30/33 | ES,EB,E-S13:境界規則とdisk部分 | S32,S33,S34 | dep(S32,S33,S34)＋対応A/Q01 | O-STORE/O-ORIGINAL/O-PHOTOS | S13予約/reader基盤接続済・実unlink/UI未接続 | E-S13:50実行成功、予約/reopen部分 | D0 | 基盤部分証拠・削除完了未確認 | DV-17 |
+ | NFR-03 | AC-NFR-03-01 | 全必須gateの実施と品質適合分離 | P17/P18/P20;CF-02〜10 | EC:部分探索のみ | S41〜S49,S4V | dep(S41〜S49,S4V)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-01、DV-03、DV-04、DV-05、DV-06、DV-07、DV-08、DV-09、DV-10、DV-11 |
+ | NFR-03 | AC-NFR-03-02 | Log原本・設定/音声/継続品質 | P17/P18/P20;CF-02〜10 | EC:部分探索のみ | S42〜S49,S4V | dep(S42〜S49,S4V)＋対応A/Q01 | O-CAPTURE | I1 | A1 | D0 | R0 | DV-03、DV-04、DV-05、DV-07、DV-08、DV-09、DV-10、DV-11 |
+@@ -1297,6 +1347,7 @@ H01では各AC全文の正常・拒否・不明・失敗・順序・対象組合
+ | E-S46-02 | 2026-10-18、worker/document_author/doc_reviewer/main | S46本人合意・通常接続・限定回帰 | 最終210入力、test-02/ios-build-01/現物一致 | 各run/source hash、両候補Factory→実解析、250ms遅延/入力から1秒/更新、REC開始・継続、保存再生/通常UI | Unit26宣言34展開＋UI1全成功、Simulator/iOS build成功、最終失敗/skip/runtimeWarnings/compiler/analyzer0 | `evidence/20261018-s46-approved/`。初回compile失敗0件保持。実機DV-07/FR-06受入/独立validation未確認 |
+ 
+ | E-S47-01 | 2026-10-18、explorers/workers/document_author/doc_reviewer/main | S47部分、AC-FR-07/08・FR-03-04と回帰 | 最終220入力、final-test-09/ios-build-10/現物一致 | 各run/source hash、目標/途中停止・旧予告/命令・レンズ遅延補正と手動優先・保持/戻り・通常UI | 全Unit365宣言496展開/17skip/0fail、UI3成功、Simulator/iOS build成功。途中失敗保持、重複合算なし | `evidence/20261018-s47/`。ISO本人判断/通常注入待ちblocked、DV-08/09/11・独立validation未確認 |
++| E-S48-01 | 2026-10-20、explorers/worker/document_author/doc_reviewer/main | S48独立部、AC-FR-02-01/02と既存拒否/UI回帰 | 最終224入力、test-02/ios-build-01/現物一致 | 各command/run/source hash、実fixture描画/入力不変/二重変換拒否/有界保持/世代と停止失効 | Unit19宣言24展開＋UI1成功、Simulator/iOS build成功、失敗/skip/runtimeWarnings/compiler/analyzer0。初回compile失敗/0件・5警告保持 | `evidence/20261020-s48/`。S48本体は標準資材/実Log/通常接続待ちblocked、DV-05・独立validation未確認 |
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+ 
+diff --git a/FrameRelay.xcodeproj/project.pbxproj b/FrameRelay.xcodeproj/project.pbxproj
+index 409e771..a8a82a7 100644
+--- a/FrameRelay.xcodeproj/project.pbxproj
++++ b/FrameRelay.xcodeproj/project.pbxproj
+@@ -377,6 +377,8 @@
+ 				INFOPLIST_KEY_NSCameraUsageDescription = "動画を撮影し、FrameRelay内に原本を保存するためにカメラを使用します。";
+ 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "選択したMac miniに接続し、端末の登録情報を確認するために使用します。";
+ 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "撮影する動画に音声を記録するためにマイクを使用します。";
++				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "選択した軽量版の動画を写真に保存します。";
++				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "保存結果が不明な動画について、写真に存在するか照合します。";
+ 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+ 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+ 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+@@ -412,6 +414,8 @@
+ 				INFOPLIST_KEY_NSCameraUsageDescription = "動画を撮影し、FrameRelay内に原本を保存するためにカメラを使用します。";
+ 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "選択したMac miniに接続し、端末の登録情報を確認するために使用します。";
+ 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "撮影する動画に音声を記録するためにマイクを使用します。";
++				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "選択した軽量版の動画を写真に保存します。";
++				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "保存結果が不明な動画について、写真に存在するか照合します。";
+ 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+ 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+ 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+diff --git a/FrameRelay/Application/Library/LibrarySnapshot.swift b/FrameRelay/Application/Library/LibrarySnapshot.swift
+index ce68923..8ca6b0c 100644
+--- a/FrameRelay/Application/Library/LibrarySnapshot.swift
++++ b/FrameRelay/Application/Library/LibrarySnapshot.swift
+@@ -2,7 +2,7 @@ import Foundation
+ 
+ /// Read-only presentation values. These are never a deletion or confirmation authority.
+ nonisolated enum LibraryAxis: String, CaseIterable, Identifiable, Sendable {
+-    case save, original, transfer, verification, publication, retrieval, confirmation, invalidation, photos, removal
++    case save, original, transfer, verification, publication, retrieval, confirmation, invalidation, photos, photoPresence, removal
+ 
+     var id: String { rawValue }
+     var title: String {
+@@ -15,7 +15,8 @@ nonisolated enum LibraryAxis: String, CaseIterable, Identifiable, Sendable {
+         case .retrieval: "軽量版の取得"
+         case .confirmation: "軽量版の明示確認"
+         case .invalidation: "確認の失効"
+-        case .photos: "写真への保存"
++        case .photos: "写真への過去の登録結果"
++        case .photoPresence: "写真側の存在の照合"
+         case .removal: "原本の削除"
+         }
+     }
+@@ -64,6 +65,7 @@ nonisolated struct LibraryItem: Equatable, Sendable, Identifiable {
+     let requiresReconciliation: Bool
+     let statuses: [LibraryStatus]
+     var operationResults: [LibraryOperationResult] = []
++    var photoRegistrations: [LibraryPhotoRegistration] = []
+ 
+     var id: CaptureID { recording.intent.context.capture }
+     var title: String { "動画 \(id.rawValue)" }
+@@ -110,7 +112,8 @@ nonisolated protocol LibraryReadPort: Sendable {
+ 
+ nonisolated enum LibraryProjection {
+     static func item(_ recording: RecordingStoreEntry, file: OriginalFileObservation,
+-                     state: OriginalPersistentState?) -> LibraryItem {
++                     state: OriginalPersistentState?,
++                     photoRegistrations: [PhotoRegistrationRecord]? = nil) -> LibraryItem {
+         let bindingMatches = state.map {
+             $0.binding.reference == recording.intent.original
+                 && $0.binding.original.capture == recording.intent.context.capture
+@@ -151,6 +154,8 @@ nonisolated enum LibraryProjection {
+         case .absent: fileUnresolved = !intentionallyRemoved
+         case .unavailable: fileUnresolved = true
+         }
++        let photoRows = LibraryPhotoRegistration.project(photoRegistrations ?? [],
++            capture: recording.intent.context.capture)
+         let statuses = LibraryAxis.allCases.map { axis -> LibraryStatus in
+             let value: String
+             switch axis {
+@@ -188,13 +193,21 @@ nonisolated enum LibraryProjection {
+             case .publication: value = "軽量版の公開状態はまだ取得できません"
+             case .retrieval: value = "軽量版の取得状態はまだ確認できません"
+             case .confirmation: value = "軽量版の確認記録はまだ取得できません"
+-            case .photos: value = "写真への保存記録はまだ取得できません"
++            case .photos:
++                value = photoRegistrations == nil ? "写真への保存記録はまだ取得できません"
++                    : photoRows.isEmpty ? "写真への登録記録なし"
++                    : photoRows.map { "\($0.title)：\($0.registrationResult)" }.joined(separator: "\n")
++            case .photoPresence:
++                value = photoRegistrations == nil ? "写真側の存在はまだ照合できません"
++                    : photoRows.isEmpty ? "写真側の存在の照合記録なし"
++                    : photoRows.map { "\($0.title)：\($0.presenceResult)" }.joined(separator: "\n")
+             }
+             return LibraryStatus(axis: axis, text: value)
+         }
+         return LibraryItem(recording: recording, file: file, original: bound?.binding.original,
+             removal: removal,
+-            requiresReconciliation: !bindingMatches || identityUnresolved || saveUnresolved || fileUnresolved || removalUnresolved,
+-            statuses: statuses)
++            requiresReconciliation: !bindingMatches || identityUnresolved || saveUnresolved || fileUnresolved
++                || removalUnresolved || photoRows.contains(where: \.requiresReconciliation),
++            statuses: statuses, photoRegistrations: photoRows)
+     }
+ }
+diff --git a/FrameRelay/Application/Library/LibraryStoreReader.swift b/FrameRelay/Application/Library/LibraryStoreReader.swift
+index 6b84443..164a821 100644
+--- a/FrameRelay/Application/Library/LibraryStoreReader.swift
++++ b/FrameRelay/Application/Library/LibraryStoreReader.swift
+@@ -1,9 +1,10 @@
+-/// Both read contracts belong to the same writer. No Library database or recovery writes.
++/// All read contracts belong to the same writer. No Library database or recovery writes.
+ actor LibraryStoreReader: LibraryReadPort {
+-    private let store: any RecordingStorePort & OriginalStorePort
++    private let store: any RecordingStorePort & OriginalStorePort & MediaOperationStorePort
+     private let files: any RecordingOriginalFilePort
+ 
+-    init(store: any RecordingStorePort & OriginalStorePort, files: any RecordingOriginalFilePort) {
++    init(store: any RecordingStorePort & OriginalStorePort & MediaOperationStorePort,
++         files: any RecordingOriginalFilePort) {
+         self.store = store
+         self.files = files
+     }
+@@ -23,6 +24,16 @@ actor LibraryStoreReader: LibraryReadPort {
+                 }
+             }
+             guard saved.revision == originals.revision else { continue }
++            let backendResult = await store.load()
++            guard case .loaded(let backend) = backendResult else {
++                switch backendResult {
++                case .unavailable(.unknownSchema): return .unavailable(.unknownSchema)
++                case .unavailable(.corruptStore): return .unavailable(.corruptStore)
++                case .unavailable(.contentMismatch): return .unavailable(.identityMismatch)
++                default: return .unavailable(.inaccessible)
++                }
++            }
++            guard backend.revision == saved.revision else { continue }
+             guard Set(saved.recordings.map { $0.intent.context.capture }).count == saved.recordings.count,
+                   Set(originals.originals.map { $0.binding.original.capture }).count == originals.originals.count else {
+                 return .unavailable(.identityMismatch)
+@@ -31,7 +42,11 @@ actor LibraryStoreReader: LibraryReadPort {
+             for recording in saved.recordings {
+                 let state = originals.originals.first { $0.binding.original.capture == recording.intent.context.capture }
+                 let file = await files.observeFile(recording.intent.original)
+-                items.append(LibraryProjection.item(recording, file: file, state: state))
++                let photos = backend.photoRegistrations.filter {
++                    $0.registration.intent.key.capture == recording.intent.context.capture
++                }
++                items.append(LibraryProjection.item(recording, file: file, state: state,
++                                                     photoRegistrations: photos))
+             }
+             // A deletion or capture commit during the file scan invalidates this mixed snapshot.
+             let after = await store.loadRecordings()
+diff --git a/FrameRelay/Application/Ports/MediaOperationStorePort.swift b/FrameRelay/Application/Ports/MediaOperationStorePort.swift
+index 8958fcd..eddf792 100644
+--- a/FrameRelay/Application/Ports/MediaOperationStorePort.swift
++++ b/FrameRelay/Application/Ports/MediaOperationStorePort.swift
+@@ -14,6 +14,7 @@ nonisolated enum BackendStoreChange: Equatable, Sendable, Codable {
+     case delivered(BackendSyncDelivery)
+     case distribution(MediaDistributionObservation)
+     case temporary(command: MediaOperationID, value: TemporaryMediaChange)
++    case photo(command: MediaOperationID, value: PhotoRegistrationChange)
+ 
+     var key: BackendCommitKey {
+         switch self {
+@@ -33,6 +34,7 @@ nonisolated enum BackendStoreChange: Equatable, Sendable, Codable {
+         case .distribution(let value):
+             .distributionObservation(value.command, value.lease.id, value.observation)
+         case .temporary(let command, let value): .temporary(command, value.id)
++        case .photo(let command, let value): .photo(command, value.key)
+         }
+     }
+ }
+@@ -82,6 +84,7 @@ nonisolated struct BackendStoreSnapshot: Equatable, Sendable {
+     var deliveries: [BackendSyncDelivery] = []
+     var distributionObservations: [StoredMediaDistributionObservation] = []
+     var temporaryMedia: [TemporaryMediaState] = []
++    var photoRegistrations: [PhotoRegistrationRecord] = []
+ }
+ 
+ nonisolated enum BackendStoreLoadResult: Equatable, Sendable {
+@@ -107,3 +110,27 @@ nonisolated extension MediaOperationStorePort {
+         throw BackendContractError.unavailable
+     }
+ }
++
++nonisolated extension CommittedPhotoRegistrationIntent {
++    /// Reconstructs the exact persisted mutation, including its optional identity
++    /// guard, for lost-response reconciliation after instance replacement.
++    var mutation: BackendStoreMutation {
++        .init(expectedRevision: commit.previousRevision,
++            change: .photo(command: intent.operation, value: .intent(intent)),
++            expectedStoreIdentity: expectedStoreIdentity)
++    }
++}
++
++nonisolated extension StoredPhotoRegistrationResult {
++    var mutation: BackendStoreMutation {
++        .init(expectedRevision: commit.previousRevision, change: .photo(command: command, value: .result(result)),
++            expectedStoreIdentity: expectedStoreIdentity)
++    }
++}
++
++nonisolated extension StoredPhotoUsageRelease {
++    var mutation: BackendStoreMutation {
++        .init(expectedRevision: commit.previousRevision, change: .photo(command: command, value: .releaseUsage(release)),
++            expectedStoreIdentity: expectedStoreIdentity)
++    }
++}
+diff --git a/FrameRelay/Application/Ports/RenditionMediaPorts.swift b/FrameRelay/Application/Ports/RenditionMediaPorts.swift
+index 95f4bc7..ad3fc8f 100644
+--- a/FrameRelay/Application/Ports/RenditionMediaPorts.swift
++++ b/FrameRelay/Application/Ports/RenditionMediaPorts.swift
+@@ -33,12 +33,13 @@ nonisolated struct RenditionReadTerminal: Equatable, Sendable {
+ nonisolated struct TemporaryLocalMedia: Equatable, Sendable {
+     let url: URL
+     let handoff: PhotoMediaHandoff
++    var contentType: String? = nil
+ }
+ 
+ nonisolated protocol TemporaryLocalMediaPort: Sendable {
+     func resolvePhotoMedia(_ usage: TemporaryMediaUsage) async throws -> TemporaryLocalMedia
+-    /// Observes the real SDK terminal and closes its file access, without
+-    /// asserting registration success or releasing the durable photo usage.
++    /// Called after the real SDK terminal, or proof that the SDK never started.
++    /// Closes file access without asserting success or releasing the durable use.
+     func finishPhotoMedia(_ usage: TemporaryMediaUsage) async throws
+ }
+ 
+diff --git a/FrameRelay/Composition/ProductComposition.swift b/FrameRelay/Composition/ProductComposition.swift
+index dfc9d2f..bc4c80f 100644
+--- a/FrameRelay/Composition/ProductComposition.swift
++++ b/FrameRelay/Composition/ProductComposition.swift
+@@ -32,7 +32,9 @@ import Observation
+             let player = OriginalPlaybackModel(playback: adapter)
+             mediaTermination = ProductMediaTermination(store: services.store, access: services.access, player: adapter)
+             playback = player
+-            library = LibraryModel(reader: services.reader, commands: OriginalPlaybackLibraryCommands(model: player))
++            library = LibraryModel(reader: services.reader,
++                commands: PhotoAwareLibraryCommands(base: OriginalPlaybackLibraryCommands(model: player)),
++                photos: services.photoReconciliation)
+             capture = ProductCaptureFactory.make(services: services, didSave: { [weak self] in
+                 await self?.library?.refresh()
+             })
+diff --git a/FrameRelay/Composition/ProductLibraryFactory.swift b/FrameRelay/Composition/ProductLibraryFactory.swift
+index bf796ac..541b817 100644
+--- a/FrameRelay/Composition/ProductLibraryFactory.swift
++++ b/FrameRelay/Composition/ProductLibraryFactory.swift
+@@ -7,6 +7,7 @@ nonisolated struct ProductLibraryServices: Sendable {
+     let originals: ManagedOriginalStore
+     let access: ManagedOriginalAccess
+     let reader: LibraryStoreReader
++    let photoReconciliation: LibraryPhotoReconciliation
+ }
+ 
+ /// App-lifetime owner of the one writer. The directory validator is shared with
+@@ -14,9 +15,13 @@ nonisolated struct ProductLibraryServices: Sendable {
+ actor ProductLibraryFactory {
+     static let shared = ProductLibraryFactory()
+     private let supportDirectory: URL?
++    private let photoLibrary: any PhotoLibraryPort
+     private var services: ProductLibraryServices?
+ 
+-    init(supportDirectory: URL? = nil) { self.supportDirectory = supportDirectory }
++    init(supportDirectory: URL? = nil, photoLibrary: any PhotoLibraryPort = NativePhotoLibrary()) {
++        self.supportDirectory = supportDirectory
++        self.photoLibrary = photoLibrary
++    }
+ 
+     func open() throws -> ProductLibraryServices {
+         if let services { return services }
+@@ -46,7 +51,8 @@ actor ProductLibraryFactory {
+         let originals = ManagedOriginalStore(run: run)
+         let access = ManagedOriginalAccess(store: store, originals: originals)
+         let result = ProductLibraryServices(run: run, store: store, originals: originals, access: access,
+-                                           reader: LibraryStoreReader(store: store, files: originals))
++            reader: LibraryStoreReader(store: store, files: originals),
++            photoReconciliation: LibraryPhotoReconciliation(store: store, library: photoLibrary))
+         services = result
+         return result
+     }
+diff --git a/FrameRelay/Domain/Media/TemporaryMediaState.swift b/FrameRelay/Domain/Media/TemporaryMediaState.swift
+index ea7ad33..ade63e3 100644
+--- a/FrameRelay/Domain/Media/TemporaryMediaState.swift
++++ b/FrameRelay/Domain/Media/TemporaryMediaState.swift
+@@ -1,5 +1,37 @@
+ import Foundation
+ 
++/// Local filenames preserve the declared container for native media consumers.
++/// A suffix is not evidence of the bytes' format. Legacy UUID-only names remain
++/// readable without renaming files or rewriting their persisted records.
++nonisolated enum TemporaryMediaLeaf {
++    static func make(contentType: String) throws -> String {
++        UUID().uuidString + "." + (try suffix(contentType))
++    }
++
++    static func validate(_ leaf: String, contentType: String) throws {
++        let expected = try suffix(contentType)
++        // The original generator used UUID.uuidString. Retain the previous
++        // case-insensitive UUID-only read contract, with exact UUID punctuation.
++        if let uuid = UUID(uuidString: leaf), uuid.uuidString.caseInsensitiveCompare(leaf) == .orderedSame { return }
++        let ending = "." + expected
++        guard leaf.hasSuffix(ending) else { throw BackendContractError.invalidValue }
++        let stem = String(leaf.dropLast(ending.count))
++        // New names have one canonical spelling. In particular, mixed/upper
++        // suffixes and MIME aliases are not accepted on case-insensitive disks.
++        guard let uuid = UUID(uuidString: stem), uuid.uuidString == stem else {
++            throw BackendContractError.invalidValue
++        }
++    }
++
++    private static func suffix(_ contentType: String) throws -> String {
++        switch contentType {
++        case "video/quicktime": "mov"
++        case "video/mp4": "mp4"
++        default: throw BackendContractError.invalidValue
++        }
++    }
++}
++
+ /// Metadata in the common recording writer. The leaf is allocated locally,
+ /// never copied from a server filename or treated as evidence of file contents.
+ nonisolated struct TemporaryMediaState: Equatable, Sendable, Codable {
+diff --git a/FrameRelay/Domain/Operations/BackendCommit.swift b/FrameRelay/Domain/Operations/BackendCommit.swift
+index 5851aec..a54291d 100644
+--- a/FrameRelay/Domain/Operations/BackendCommit.swift
++++ b/FrameRelay/Domain/Operations/BackendCommit.swift
+@@ -21,6 +21,7 @@ nonisolated enum BackendCommitKey: Hashable, Sendable, Codable {
+     case outboxDelivery(MediaOperationID, UInt64, RegistrationIdentity)
+     case distributionObservation(MediaOperationID, ReadLeaseID, RemoteObservationGeneration)
+     case temporary(MediaOperationID, TemporaryMediaID)
++    case photo(MediaOperationID, PhotoRegistrationKey)
+ 
+     var operationIdentity: BackendCommitIdentity {
+         switch self {
+@@ -38,6 +39,7 @@ nonisolated enum BackendCommitKey: Hashable, Sendable, Codable {
+         case .outboxDelivery(let id, _, _): .outboxDelivery(id)
+         case .distributionObservation(let id, _, _): .distributionObservation(id)
+         case .temporary(let id, _): .temporary(id)
++        case .photo(let id, _): .photo(id)
+         }
+     }
+ }
+@@ -52,6 +54,7 @@ nonisolated enum BackendCommitIdentity: Hashable, Sendable, Codable {
+     case requestTransition(MediaOperationID), observedPublication(MediaOperationID), outboxDelivery(MediaOperationID)
+     case distributionObservation(MediaOperationID)
+     case temporary(MediaOperationID)
++    case photo(MediaOperationID)
+ }
+ 
+ nonisolated struct BackendCommitReceipt: Equatable, Sendable, Codable {
+diff --git a/FrameRelay/Features/Library/LibraryModel.swift b/FrameRelay/Features/Library/LibraryModel.swift
+index 7bc02fe..1abbf7a 100644
+--- a/FrameRelay/Features/Library/LibraryModel.swift
++++ b/FrameRelay/Features/Library/LibraryModel.swift
+@@ -5,6 +5,7 @@ import Observation
+ final class LibraryModel {
+     private let reader: any LibraryReadPort
+     private let commands: any LibraryCommandPort
++    private let photos: (any LibraryPhotoReconciliationPort)?
+     private(set) var snapshot: LibrarySnapshot?
+     private(set) var failure: LibraryReadFailure?
+     private(set) var isLoading = false
+@@ -12,12 +13,17 @@ final class LibraryModel {
+     private(set) var submissions: [LibrarySubmission] = []
+     var submission: LibrarySubmission? { submissions.last }
+     private(set) var inputIssue: String?
++    private(set) var photoReconciliations: Set<MediaOperationID> = []
++    private(set) var photoReconciliationMessages: [MediaOperationID: String] = [:]
++    @ObservationIgnored private var photoReconciliationActions: [MediaOperationID: MediaOperationID] = [:]
+     @ObservationIgnored private var refreshRequested = false
+     @ObservationIgnored private var refreshWaiters: [CheckedContinuation<Void, Never>] = []
+ 
+-    init(reader: any LibraryReadPort, commands: any LibraryCommandPort = UnconnectedLibraryCommands()) {
++    init(reader: any LibraryReadPort, commands: any LibraryCommandPort = UnconnectedLibraryCommands(),
++         photos: (any LibraryPhotoReconciliationPort)? = nil) {
+         self.reader = reader
+         self.commands = commands
++        self.photos = photos
+     }
+ 
+     func refresh() async {
+@@ -52,6 +58,40 @@ final class LibraryModel {
+ 
+     func item(_ capture: CaptureID) -> LibraryItem? { snapshot?.items.first { $0.id == capture } }
+ 
++    func canReconcilePhotos(_ photo: LibraryPhotoRegistration, capture: CaptureID) -> Bool {
++        photos != nil && !isLoading && failure == nil && photo.canReconcile
++            && !photoReconciliations.contains(photo.id)
++            && item(capture)?.photoRegistrations.contains(photo) == true
++    }
++
++    /// Called only by the explained, per-record user action. Refresh and capture
++    /// preparation never call the Photos reconciliation port.
++    func reconcilePhotos(_ photo: LibraryPhotoRegistration, capture: CaptureID) async {
++        guard canReconcilePhotos(photo, capture: capture), let photos else { return }
++        photoReconciliations.insert(photo.id)
++        photoReconciliationMessages[photo.id] = nil
++        let action = photoReconciliationActions[photo.id] ?? .init(rawValue: UUID().uuidString)
++        photoReconciliationActions[photo.id] = action
++        let result = await photos.reconcile(photo.record.registration.intent, action: action)
++        photoReconciliations.remove(photo.id)
++        switch result {
++        case .succeeded:
++            photoReconciliationActions[photo.id] = nil
++            photoReconciliationMessages[photo.id] = "写真側の存在の照合結果を記録しました。過去の登録結果とは分けて表示しています。"
++        case .notExecuted:
++            photoReconciliationActions[photo.id] = nil
++            photoReconciliationMessages[photo.id] = "対象の登録記録が更新されているか、照合に必要な識別情報がありません。再読み込みした記録を確認してください。"
++        case .failed:
++            photoReconciliationActions[photo.id] = nil
++            photoReconciliationMessages[photo.id] = "照合結果を保存できませんでした。保存記録を再読み込みしてください。"
++        case .inProgress:
++            photoReconciliationMessages[photo.id] = "この登録記録は照合中です。完了後に再読み込みしてください。"
++        case .unknown:
++            photoReconciliationMessages[photo.id] = "照合結果の保存を確定できません。再読み込みしてから、必要な場合は同じ照合を再試行してください。"
++        }
++        await refresh()
++    }
++
+     func availability(_ action: LibraryAction, captures: Set<CaptureID>) -> LibraryActionAvailability {
+         guard !submissions.contains(where: { blocks($0, action: action, captures: captures) }) else {
+             return .unavailable("この対象の開始済み操作を照合しています。結果を再読み込みしてください。")
+diff --git a/FrameRelay/Features/Library/LibraryView.swift b/FrameRelay/Features/Library/LibraryView.swift
+index e89ebee..38fa40a 100644
+--- a/FrameRelay/Features/Library/LibraryView.swift
++++ b/FrameRelay/Features/Library/LibraryView.swift
+@@ -55,6 +55,8 @@ struct LibraryView: View {
+                                         .accessibilityIdentifier("library.itemOriginal.\(item.id.rawValue)")
+                                     Text(item.status(.removal))
+                                         .accessibilityIdentifier("library.itemRemoval.\(item.id.rawValue)")
++                                    Text(item.status(.photos))
++                                        .accessibilityIdentifier("library.itemPhotos.\(item.id.rawValue)")
+                                     if item.requiresReconciliation {
+                                         Text("要照合").bold()
+                                             .accessibilityIdentifier("library.itemReconciliation.\(item.id.rawValue)")
+@@ -135,9 +137,12 @@ private struct LibraryDetailView: View {
+                 } header: {
+                     Text("動画の状態").foregroundStyle(Color.primary)
+                 }
++                ForEach(item.photoRegistrations) { photo in
++                    LibraryPhotoRegistrationSection(model: model, capture: capture, photo: photo)
++                }
+                 if item.requiresReconciliation {
+                     Section {
+-                        Text("保存記録と原本の状態に未確定の部分があります。再読み込みで現在状態を確認できます。未完了の削除や写真への追加は自動実行しません。")
++                        Text("保存記録、原本、写真の状態に未確定の部分があります。保存記録と原本は再読み込みで確認できます。写真側の存在は、対象ごとの説明を確認して照合してください。未完了の削除や写真への追加は自動実行しません。")
+                             .font(.body)
+                             .fixedSize(horizontal: false, vertical: true)
+                             .accessibilityIdentifier("library.detailReconciliationExplanation")
+@@ -175,6 +180,47 @@ private struct LibraryDetailView: View {
+     }
+ }
+ 
++private struct LibraryPhotoRegistrationSection: View {
++    let model: LibraryModel
++    let capture: CaptureID
++    let photo: LibraryPhotoRegistration
++
++    var body: some View {
++        Section {
++            Text("過去の登録：\(photo.registrationResult)")
++                .accessibilityIdentifier("library.photo.registration.\(photo.id.rawValue)")
++            Text("写真側の存在：\(photo.presenceResult)")
++                .accessibilityIdentifier("library.photo.presence.\(photo.id.rawValue)")
++            if let reason = photo.reconciliationReason {
++                Text("対象：\(model.item(capture)?.title ?? capture.rawValue)、\(photo.title)。\(reason)")
++                    .accessibilityIdentifier("library.photo.reason.\(photo.id.rawValue)")
++                if let unavailable = photo.reconciliationUnavailableReason {
++                    Text(unavailable)
++                        .accessibilityIdentifier("library.photo.unavailable.\(photo.id.rawValue)")
++                } else {
++                    Text("この照合の操作時だけ写真の読み取り許可を求めます。許可しなくても撮影は続けられます。")
++                        .accessibilityIdentifier("library.photo.permissionReason.\(photo.id.rawValue)")
++                    Button("写真の読み取りで存在を照合") {
++                        Task { await model.reconcilePhotos(photo, capture: capture) }
++                    }
++                    .disabled(!model.canReconcilePhotos(photo, capture: capture))
++                    .accessibilityIdentifier("library.photo.reconcile.\(photo.id.rawValue)")
++                }
++            }
++            if model.photoReconciliations.contains(photo.id) {
++                ProgressView("写真側の存在を照合中")
++            }
++            if let message = model.photoReconciliationMessages[photo.id] {
++                Text(message)
++                    .accessibilityIdentifier("library.photo.feedback.\(photo.id.rawValue)")
++            }
++        } header: {
++            Text("写真の記録：\(photo.title)").foregroundStyle(Color.primary)
++        }
++        .fixedSize(horizontal: false, vertical: true)
++    }
++}
++
+ private struct LibraryLoadStatus: View {
+     let model: LibraryModel
+     var body: some View {
+diff --git a/FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift b/FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift
+index 759ad28..a28e941 100644
+--- a/FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift
++++ b/FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift
+@@ -28,6 +28,7 @@ nonisolated struct MediaStoreProjection {
+     var mediaUses: [MediaReadLease] = []
+     var distributionObservations: [StoredMediaDistributionObservation] = []
+     var temporaryMedia: [TemporaryMediaState] = []
++    var photoRegistrations: [PhotoRegistrationRecord] = []
+ 
+     func snapshot(revision: UInt64, storeIdentity: RegistrationStoreIdentity? = nil) throws -> BackendStoreSnapshot {
+         .init(revision: revision, registrationIntents: registrationIntents, registrations: registrations,
+@@ -37,7 +38,7 @@ nonisolated struct MediaStoreProjection {
+             storeIdentity: storeIdentity, publications: publications,
+             confirmationStates: try confirmationStates.map { try $0.atStoreRevision(revision) },
+             deliveries: deliveries, distributionObservations: distributionObservations,
+-            temporaryMedia: temporaryMedia)
++            temporaryMedia: temporaryMedia, photoRegistrations: photoRegistrations)
+     }
+ 
+     mutating func ensureOriginal(_ original: OriginalContent) throws -> Int {
+@@ -109,6 +110,9 @@ extension RecordingStoreDocument {
+             default: break
+             }
+         }
++        if case .photo(_, .intent(let intent)) = mutation.change {
++            guard intent.usage.epoch == reconciliationEpoch else { throw BackendContractError.staleGeneration }
++        }
+         if case .invalidation(let record, _) = mutation.change {
+             guard try replayStore().originals.first(where: { $0.original == record.rendition.original })?
+                 .readersReleased(in: reconciliationEpoch) == true else { throw BackendContractError.readersActive }
+@@ -181,6 +185,9 @@ extension RecordingStoreDocument {
+         let change = entry.mutation.change
+         let receipt = entry.receipt
+         switch change {
++        case .photo(let command, let value):
++            try projection.applyPhoto(command: command, change: value, receipt: receipt,
++                                      expectedStoreIdentity: entry.mutation.expectedStoreIdentity)
+         case .temporary(let command, let value):
+             try MediaStoredValueValidation.text(command.rawValue)
+             try projection.applyTemporary(value)
+diff --git a/FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift b/FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift
+index 651d6f7..63a5a69 100644
+--- a/FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift
++++ b/FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift
+@@ -87,4 +87,23 @@ nonisolated enum MediaStoredValueValidation {
+             if case .succeeded(let evidence) = value.result { try text(evidence.rawValue) }
+         }
+     }
++    static func photo(_ value: PhotoRegistrationChange) throws {
++        try value.intent.validate()
++        try rendition(value.intent.rendition)
++        switch value {
++        case .intent: break
++        case .result(let result):
++            if let identifier = result.outcome.localIdentifier { try text(identifier.rawValue) }
++        case .presence(let observation): try observation.validate()
++        case .releaseUsage(let release):
++            try text(release.successCommand.rawValue)
++            try text(release.mediaUse.owner)
++            try mediaLease(release.mediaUse.lease)
++            guard release.mediaUse.usage == release.intent.usage,
++                  release.successCommit.matches(.photo(release.successCommand, release.intent.key),
++                      revision: release.successCommit.previousRevision) else {
++                throw BackendContractError.identityMismatch
++            }
++        }
++    }
+ }
+diff --git a/FrameRelay/Platform/LocalStore/TemporaryMediaStoreProjection.swift b/FrameRelay/Platform/LocalStore/TemporaryMediaStoreProjection.swift
+index c548767..6aa4508 100644
+--- a/FrameRelay/Platform/LocalStore/TemporaryMediaStoreProjection.swift
++++ b/FrameRelay/Platform/LocalStore/TemporaryMediaStoreProjection.swift
+@@ -6,9 +6,9 @@ extension MediaStoreProjection {
+         if case .create(let value) = change {
+             try requireCurrentRegistration(value.registration)
+             try MediaStoredValueValidation.rendition(value.rendition)
++            try TemporaryMediaLeaf.validate(value.leaf, contentType: value.contentType)
+             guard !temporaryMedia.contains(where: { $0.id == value.id || $0.leaf == value.leaf }),
+-                  UUID(uuidString: value.leaf) != nil, value.capturedAt.timeIntervalSince1970.isFinite,
+-                  ["video/quicktime", "video/mp4"].contains(value.contentType),
++                  value.capturedAt.timeIntervalSince1970.isFinite,
+                   value.ranges.isEmpty, value.verifiedContent == nil, value.usages.isEmpty,
+                   value.releasedUsages.isEmpty, value.fileIdentity == nil,
+                   !value.reclaiming, !value.reclaimed,
+diff --git a/FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift b/FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift
+index b377e54..7956509 100644
+--- a/FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift
++++ b/FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift
+@@ -4,7 +4,7 @@ import Foundation
+ 
+ /// Actor-confined file handles and common-writer metadata. No independent
+ /// manifest database, retention timer, or arbitrary capacity policy is used.
+-actor ManagedTemporaryMedia: TemporaryMediaWritingPort, TemporaryLocalMediaPort {
++actor ManagedTemporaryMedia: TemporaryMediaWritingPort, TemporaryLocalMediaPort, PhotoTemporaryUsageRecoveryPort {
+     private let root: URL
+     private let directory: FileHandle
+     private let rootLock: FileHandle
+@@ -24,6 +24,7 @@ actor ManagedTemporaryMedia: TemporaryMediaWritingPort, TemporaryLocalMediaPort
+     private var closedHandles = 0
+     private var openedHandles = 0
+     private var allFileHandles: [ObjectIdentifier: FileHandle] = [:]
++    private var photoRecoveryMutations: [MediaOperationID: BackendStoreMutation] = [:]
+ 
+     private init(root: URL, leases: RenditionReadLeases, original: OriginalContent, epoch: ReaderReconciliationEpoch) throws {
+         let normalized = root.standardizedFileURL
+@@ -73,7 +74,8 @@ actor ManagedTemporaryMedia: TemporaryMediaWritingPort, TemporaryLocalMediaPort
+         defer { busy.remove(id) }
+         let state = TemporaryMediaState(id: id, rendition: command.distribution.rendition,
+             registration: command.distribution.registration, capturedAt: capturedAt,
+-            leaf: UUID().uuidString, contentType: contentType, directoryIdentity: directoryIdentity)
++            leaf: try TemporaryMediaLeaf.make(contentType: contentType), contentType: contentType,
++            directoryIdentity: directoryIdentity)
+         try await persist(.create(state))
+         try await admit()
+         let handle = try openFile(state, flags: O_WRONLY | O_CREAT | O_EXCL)
+@@ -219,10 +221,11 @@ actor ManagedTemporaryMedia: TemporaryMediaWritingPort, TemporaryLocalMediaPort
+         } catch { try closeHandle(handle); handles.removeValue(forKey: usage.id); throw error }
+         photoConsumers.insert(usage.id)
+         photoLifetime = self
+-        return .init(url: root.appendingPathComponent(state.leaf), handoff: handoff)
++        return .init(url: root.appendingPathComponent(state.leaf), handoff: handoff, contentType: state.contentType)
+     }
+ 
+-    /// Called from the actual PhotoKit terminal callback, never requestStop.
++    /// Called after actual PhotoKit completion or definite SDK non-start, never
++    /// merely because a caller requested cancellation.
+     func finishPhotoMedia(_ usage: TemporaryMediaUsage) async throws {
+         guard busy.insert(usage.media).inserted else { throw BackendContractError.readersActive }
+         defer { busy.remove(usage.media) }
+@@ -240,6 +243,72 @@ actor ManagedTemporaryMedia: TemporaryMediaWritingPort, TemporaryLocalMediaPort
+         guard samePath else { throw BackendContractError.identityMismatch }
+     }
+ 
++    /// The kernel root lock excludes an older live file owner. A successful
++    /// record is accepted only after rereading and exact lookup under the same
++    /// writer; it releases that photo use, never all old-epoch readers.
++    func recoverSuccessfulPhotoUsage(_ proposed: PhotoRegistrationRecord) async -> BackendOutcome<TemporaryMediaID> {
++        let intent = proposed.registration.intent
++        guard intent.rendition.original == original else { return .notExecuted }
++        guard busy.insert(intent.media).inserted else { return .inProgress }
++        defer { busy.remove(intent.media) }
++        do {
++            try await admit()
++            try requireRoot()
++            let store = leases.mediaStore
++            guard case .loaded(let snapshot) = await store.load(),
++                  let record = snapshot.photoRegistrations.first(where: { $0.registration.intent == intent }),
++                  record.registration == proposed.registration, record.results == proposed.results,
++                  let success = record.results.last, case .succeeded = success.result.outcome,
++                  let state = snapshot.temporaryMedia.first(where: { $0.id == intent.media }),
++                  state.rendition.original == original, state.directoryIdentity == directoryIdentity,
++                  record.registration.directoryIdentity == directoryIdentity,
++                  state.fileIdentity == record.registration.fileIdentity,
++                  !photoConsumers.contains(intent.usage.id), handles[intent.usage.id] == nil,
++                  !integrityFailures.contains(state.id) else { return .unknown }
++            guard case .committed(let intentCommit) = await store.lookupCommit(record.registration.mutation),
++                  intentCommit == record.registration.commit else { return .unknown }
++            guard case .committed(let successCommit) = await store.lookupCommit(success.mutation),
++                  successCommit == success.commit else { return .unknown }
++            if state.releasedUsages.contains(record.registration.mediaUse) {
++                if let release = record.usageRelease {
++                    guard case .committed(let receipt) = await store.lookupCommit(release.mutation), receipt == release.commit else { return .unknown }
++                }
++                try await finishReclamation(state)
++                photoRecoveryMutations.removeValue(forKey: intent.operation)
++                return .succeeded(state.id)
++            }
++            guard state.usages.contains(record.registration.mediaUse), !state.reclaimed, !state.reclaiming else { return .unknown }
++            try validateFileIdentity(state)
++            let release = try PhotoUsageRelease(record: record)
++            for _ in 0..<3 {
++                let mutation: BackendStoreMutation
++                if let retained = photoRecoveryMutations[intent.operation] {
++                    mutation = retained
++                } else {
++                    guard case .loaded(let current) = await store.load() else { return .unknown }
++                    mutation = .init(expectedRevision: current.revision,
++                        change: .photo(command: .init(rawValue: UUID().uuidString), value: .releaseUsage(release)),
++                        expectedStoreIdentity: record.registration.expectedStoreIdentity)
++                    photoRecoveryMutations[intent.operation] = mutation
++                    let result = await store.commit(mutation)
++                    if case .rejected(.revisionConflict) = result {
++                        photoRecoveryMutations.removeValue(forKey: intent.operation); continue
++                    }
++                    if case .rejected = result { photoRecoveryMutations.removeValue(forKey: intent.operation); return .unknown }
++                }
++                guard case .committed(let receipt) = await store.lookupCommit(mutation),
++                      receipt.matches(mutation.change.key, revision: mutation.expectedRevision) else { return .unknown }
++                photoRecoveryMutations.removeValue(forKey: intent.operation)
++                let latest = try await stateFor(state.id)
++                guard latest.releasedUsages.contains(record.registration.mediaUse),
++                      !latest.usages.contains(record.registration.mediaUse) else { return .unknown }
++                try await finishReclamation(latest)
++                return .succeeded(state.id)
++            }
++            return .unknown
++        } catch { return .unknown }
++    }
++
+     func usageSnapshot(_ id: TemporaryMediaID) async throws -> (covered: UInt64, fileBytes: UInt64, uses: Int, openHandles: Int, closedHandles: Int) {
+         let root = try await rootUsageSnapshot()
+         guard let item = root.media.first(where: { $0.media == id }) else { throw BackendContractError.unavailable }
+@@ -392,7 +461,8 @@ actor ManagedTemporaryMedia: TemporaryMediaWritingPort, TemporaryLocalMediaPort
+ 
+     private func openFile(_ state: TemporaryMediaState, flags: Int32) throws -> FileHandle {
+         try requireRoot()
+-        guard state.directoryIdentity == directoryIdentity, UUID(uuidString: state.leaf) != nil else { throw BackendContractError.invalidValue }
++        try TemporaryMediaLeaf.validate(state.leaf, contentType: state.contentType)
++        guard state.directoryIdentity == directoryIdentity else { throw BackendContractError.invalidValue }
+         let fd = openat(directory.fileDescriptor, state.leaf, flags | O_NOFOLLOW, S_IRUSR | S_IWUSR)
+         guard fd >= 0 else { throw BackendContractError.unavailable }
+         let handle = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
+diff --git a/FrameRelayTests/Integration/Storage/LibraryStoreReaderTests.swift b/FrameRelayTests/Integration/Storage/LibraryStoreReaderTests.swift
+index bcf465c..0292ccb 100644
+--- a/FrameRelayTests/Integration/Storage/LibraryStoreReaderTests.swift
++++ b/FrameRelayTests/Integration/Storage/LibraryStoreReaderTests.swift
+@@ -116,7 +116,7 @@ nonisolated private func readLibraryAfterReopen(_ run: ExplorationRunDirectory)
+     return snapshot
+ }
+ 
+-private actor LibraryReadStoreStub: RecordingStorePort, OriginalStorePort {
++private actor LibraryReadStoreStub: RecordingStorePort, OriginalStorePort, MediaOperationStorePort {
+     private let recordings: RecordingStoreLoadResult
+     private let originalResult: BackendOutcome<OriginalStoreSnapshot>
+     private let laterRecordings: RecordingStoreLoadResult?
+@@ -133,6 +133,14 @@ private actor LibraryReadStoreStub: RecordingStorePort, OriginalStorePort {
+         return recordingReads > 1 ? (laterRecordings ?? recordings) : recordings
+     }
+     func loadOriginalState() -> BackendOutcome<OriginalStoreSnapshot> { originalResult }
++    func load() -> BackendStoreLoadResult {
++        let revision: UInt64
++        if case .loaded(let snapshot) = recordings { revision = snapshot.revision } else { revision = 0 }
++        return .loaded(.init(revision: revision, registrationIntents: [], registrations: [], batches: [],
++            requests: [], verifications: [], confirmations: [], invalidations: [], outbox: []))
++    }
++    func commit(_ mutation: BackendStoreMutation) -> BackendCommitResult { fatalError("Read-only Library wrote media state") }
++    func lookupCommit(_ mutation: BackendStoreMutation) -> BackendCommitResult { fatalError("Read-only Library looked up a write") }
+     func execute(_ command: RecordingStoreCommand) -> RecordingStoreResult { fatalError("Read-only consumer wrote a recording") }
+     func loadUnfinished() -> UnfinishedRecordingLoadResult { fatalError("Library omitted successful recordings") }
+     func commitOriginal(_ mutation: OriginalStoreMutation) -> OriginalStoreCommitResult { fatalError("Read-only consumer wrote an original") }
+diff --git a/docs/architecture.md b/docs/architecture.md
+index c4c136d..b0debaa 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -26,7 +26,7 @@
+ | A5 FR-11・12、NFR-02 | 原本全内容の識別と保存検証証拠を契約化。Mac mini変換は検証済み原本から行い、生成と公開を分離 | HTTP成功や既存compress-onlyを保存検証・Rec.709達成に流用しない | 全内容ハッシュ方式は下記の設計案。限定ソース確認でも既存API/変換器には不足があり、FrameRelay契約への適合は未検証。iPhoneへの変換移動は不採用 | T11/T12。実原本、受信ファイル、変換映像・メタデータ、応答欠落 |
+ | A6 FR-13・14、NFR-02 | 端末の確認・失効を永続記録し、原本単位で削除と直列化。差し替えは端末の失効保存応答後だけ確定 | オフライン容量整理と、差し替え後の旧確認使用防止を両立する | 削除時の毎回サーバー照会は要求違反。タイムアウトで失効保存を推定しない。外部原本の現在存在はオフラインで保証しない | T13/T14/T19。各永続化境界の再起動、差し替えとの両順序 |
+ | A7 FR-17、NFR-02 | 破棄の本人確認と容量整理の証拠判定を別ユースケースにし、対象限定のローカル削除実行器だけ共有 | 未転送の不要原本を破棄でき、検証/確認状態を偽装しない | 容量整理不可からの自動フォールバックは不採用。Mac/写真への削除依存を与えない | T17/T19。未転送・未検証・未確認、競合、外部データ非削除、結果照合 |
+-| A8 FR-15、NFR-02 | 同一版の登録を直列化し、写真追加前に操作意図を永続化。追加結果不明時は照合へ進む | Photosとアプリ記録の間の中断で無条件に追加し直さない | ボタン無効化だけの重複防止は不採用。権限と照合方法はU2、再インストール等は未決 | T15/T19。追加直後の終了、権限変更、写真側削除、一時コピー回収 |
++| A8 FR-15、NFR-02 | 同一版の登録を直列化し、写真追加前に操作意図を永続化。追加結果不明時は照合へ進む | Photosとアプリ記録の間の中断で無条件に追加し直さない | ボタン無効化だけの重複防止は不採用。通常追加・必要時読取はDI-06確定。写真側削除後の手動再保存・再インストール等はU2未決 | T15/T19。追加直後の終了、権限変更、写真側削除、一時コピー回収 |
+ | A9 FR-16、NFR-01 | 全動画I/Oの共通ゲートと停止契約。本人が開始受理済み・未完了・未停止/未キャンセルの通信だけ条件再確認後に自動再開 | 回線表示だけに依存せず、REC/保存/本人停止の複数条件と操作寿命を維持する | URLSession/再生経路の制限と再開の具体方式は検証が必要。前景限定・背景/ロックはU3の残件 | T16/T18。指示済み順番待ちを含む全送受信経路でWi-Fi離脱、REC、保存、ロック |
+ | A10 NFR-02 | 復旧証拠を一つのトランザクション可能なローカルストアへ集約し、大きな媒体はファイルに分離 | 記録の複数更新をまとめ、媒体とDBの非原子的な間を操作記録から照合できる | ファイル削除・Photos・サーバーとの分散トランザクションは仮定しない。DBの具体案と制約は後述 | T19。保存失敗・領域不足・schema変更・プロセス中断 |
+ | A11 NFR-04 | 新規撮影原本と旧MediaVault原本を区別した検証データ契約 | 新規転送と既存原本の変換を別に評価できる | 旧写真原本削除や汎用移行を検証前提にしない。実データ整理の対象・破壊的操作は別の明示合意 | T21。実施範囲・対象・合意・整理証跡の確認 |
+@@ -103,7 +103,7 @@ Application同士は公開commandと値イベントだけを利用する。Compo
+ | Core Data（ローカルSQLite store） | ストア実装の第一案。model versionを管理 | 確認/失効と操作記録をまとめて保存し、単一writer経路を作る。媒体は格納しない | SwiftDataは保存境界の検証が必要、Codableファイル分散は複数記録の整合管理が増える、SQLite直接操作は保守範囲が増える。具体schema/障害時保証は未検証 |
+ | FoundationファイルI/O＋CryptoKit SHA-256 | OS同梱。内容識別の設計案 | 大きな原本を逐次読取り、ファイル全体の同一性をサイズとdigestで照合 | ファイル名/日時/サイズだけでは不足。サーバー側方式と合意が必要で、既存方式を確認せず置換しない |
+ | URLSession＋Network | 動画通信adapterの第一案 | 動画ゲート、cellular禁止設定、経路変化、停止/照合を共通化 | 監視だけでWi-Fi強制としない。第一候補のstreamingにおけるAVPlayer独自通信等と既存配信/認証/版管理は追加検証。背景sessionはU3未決 |
+-| Photos / PhotoKit | OS同梱。権限範囲はU2未決 | 軽量版追加と結果/参照の取得・照合 | 写真保存履歴と現在存在を分離。追加権限だけで全結果を照合できるとは仮定しない |
++| Photos / PhotoKit | OS同梱。通常addOnly・必要時readWriteはDI-06確定 | `NativePhotoLibrary`が軽量版追加と実SDK完了、保存済みidentifierの照合を担当 | 写真保存履歴と現在存在を分離。追加権限だけで全結果を照合できるとは仮定しない |
+ | Keychain / OSLog | OS標準を利用する設計 | 秘密情報を通常設定から分離。診断を操作証拠と分離 | 接続/認証方式は既存実装調査後。独自の分析サービスやログ送信を追加しない |
+ | Swift Testing / XCTest | 既存テスト雛形に従う | 単体・統合はSwift Testing、UIはXCTest | 雛形は受入検証ではない。テスト依存・固定カバレッジ閾値を追加しない |
+ 
+@@ -151,7 +151,7 @@ Core Data案では永続storeへ接続するwriter contextの処理を直列化
+ | 明示確認 | 再生tokenと本人操作、原本/映像/確認世代 | 最新世代の再照合とvalid記録のcommit | 不明なら容量整理不可。画面上の受付表示は有効記録の代わりにならない |
+ | 失効 | 失効ID・旧原本/映像・新世代 | 旧確認を失効させるcommit完了後だけ応答 | 同じ失効IDは冪等応答。応答消失でも失効維持、失効保存失敗では応答しない |
+ | 両目的の原本削除 | 対象/目的/本人操作/判定世代を持つRemovalIntent | 実ファイルの対象照合・削除結果と管理記録の一致 | ローカルで削除済み/未削除/確認が必要を復旧。再接続不要。未実行意図を自動再実行しない |
+-| 写真登録 | 登録キーと操作ID、登録に渡す版 | Photos結果と対応記録のcommit | 追加済みの可能性を保持して照合。記録なしだけで再追加しない |
++| 写真登録 | 登録キーと操作ID、登録に渡す版・日時・一時媒体使用権。意図のexact commit確認 | 実SDK完了または未開始確定、FD閉鎖、結果のexact commit確認。成功後に使用権解放 | 追加済みの可能性を保持して照合。記録なしだけで再追加しない。成功commit後の未解放は元photo useだけを限定回収 |
+ 
+ DB、原本ファイル、Photos、Mac miniを一括で原子的に更新できるとは扱わない。外部副作用の前に意図、後に結果を保存し、間の不確実性を照合で扱う。確認・失効・操作記録を含むschema移行はversionを付け、解釈できない記録を成功へ丸めない。移行失敗/破損で空のDBを自動作成して正常復旧にせず、復旧が必要な状態と理由を示す。具体schema、migration、読み戻し保証は実装計画の検証項目とする。
+ 
+@@ -179,10 +179,10 @@ S41の共有記録契約では `RecordingStoreDocument` schema 7により、`Rec
+ | --- | --- | --- | --- |
+ | カメラ/記録 | AVFoundationでカメラ・format・出力を照合。4K/24・30fps/LT・422・Proxy/Apple Log、補正、WB、手動値の組合せを実機確認 | 未確認/非対応を区別。無断形式変更なし。絞り操作は実制御可能と確認したカメラだけ | カメラ用途説明と権限が必要。現projectで設定済みとは扱わない |
+ | 音声 | 入力到着、入力経路、音量、writer結果を分離して観測 | 入力確認中は準備中、確認済み障害で開始禁止/録画停止、部分保存を試行。有界復旧後も本人REC | マイク用途説明と権限。外部マイク等の対応を先取りしない |
+-| プレビュー/解析 | 記録のLog経路から分岐し表示だけ固定Rec.709変換。人物/ND/予告は有界の入力を使用 | 古い解析を保留。表示の成立・負荷は未検証。予告のための複数カメラ常時起動を前提にしない | 追加の顔識別サービス・クラウド権限は要求しない。人物のVision本体と通常経路への接続はS45、実機品質はDV-06。表示変換はS48 |
++| プレビュー/解析 | 記録のLog経路から分岐し表示だけ固定Rec.709変換。人物/ND/予告は有界の入力を使用 | 古い解析を保留。表示の成立・負荷は未検証。予告のための複数カメラ常時起動を前提にしない | 追加の顔識別サービス・クラウド権限は要求しない。人物のVision本体と通常経路への接続はS45、実機品質はDV-06。S48の独立描画境界と、標準資材待ちの通常表示接続を分ける |
+ | 動画通信 | 共通ゲートを通るURLSession等。cellular禁止設定と経路判定・停止を併用する案 | Wi-Fi消失/REC/保存で待機。停止要求と実停止を区別し、結果不明を照合 | 接続先に応じたローカルネットワーク用途説明、Bonjour等の要否を確認。通信経路未確定のまま権限/例外を一括追加しない |
+ | 再生 | ローカル原本、版固定したRec.709軽量版。軽量版確認は1本ずつstreamingを第一候補とし、AVFoundation/AVKitを検討 | ローカル再生はオフライン可。未取得の軽量版でオフライン再生は保証しない。既存配信/認証/版管理との成立性と一時使用量を検証し、大きな制約時は一時取得を比較 | Photosから読む方式を採る場合の権限はU2。再生不能を容量整理条件へ追加しない |
+-| Photos | PhotoKit追加、完了結果、取得可能な参照による照合 | 拒否/限定/権限変更/結果不明を分離。追加権限で読み取りが保証されるとはしない | 追加用途説明、読取を採る場合は読取用途説明と対応権限。初回要求時期・範囲はU2 |
++| Photos | PhotoKit追加、実完了結果、保存済みidentifierだけの照合 | 拒否/限定/権限変更/結果不明を分離。追加権限で読み取りが保証されるとはしない | 保存操作時だけ必要なaddOnly、対象と理由を示す本人の照合操作時だけ必要なreadWriteを要求。両用途文を設定し、起動/一覧refreshでは要求しない |
+ | 永続化・ロック | ローカルストアと管理ファイル。選ぶ保護属性・ロック時アクセスを確認 | アクセス不能を消失と扱わず、失効応答・削除成功・写真成功を推定しない | 一般のアプリsandboxを前提。App Groups/iCloud等を必要性なく追加しない |
+ | 背景・中断 | OSイベントを操作の寿命と保存結果へ反映 | 画面ロック後の録画/通信継続を保証しない。復帰時に条件照合し自動RECなし | Background Modes等はU3とAPI検証後に必要範囲だけ検討。今回は採用しない |
+ 
+@@ -220,9 +220,11 @@ RECの受理前にcoordinatorが現在のsnapshotを希望設定と準備時のf
+ 
+ `CaptureFramingState` はS47の構図予告・停止候補の条件照合へ観測元とrevisionを供給する。`format.videoFieldOfView` は未補正のformat画角としてのみ保持し、補正後cropの数値へ換算しない。補正後の画角は取得不能、プレビューと記録の一致はOFFでも未確認のままとする。補正による実画角・3場面の品質・ズーム/切替との両立はDV-04/08/09等の実機検証へ残す。接続・検証証跡は現行tasklistを正本とし、SDK候補の保持をモード数・名称・強さの正式採用や全FR-03受入へ昇格させない。
+ 
+-S41のカメラ表示は構図確認用で、標準Rec.709変換を備えた表示の達成証拠にはしない。標準表示変換の実装と検証はS48の範囲として残す。
++S41のカメラ表示は構図確認用で、標準Rec.709変換を備えた表示の達成証拠にはしない。S48の `CaptureDisplayTransform` は技術試験用cubeの由来・版・用途・入力信号を明示し、cubeの数値範囲とSHA-256を照合する。`CaptureDisplayRenderer` はsRGB/Rec.709の色特性を持つ32BGRA入力だけを受け、暗黙の色管理を無効にした `CIColorCube` でencoded値を描画する。生成cubeによる技術描画を、標準Log→Rec.709変換の成立証拠にしない。
+ 
+-表示変換は入力Log種別と色特性が判明した経路だけに適用し、二重変換を避ける。Apple LogとApple Log 2には異なる色空間定義があるため、機種名やファイル名から一律に同じ変換を適用しない。採用するLog種別と変換係数・LUTの由来、表示とMac miniの変換整合は別途検証する。[AVCaptureColorSpace.appleLog](https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog)
++出力は技術試験用と識別した `CGImage` で、記録へ戻すpixel/sample bufferやwriter APIを持たない。変換済み入力は明示的な入力区分で拒否する。`CaptureDisplayPipeline` は処理中1件と置換可能な待機1件を保持し、セッション/設定世代・表示revision・単調な連番を照合して旧世代・重複/逆順を拒否する。再有効化や停止で処理中の旧結果の通知を失効させる。入力bufferの不変性はproducerとの契約であり、停止は描画処理の完了待ちやSDK資源解放を表さない。
++
++標準資材は未取得で、`CaptureDisplayTransformCatalog` はApple LogとApple Log 2を別キーで拒否する。実Log変換と通常capture/UIへの接続は未実装のままS48へ残す。標準表示変換は入力Log種別と色特性が判明した経路だけに適用し、二重変換を避ける。Apple LogとApple Log 2には異なる色空間定義があるため、機種名やファイル名から一律に同じ変換を適用しない。採用するLog種別と標準資材の由来・版・利用条件・入力適合、表示とMac miniの変換整合、実原本への非焼込み・記録との両立・実機品質は別途検証する。進捗と検証証跡はS48のtasklistを正本とする。[AVCaptureColorSpace.appleLog](https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog)
+ 
+ 解析用の待ち行列は有界とし、古い入力をためて追いつこうとしない。解析が追いつかない間は現在の有効なND/人物結果がないことを表す。どの処理頻度をどこまで下げるかはU7・実機測定で決め、シャッター/ISO/WB/補正や記録形式を勝手に変更しない。ND方向の有用性、同一主役の再捕捉、停止候補の画質は別の品質検証であり、無効化規則のテストだけで完成にしない。
+ 
+@@ -306,14 +308,24 @@ Rec.709変換、クライアントが実再生した版との対応、端末失
+ 
+ ### Photosと一時コピーの境界
+ 
+-Photosへの変更とアプリの操作記録は別の保存境界になる。PhotoKitの変更は変更blockの実行と完了結果で扱い、アプリ側は追加意図を先に記録して結果不明の窓を残す。追加と読取は異なる権限範囲なので、具体的な照合能力は採る権限で確認する。[写真ライブラリへの変更要求](https://developer.apple.com/documentation/photokit/requesting-changes-to-the-photo-library)、[Photosの権限](https://developer.apple.com/documentation/photokit/delivering-an-enhanced-privacy-experience-in-your-photos-app)
++Photosへの変更とアプリの操作記録は別の保存境界になる。S31の意図・追加結果・存在観測・成功使用権解放は、共通writerのschema 7 `backendJournal`へcommandを加算する。`PhotoRegistrationRecord`はjournal再生から生成する派生projectionで、写真専用DBや別の正本を作らない。store identity・command・登録キー・期待revision・payloadを含む元mutationを`lookupCommit`で照合し、応答欠落を未保存や新しい追加許可へ変えない。
++
++`PhotoSaveCoordinator`はS25の完全取得・内容検証済み媒体と`photoHandoff`使用権を受け、意図exact commit確認→必要時addOnly→完全媒体のresolve→実SDK完了または未開始確定→保持FDの閉鎖→結果exact commit確認→成功した使用権の解放を通る。`NativePhotoLibrary`は元の撮影日時と`shouldMoveFile = false`で追加し、placeholderだけを成功証拠にしない。Task取消しをSDK終端とみなさず、実完了まで媒体を保持する。[写真ライブラリへの変更要求](https://developer.apple.com/documentation/photokit/requesting-changes-to-the-photo-library)
++
++新規一時ファイル名はMIMEの完全一致に従い、`video/quicktime`は`UUID.mov`、`video/mp4`は`UUID.mp4`とする。原本の命名や媒体byte列・音声を変えず、拡張子だけを実container・Rec.709適合の証拠にしない。旧extensionless UUIDの読取互換と既存媒体を保護し、無断rename・移行はしない。旧extensionless媒体のPhotos再利用は未対応で、通常取得producerの接続時に扱う。
+ 
+-登録キー単位で連打/再試行を直列化し、placeholderや参照を取得できた場合も追加成功の代わりにしない。結果が不明なら照合を優先し、権限不足で確定できない間は確認が必要を維持する。写真側での削除を自動再保存の契機にしない。一時ファイルの使用権を再生/登録で管理し、使用中の本体を回収しない。使用を終えた再取得可能な本体と、登録結果不明の照合記録は分けて回収する。
++撮影ID・変換版の登録キーごとに直列化し、成功・不明・意図のみの中断から新追加を許可しない。未追加が確定した直前の`notAttempted`/`failed`だけに、新しい本人操作の`retryOf`を束縛できる。同じ版・撮影日時を維持するこの再試行は、本人が写真側で削除した後の手動再保存の合意ではない。
++
++既存登録の照合はLibraryの対象・理由付き本人操作から`PhotoRegistrationReconciler`へ渡し、必要時だけreadWriteを求め、保存済みidentifierだけをexact fetchする。名前・日時による推定同定はしない。identifier欠落は対応不明とし、限定・拒否・読取許可済みでも未発見なら未保存や再追加許可にしない。写真側の存在観測と過去の追加結果は別々に保存・表示し、存在を確認できても過去の不明結果を成功へ書き換えない。起動・一覧refreshで権限要求やPhotos照合を行わず、写真権限の不足で撮影を止めない。[Photosの権限](https://developer.apple.com/documentation/photokit/delivering-an-enhanced-privacy-experience-in-your-photos-app)
++
++成功commit後に解放前の中断から再openした場合、同じ一時rootの排他lockは旧一時媒体ownerとの同時存在を防ぐ。SDK実終端とFD閉鎖の根拠は、保存処理が実completion→finish成功後に永続化した成功recordであり、lock取得から推定しない。意図/成功のexact commit・元owner/lease/epoch・directory/file identityが一致した元photo useだけを回収する。他用途や一般の旧epoch使用権へ広げず、不明・失敗時の一時媒体はこの成功限定回収の対象外とする。原本や復旧記録の削除で代用しない。instance破棄・再openの試験を、実プロセス終了の証明として扱わない。
+ 
+ 複数の写真保存でも受理時の対象集合と動画別の操作/版を固定し、取得・登録の成否と未処理を分けて保持する。取得済み版を登録するローカル段階にはWi-Fiの継続を要求しない。streaming確認とPhotos登録は別操作・状態であり、部分バッファを完全な登録用ファイルへ昇格させない。
+ 
+ TemporaryMedia担当はstreamingバッファを含む用途・取得範囲・所有者・解放可否と、動画別/全体の一時使用量を管理する。空き容量不要とは扱わず、容量不足では新規取得を止め、使用中のデータを無断回収しない。再生用は使用終了後、登録用は登録成功かつ使用者なしで解放し、恒久的な再生コピーへ転用しない。中断断片は次回起動等で照合し、再開対象でない本体を回収しても確認記録と未解決結果の照合情報を残す。バッファ方式・容量上限・保持期限の具体値はU2の残件とする。
+ 
++実SDK adapter・同writer・S25媒体/使用権の下位接続と、正式Rec.709媒体および通常保存start producerの接続を区別する。後者は未接続で、新規保存を製品成功として有効化しない。自動検証の結果は現行tasklistを正本とし、SDK実装を検証成功や実機品質へ昇格しない。初回OS許諾・限定アクセス・本人の写真側削除後・実写真の映像/日時/音声/品質はDV-16へ残す。
++
+ ## 品質特性
+ 
+ ### 性能
+@@ -388,7 +400,7 @@ R3の追加条件AC-FR-11-04・AC-FR-14-07・AC-FR-15-05はT11/T14/T15へ対応
+ | 機能設計のID | R3の確定部分と残る未合意の内容 | 本書が維持する境界 |
+ | --- | --- | --- |
+ | U1 | 確定: 原本転送/写真保存/条件を満たす容量整理は複数選択・開始/実行、順次処理可、動画別の成否/未処理。再生/明示確認/破棄は1本ずつ。残件: 選択/全選択・停止UI、処理順・一部失敗後の続行/停止、削除確認UI、録画後の画面、破棄後の表示/記録、競合待機・転送停止導線 | 開始受理時の対象集合と動画別操作/証拠/結果を保持。各原本の本人確認・目的分離・最新条件・排他を維持し、確認昇格や破棄への自動移行なし |
+-| U2 | 確定: 全体一時取得を待たないstreamingが第一候補。同じMac生成Rec.709軽量版を使い、一時使用量/解放を管理。残件: 既存配信/認証/版管理との成立性、再生元、Photos追加/読取権限、アルバム/再保存、再インストール/複数端末、バッファ/一時ファイルの方式・保持上限/期限・復旧 | 原本/変換版/映像対応、Wi-Fi/REC制限、明示確認・失効、Photosとの操作分離を維持。大きな制約時は一時取得との比較・代案を提示。全体取得や常時写真読取を条件にせず、空き容量不要や大規模配信基盤採用としない |
++| U2 | 確定: 全体一時取得を待たないstreamingが第一候補。同じMac生成Rec.709軽量版を使い、一時使用量/解放を管理。DI-06で通常追加・必要時読取と不明時非再追加を確定。残件: 既存配信/認証/版管理との成立性、再生元、アルバム/写真側削除後の手動再保存、再インストール/複数端末、バッファ/一時ファイルの方式・保持上限/期限・復旧 | 原本/変換版/映像対応、Wi-Fi/REC制限、明示確認・失効、Photosとの操作分離を維持。大きな制約時は一時取得との比較・代案を提示。全体取得や常時写真読取を条件にせず、空き容量不要や大規模配信基盤採用としない |
+ | U3 | 確定: 本人が開始受理済み・未完了・未停止/未キャンセルの通信だけ条件再確認後に自動再開。指示済み順番待ちも同じ。残件: 保存/復旧・二重処理防止、操作寿命の具体方式、処理順/一部失敗後の方針、停止UI、背景/ロック、小さな状態照会の回線方針 | 動画本体のWi-Fi限定、REC/保存優先、本人停止を維持。未実行削除・結果不明Photos追加・終了済み再生へ自動再開を適用せず、前景限定や背景/ロック継続を確定しない |
+ | U4 | DI-07確定: 目標選択・予告・本人開始・目標/途中停止とREC停止の分離。S47の可逆実装: 倍率比の図示、根拠付き近傍候補の本人選択、自動吸着なし。残件: 速度/許容差と実画角・品質の実機採用 | 予告と実倍率、観測/推定、候補根拠と画質を分離。版付き暫定設定をDV-08の採用値へ昇格しない |
+ | U5 | S45合意: 人物なし時はタップ位置AF、初回意図は本人選択・保存復元・REC非阻害、見失い猶予は変更可能な暫定3秒で以後保持・再指定待ち。残件: 手動フォーカスの採否・操作、表示詳細、実機品質・猶予の実機採用 | 主役と露出対象を分離し、同一主役が不明なら他人へ自動移行しない。製品policy接続とDV-06の実機受入を区別 |
+diff --git a/docs/functional-design.md b/docs/functional-design.md
+index d9dbaa6..d81738d 100644
+--- a/docs/functional-design.md
++++ b/docs/functional-design.md
+@@ -203,7 +203,7 @@ Wi-Fi接続、Mac miniへの到達、再生ファイルの現在の有無、「
+ 
+ | 型・フィールド | Swiftの型例 | 必須性・欠損の意味 | 許容値・初期値・制約 |
+ | --- | --- | --- | --- |
+-| PhotoRegistrationKey | `struct` | 追加前に必須 | 撮影ID＋原本同一性＋変換版/映像ID。別版と同じ版を区別 |
++| PhotoRegistrationKey | `struct` | 追加前に必須 | 撮影ID＋変換版ID（RenditionID）で同撮影・同変換版の二重追加を抑止。原本/映像/内容を含む完全な版識別情報（RenditionIdentity）と撮影日時は登録意図へ固定し、同じwriterで照合する。同じ変換版IDを別内容へ付け替える再試行も拒否 |
+ | PhotoRegistration | `struct` | 未指示ならなし | 動画別の操作ID、D8の対象集合への参照、登録キー、`requested / downloading / registering / saved / failed / reconciliationRequired`、「写真」アセット参照 `Optional`、登録結果の証拠。取得/登録の結果と未処理を区別 |
+ | photoAssetReference | `String?` | nilは未取得/権限等で照合不能を区別 | savedという過去の登録成功と、現在「写真」にある/不明/削除された状態を分離。参照なしを再追加許可にしない |
+ | TemporaryMedia | `struct` | 取得中/保持中に必須 | 原本/変換版/映像ID、用途（ストリーミングのバッファ/一時再生/登録）、取得範囲・検証状態、使用中の所有者、解放可否、一時使用量。部分バッファを完全な登録用ファイルや原本検証証拠にしない。結果不明時の照合情報は本体と別に保持 |
+@@ -341,14 +341,17 @@ S47の予告は現在映像と目標倍率の比から作る参考図で、寄
+ 
+ ### S7 「写真」登録・重複防止・一時コピー
+ 
+-動画別に `未指示 → 開始意図保存（順番待ちを含む） → 取得 → 登録意図保存 → 登録中 → 登録成功記録 / 失敗確定 / 照合が必要` とする。新規の開始意図はWi-Fi接続時だけ受理・保存し、複数選択時は対象集合と動画別の操作/版を固定する。切断後は既開始処理の取得を待機させ、順番待ちを含めS4の条件再確認後に通信を自動再開する。動画別の取得・登録の成否と未処理を表示する。取得済みの版を使う登録以降のローカル処理には、Wi-Fiの継続を要求しない。同一PhotoRegistrationKeyの操作を直列化し、ボタンの無効化だけに重複防止を依存しない。結果不明の登録は照合を優先し、通信再開によって再追加しない。
++動画別に `未指示 → 開始意図保存（順番待ちを含む） → 取得 → 登録意図保存 → 登録中 → 登録成功記録 / 追加未実行 / 失敗確定 / 照合が必要` とする。新規の開始意図はWi-Fi接続時だけ受理・保存し、複数選択時は対象集合と動画別の操作/版を固定する。切断後は既開始処理の取得を待機させ、順番待ちを含めS4の条件再確認後に通信を自動再開する。動画別の取得・登録の成否と未処理を表示する。取得済みの版を使う登録以降のローカル処理には、Wi-Fiの継続を要求しない。同じ撮影・変換版の操作を直列化し、ボタンの無効化だけに重複防止を依存しない。結果不明の登録は照合を優先し、通信再開によって再追加しない。
+ 
+ - 登録成功は「写真」の結果と対応情報の永続保存で確定する。ダウンロード完了でsavedにしない。アプリ記録前の中断でも登録意図と操作IDを保持し、結果照合を優先する。
+-- 写真側参照を取得/照合できず結果が不明なら、管理記録がないことだけで再登録しない。読み取り権限を使う照合案、権限不足時の表示はU2。重複回避のために既存写真を削除する処理は持たない。
+-- アプリの保存成功履歴と、「写真」に現在存在することを区別する。後から消した動画を自動再保存せず、再保存を許す具体操作はU2で合意してから設計する。
++- DI-06に従い、通常は本人の保存操作に必要なときだけ追加権限（add-only）を求める。結果不明等の照合が必要なときだけ対象と理由を示し、本人の照合操作で読み取り権限（readWrite）を案内する。起動・一覧の再読込みでは要求せず、権限不足で撮影を止めない。
++- 照合は保存済みの写真側識別情報だけを使い、名前・日時による探索で対応を推測しない。識別情報の欠落・拒否・限定アクセス・読取許可済みでも未発見なら未保存と断定せず、要確認を維持する。管理記録の欠落だけで再登録せず、重複回避のために既存写真を削除する処理も持たない。
++- 過去の追加結果と「写真」の現在存在を別に保存・表示する。存在が確認できても過去の不明結果を成功へ書き換えない。成功・不明・登録意図だけの中断は再追加を許可しない。「写真」の処理が未開始、または未追加が確定した失敗だけ、新しい本人操作を直前の操作に結び付ける明示再試行を許す。同じ版・撮影日時を維持し、後から本人が写真側で消した動画の手動再保存はU2の未合意事項として残す。自動再保存はしない。
+ - ストリーミングのバッファ等の一時データと登録用ファイルは用途・使用量・所有者を管理し、空き容量不要とは扱わない。再生専用データは使用終了後に、登録用コピーは登録成功かつ使用者なしで解放し、アプリ再生用の恒久コピーへ転用しない。確認記録は一時データ解放後も維持する。確認のために登録用の全体ダウンロードを必須にしない。
+ - 取得失敗・中断の断片は次回起動等で照合し、再開対象でないものを回収する。動画別と全体の一時使用量を管理し、容量不足では新規取得を止め、所有者のあるデータを無断で消さない。未解決結果の照合記録は残し、再取得可能な本体を解放できる設計にする。保持期限・容量上限・バッファの方式はU2で合意/評価するため、無期限・無制限保持を既定にしない。
+ 
++S31の実装は、実Photos追加・同じ管理記録への意図/結果保存・完全取得済み媒体の受渡しと、既存登録の理由付き照合・結果表示を含む。正式Rec.709軽量版の取得から通常の写真保存を開始する経路は未接続で、新規保存は利用可能にしない。実装と検証結果は分け、結果の正本は現行tasklistとする。初回OS許諾画面・限定アクセス選択・本人の写真側削除後・実写真の映像/日時/音声/品質は未確認としてDV-16へ残す。
++
+ ### 共通の非同期処理規則
+ 
+ - 完了イベントは操作ID・対象ID・対象内容世代・試行世代を照合する。再試行前の結果を現在の結果へ上書きしない。必要な外部の確定結果は対応操作の証拠として保持し、表示だけ棄却して状態を失わない。
+@@ -448,7 +451,7 @@ Viewと端末I/Oの分離、希望設定と実適用値の分離、一撮影の
+ | ID・論点（PRDの対応） | R3確定部分と残る推奨案 | 影響・残件・判断時点 |
+ | --- | --- | --- |
+ | U1 ライブラリと破棄操作（Q03/Q04/Q11/R2/R3） | **確定**: 原本転送/写真保存/条件を満たす容量整理は複数選択してまとめて開始・実行、順次処理可、動画別に成否/未処理を表示。再生/明示確認/破棄は1本ずつ。**残る案**: 一撮影一行、録画後は撮影画面に留まる、容量整理/破棄の別ボタンと対象確認画面、破棄後の行保持。録画/保存中は新たな削除を待たせ、転送中は本人の停止後に対象/リスクを再確認 | 選択UI・全選択、処理順、一部失敗後の続行/停止、停止UI、競合待機の具体方式、破棄後の表示/記録保持は未合意。破棄済み専用一覧等も候補。録画中の別原本削除を許す案は負荷/競合評価が必要。複数整理でも動画別の安全条件は緩和せず、実装前に残件を合意 |
+-| U2 軽量版再生・写真権限（Q03/Q04/Q11/R3） | **確定**: 全体一時取得を待たないストリーミングが第一候補。写真保存用と同じMac生成Rec.709軽量版の原本/変換版/映像対応、Wi-Fi/REC/明示確認/失効規則を維持し、一時使用量と解放を管理。写真保存は別操作・状態。**残る案**: 原本削除後も同じ行からMac軽量版を選ぶ、写真は鑑賞先として分離。追加権限を基本に結果不明時に読み取り権限を案内し、権限不足なら要確認を維持 | 既存配信/認証/版管理との成立性は未検証。大きな制約時は一時取得との比較・代案を示し、無条件採用や大規模配信基盤導入をしない。再生元、権限方針、アルバム、再保存、再インストール/複数端末、バッファ/一時ファイルの保持上限・期限・復旧方式は未合意。空き容量不要とは扱わない |
++| U2 軽量版再生・写真権限（Q03/Q04/Q11/R3/DI-06） | **確定**: 全体一時取得を待たないストリーミングが第一候補。写真保存用と同じMac生成Rec.709軽量版の原本/変換版/映像対応、Wi-Fi/REC/明示確認/失効規則を維持し、一時使用量と解放を管理。写真保存は別操作・状態。DI-06で保存時の追加権限と必要時の理由付き読取案内を確定。拒否・限定・対応不明・未発見は未保存と断定せず、無条件再追加しない。**残る案**: 原本削除後も同じ行からMac軽量版を選ぶ、写真は鑑賞先として分離 | 既存配信/認証/版管理との成立性は未検証。大きな制約時は一時取得との比較・代案を示し、無条件採用や大規模配信基盤導入をしない。再生元、アルバム、写真側削除後の手動再保存、再インストール/複数端末、バッファ/一時ファイルの保持上限・期限・復旧方式は未合意。空き容量不要とは扱わない |
+ | U3 通信復帰・背景動作（Q12/R3） | **確定**: 本人が開始受理済み・未完了・未停止/未キャンセルの通信だけ、Wi-Fi・録画/保存等を再確認して自動再開。複数で開始した順番待ちも対象。**残る案**: 前景で再開、背景/ロックは保留、小さな状態照会もWi-Fi限定とする案。これらは今回採用済みにしない | 停止/再開条件の保存・復旧、二重送信/二重処理防止、操作の寿命、処理順/一部失敗後の方針、一括/個別停止UI、小さな状態照会、背景/ロック中の扱いは接続仕様前に合意・検証。背景継続や非Wi-Fiでの小さな照会も比較候補。動画本体のモバイル通信は禁止。自動再開は未実行削除・結果不明の写真追加・終了済み再生へ適用しない |
+ | U4 ズームUI（Q05） | **DI-07確定**: 目標選択→構図予告→移動開始→目標自動停止、途中停止とREC停止を別操作にする。**S47の可逆実装**: 寄る側は枠、引く側は未観測領域を含む範囲の図示。現在条件のSDK停止候補を根拠付きで提示し、近傍候補も本人が別ボタンで選ぶ。予告だけで実倍率を変えず、自動吸着しない | `CaptureZoomPolicy` の版付き暫定速度・停止許容差・近傍候補の許容差は処理から分離し、実機採用前の値とする。画角差・滑らかさ・停止精度・画質・負荷と数値採用はDV-08の事前合意と実機評価を要する。未観測領域の映像取得や別カメラ像の再現は保証しない |
+ | U5 人物なし・主役UI（Q06） | **S45合意**: 人物なし時はタップ位置AF。初回撮影意図は本人が選択して保存・復元し、未選択もREC非阻害。見失い猶予は変更可能な暫定3秒で、以後ピント保持・再指定待ちとし別人へ自動移行しない。**既存確定要件**: 人物タップで主役指定、露出対象は別選択、追跡OFFは人物優先AF | AF位置指定の実対応、同一主役再捕捉、合焦/前後追従/人物優先AFの距離・照明・移動条件と許容範囲、暫定3秒の実機採用はDV-06で確認する。手動フォーカスの採否・操作と表示詳細は残件。人物＋背景を全域同時合焦の保証にしない |
+diff --git a/docs/repository-structure.md b/docs/repository-structure.md
+index 116d21a..e021133 100644
+--- a/docs/repository-structure.md
++++ b/docs/repository-structure.md
+@@ -5,13 +5,13 @@
+ - 技術前提は[PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md)のSwift + SwiftUI + native iOS + Xcode。既存の最低対応iOS `27.0`、Swift言語モード `5.0`、App・単体・UIの3 targetを維持する。Xcode・コンパイラ・SDKの実バージョンは本書で固定しない。
+ - 要求は2026-09-25承認済みの[PRD](product-requirements.md)（補足R2を含む）と2026-09-26の回答に基づく補足R3、機能上の境界は[機能設計](functional-design.md)、責務・依存は[アーキテクチャ設計](architecture.md)を参照する。全P0（FR-01〜17、NFR-01〜04）を対象とし、配置によって要求や優先度を変更しない。
+ - 構成方針はhybrid。表示は機能単位、ユースケース・純粋規則・端末I/Oは層単位に分け、層内を責務別に整理する。撮影・通信・削除の実行主体が画面寿命に引きずられず、共通の状態・規則を一か所で管理できる配置とする。
+-- 本書は目標配置の設計であり、ファイル移動・実装は未実施。機能設計U1〜U3はR3の回答範囲を確定し、その残件とU4〜U8は未合意。MediaVaultの配信・認証・版管理の限定ソース確認と方式比較はアーキテクチャ設計を参照し、API・実機成立やFrameRelay契約との互換性を検証済みとはしない。ディレクトリ名・型名の例で未決の操作や技術を確定しない。
++- 本書は2026-10-20時点の実在配置と責務を示し、未作成領域・未接続機能は区別する。進捗・検証証跡・実機残件は[現行tasklist](../.steering/20260929-device-independent-implementation/tasklist.md)を正本とし、ファイルの存在を製品接続や受入完了の証拠にしない。合意済みの操作・暫定policyと未合意事項は機能設計・アーキテクチャ設計に従う。
+ 
+ ## プロジェクト構造
+ 
+ ### 現在の構造
+ 
+-2026-09-25の静的確認時点。個人設定・生成物とSkill内の詳細は省略する。
++主要な実在領域だけを示す。個人設定・生成物、各層の補助ファイルは省略する。
+ 
+ ```text
+ FrameRelay/
+@@ -21,12 +21,40 @@ FrameRelay/
+ ├── FrameRelay/
+ │   ├── FrameRelayApp.swift
+ │   ├── ContentView.swift
+-│   └── Assets.xcassets/
+-│       ├── Contents.json
+-│       ├── AccentColor.colorset/Contents.json
+-│       └── AppIcon.appiconset/Contents.json
+-├── FrameRelayTests/FrameRelayTests.swift
+-├── FrameRelayUITests/FrameRelayUITests.swift
++│   ├── Composition/                         # 製品の単一組立と探索専用組立
++│   ├── Features/{Capture,Library,Playback,Connection}/
++│   ├── Application/
++│   │   ├── Capture/
++│   │   ├── Library/
++│   │   ├── Recovery/
++│   │   ├── MediaOperations/
++│   │   ├── MediaIO/
++│   │   └── Ports/
++│   ├── Domain/{Capture,Media,Operations}/
++│   ├── Platform/
++│   │   ├── Capture/
++│   │   ├── Render/
++│   │   ├── LocalStore/
++│   │   ├── OriginalStore/
++│   │   ├── TemporaryMedia/
++│   │   ├── Playback/
++│   │   ├── Photos/
++│   │   ├── Network/
++│   │   ├── Remote/
++│   │   ├── Credentials/
++│   │   └── Diagnostics/
++│   └── Assets.xcassets/                      # AppIcon・AccentColor
++├── FrameRelayTests/
++│   ├── FrameRelayTests.swift                 # 雛形を保持
++│   ├── Domain/
++│   ├── Application/
++│   ├── Platform/
++│   ├── Integration/{Storage,Playback,Photos,Composition,Registration,Remote,Publication}/
++│   ├── Support/                             # fake・生成媒体・固定入力の補助
++│   └── Fixtures/Subjects/                    # 人物解析用画像とprovenance
++├── FrameRelayUITests/
++│   ├── FrameRelayUITests.swift               # 起動・性能の雛形を保持
++│   └── Flows/                               # 製品/探索/一覧/接続の操作試験
+ ├── docs/
+ │   ├── ideas/initial-requirements.md
+ │   ├── product-requirements.md
+@@ -35,6 +63,7 @@ FrameRelay/
+ │   ├── repository-structure.md              # 本書
+ │   ├── development-guidelines.md
+ │   └── glossary.md
++├── .steering/                               # タスク別3文書・support・証跡
+ ├── .agents/
+ │   ├── README.md
+ │   ├── skills/
+@@ -48,71 +77,45 @@ FrameRelay/
+ └── README.md
+ ```
+ 
+-[FrameRelayApp.swift](../FrameRelay/FrameRelayApp.swift)が`@main`入口で、`WindowGroup`から[ContentView.swift](../FrameRelay/ContentView.swift)の初期表示を開く。撮影・ライブラリ等の機能や画面遷移はまだ実装されていない。[単体テスト](../FrameRelayTests/FrameRelayTests.swift)はSwift Testing、[UIテスト](../FrameRelayUITests/FrameRelayUITests.swift)はXCTestの雛形であり、P0の受入検証済みを意味しない。
++[FrameRelayApp.swift](../FrameRelay/FrameRelayApp.swift)が`@main`入口で、[ProductComposition.swift](../FrameRelay/Composition/ProductComposition.swift)を保持し、[ContentView.swift](../FrameRelay/ContentView.swift)からライブラリ、通常撮影、接続・登録、原本再生、別入口の探索画面を開く。起動時に製品storeを開くが、撮影権限要求・capture session準備は撮影入口まで遅らせる。Libraryは原本再生に加え、既存の写真登録記録の表示と理由付きの明示照合を接続する。転送・写真の新規保存・容量整理・軽量版再生/確認・破棄は未接続と表示し、起動・一覧再読込みでPhotos権限を要求しない。
+ 
+-[project.pbxproj](../FrameRelay.xcodeproj/project.pbxproj)では、3つのソースルートがそれぞれ`PBXFileSystemSynchronizedRootGroup`として同名targetへ対応する。独立したルートの`.xcworkspace`はなく、上記workspaceはproject内部の構成。共有`.xcscheme`・`.xctestplan`・独立した`Info.plist`・entitlements・`Package.swift`・外部依存設定はファイル列挙で確認されていない。個人用scheme管理plistの存在から実行可能schemeを断定せず、実行時に確認する。`.steering/`と`docs/decisions/`は現時点で未作成。
++[project.pbxproj](../FrameRelay.xcodeproj/project.pbxproj)では、3つのソースルートがそれぞれ`PBXFileSystemSynchronizedRootGroup`として同名targetへ対応する。独立したルートの`.xcworkspace`はなく、上記workspaceはproject内部の構成。共有`.xcscheme`・`.xctestplan`・独立した`Info.plist`・entitlements・`Package.swift`・外部依存設定は配置されていない。個人用scheme管理plistと実行可能なscheme/test actionは区別し、build/test時に実在構成を再確認する。
+ 
+-### 目標構造
++### 主要な実装と接続状態
+ 
+-以下は未作成領域を含む配置計画。既存の入口・アセット・3つのソースルートを保ち、必要な実装を置く時点で領域を作る。全フォルダ・空ファイルの先行生成はしない。
++以下のApp相対パスはすべて`FrameRelay/`配下。実装済みの部分と通常の製品操作への接続は別に示す。
+ 
+-```text
+-FrameRelay/
+-├── FrameRelayApp.swift                     # 既存のApp入口
+-├── ContentView.swift                       # 既存。将来はルート表示を担当
+-├── Composition/                            # 依存の組み立て
+-├── Features/                               # Presentation層
+-│   ├── Capture/                            # 撮影・撮影設定
+-│   ├── Library/                            # 一覧・詳細・管理操作の確認
+-│   ├── Playback/                           # 原本/軽量版再生と明示確認
+-│   └── Connection/                         # 接続・処理状況
+-├── Shared/Presentation/                    # 機能に依存しない表示部品
+-├── Application/
+-│   ├── Capture/
+-│   ├── MediaOperations/
+-│   ├── Library/
+-│   ├── Recovery/
+-│   ├── MediaIO/
+-│   └── Ports/
+-├── Domain/
+-│   ├── Capture/
+-│   ├── Media/
+-│   └── Operations/
+-├── Platform/                               # 下表のI/O責務ごとに配置
+-└── Assets.xcassets/                         # 既存の位置を維持
+-
+-FrameRelayTests/
+-├── FrameRelayTests.swift                    # 既存の雛形
+-├── Domain/
+-├── Application/
+-├── Presentation/
+-├── Platform/
+-├── Integration/
+-└── Support/                                # Fakes/、Fixtures/を必要時に配置
+-
+-FrameRelayUITests/
+-├── FrameRelayUITests.swift                  # 既存の雛形
+-├── Flows/
+-└── Support/
+-```
++| 責務 | 主要実ファイル | 現在の境界 |
++| --- | --- | --- |
++| 共通store・原本・組立 | `Composition/ProductLibraryFactory.swift`、`Platform/LocalStore/ExplorationRecordingStores.swift`、`RecordingStoreDocument.swift`、`Platform/OriginalStore/ManagedOriginalStore.swift`、`ManagedOriginalAccess.swift` | 製品rootの`SQLiteRecordingStore`、原本領域、内容対応・read leaseを共有。`Exploration`という既存名だけで探索専用と判断しない |
++| 撮影・補助表示 | `Composition/ProductCaptureFactory.swift`、`Application/Capture/ProductCaptureCoordinator.swift`、`Platform/Capture/NativeExplorationCapture.swift`、`Features/Capture/ProductCaptureView.swift` | 通常の設定・REC/保存・WB・音声・補正・人物/ND・ズームへ接続。レンズISO policyの通常注入は保留。実方式・能力・品質は実機未確認 |
++| 一覧・原本再生 | `Application/Library/LibraryStoreReader.swift`、`LibrarySnapshot.swift`、`Features/Library/LibraryModel.swift`、`Features/Playback/OriginalPlaybackModel.swift`、`Platform/Playback/AVOriginalPlayback.swift` | 単一storeから一覧/履歴を投影し、原本再生と既存写真記録の明示照合を接続。画面の操作候補があることを新規写真保存・削除等の製品接続と扱わない |
++| 写真登録・存在照合 | `Platform/Photos/NativePhotoLibrary.swift`、`Application/MediaOperations/PhotoSaveCoordinator.swift`、`PhotoRegistrationReconciler.swift`、`Application/Library/LibraryPhotoReconciliation.swift` | 実SDK追加・同writerへの意図/結果保存・完全取得媒体の受渡し、既存記録の過去結果/現在存在の表示と明示照合。正式Rec.709媒体を取得して通常保存を開始するproducerは未接続 |
++| 接続・登録 | `Application/MediaOperations/RegistrationCoordinator.swift`、`Platform/Remote/URLSessionRegistrationRemote.swift`、`Platform/Credentials/KeychainRegistrationVault.swift`、`Features/Connection/ConnectionModel.swift` | 製品store・資格保管・登録画面へ接続。全媒体を統括する実通信・背景producerの接続は未完 |
++| 固定軽量版・一時媒体 | `Platform/Playback/AVRenditionPlayback.swift`、`Platform/Network/FixedRenditionRangeReader.swift`、`Platform/TemporaryMedia/ManagedTemporaryMedia.swift`、`Application/MediaIO/RenditionScopeRegistry.swift` | 固定版の実再生・取得・lease/一時媒体管理の独立実装。通常Libraryの軽量版操作への接続は未完 |
++| 確認・失効・公開の周辺 | `Application/MediaOperations/MediaConfirmationCoordinator.swift`、`MediaInvalidationCoordinator.swift`、`BackendOutboxCoordinator.swift`、`Composition/ProductMediaTermination.swift`、`Platform/Remote/PublicationWire.swift` | S27の部分実装と製品rootの原本player/同writerを共有する終端窓口。全媒体gate・通常の確認/失効操作・公開の完了とは区別する |
++| 表示描画 | `Platform/Render/CaptureDisplayTransform.swift`、`CaptureDisplayRenderer.swift`、`CaptureDisplayPipeline.swift` | 生成cubeを使うencoded-BGRA技術描画。標準資材未取得、実Log変換・通常capture/UI接続は未実装 |
++| 探索 | `Composition/ExplorationComposition.swift`、`Application/Capture/ExplorationCoordinator.swift`、`Features/Capture/ExplorationView.swift` | 試験票・方式候補・試験runを持つ独立入口。探索条件や結果を製品採用へ昇格しない |
+ 
+-`Features/<機能>/`では必要に応じて`Views/`と`Presentation/`を分ける。ここでのPresentationは画面の表示状態・入力窓口を指し、永続操作や撮影セッションの所有者ではない。各層は同一の`FrameRelay` module内の論理境界であり、フォルダ分割だけでは依存をコンパイラで強制できない。別target・packageへの分割は要求しない。
++未作成領域は`Shared/Presentation/`、`Platform/Analysis/`、`Resources/`等。現在の人物/ND解析は`Platform/Capture/`内、表示状態の試験は`FrameRelayTests/Application/`等にあり、配置計画だけを理由に移動しない。写真の通常保存開始の接続、容量整理・破棄の実I/O、全媒体の実通信adapterと製品gate接続、標準Rec.709変換は今後の担当taskへ残す。既存のgate契約・純粋規則・本人意思の永続化を未実装へ戻さない。
++
++`Features/<機能>/`は現在ViewとModelを同じ機能フォルダへ置く。必要になれば`Views/`と`Presentation/`を分けるが、表示状態・入力窓口を永続操作や撮影セッションの正本にしない。各層は同一の`FrameRelay` module内の論理境界であり、フォルダ分割だけでは依存をコンパイラで強制できない。別target・packageへの分割は要求しない。
+ 
+ ## ディレクトリ詳細
+ 
+ ### App入口・機能表示・共有表示
+ 
+-下表のソースはすべて`FrameRelay` targetに所属する。「公開入口」は他の責務から使ってよい窓口を示し、Swiftの`public`指定を要求するものではない。
++下表は現在の実装と今後追加する責務の配置規則。接続状態は前表に従う。実在ソースはすべて`FrameRelay` targetに所属し、「公開入口」は他の責務から使う窓口を示す。Swiftの`public`指定を要求するものではない。
+ 
+ | 配置 | 責務・配置するもの | 配置しないもの・公開入口 | 主なテスト配置 |
+ | --- | --- | --- | --- |
+-| `FrameRelayApp.swift`、`ContentView.swift` | アプリ/Scene入口、注入済みの機能Viewをつなぐルート表示。画面遷移の具体方式は操作設計後に決める | 撮影制御・削除規則・DB/HTTP処理は置かない。入口はAppとルートView | `FrameRelayUITests/Flows/` |
+-| `Composition/` | Port実装の生成、Applicationへの注入、画面とアプリ管理状態の寿命の接続 | 業務判断・独自の成功判定を置かない。入口例は`AppComposition` | `FrameRelayTests/Integration/` |
+-| `Features/Capture/` | V1/V2。撮影・設定・音声・ND・人物・ズームの表示とcommand発行 | カメラAPIや解析処理を直接持たない。撮影/設定Viewと表示状態が入口 | `FrameRelayTests/Presentation/Capture/`、`FrameRelayUITests/Flows/` |
+-| `Features/Library/` | V3/V5。一覧・詳細、転送/写真保存/条件を満たす容量整理の複数選択・開始、1本ずつの破棄、動画別の成否/未処理の表示と本人入力 | 選択状態を開始受理済み対象集合と分け、削除可否・重複防止を再実装しない。Libraryのsnapshotと目的別commandを利用 | `FrameRelayTests/Presentation/Library/`、`FrameRelayUITests/Flows/` |
+-| `Features/Playback/` | V4。1本ずつの再生・明示確認、再生元、再生到達、版、バッファ待ち/一時容量不足の表示と入力 | 再生だけで確認を確定しない。写真保存は別操作・状態。独自の動画取得はしない。再生Viewが入口 | `FrameRelayTests/Presentation/Playback/`、`FrameRelayUITests/Flows/` |
+-| `Features/Connection/` | V6。接続・権限、動画別の待機理由・成否/未処理/要確認、既開始通信の条件付き自動再開/本人停止の表示と入力 | 指示済み順番待ちと未指示を区別し、秘密情報の保管や通信再開条件を所有しない。接続/処理状況Viewが入口 | `FrameRelayTests/Presentation/Connection/`、`FrameRelayUITests/Flows/` |
+-| `Shared/Presentation/` | 複数画面で実際に共有する表示部品、表示専用の値整形、アクセシビリティ表現 | 特定featureの内部型、共有セッション、汎用の巨大な状態オブジェクトは置かない。値とactionを受ける部品が入口 | `FrameRelayTests/Presentation/Shared/` |
++| `FrameRelayApp.swift`、`ContentView.swift` | アプリ/Scene入口、注入済みの機能Viewをsheet等でつなぐルート表示 | 撮影制御・削除規則・DB/HTTP処理は置かない。入口はAppとルートView | `FrameRelayUITests/Flows/` |
++| `Composition/` | `ProductComposition`、`ProductLibraryFactory`、`ProductCaptureFactory`による生成・注入と、画面を越える所有者の保持 | 業務判断・独自の成功判定を置かない。探索専用の`ExplorationComposition`と区別 | `FrameRelayTests/Integration/Composition/` |
++| `Features/Capture/` | V1/V2。撮影・設定・音声・ND・人物・ズームの表示とcommand発行 | 解析・記録処理を持たない。`ProductCapturePreview`のSDK表示橋渡しは後述の限定境界 | `FrameRelayTests/Application/ProductCaptureCoordinatorTests.swift`等、`FrameRelayUITests/Flows/ProductCaptureFlowTests.swift` |
++| `Features/Library/` | V3/V5。`LibraryModel`と`LibraryView`による一覧・履歴、複数/単数の選択・入力と理由表示 | 選択状態を開始受理済み対象集合と分け、削除可否・重複防止を再実装しない。Libraryのsnapshotと目的別commandを利用 | `FrameRelayTests/Application/Library/`、`FrameRelayUITests/Flows/LibraryFlowTests.swift` |
++| `Features/Playback/` | V4。現在は`OriginalPlaybackModel`と`OriginalPlaybackView`による原本再生・停止・状態表示。軽量版の明示確認等は追加時もここ | 再生だけで確認を確定しない。写真保存は別操作・状態。独自の動画取得はしない | `FrameRelayTests/Integration/Playback/`、`FrameRelayUITests/Flows/LibraryFlowTests.swift` |
++| `Features/Connection/` | V6。現在は`ConnectionModel`と`ConnectionView`による接続先・登録・照合の表示と入力。動画別の通信状態は追加時もここ | 指示済み順番待ちと未指示を区別し、秘密情報の保管や通信再開条件を所有しない | `FrameRelayTests/Integration/Registration/`、`FrameRelayUITests/Flows/ConnectionFlowTests.swift` |
++| `Shared/Presentation/`（未作成） | 複数画面で実際に共有する表示部品、表示専用の値整形、アクセシビリティ表現 | 特定featureの内部型、共有セッション、汎用の巨大な状態オブジェクトは置かない。値とactionを受ける部品が入口 | 必要時に責務に対応する試験を配置 |
+ 
+ 撮影固有の音量表示や構図表示は、再利用箇所がない段階ではCapture内に置く。共有の製品規則は`Shared/`へ集めずDomainへ、共有のI/O契約はApplicationのPortsへ配置する。
+ 
+@@ -122,32 +125,36 @@ FrameRelayUITests/
+ 
+ | 配置 | 責務・配置するもの | 公開入口・配置しないもの |
+ | --- | --- | --- |
+-| `Application/Capture/` | CaptureCoordinator、設定適用、REC/STOP、WB/音声、解析採否、ズームの調停 | `prepare/apply/start/stop`等のcommandと型付きsnapshot/event。View・端末API実装は置かない |
+-| `Application/MediaOperations/` | 転送、確認/失効、容量整理、破棄、写真保存、再生要求と一時媒体使用権の調停。開始受理時の対象集合と動画別の操作/対象/版/証拠/結果を保持し、原本/登録キー単位の操作順序を管理 | 目的別commandと操作ID・理由付き結果/未処理。容量整理と破棄の入口を分ける。DB/HTTP/Photos/ファイルAPIは置かない |
+-| `Application/Library/` | 撮影IDから動画別の状態・成否/未処理を統合した読取専用の一覧/詳細投影 | snapshotと読取契約。保存結果・確認・失効を直接変更しない |
++| `Application/Capture/` | `ProductCaptureCoordinator`、`CaptureLifecycle`、`RecordingSaveLifecycle`、`ProductCapturePostSave`による設定・REC/STOP・WB/音声・解析採否・ズーム・保存後処理 | `prepare/apply/start/stop`等のcommandと型付きsnapshot/event。View・端末API実装は置かない |
++| `Application/MediaOperations/` | 現在は登録、確認/失効、outbox、`PhotoSaveCoordinator`・`PhotoRegistrationReconciler`。今後の転送・容量整理・破棄もここで開始時の固定対象集合と動画別の操作/証拠/結果を調停 | 目的別commandと操作ID・理由付き結果/未処理。容量整理と破棄の入口を分ける。DB/HTTP/Photos/ファイルAPIは置かない |
++| `Application/Library/` | 撮影IDから動画別の状態・成否/未処理を統合した読取専用の一覧/詳細投影。`LibraryPhotoReconciliation`は既存写真記録の表示と明示照合の橋渡し | snapshotと読取契約、写真照合担当へのcommand。保存結果・確認・失効を直接変更しない |
+ | `Application/Recovery/` | 起動時の未完了操作照合と操作担当への復旧要求 | 照合commandと結果。未実行削除・結果不明の写真追加を自動再実行せず、終了済み再生を自動再開しない |
+-| `Application/MediaIO/` | MediaIOGate、Wi-Fi/REC/保存/本人停止・キャンセルの抑止とlease管理。開始受理済み・未完了・未停止/未キャンセルの通信だけ、全条件を再確認して自動再開 | ゲート契約と理由付き状態。指示済み順番待ちも対象とし、選択だけで開始しない。背景/ロック等の未合意方針やOS通信実装を混入させない |
+-| `Application/Ports/` | Capture/Analysis/OperationStore/Original/Remote/Photos/Playback/一時媒体/認証保管等のI/O契約、層を越えるcommand・snapshot・eventの契約 | protocolと値の契約。Domainの型を利用し、具象サービス・DB entity・HTTP DTO・SDKオブジェクトを公開契約へ漏らさない |
++| `Application/MediaIO/` | 現在は`RenditionReadLeases`、`RenditionMediaScope`、`RenditionScopeRegistry`、`RenditionTemporaryRetrieval`による軽量版の使用権・owner終端・一時取得。全媒体gateの製品接続はS23/S49 | ゲート契約と理由付き状態。Wi-Fi/REC/保存/本人停止を下位でも照合し、本人が開始した未完了通信だけ条件付き自動再開。OSが許す背景/ロック中の継続や媒体を含まない状態同期の確定要件を縮小しない |
++| `Application/Ports/` | Capture/Analysis/OperationStore/Original/Remote/Photos/Playback/一時媒体/認証保管等のI/O契約、層を越えるcommand・snapshot・eventの契約。`PhotoLibraryPorts.swift`は追加/権限/識別情報照合/成功使用権復旧の窓口 | protocolと値の契約。Domainの型を利用し、具象サービス・DB entity・HTTP DTO・SDKオブジェクトを公開契約へ漏らさない |
+ | `Domain/Capture/` | 希望値/実適用/対応条件、WB・音声・人物・ND・ズームの値と純粋規則（D1/D2） | 理由付き判定と型。フレーム処理・時計照会・カメラ制御は置かない |
+-| `Domain/Media/` | 原本同一性、保存証拠、版、確認/失効、容量整理と破棄の別規則、写真登録キー（D3〜D7） | 副作用のない値・判定。永続化表現・パス操作・リモート削除を置かない |
++| `Domain/Media/` | 原本同一性、保存証拠、版、確認/失効、容量整理と破棄の別規則（D3〜D7）。`PhotoRegistration.swift`は写真登録キー/意図/追加結果/存在観測/成功使用権解放の値 | 副作用のない値・判定。永続化表現・パス操作・リモート削除を置かない |
+ | `Domain/Operations/` | 開始指示と固定対象集合、動画別の操作ID/世代、本人意思、待機理由、結果採否、再開可否（D8） | 時刻・能力・証拠を入力とする判定。選択と指示済み順番待ちを区別し、task・queue・通信・DBを所有しない |
+ 
+ 容量整理と破棄はDomainの規則とApplicationのcommandを別にし、共通化は対象限定の削除実行・照合に留める。失効保存と容量整理の順序はMediaOperationsで一元化し、Libraryや画面に別の更新経路を作らない。
+ 
++共通storeの正本は`SQLiteRecordingStore`と`RecordingStoreDocument`で、連携の永続表現・commandは同じ`Platform/LocalStore/`のadapterへ集める。製品の`ProductLibraryFactory`が単一writer・`ManagedOriginalStore`・`ManagedOriginalAccess`を保持し、撮影・一覧・再生・登録へ同じinstanceを渡す。原本ファイルの予約・読取と内容対応/leaseの操作は原本担当、共有契約は`Application/Ports/`、具象の生成・製品への追加接続は`Composition/`を単独所有とする。各featureで別store・独自の原本参照・重複Portを作らず、変更時の具体ファイル所有と引渡しはsteeringに記録する。
++
++`LibrarySnapshot`は保存記録と現在の原本状態を投影し、破棄成功を照合した項目だけを履歴へ分ける。容量整理成功は通常一覧に残し、不明を削除成功へ変えない。履歴は管理記録であり、原本を移すゴミ箱や別の媒体保存領域ではない。現在の表示・fixture試験を、未実装の実削除処理の完了証拠にしない。
++
+ 原本転送・同じMac mini生成Rec.709軽量版の写真保存・条件を満たす容量整理は、複数選択してまとめて開始/実行し、内部は順次処理でよい。開始受理時の対象集合へ後から未指示動画を追加せず、動画別の証拠と結果/未処理を維持する。複数容量整理でも各削除直前に最新の確認/失効・対象・排他を照合し、不可なら破棄へ自動移行しない。再生・明示確認・破棄は1本ずつとし、複数選択を確認の自動確定や一括破棄へ使わない。通信の自動再開を未実行削除・結果不明Photos追加・終了済み再生へ拡張しない。
+ 
+ ### Platform
+ 
+-下記はすべて`FrameRelay/Platform/`配下の目標サブディレクトリ。`FrameRelay` targetに所属し、外部への入口は`Application/Ports/`の実装とする。使用framework・出力方式・保存方式の候補はarchitectureの検証条件を継承する。
++下記は`FrameRelay/Platform/`配下の実在領域と追加時の配置先。`FrameRelay` targetに所属し、外部への入口は`Application/Ports/`の実装とする。使用framework・出力方式・保存方式の採用と未確認範囲はarchitectureの検証条件を継承する。
+ 
+ | 配置 | 配置するもの | 配置しないもの・接続境界 |
+ | --- | --- | --- |
+ | `Capture/` | カメラ/音声能力照会、セッション、記録出力、SDKのqueue/callback橋渡し | SwiftUI状態、容量整理判定。記録と表示/解析入力を分岐し、型付き事実を返す |
+-| `Analysis/`、`Render/` | 人物等のフレーム解析、固定Rec.709撮影表示、表示面adapter | NDに基づく露出の無断変更、原本への表示変換/予告の焼込み。表示面に必要なSDK橋渡しはここに閉じる |
+-| `LocalStore/` | 操作・固定対象集合・動画別結果・設定・確認/失効等の永続化、schema/migration、値との変換。Core Data採用時のmodelもここ | 動画本体、表示状態の正本化。Core Dataのmodelファイルは未作成・採用検証前 |
+-| `OriginalStore/`、`TemporaryMedia/` | アプリ所有原本の固定参照・内容検査・許可対象の削除、streamingバッファ/軽量版一時ファイルの用途・取得範囲・所有者・使用権・動画別/全体の一時使用量・解放管理 | 独自の削除許可、外部パス/Photos/Mac miniの削除、原本の自動回収。使用中の媒体や復旧証拠を無断回収せず、部分バッファをPhotos登録用の完全ファイルとしない |
+-| `Remote/`、`Network/` | MediaVault契約adapter、HTTP DTO/変換、接続/経路観測、ゲート付き動画送受信。同じRec.709軽量版の全体取得を待たないstreamingを第一候補とし、再生/再開時も原本/変換版/映像IDと配信内容の対応を固定 | サーバー本体、撮影制御、旧削除候補フラグの直接利用。配信/認証/版固定の限定ソース確認は実機成立の証拠にせず、具体方式とendpointは未確定 |
+-| `Playback/`、`Photos/` | 版固定の再生・実到達イベント、写真追加/動画別結果照合、SDK橋渡し | 確認の自動確定、独自の通信経路、写真削除。取得と一時参照は注入されたPortを利用し、streaming再生とPhotos登録を分離 |
++| `Capture/`内の解析、`Render/` | `NativeCaptureSubjectAnalysis`・`NativeCaptureNDAnalysis`等のフレーム解析、`CaptureDisplay…`の独立技術描画。`Analysis/`は未作成 | NDに基づく露出の無断変更、原本への表示変換/予告の焼込み。標準Rec.709変換と通常表示の接続は資材待ち |
++| `LocalStore/` | 撮影/原本/操作/確認・失効等の単一writerとschema/migration、設定保存。`PhotoStoreProjection.swift`は同じjournalから写真登録を投影。Core Data/SQLiteのmodelは`ExplorationRecordingStores.swift`内で組み立てる | 動画本体、表示状態の正本化、feature専用の重複DB。独立した`.xcdatamodeld`は使っていない |
++| `OriginalStore/`、`TemporaryMedia/` | 原本の予約・固定参照・内容検査・read leaseと、`ManagedTemporaryMedia`による一時ファイル/使用量/解放管理。完全取得媒体は`TemporaryLocalMediaPort`から扱う。一時媒体は全使用権解放後の実unlinkを実装済み | 独自の削除許可、外部パス/Photos/Mac miniの削除、原本の自動回収。原本の容量整理/破棄に伴う実unlinkは未実装。使用中の媒体や復旧証拠を無断回収せず、部分バッファをPhotos登録用の完全ファイルとしない |
++| `Remote/`、`Network/` | 登録・publicationのwire/HTTP adapter、固定版Range通信。原本/変換版/映像IDと配信内容の対応を固定し、軽量版streaming・実送受信の下位処理を置く | サーバー本体、撮影制御、旧削除候補フラグの直接利用。具体的な契約実装と、全媒体の製品接続・実機成立を区別する |
++| `Playback/`、`Photos/` | `AVOriginalPlayback`・`AVRenditionPlayback`とresource loaderによる実再生/停止。`Photos/NativePhotoLibrary.swift`は実PhotoKit追加/完了と保存済み識別情報だけの照合 | 確認の自動確定、独自の通信経路、写真削除。取得と一時参照は注入されたPortを利用し、streaming再生とPhotos登録を分離 |
+ | `Credentials/`、`Diagnostics/` | 認証保管adapter、最小限の診断出力 | 接続秘密や家族動画をソース/ログへ保存しない。診断ログを復旧証拠の代わりにしない |
+ 
+ Mac miniの変換器・サーバー・保存ディレクトリがこのrepoにあるとは扱わない。iOS側の契約はPortsとRemoteへ置き、サーバー側の配置・変更は既存MediaVaultの調査と合意した作業範囲で定める。`backend/`やMac用targetを本書だけを根拠に作らない。
+@@ -156,28 +163,31 @@ Mac miniの変換器・サーバー・保存ディレクトリがこのrepoに
+ 
+ | 配置 | 所属target・方式 | 配置対象・入口 |
+ | --- | --- | --- |
+-| `FrameRelayTests/Domain/`、`Application/`、`Presentation/` | `FrameRelayTests`、Swift Testing | 純粋規則、固定対象集合と動画別結果、条件付き自動再開、Portへの失敗/遅延/逆順注入、表示投影と入力。`@Test`を入口とし`@testable import FrameRelay`で参照 |
++| `FrameRelayTests/Domain/`、`Application/` | `FrameRelayTests`、Swift Testing | 純粋規則、固定対象集合と動画別結果、条件付き自動再開、Portへの失敗/遅延/逆順注入、表示投影と入力。`@Test`を入口とし`@testable import FrameRelay`で参照。独立した`Presentation/`は未作成 |
+ | `FrameRelayTests/Platform/`、`Integration/` | 同上 | adapter契約、使い捨てのdiskストア/ファイルを用いた復旧・削除照合、制御可能な通信先との契約。実環境の実行条件は計画で区別 |
+-| `FrameRelayTests/Support/Fakes/`、`Fixtures/` | 同上。必要時に作成 | Portのfake、固定入力・小さな検証用資材。アプリtargetへ含めない。実原本や認証秘密をfixture化しない |
+-| `FrameRelayUITests/Flows/`、`Support/` | `FrameRelayUITests`、XCTest | F1〜F5と状態別操作、3操作の複数選択と動画別の成否/未処理、1本ずつの再生/明示確認/破棄、権限導線、アクセシビリティ。`XCUIApplication`を通す。SupportはUI操作の補助のみ |
++| `FrameRelayTests/Integration/Photos/` | 同上 | `PhotoSaveCoordinatorTests`、`PhotoTemporaryRecoveryTests`と`PhotoSaveFixture`。`NativePhotoLibraryTests`は明示opt-inの専用Simulator実Photos試験。値検証は`Domain/PhotoRegistrationTests.swift`、同writer再openは`Integration/Storage/PhotoRegistrationStoreTests.swift` |
++| `FrameRelayTests/Support/`、`Fixtures/Subjects/` | 同上 | Portのfake、`Support/Storage/SyntheticMovieFixture.swift`の合成動画、人物解析用の公開画像と`provenance.json`。アプリtargetへ含めず、実原本や認証秘密をfixture化しない。独立した`Support/Fakes/`は未作成 |
++| `FrameRelayUITests/Flows/` | `FrameRelayUITests`、XCTest | 製品撮影・Library・接続・探索の操作と状態表示。`XCUIApplication`を通す。今後のPhotos・削除等も対応するflowへ追加し、現ファイルの存在で未実装操作の受入を満たしたとしない |
++
++Unit targetはApp hostを使用し、UI targetは`FrameRelay`を操作対象とする。各同期rootは対応targetだけに所属し、現projectにmembership例外はない。試験専用画像はUnit root、合成媒体の生成器はUnitのSupportへ置き、本番Appにfixture生成・自動seedの分岐を追加しない。既存の`Integration/Composition/ProductLibrarySeedTests.swift`は明示opt-inで通常writerへ試験データを投入する補助であり、通常起動処理ではない。実通信probeも環境変数によるopt-inで、通常のUnit実行と区別する。
+ 
+-試験観点と受入条件の対応は機能設計T01〜T21を正本とする。実機の録画品質・回線制限・Photos成立をfakeやSimulatorで代替済みにしない。NFR-04の実データ参照先・合意・試験結果は対象steeringへ記録し、家族動画やMac mini原本をアプリbundleやrepoへ複製する配置にはしない。既存雛形を受入試験へ置き換える順序と実行コマンドは実装計画で決める。
++試験観点と受入条件の対応は機能設計T01〜T21を正本とする。実行版・件数・結果・未実行理由はsteeringの証跡へ残し、雛形の`example`やskip/未実行を機能検証の成功にしない。実機の録画品質・回線制限・Photos成立をfakeやSimulatorで代替済みにせず、NFR-04の実データ参照先・合意・試験結果も対象steeringへ記録する。家族動画やMac mini原本をアプリbundleやrepoへ複製しない。
+ 
+ ## ファイル命名
+ 
+-Swiftファイルは主な型・責務と同じ`UpperCamelCase.swift`、フォルダは表の責務名を用いる。以下は未作成ファイルの命名例であり、具体型の実装を確定しない。
++Swiftファイルは主な型・責務と同じ`UpperCamelCase.swift`、フォルダは表の責務名を用いる。以下は実在する命名例であり、今後の追加も責務と対応させる。
+ 
+ | 種別 | 配置先 | 命名規則・例 |
+ | --- | --- | --- |
+-| App・組み立て | 既存入口、`Composition/` | `FrameRelayApp.swift`、`AppComposition.swift` |
+-| View・表示状態 | `Features/<機能>/` | `CaptureView.swift`、`LibraryPresentation.swift`、`PlaybackSnapshot.swift` |
+-| ユースケース | `Application/<責務>/` | `CaptureCoordinator.swift`、`CleanupOriginal.swift`、`DiscardOriginal.swift` |
+-| I/O契約 | `Application/Ports/` | 責務を表す`…Port.swift`、既存の論理名なら`OperationStore.swift` |
+-| 値・純粋規則 | `Domain/<責務>/` | `CapturePreference.swift`、`CleanupEligibility.swift`、`PhotoRegistrationKey.swift` |
+-| I/O実装・外部表現 | `Platform/<責務>/` | `AVCaptureAdapter.swift`、`StorageVerificationDTO.swift`。技術名は採用確定後だけ付ける |
+-| 単体・統合テスト | `FrameRelayTests/<層・責務>/` | `CleanupEligibilityTests.swift`、`RemovalRecoveryTests.swift` |
+-| UIテスト | `FrameRelayUITests/Flows/` | `CaptureFlowTests.swift`、`DiscardFlowTests.swift` |
+-| テスト代替 | `FrameRelayTests/Support/Fakes/` | `FakeCapturePort.swift`。検証目的が分かる名前にする |
++| App・組み立て | 既存入口、`Composition/` | `FrameRelayApp.swift`、`ProductComposition.swift` |
++| View・表示状態 | `Features/<機能>/` | `ProductCaptureView.swift`、`LibraryModel.swift`、`OriginalPlaybackView.swift` |
++| ユースケース | `Application/<責務>/` | `ProductCaptureCoordinator.swift`、`RegistrationCoordinator.swift` |
++| I/O契約 | `Application/Ports/` | `OriginalStorePort.swift`、`RenditionMediaPorts.swift` |
++| 値・純粋規則 | `Domain/<責務>/` | `CaptureZoom.swift`、`OriginalDescriptor.swift`、`MediaRequest.swift` |
++| I/O実装・外部表現 | `Platform/<責務>/` | `AVOriginalPlayback.swift`、`RegistrationWire.swift`。技術名は現実装と対応させ、実機採用と区別する |
++| 単体・統合テスト | `FrameRelayTests/<層・責務>/` | `Domain/CaptureZoomTests.swift`、`Integration/Storage/OriginalSaveRecoveryTests.swift` |
++| UIテスト | `FrameRelayUITests/Flows/` | `ProductCaptureFlowTests.swift`、`LibraryFlowTests.swift` |
++| テスト代替 | `FrameRelayTests/Support/` | `BackendContractFakes.swift`、`CaptureFixture.swift`。検証目的が分かる名前にする |
+ 
+ 同一module内ではfeature別フォルダに置いても同名型の衝突は避けられない。`State.swift`、`Manager.swift`、`Utils.swift`のような所有責務が不明な名前を避け、`CaptureSnapshot`等で対象を示す。内部補助型は公開範囲を最小にし、他featureが内部実装を参照するために可視性を広げない。
+ 
+@@ -186,7 +196,7 @@ Swiftファイルは主な型・責務と同じ`UpperCamelCase.swift`、フォ
+ ```text
+ FrameRelayApp -> Composition -> 各層の生成・注入
+ ContentView / Features -> Applicationの公開契約 -> Domain
+-ContentView / Features -> Shared/Presentation
++ContentView / Features -> Shared/Presentation（共有部品が必要になった場合）
+ Applicationの各担当 -> Application/Ports + Domain
+ Platform -> Application/Ports + Domain + 各端末/外部API
+ Shared/Presentation -> SwiftUI + 表示専用の値
+@@ -195,7 +205,7 @@ Domain -> Swiftの値型・副作用のない基礎型
+ 
+ - PresentationのUI更新はMainActorで行い、端末処理を配置の都合でMainActorへ集めない。撮影・保存等の隔離と寿命はarchitectureに従う。
+ - Application同士は公開command・型付きevent・snapshotで連携する。Platform同士の連携も、Compositionで注入したPortを通し、他adapterの具象生成や内部状態の書換えを行わない。
+-- 撮影表示面などにSDK橋渡しが必要な場合は、CompositionがPlatformの表示adapterを画面へ注入する。Featuresからカメラセッションや描画の内部実装を参照しない。
++- 撮影表示面などにSDK橋渡しが必要な場合は、CompositionがPlatformの表示adapterを画面へ注入する。現在の`Features/Capture/ProductCapturePreview.swift`は`NativeCapturePreviewSource`を受けて`AVCaptureVideoPreviewLayer`を表示し、人物枠/タップ座標を変換している。これは目標の参照方向・Platform表示adapterへの分離との差分であり、設計例外の承認ではない。現状の記述を依存規則の緩和や他のFeaturesから撮影内部を操作する根拠にしない。
+ - Domain内の共通ID/操作値は`Operations/`、媒体の値は`Media/`を参照元とし、同じ意味の型や規則を各機能へ複製しない。相互循環が生じる場合は責務を見直す。
+ - テスト用の依存注入・組み立てはテストtarget内で行う。アプリコードからテストtarget・fakeへ依存しない。
+ 
+@@ -212,12 +222,12 @@ Domain -> Swiftの値型・副作用のない基礎型
+ ## Assetと設定
+ 
+ - **アセット**: 既存`FrameRelay/Assets.xcassets/`の位置と`AppIcon`・`AccentColor`を維持する。追加資材は用途を表す名前（例`CaptureStatus…`）とし、`FrameRelay` targetへの所属と参照を確認する。テスト専用資材は各テストtarget配下へ置く。
+-- **必要時の資材**: ローカライズ等を追加する場合の目標は`FrameRelay/Resources/`。現時点では未作成で、言語追加は本書の要求ではない。標準表示変換に資材が必要なら由来・版・用途を記録してRender側の責務に対応させ、未合意のLUT選択UIや任意LUT群を作らない。
+-- **永続化model**: Core Data第一案を採用する場合だけ`Platform/LocalStore/`にversion付きmodelを配置し、App targetの資材として管理する。実行時のDB、原本、一時動画はアプリsandbox内のデータであり、ソースツリー・Assets・Resourcesへ置かない。ライフサイクルはarchitectureに従う。
++- **必要時の資材**: ローカライズ等を追加する場合の目標は`FrameRelay/Resources/`。現時点では未作成で、言語追加は本書の要求ではない。標準表示変換の資材は未取得で、Renderの空catalogへ未確認LUTを登録しない。取得時は由来・版・利用条件・入力適合を記録し、未合意のLUT選択UIや任意LUT群を作らない。
++- **永続化model**: 現在は`Platform/LocalStore/ExplorationRecordingStores.swift`内でCore Data modelを生成し、`RecordingStoreDocument.swift`が保存payloadのschemaを扱う。独立したmodel資材の存在を前提にしない。製品DBと原本はApplication Supportの`FrameRelayLibrary`配下、探索は別runの領域を使う。実行時DB、原本、一時動画はソースツリー・Assets・Resourcesへ置かない。
+ - **ビルド設定**: 共有設定の現在の正本は`FrameRelay.xcodeproj/project.pbxproj`。iOS/Swift言語モード・既存target構成を維持する。共有schemeやtest planが必要になればproject内の共有設定として配置・対象targetを確認するが、現在存在するとは扱わない。
+-- **用途説明・Capabilities**: 現在は`GENERATE_INFOPLIST_FILE = YES`。生成Info.plistと独立ファイルを混同せず、実装時にApp targetの設定でカメラ・マイク・採用するPhotos権限等を扱う。通信経路・背景動作が未決のまま権限、ATS例外、Background Modes、App Groups/iCloudを追加しない。
++- **用途説明・Capabilities**: 現在は`GENERATE_INFOPLIST_FILE = YES`で、App target設定にカメラ・マイク・ローカルネットワーク用途説明がある。Photos追加と必要時読取の用途説明はAppのDebug/Releaseへ追加済み。独立したentitlements・Background Modesは未追加。生成Info.plistと独立ファイルを混同せず、今後必要な権限や背景設定は担当taskで確認し、ATS例外やApp Groups/iCloudを配置の都合で追加しない。
+ - **個人設定・生成物**: `.gitignore`は`xcuserdata/`、`*.xcuserstate`、`DerivedData/`、`.DS_Store`を除外する。個人のscheme管理plistは共有schemeの代わりにしない。build/test生成物を文書やアプリ資材に混ぜない。
+-- **秘密情報**: 秘密はCredentials adapterの保管境界で扱う設計とし、Swiftソース・pbxproj・fixture・文書・ログに記載しない。具体的な接続先と認証方式は既存MediaVault調査後に決める。
++- **秘密情報**: 登録資格は`Platform/Credentials/KeychainRegistrationVault.swift`で扱い、Swiftソース・pbxproj・fixture・文書・ログに記載しない。接続先入力・登録状態と資格の保管境界を分け、環境別の秘密値をソースへ埋め込まない。
+ 
+ ## Docs・AIワークフロー
+ 
+@@ -227,7 +237,8 @@ Domain -> Swiftの値型・副作用のない基礎型
+ | `docs/` | 安定した要求・機能設計・architecture・本書・開発規則・用語集の6文書。`product-requirements.md`等の既定名を用い、PRDを要求更新先とする。開発規則は[development-guidelines.md](development-guidelines.md)、用語は[glossary.md](glossary.md)を参照する |
+ | `docs/ideas/` | `initial-requirements.md`はsetupのbootstrap入力。追加・変更仕様は`YYYYMMDD-[feature-name].md`でprepare-steeringの標準入力とする |
+ | `docs/decisions/` | 未作成。決定理由・代替・影響の記録を必要時に置く。ファイル名は`YYYYMMDD-[topic].md`とし、要求や計画の正本を重複させない |
+-| `.steering/[YYYYMMDD]-[task]/` | 未作成。`requirements.md`・`design.md`・`tasklist.md`を計画/進捗の正本とし、対象の検証証跡もここへ対応付ける。媒体本体・秘密は置かない |
++| `.steering/[YYYYMMDD]-[task]/` | 撮影探索・連携・実機なし先行実装の3計画が存在する。`requirements.md`・`design.md`・`tasklist.md`が計画/進捗の正本。現行の進捗は`20260929-device-independent-implementation/`、旧計画は履歴と元の受入義務として保持 |
++| 現行steeringの`support/`、`evidence/` | 隔離サーバー用overlay・試験runnerと、実行版/診断/結果・合成媒体等の試験証跡。製品Appの資材やMacサーバーの稼働配置ではない。S27のpublication用HTTP支援には未完成・未実行の凍結草稿があり、完了済みの登録/保存/軽量版試験支援と区別する。私的媒体・秘密は保存しない |
+ | `.agents/skills/` | 明示Workflowと専門Skillの`SKILL.md`、template、guide。製品実装を置かない |
+ | `.agents/workspaces/` | 現在は`.gitkeep`のみ。Workflowの補助作業領域として用い、仕様・永続文書・進捗の正本にしない |
+ | `.codex/config.toml`、`.codex/agents/` | agent設定。`document_author`等の役割設定を置き、Skill手順や製品コードの配置先と混同しない |
+@@ -239,8 +250,8 @@ Workflowの開始条件、専門agentへの所有範囲の指定、review/valida
+ 
+ 1. 対象仕様とsteeringが用意された実装工程で、関係する責務から配置する。現状の`FrameRelayApp.swift`、`ContentView.swift`とアセットを入口にし、構造整理だけの一括移動はしない。
+ 2. ソース追加/移動時はファイルシステム上の位置、Xcodeでの表示、同期グループ、target所属、資材参照を照合する。同期グループであることだけで誤ったtarget所属が起きないとはみなさない。
+-3. ロジックを先に必要なPort/Domainの責務へ割り当て、PlatformとPresentationの依存が逆転していないことを確認する。具体API、保存schema、出力方式はarchitectureの検証待ち事項を解決してから実装へ反映する。
+-4. build/test前に実在project・scheme・destination・テスト構成を確認する。実機/実データの評価、U1〜U3の残件（処理順・一部失敗後の方針・選択/停止UI・一時媒体の方式/上限/期限・背景/ロック等）と未合意のU4〜U8は後続仕様・計画で扱う。R3の確定部分を未合意へ戻さず、streaming第一候補やファイル配置の確定を機能成立の証拠にしない。
++3. ロジックを先に必要なPort/Domainの責務へ割り当て、PlatformとPresentationの依存が逆転していないことを確認する。既存の共通store・原本・Ports・Compositionを拡張し、採用済み内部方式と未確認の実方式・品質を分けてarchitecture/steeringへ反映する。
++4. build/test前に実在project・scheme・destination・テスト構成を確認する。製品接続、自動検証、実機確認、PRD受入を独立に記録する。確定した操作・背景/状態同期の要件や本人合意済み暫定policyを未合意へ戻さず、未接続・未実行・実機品質の残件をファイル配置だけで完了にしない。
+ 
+ 人間が作成した既存Xcode projectを利用し、構造定義のためのproject/workspace生成、project generator、空のpackage、外部依存やMac用targetは追加しない。今回の変更は本書だけであり、コード移動、build/test、Simulator/実機起動、外部接続、動画の生成・転送・削除は行っていない。
+ 

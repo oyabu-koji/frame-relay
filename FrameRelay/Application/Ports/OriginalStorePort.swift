@@ -24,6 +24,9 @@ nonisolated struct OriginalInvalidationReservation: Equatable, Sendable, Codable
 }
 
 nonisolated enum OriginalStoreChange: Equatable, Sendable, Codable {
+    case removalBatch(OriginalRemovalBatch)
+    case removalIssue(batch: MediaOperationID, target: OriginalRemovalTarget, failure: BackendFailure)
+    case removalNotExecuted(batch: MediaOperationID, target: OriginalRemovalTarget, reason: OriginalRemovalNonExecution)
     case bind(OriginalBinding)
     case acquire(OriginalReadLease)
     case release(OriginalReadLease)
@@ -115,17 +118,35 @@ nonisolated struct OriginalStoreSnapshot: Equatable, Sendable {
     var logicalOriginals: [LogicalOriginalState] = []
     /// A new writer instance requires a new SDK/OS observation before a new ACK.
     var reconciliationEpoch: ReaderReconciliationEpoch? = nil
+    var removalBatches: [OriginalRemovalBatchRecord] = []
 }
 
 nonisolated protocol OriginalStorePort: Sendable {
     func loadOriginalState() async -> BackendOutcome<OriginalStoreSnapshot>
+    /// Read-only, ephemeral inventory from this writer's existing journal.
+    func loadRemovalTransportInventory(_ original: OriginalContent) async -> BackendOutcome<OriginalRemovalTransportInventory>
     /// Exact mutation replay returns the prior receipt. Same operation with a
     /// different payload or expected revision is rejected, never overwritten.
     func commitOriginal(_ mutation: OriginalStoreMutation) async -> OriginalStoreCommitResult
+    func lookupOriginalCommit(_ mutation: OriginalStoreMutation) async -> BackendOutcome<OriginalStoreCommitReceipt>
+    func performRemovalBoundary(_ boundary: OriginalRemovalBoundary,
+        effect: @Sendable () throws -> Void) async -> BackendOutcome<RemovalResolutionReceipt>
+    /// Observation and its result commit share the writer lock. A stale full
+    /// read can never commit notRemoved after another adapter has unlinked.
+    func commitRemovalObservation(_ mutation: OriginalStoreMutation,
+        check: @Sendable () throws -> Void) async -> OriginalStoreCommitResult
     func lookupInvalidation(_ acknowledgement: InvalidationAcknowledgement) async -> BackendOutcome<InvalidationID>
 }
 
 extension OriginalStorePort {
+    nonisolated func loadRemovalTransportInventory(_ original: OriginalContent) async -> BackendOutcome<OriginalRemovalTransportInventory> { .unknown }
+    nonisolated func lookupOriginalCommit(_ mutation: OriginalStoreMutation) async -> BackendOutcome<OriginalStoreCommitReceipt> { .unknown }
+    nonisolated func performRemovalBoundary(_ boundary: OriginalRemovalBoundary,
+        effect: @Sendable () throws -> Void) async -> BackendOutcome<RemovalResolutionReceipt> { .unknown }
+
+    nonisolated func commitRemovalObservation(_ mutation: OriginalStoreMutation,
+        check: @Sendable () throws -> Void) async -> OriginalStoreCommitResult { .unavailable(.inaccessible) }
+
     nonisolated func lookupInvalidation(_ acknowledgement: InvalidationAcknowledgement) async -> BackendOutcome<InvalidationID> {
         .unknown
     }

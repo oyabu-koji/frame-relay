@@ -1,0 +1,67 @@
+--- before/tasklist.md
++++ final/tasklist.md
+@@ -14,11 +14,11 @@
+ 
+ ## 現在の再開点（2026-10-22、独立validationのP2修正から直接依存の揃うtaskを継続）
+ 
+-- **明示入力・範囲**: 同steeringへの `$implement-steering` と「今回のP2を修正し、その後も直接依存が揃っているタスクを順に進める」を受領。まずS14のV-UIを再開し、必要な修正・関連検証を1件ずつ同期してから次の独立taskへ進む。別Workflowや独立validationは暗黙に開始しない。
++- **明示入力・範囲**: 同steeringへの `$implement-steering` と「今回のP2を修正し、その後も直接依存が揃っているタスクを順に進める」を受領。S14のV-UIを再開し、必要な修正・関連検証と直接依存の揃う独立taskを順に実行した。別Workflowや独立validationは暗黙に開始しない。
+ - **保全**: 開始時の既存dirty/untrackedを含む8,910file/207,821,020bytesを `/private/tmp/fr-implement-20261021-j6xbqszu/baseline/` へcopy/hash保全し、HEAD/status/diffを保存した。S31/S48の既存成果へ加算し、旧証跡・README・入力仕様・旧steering・project設定を保護する。
+ - **直前の独立検証**: `/private/tmp/fr-validation-20261021-k4a4q31t/validation-report.txt` はUnit有意味652成功/21skip、UI14成功/5監査失敗、iOS build成功。新Photos見出しを含む画面外AXと説明文/履歴のDynamic Type等がP2として未解決。可視文字の配色不良やSDK誤検知とは断定しない。245入力とS31実Photosの保存証跡は一致、コード/docs/steering変更なし。
+-- **所有**: mainはsteering・証跡・実行検証・最終差分を所有。App/Tests/project/実行helperは最終288入力を凍結し、S28/S34-BG01を含む全コードworkerの所有を解除した。安定文書M02〜M06はdocument_authorへ対象1fileずつ直列に割り当て、doc_reviewerとmainが確認する。旧証跡・開始時既存変更・入力仕様・project設定を保護する。
+-- **進行中**: S32/S33とS26Aはdone。S34単数破棄（未転送＋確定終端済background）、S23/S49基盤、S27技術公開/確認/失効、S28明示metadata同期は必要な実行証拠付きで部分引渡し済み。全taskの通常producer・全媒体・正式proof等の残件をblockedに保持する。追加のreadyな実装コードはなく、段階集約の部分レビュー→M02/M03最小加算→M04〜06→H01の順に進む。P2/S14のstrict監査4失敗/S16/S1Vは未達を保持する。
++- **所有**: mainがsteering・証跡・最終差分を統合した。全App/Tests/project/support helper・永続文書は最終版を凍結して所有解除。コードの実行版は288入力、docs等を含む引渡し版はH01-SOURCE-01の389入力。旧証拠・既存dirty/untracked・入力仕様・project設定を保護した。
++- **今回の結果**: S32/S33とS26A、M02〜M06同期、H01引渡し準備はdone。S23/S27/S28/S34/S49は必要検証付きの部分引渡し、全taskはstrict通信/資材/全媒体/製品操作等の不足をblockedに保持。S2V/S4Vも部分集約済みblocked。独立してreadyな追加コードはなく、P2/S14の厳格監査4失敗とS16/S1Vは未達。次は同pathの明示 $validate-implementation、実機はcase別Q01束縛から進める。
+ - **P2最終部分証拠**: 子identifier除去の09は2件とも失敗し効果がなかったため全identifierを復元。最終の自然高SwiftUI版で実文字/VoiceOverの追加2件は通常largeと最大AX5で各2件成功、全文・伸長・実読み上げを確認した。監査条件は変更していない。`p2-library-05` の6成功/4失敗は途中Geometry版の観測であり、最終版の全監査合格とは扱わない。その後の最終画面の厳格監査s34-regression-10は14成功/4失敗。LibraryViewは以後S28/S34-BG01でも同hashを保持し、現288入力でstrict全件再実行したとは扱わない。`p2-post-verify-12` は既存seed検証1成功/seed実行1skip、同一digest/reader0、253入力変化0。証跡は同P2ディレクトリ。
+ - **P2部分改善と未達**: 純SwiftUIのScrollView/自然高cardへ限定変更したcandidate01で説明Dynamic Type-onlyと通常操作/実再生/停止/背景/再起動/VoiceOver/停止player監査を確認。`p2-library-05` はLibrary10件中6成功/4失敗、skip/runtime/compiler/analyzer診断0、実行中245入力変更0。旧「撮影する」のcontrast/clippedとfresh履歴のDT7件は消えたが、履歴clipped・handoff DT・詳細画面外contrastは残る。GeometryReader/containerRelativeFrameは無効、native containmentでAX viewportを(0,116,402,724)へ制約しても完全画面外の文字が監査対象になり解消せず、追加構造は撤去した。candidate07個別fixedSizeの`p2-text-08`も2件失敗で撤去する。監査全issueを失敗として保持しP2全体解消とはしない。失敗版/compile0件/実行版/スクリーンショットは `evidence/20261021-library-accessibility/` と開始rootに保全する。
+ - **S32の開始判断**: S12の原本保存/復旧、S13の内容対応/実FD/lease/ordering部分、S21の同writer削除guardは引渡し済み。S13全体/S23の旧OS reader復旧は未達だが、unknown readerを解放せず削除拒否する独立実装を開始できる。固定集合と子intentの永続化→全使用者実終端→直前再判定/予約→実unlink→結果commit、起動照合は観測だけで未実行削除を再実行しない。実データは対象外、合成fixtureで確認する。
+@@ -961,8 +961,10 @@
+ 
+ ### H01 実機引渡し票・未接続一覧を版へ束縛
+ 
+-- [ ] Status: in-progress
++- [x] Status: done
+   - 着手（2026-10-22）: M02〜M06を凍結してmainが全DV母行/35軸更新と最終source bindingを反映する。所有は本tasklistと引渡し証跡だけ。App/Tests/全docs/support helperは凍結し、実機実施・独立validationは開始しない。
++  - 準備完了（2026-10-22）: 全18票を76母行へ展開し、全79AC/CF11/BI34/DI18と旧C01〜19/B1〜7/U01〜05/V01〜16を双方向対応した。6旧親行・79行順序と非IAR列を保持、35行のI/A/Rだけを具体化、全D0/全A01〜18 pending・PRD受入未評価を維持。76は実行件数ではなく、全パラメータ/実組合せ/有限反復/品質・対象別許可はQ01で束縛する。
++  - 版・検証: [H01-SOURCE-01](evidence/20261022-device-handoff/source-binding.json)へHEAD/dirty差分hashと全389入力（App/Unit/UI/project288、support93、永続6文書、requirements/design2）の現物snapshotを固定。層別実行証拠は現288/旧publication279/旧strict260を分離。main/読み取り調査に指摘なし、[準備版静的照合](evidence/20261022-device-handoff/h01-candidate-static-01.json)で欠落ID/重複/ローカルリンク切れ/source差分0・diff-check成功。実装/実機/製品受入の完了ではなく、引渡し準備だけdone。
+   - Depends: N00、利用可能な各taskの最新snapshot（段階doneは不要）。
+   - Owner / Files: main／本tasklistのDV票・4軸・証拠欄。
+   - Done when: 18票の各AC全文・旧ケースの枝条件を実行票のcase枝番へ展開し、根拠AC／条件、操作、期待結果、証拠、直接依存・必要substatus、実装版・状態・実施可能範囲・暫定判断を対応。未実装／未接続を識別して本人へ渡せる形を整える。
+@@ -1676,6 +1678,17 @@
+ | E-S47-01 | 2026-10-18、explorers/workers/document_author/doc_reviewer/main | S47部分、AC-FR-07/08・FR-03-04と回帰 | 最終220入力、final-test-09/ios-build-10/現物一致 | 各run/source hash、目標/途中停止・旧予告/命令・レンズ遅延補正と手動優先・保持/戻り・通常UI | 全Unit365宣言496展開/17skip/0fail、UI3成功、Simulator/iOS build成功。途中失敗保持、重複合算なし | `evidence/20261018-s47/`。ISO本人判断/通常注入待ちblocked、DV-08/09/11・独立validation未確認 |
+ | E-S48-01 | 2026-10-20、explorers/worker/document_author/doc_reviewer/main | S48独立部、AC-FR-02-01/02と既存拒否/UI回帰 | 最終224入力、test-02/ios-build-01/現物一致 | 各command/run/source hash、実fixture描画/入力不変/二重変換拒否/有界保持/世代と停止失効 | Unit19宣言24展開＋UI1成功、Simulator/iOS build成功、失敗/skip/runtimeWarnings/compiler/analyzer0。初回compile失敗/0件・5警告保持 | `evidence/20261020-s48/`。S48本体は標準資材/実Log/通常接続待ちblocked、DV-05・独立validation未確認 |
+ | E-S31-02 | 2026-10-21、explorer/workers/document_author/doc_reviewer/main | S31終端/use解放・失効接続、AC-FR-15/AC-NFR-02と限定回帰 | 最終245入力、test-01/ios-build-01/実Photos2run/現物一致 | 各run/source、両store/commit欠落/実MOV2scope/取消し/全解放/ACK/再open・実PhotoKit許可拒否 | Unit440宣言653展開＋UI4、実Photos許可/拒否各2、build成功、skip21/実Photos各2を分離、失敗/診断0 | `evidence/20261021-s31-terminal/`。初回result抽出DB競合保持。S31全体は通常producer/複数保存等でblocked、実機/独立validation未確認 |
++| E-S14-P2-20261022 | 2026-10-21〜22、worker/main | S14/S16・Library AX | strict最終260入力、現LibraryView同hash | strict監査/実文字/VoiceOver/CF保全 | strict14成功/4失敗、通常・最大AX5文字確認は成功 | evidence/20261021-library-accessibility/ と evidence/20261022-removal-composition/。P2未解消、現288全strict再実行ではない |
++| E-S32-03 | 2026-10-21、worker/main | S32・原本実削除 | 253入力、両store/実MOV | 固定batch/同FD全hash/最終guard/unlink/中断/再open | Unit685展開成功(有意味684)/21skip、iOS build成功、診断0 | evidence/20261021-removal-core/。core done、製品整理UI/実機は別 |
++| E-S33-01 | 2026-10-21、worker/main | S33・単数risk破棄 | 255入力、S32実機構 | 本人risk/目的分離/実unlink/外部保持/不明照合 | Unit706展開成功(有意味705)/21skip、Simulator build成功、診断0 | evidence/20261021-discard-core/。core done、UIはS34へ |
++| E-S34-01 | 2026-10-22、worker/main | S34単数UI・結果/履歴 | 260入力、専用合成seed | 通常確認UI→実unlink→再open/履歴/保持対象照合 | Unit726展開/23skip、専用UI1/実disk照合1成功、seed1skip | evidence/20261022-removal-composition/。全S34/通常整理/Photos/複数UI未完 |
++| E-S23-01 | 2026-10-22、workers/main | S23背景資源基盤 | 275入力、schema7/同writer | session/task/context/event drain/管理source copy・自身FD終端 | Unit816展開(有意味815)/25skip、実SDK2/UI3/build/CF照合成功、診断0 | evidence/20261022-background-media/。strict開始/resume/download受入口/旧source採用・全媒体は未成立 |
++| E-S49-01 | 2026-10-22、worker/main | S49 REC/保存hold | 279入力、candidate03 | owner別wait/preflight/実file return/通知両順序/次REC | Unit841展開(有意味840)/25skip、通常UI3/build/CF照合成功、診断0 | evidence/20261022-capture-media/。最終SDK resume排他/全媒体実停止/実網RECは未成立 |
++| E-S27-01 | 2026-10-22、workers/main | S27公開/確認/失効の技術結合 | backend273・iOS279、凍結checkpoint | 隔離pytest/実HTTP/AVPlayer/確認commit-exact lookup/解放/ACK後V2公開 | 170node230case・実HTTP1成功/skip0、全12観測と実process/FD/thread終端 | evidence/20261022-publication/。正式proof/全製品owner/通常UI/品質未成立、旧失敗保持 |
++| E-S26A-01 | 2026-10-22、main | S26A資材事実/比較案 | design D02/一次資料 | Log1/Log2入力差/標準資材不足/技術適合とG3比較を記録 | 資料・diff/hash/リンク確認、資材取得・変換・品質試験は未実施 | evidence/20261022-transform-research/。資材実体/由来・版/hash/利用条件/数値域/既知入出力待ち |
++| E-S28-01 | 2026-10-22、worker/main | S28既存登録の明示metadata同期 | 285入力、同writer/専用Status Simulator | 1page/続き/失効cursor分離/旧mutation-outbox/登録store/動画別表示 | Unit868展開(有意味867)/28skip、UI1/reopen1/build/実metadataHTTP1成功(2要求/媒体0) | evidence/20261022-status-sync/。全再登録/全媒体/全S28未達、最終共有版はE-S34-BG01 |
++| E-S34-BG01 | 2026-10-22、workers/main | S34歴史的確定upload終端後の単数破棄・最終回帰 | 288入力candidate02、全run前後一致 | 全receipt/inventory・同writer最終照合/実SDK終端→ownFD-close→lease/stopped→通常risk/unlink/reopen | Unit913展開(有意味912)/29skip、実SDK1/metadataHTTP1/UI7/reopen1/build成功、CF1/seed1skip、診断0 | evidence/20261022-removal-terminal/。permit/Macは注入、SDK全FD/通常strict/全媒体/正式proof等へ昇格しない |
++| E-H01-01 | 2026-10-22、main/読み取り調査 | H01・18票/全79AC | H01-SOURCE-01/389入力 | 全76母行/35軸更新/6旧親行保持/層別実行版を照合 | 準備版静的検証成功、実機未実施/全D0/受入未評価 | evidence/20261022-device-handoff/。実機実値/品質/許可/全組合せと反復はQ01未束縛 |
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+ 
+@@ -1710,10 +1723,16 @@
+ | V-REVIEW-S46接続 | E-S46-02、最終210入力・既存10file/新test1file | main、文書はdoc_reviewer | 本人合意/同一policy注入/入力観測起点1秒/更新/端末内完結/REC非阻害/実機境界/既存保全を確認 | `evidence/20261018-s46-approved/main-scope-review.json` とdoc-review.json。S46実装done、実機/独立validation未確認 |
+ | V-REVIEW-S47部分 | E-S47-01、最終220入力・コード/test17file/docs2file | main、文書はdoc_reviewer | 予告非駆動/非焼込み・命令順序/手動優先・REC分離/現在実値・ISO未注入・所有/既存保全を確認 | `evidence/20261018-s47/main-scope-review.json` とdoc-review.json。ISO本人判断待ち、実機/独立validation未確認 |
+ | V-REVIEW-S31-TERMINAL | E-S31-02の最終245入力、既存17file変更＋新test2file | main、文書はdoc_reviewer | 結果/終端/元use解放/copy保持、旧証拠互換、pending exact/明示retry、全scope/ACK、所有/既存保全を確認。専門文書review指摘なし | `evidence/20261021-s31-terminal/main-final-review.json` とdoc-review.json。独立validationではない |
++| V-REVIEW-20261022-CODE | E-S32/S33/S34/S23/S49/S27/S28、最終288入力 | main | 各taskの全差分/所有と修正差分を確認、全run source一致、旧失敗・P2 strict4・未接続を保持 | 各task main-reviewとH01-SOURCE-01のexecution_binding。独立validationではない |
++| V-REVIEW-20261022-DOCS | M02〜M06の最終5文書 | main/document_author/doc_reviewer | 1fileずつ同期・他文書/source保全、PRD79対応/旧制約保持、M05のP3主語を修正して全最終指摘なし | evidence/20261022-stable-docs/。文書のみ追加build/testなし |
++| V-REVIEW-H01 | 全76母行/35軸/389入力source binding | main/読み取り調査 | 旧枝条件/直接依存/未接続と未実機・層別証拠を照合、指摘なし | evidence/20261022-device-handoff/。準備のみdone、A01〜18/Q01/製品受入は未完 |
+ 
+ ## 振り返り・引渡し
+ 
+ - 計画作成日: 2026-10-01。実装完了日・実機工程完了日・PRD受入達成日は未確定。
+-- 残る判断: 実機方式・能力、資材適合、品質条件／採用、人物なしAF／初回意図／ISO基準等、実環境・対象別操作。各task／Q01へ局所対応し、4段階の合意を未確定へ戻さない。
+-- 今回は本steeringに従いコードとM01〜M06の永続文書を更新する。入力仕様・旧steering・README・memoを保全し、既存未追跡コードはbaselineを保持した加算変更に限る。PLAN-01の「3文書だけ」は計画作成時点の記録である。
+-- 実装は今回の明示 `$implement-steering .steering/20260929-device-independent-implementation/` で進行中。実装後の独立検証は同じpathを明示する `$validate-implementation` を別途案内し、自動開始しない。
++- 残る判断: 実機方式・能力、資材適合、品質条件／採用、ISO基準・既承認暫定値の実機採用等、実環境・対象別操作。各task／Q01へ局所対応し、4段階の合意を未確定へ戻さない。
++- 今回は本steeringに従いコードとM02〜M06の永続文書を同期し、M01のPRD79条件を保持した。入力仕様・旧steering・README・memoを保全し、既存未追跡コードはbaselineを保持した加算変更に限る。PLAN-01の「3文書だけ」は計画作成時点の記録である。
++- 今回の明示 `$implement-steering .steering/20260929-device-independent-implementation/` で直接readyな範囲の実装/関連検証/文書同期/引渡し準備を終えた。全steering・実機・PRD受入は未完。次の独立検証は同pathを明示する `$validate-implementation` とし、自動開始しない。
++
++- 実装単位: 操作に必要な下位I/O・同writer永続化・製品接続/画面・再open照合・関連検証を一つの引渡しにまとめ、書込みtask/所有は1件ずつ管理した。
++- 最終保全: [開始時8,910file照合](evidence/20261022-implementation-final/final-preservation-01.json) と [source/所有照合](evidence/20261022-implementation-final/final-source-scope-01.json)。既存CF原本digest/reader0・設定67bytesを保持し、今回作成した2 Simulatorだけshutdownしてdataを保持した。

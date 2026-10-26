@@ -1,0 +1,26 @@
+{
+  "reviewer": "main",
+  "source_id": "P2-STOP-SOURCE-20261022-01",
+  "code_files": [
+    "FrameRelay/Features/Playback/OriginalPlaybackView.swift",
+    "FrameRelayUITests/Flows/LibraryFlowTests.swift"
+  ],
+  "findings": [],
+  "checks": {
+    "stop_outside_scroll_content": true,
+    "semantic_fonts_and_full_elapsed_text_preserved": true,
+    "busy_condition_and_stopping_disable_preserved": true,
+    "stop_model_call_unchanged": true,
+    "model_adapter_store_project_and_unit_sources_unchanged": true,
+    "frame_sampling_has_no_scroll_or_position_repair": true,
+    "tap_once_then_stopping_or_stopped": true,
+    "final_stopped_requires_stop_and_player_ax_absent": true,
+    "existing_background_restart_checks_preserved": true,
+    "audit_mask_false_handler_reveal_top_unchanged": true
+  },
+  "limits": [
+    "UI observations do not independently prove internal reader release; existing delayed-reader Unit and post-UI store verification are required.",
+    "Initial validation stop failure dispatch timing and internal cause remain undetermined.",
+    "Independent final validation is a separate explicitly invoked workflow."
+  ]
+}

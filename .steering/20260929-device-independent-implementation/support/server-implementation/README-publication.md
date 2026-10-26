@@ -10,7 +10,7 @@ FR 専用の nullable current head、候補別 sealed artifact、公開／配布
 
 source 配布の実 commit receipt が初期 RetrieveMediaCommand の入力となる。各実 read は source／registration／gate に束縛した新しい range 配布を受理し、GET はその ticket を一度だけ消費する。全 hash は writer transaction 外で新 FD を読み、短い transaction で current／登録／ACK／payload／fingerprint を再判定して admission を commit し、同 FD から送出する。消費済み ticket の再送は media 0 byte。応答欠落・途中切断・URLSession 内部再送で ticket を再消費せず、新しい実要求を受理し直す。公開前に受理済みの response は旧 inode を保持できる。
 
-artifact は candidate とは別 inode を create-only で作り、全 writer 終了・fsync・close 後の新 FD 全 readback を経る。共通 app file helper の書込／別名 publish／回収は sealed namespace を拒否する。既知の旧取得／確認／finalizer／backfill／pointer 経路は FR 対象を拒否し、header 省略 fallback を作らない。004 は旧 active pointer／確認更新と processed_result 挿入にも拒否 trigger を加える。任意の外部直接 SQL 全般を保証するものではない。
+artifact は candidate とは別 inode を create-only で作り、全 writer 終了・fsync・close 後の新 FD 全 readback を経る。共通 app file helper の書込／別名 publish（source と target）／回収は `PurePosixPath.parts` で先頭 component を照合し、sealed namespace とその root を拒否する。`./`、重複 `/`、内部 `./`、ASCII 大小文字の別綴りでも拒否し、既存 traversal／no-follow 検査を維持する。既知の旧取得／確認／finalizer／backfill／pointer 経路は FR 対象を拒否し、header 省略 fallback を作らない。004 は旧 active pointer／確認更新と processed_result 挿入にも拒否 trigger を加える。任意の外部直接 SQL 全般を保証するものではない。
 
 read-only mode と同 FD だけで外部直接 in-place 書込を不可能にはしない。fingerprint／hash の観測で開始拒否または途中中止するが、送出済み bytes の取消や外部改変中の版混在防止までは主張しない。candidate の別名書込は sealed artifact と inode が異なる。アプリの全既知 writer が sealed artifact を変更・回収しない所有規則を前提にする。
 
@@ -20,20 +20,20 @@ read-only mode と同 FD だけで外部直接 in-place 書込を不可能には
 
 `tests/frame_relay_publication_fixture.py` の明示 factory だけが `FixturePublicationAuthority` を注入する。stored proof_kind は `technical_fixture`、候補 output は published=false／rec709_verified=false のまま。製品 router は factory を import せず、環境変数や API で解除できない。同じ fixture DB を通常 authority で再 open しても拒否する。
 
-`seed_candidate(settings, registration, secret, movie_bytes, capture_id, operation_id, source_bytes=None)` は実 S24 受信／最終保存と S26J claim／技術 adapter を通す。戻り値は candidate_id、session_id、evidence_id、asset_id、original、movie_sha256、media_type、binding。同 original の V2 は同 capture/source_bytes と別 upload operation で作る。同期関数なので async HTTP からは threadpool で呼ぶ。HTTP の実 fixture は既存 QuickTime 動画を使い、canonical wire は実 iOS adapter と共通にできるが、loopback／使い捨て DB／秘密／fixture-only 証跡を必須とする。専用 HTTP 支援の仕上げ・実行は後回し。
+`seed_candidate(settings, registration, secret, movie_bytes, capture_id, operation_id, source_bytes=None)` は実 S24 受信／最終保存と S26J claim／技術 adapter を通す。戻り値は candidate_id、session_id、evidence_id、asset_id、original、movie_sha256、media_type、binding。同 original の V2 は同 capture/source_bytes と別 upload operation で作る。同期関数なので async HTTP からは threadpool で呼ぶ。HTTP の実 fixture は既存 QuickTime 動画を使い、canonical wire は実 iOS adapter と共通にできるが、loopback／使い捨て DB／秘密／fixture-only 証跡を必須とする。専用 HTTP 支援は `../server-isolation/README-publication.md` の別手順で、そちらも凍結 review 後に main が実行する。
 
-## 最小確認と未実施
+## 明示回帰集合と未実施
 
-`cases-publication.json` は 4 node／9 case だけを実行対象にする。
+`cases-publication.json` は **170 unique node／230 expanded case** を固定する。
 
-- 動的全 ACK、旧登録保持、ACK 後 V1 新要求拒否: 1 case。
-- production authority の fixture DB 再 open 拒否: 5 case。
-- 配布 commit 前後の応答欠落と exact lookup: 2 case。
-- canonical QuickTime GET と current のままでの ticket 再利用拒否: 1 case。
+- 先頭は保存済み `cases-conversion.json` の **137 node／160 case** と完全に同じ順序。現在 file と S26J archive 内の保存 file の byte 一致も検査する。
+- 後半は `test_frame_relay_publication.py` の全 **33 node／70 case** を AST 宣言順で追加する。ordering、動的全 ACK、旧登録、fault／再 open、受理済 FD、全旧入口拒否、parser／pagination、sealed helper の alias 拒否を含む。
 
-現在の新試験本体 33 node／70 case と既存 137 node／160 case は保持する。網羅 230 case の実行は今回の前提にしない。残る競合／SQLite fault／FD 終端／外部改変／parser／pagination 試験、旧回帰、実 iOS HTTP 結合は未実施として引き渡す。ここでは backend import／pytest／HTTP／helper の実行成功を主張しない。
+`verify_cases` は AST だけで重複 0、旧 prefix、publication 全件、137/160＋33/70＝170/230 を確認する。動的 helper を呼ばず、旧 `_auth_cases()` の単一 literal return にある 3 個の `pytest.param` だけを既存回帰と同じ特例で数える。不明 decorator／動的 parametrization／skip・xfail 指定は拒否する。module 一括収集や未選択 ffmpeg 試験へ拡大しない。sealed alias の内部 loop は既存 1 宣言の回帰を強化するもので、展開 case 数を追加した扱いにしない。
 
-main が source と実効隔離設定を確認した後の準備:
+この文書の更新時点では準備 helper／backend import／pytest／HTTP は未実行。静的件数を実試験の成功件数へ読み替えず、実行後の件数・skip・診断・所有終端は main の証跡に記録する。
+
+main が全担当の source 凍結、差分、実効隔離設定、外部 source／依存／interpreter、未使用の revision を確認した後の準備（`001` も存在しない場合だけ使う）:
 
 ```sh
 python3 -I -B -S .steering/20260929-device-independent-implementation/support/server-implementation/prepare_publication_snapshot.py --revision 001
@@ -41,4 +41,4 @@ python3 -I -B -S .steering/20260929-device-independent-implementation/support/se
 
 基底は `evidence/20261014-s26j-complete/` の 265 snapshot files。archive-manifest SHA-256 `ba9870b16789430f9d0b6372ede698a537628b9d5a65b1985bb261951f9d6c18` と全 345 entry、checkpoint／provenance／pytest 終了後 snapshot を照合する。外部 source・依存・interpreter の不変照合も既存 helper と同じ。旧 tmp を復元・再検証したとは扱わない。
 
-新しい `/private/tmp/fr-di-20261015-s27/S27/snapshot-001` と `preparation-001` を作り、既存 revision は拒否する。runtime-pytest-001 は未作成のまま保持する。実行は生成 `command.json` の exact command を使い、既存 frozen `server-isolation/run_pytest.py` と guard を再利用する。新 runner は追加しない。command／config のレビュー後に main が 4 node／9 case、skip=0 と runtime 終端を確認する。`backend-publication-overlay.diff` は不変 S26J snapshot に対する加算差分であり、旧 archive 成功版を改変しない。
+新しい `/private/tmp/fr-di-20261015-s27/S27/snapshot-001` と `preparation-001` を作り、既存 revision は拒否する。runtime-pytest-001 は未作成のまま保持する。checkpoint の `expected_nodes=170`／`expected_cases=230` は全回帰、`selected_publication_tests=33`／`selected_publication_cases=70` は追加 publication 部分を表す。実行は生成 `command.json` の exact command を使い、既存 frozen `server-isolation/run_pytest.py` と guard を再利用する。新 runner は追加しない。command／config のレビュー後に main が全 170 node／230 case、skip=0 と runtime 終端を確認する。`backend-publication-overlay.diff` は不変 S26J snapshot に対する全 overlay 加算差分であり、旧 archive 成功版を改変しない。

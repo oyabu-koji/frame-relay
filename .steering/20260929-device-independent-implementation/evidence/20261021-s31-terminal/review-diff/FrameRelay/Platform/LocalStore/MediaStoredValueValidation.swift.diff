@@ -1,0 +1,26 @@
+--- baseline/FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift
++++ FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift
+@@ -104,6 +104,23 @@
+                       revision: release.successCommit.previousRevision) else {
+                 throw BackendContractError.identityMismatch
+             }
++        case .terminal(let terminal): try photoTerminal(terminal)
++        case .releaseTerminalUsage(let release):
++            try photoTerminal(release.terminal)
++            try text(release.terminalCommand.rawValue)
++            guard release.terminalCommit.matches(.photo(release.terminalCommand, release.intent.key),
++                revision: release.terminalCommit.previousRevision) else { throw BackendContractError.identityMismatch }
++        }
++    }
++
++    private static func photoTerminal(_ terminal: PhotoUsageTerminal) throws {
++        try text(terminal.mediaUse.owner)
++        try mediaLease(terminal.mediaUse.lease)
++        guard terminal.mediaUse.usage == terminal.intent.usage,
++              terminal.mediaUse.lease.target == .rendition(terminal.intent.rendition),
++              terminal.mediaUse.lease.context == .temporary(terminal.intent.media, terminal.intent.usage.id),
++              terminal.mediaUse.lease.epoch == terminal.intent.usage.epoch else {
++            throw BackendContractError.identityMismatch
+         }
+     }
+ }

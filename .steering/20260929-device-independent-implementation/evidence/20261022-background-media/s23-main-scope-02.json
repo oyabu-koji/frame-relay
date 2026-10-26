@@ -1,0 +1,47 @@
+{
+  "prior": "s34-unit-04-inputs-after.json",
+  "frozen": "s23-candidate-02.json",
+  "changed": [
+    "FrameRelayUITests/Flows/RemovalFlowTests.swift",
+    "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+    "FrameRelay/Composition/ProductComposition.swift",
+    "FrameRelay/Domain/Operations/BackendCommit.swift",
+    "FrameRelay/FrameRelayApp.swift",
+    "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+    "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift"
+  ],
+  "added": [
+    "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift",
+    "FrameRelay/Application/Ports/BackgroundMediaPorts.swift",
+    "FrameRelay/Application/Recovery/BackgroundMediaRecovery.swift",
+    "FrameRelay/Composition/ProductBackgroundEventRouter.swift",
+    "FrameRelay/Composition/ProductBackgroundMediaFactory.swift",
+    "FrameRelay/Domain/Operations/BackgroundMediaTask.swift",
+    "FrameRelay/Platform/LocalStore/BackgroundMediaStoreProjection.swift",
+    "FrameRelay/Platform/Network/BackgroundMediaSession.swift",
+    "FrameRelay/Platform/TemporaryMedia/ManagedUploadSource.swift",
+    "FrameRelayTests/Domain/BackgroundMediaTaskTests.swift",
+    "FrameRelayTests/Integration/Composition/ProductBackgroundCompositionTests.swift",
+    "FrameRelayTests/Integration/Remote/BackgroundEventDrainTests.swift",
+    "FrameRelayTests/Integration/Remote/BackgroundMediaSessionTests.swift",
+    "FrameRelayTests/Integration/Storage/BackgroundMediaStoreTests.swift",
+    "FrameRelayTests/Integration/Storage/ManagedUploadSourceTests.swift"
+  ],
+  "missing": [],
+  "review": "main reviewed all 21 S23 files; two warning-only files delta reviewed separately; S34 source/UI and project otherwise unchanged; compare uses same 275 frozen inputs for final tests",
+  "inherited_before_S23": {
+    "FrameRelayUITests/Flows/RemovalFlowTests.swift": {
+      "source": "s34-candidate-08",
+      "sha256": "b0fa6c8eefd12fbde2cd5402a6a06035fef817a3ef5625db3210e15a3354fcd6",
+      "reason": "S34 dedicated UI cancel correction after Unit04, before S23; unchanged during S23"
+    }
+  },
+  "changed_in_S23": [
+    "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+    "FrameRelay/Composition/ProductComposition.swift",
+    "FrameRelay/Domain/Operations/BackendCommit.swift",
+    "FrameRelay/FrameRelayApp.swift",
+    "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+    "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift"
+  ]
+}

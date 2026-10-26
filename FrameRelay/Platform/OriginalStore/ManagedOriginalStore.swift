@@ -13,9 +13,11 @@ nonisolated struct OriginalContentDigest: Equatable, Sendable {
 actor ManagedOriginalStore: ExplorationOriginalDestinationPort, RecordingOriginalFilePort, ManagedOriginalReadOpeningPort {
     private let run: ExplorationRunDirectory
     private let digestWorker: ManagedOriginalDigestWorker
+    private let removalRoot: ManagedOriginalRemovalRoot?
 
     init(run: ExplorationRunDirectory, digestCheckpoint: (@Sendable (Int32) async -> Void)? = nil) {
         self.run = run
+        removalRoot = try? .init(run: run)
         digestWorker = ManagedOriginalDigestWorker(checkpoint: digestCheckpoint)
     }
 
@@ -112,6 +114,78 @@ actor ManagedOriginalStore: ExplorationOriginalDestinationPort, RecordingOrigina
             return ManagedOriginalReadHandle(handle: FileHandle(fileDescriptor: descriptor, closeOnDealloc: true),
                                              fingerprint: fingerprint)
         } catch { close(descriptor); throw error }
+    }
+
+    /// A private deletion verifier, not a new product reader. The durable
+    /// exclusive removal reservation must already exist before this is called.
+    func prepareOriginalRemoval(_ binding: OriginalBinding) async throws -> ManagedOriginalRemovalHandle {
+        guard let root = removalRoot else { throw ExplorationStorageError.inaccessible }
+        try root.validate()
+        try ExplorationRunDirectory.validateReference(binding.reference)
+        let reservationFD = openat(root.directory.fileDescriptor, binding.reference.rawValue + ".reservation", O_RDONLY | O_NOFOLLOW)
+        guard reservationFD >= 0 else { throw ExplorationStorageError.inaccessible }
+        let reservation = FileHandle(fileDescriptor: reservationFD, closeOnDealloc: true)
+        let fd = openat(root.directory.fileDescriptor, binding.reference.rawValue + ".mov", O_RDONLY | O_NOFOLLOW)
+        guard fd >= 0 else { try? reservation.close(); throw ExplorationStorageError.inaccessible }
+        let source = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
+        do {
+            let fingerprint = try OriginalFileFingerprint(descriptor: fd)
+            let reservationFingerprint = try OriginalFileFingerprint(descriptor: reservationFD)
+            let digest = try await digestWorker.digest(original: binding.reference, descriptor: fd)
+            guard digest.byteCount == binding.original.content.byteCount,
+                  binding.original.content.algorithm == "sha256", digest.sha256 == binding.original.content.digest,
+                  try OriginalFileFingerprint(descriptor: fd) == fingerprint else { throw CaptureContractError.evidenceMismatch }
+            try root.validate()
+            return .init(root: root, reference: binding.reference, source: source, reservation: reservation,
+                fingerprint: fingerprint, reservationFingerprint: reservationFingerprint)
+        } catch { try? source.close(); try? reservation.close(); throw error }
+    }
+
+    /// Full content is checked before the writer transaction. The pinned
+    /// observation must still pass its synchronous final check under that lock.
+    func prepareRemovalObservation(_ binding: OriginalBinding) async throws -> ManagedOriginalRemovalObservation {
+        guard let root = removalRoot else { throw ExplorationStorageError.inaccessible }
+        try root.validate()
+        try ExplorationRunDirectory.validateReference(binding.reference)
+        let fd = openat(root.directory.fileDescriptor, binding.reference.rawValue + ".reservation", O_RDONLY | O_NOFOLLOW)
+        guard fd >= 0 else { throw ExplorationStorageError.inaccessible }
+        let reservation = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
+        do {
+            let fingerprint = try OriginalFileFingerprint(descriptor: fd)
+            var file = stat()
+            let result = fstatat(root.directory.fileDescriptor, binding.reference.rawValue + ".mov", &file, AT_SYMLINK_NOFOLLOW)
+            let observedError = errno
+            try root.validate()
+            if result == 0 {
+                try reservation.close()
+                return .present(try await prepareOriginalRemoval(binding))
+            }
+            guard observedError == ENOENT else { throw ExplorationStorageError.inaccessible }
+            return .absent(.init(root: root, reference: binding.reference, reservation: reservation,
+                reservationFingerprint: fingerprint))
+        } catch { try? reservation.close(); throw error }
+    }
+
+    /// An inaccessible/replaced directory cannot establish absence on recovery.
+    func observeRemovalFile(_ reference: CaptureOriginalReference) -> OriginalFileObservation {
+        do {
+            guard let root = removalRoot else { throw ExplorationStorageError.inaccessible }
+            try root.validate()
+            try ExplorationRunDirectory.validateReference(reference)
+            var reservation = stat(), file = stat()
+            guard fstatat(root.directory.fileDescriptor, reference.rawValue + ".reservation", &reservation, AT_SYMLINK_NOFOLLOW) == 0 else {
+                throw ExplorationStorageError.inaccessible
+            }
+            _ = try OriginalFileFingerprint(info: reservation)
+            if fstatat(root.directory.fileDescriptor, reference.rawValue + ".mov", &file, AT_SYMLINK_NOFOLLOW) != 0 {
+                let observedError = errno
+                try root.validate()
+                return observedError == ENOENT ? .absent : .unavailable(.resourceUnavailable)
+            }
+            let observed = try OriginalFileFingerprint(info: file)
+            try root.validate()
+            return .present(byteCount: UInt64(observed.size))
+        } catch { return .unavailable(.resourceUnavailable) }
     }
 
     private func openOriginal(_ original: CaptureOriginalReference) throws -> Int32 {

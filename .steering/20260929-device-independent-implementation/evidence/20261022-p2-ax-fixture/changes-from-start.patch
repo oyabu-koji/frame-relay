@@ -1,0 +1,575 @@
+--- start/.steering/20260929-device-independent-implementation/tasklist.md
++++ current/.steering/20260929-device-independent-implementation/tasklist.md
+@@ -12,7 +12,19 @@
+ 
+ 全本体タスクの共通Verifyは、対象diff・意味ある関連単体試験・必要build／診断・実I/O／UI確認・mainレビュー（V-REVIEW）である。下記Verifyは追加する具体試験。共通Stopは、所有衝突、無断要求変更、禁止動作、実データ範囲不明、必要検証失敗。外部依存・ツール追加、重大未合意方式、実データ消失操作が必要になれば該当箇所だけ保留する。軽微可逆判断は記録して進め、段階ごとの再承認を要求しない。
+ 
+-## 現在の再開点（2026-10-22、独立validationのP2修正から直接依存の揃うtaskを継続）
++## 現在の引渡し（2026-10-22、P2 2件の修正・必要再検証完了）
++
++- **範囲・正本**: 明示 `$implement-steering .steering/20260929-device-independent-implementation/` により、独立検証 `/private/tmp/fr-validation-20261022-lh_5wn0r/validation-summary.json` のAX4失敗とfresh Library fixture作成失敗だけを修正した。結果は **E-P2-20261022-FIX / [今回証跡](evidence/20261022-p2-ax-fixture/README.md)**。以下の直前再開点・旧E行は当時の履歴として保持する。独立validationは未開始。
++- **P2-FIXTURE / done**: test-only cleanupが非legacyの`.reserveRemoval`を使い、実検査unknownのMOVをcleanup入力にしていた不整合を修正。既存合成fixtureのsaved/検証/確認・非開始reader事実と`.reserveCleanup`へ整合し、製品guard・discard契約・実再生原本のunknownを維持。通常Unitに隔離tmp rootの作成/再open/投影/digest/全reader回帰を追加した。専用新規2環境の初回App root seedが各2成功/verify1skip。CFコピー・既存rootの修復/再seedなし。
++- **P2-AX / done**: freshでも既知4件を再現した`ax-baseline-01`（4失敗/32issue）と無効なVStack比較を保持。実描画とAX文字領域の整合を、実提案幅・無制限高で計測する複数行UILabel本文へ限定修正。semantic body/headline・全12文字サイズ・全文・ID・combine・同じscroll/nav配置を保持した。native子ID伝播不足の途中4成功やUI取消を最終合格にしない。最終`ui-final-04`は17成功/0失敗/0skip、厳格6件（既知4件を含む）・unhandled issue0。監査mask/false handler/共通reveal・topは開始bytesと同一、ignore・受理・対象除外・文字サイズ制限なし。SDK誤検知/可視配色不良とは断定しない。
++- **UI観測と最大文字**: `ui-final-02`の選択1失敗はON描画後もtap前と同hashのsnapshotを参照していたため、同IDのfresh親/実childを既存5秒内・両String1で照合する。最大文字の初回4失敗とfresh親比較1失敗も保持。部分可視の結合親がhit=falseでも同linkの可視titleはtrueであり、通常は従来親、必要時だけその実文字を通常tapして期待詳細identityまで検証する。最終最大AX5は全文7項目1件＋一覧/選択/詳細/履歴/再起動・実再生/停止/背景・実VO3件の**4成功/skip0**。17→53pt参照と実画像/AXの高さ伸長、全文、VO既存5条件を確認し、largeへ復元/再取得した。聴取品質評価にはしない。
++- **構成・最終実行版**: Xcode27.0(27A266a)/Swift6.4 compiler、言語5.0/iOS27.0を維持。FrameRelay.xcodeproj/FrameRelay scheme/自動Test plan/Debug/有効Unit・UI targetと具体iPhone18Pro/iOS27 destinationを再確認。最終UI/最大文字/build/UI後照合は288入力が実行前後不変。全Unitは590宣言中562成功/28skip、915展開成功から空template1を除く**有意味914成功/失敗0**（通常新規回帰1＋明示VERIFY1を含む）。その後の差は非UnitのLibraryFlowTestsだけで、App/Unit実行バイナリhash一致。今回の389入力bindingは旧H01版から7変更/382不変、旧bindingは履歴として保持する。
++- **前提別UI・UI後照合**: 旧18件と同じcase集合を、合成登録Libraryの17件と別新規未登録環境の初回接続1件で全成功（skip0）へ照合した。別環境では初回seed後のstrict4も成功。primaryの最終UI後は照合＋隔離回帰2成功/seed1skip、secondaryも全Unit内の照合成功。両rootのstable binding/digest/485721bytes・映像音声各30秒が一致し、logical readersとmediaReadersは全て空。物理container移動は観測として保持する。最終generic iOS署名なしbuild成功、compiler/analyzer診断とxcresult runtimeWarningsは0。
++- **保全・差分**: 開始15,858file/340,070,485bytes、HEAD/status/diff/staged差分は `/private/tmp/fr-p2-implement-20261022-8hp33bnm/` に保全。今回の既存変更はView/seed Unit/UI testの3コード、4文書、tasklistの計8fileだけ、新規は今回証跡のみ。初期全file欠落0、CF保護15file・既存project/guard・過去証跡を維持。既存Simulator（独立検証の2台を含む）は変更せず、専用572096FA-13EC-4FAD-B14C-FE0DBF919FC0と070E0EC1-1A62-410E-BDD7-F0D80E500B6Cだけを使用し、データ保持でshutdown済み。前実装rawも保持する。
++- **task判定・残件**: S14/S16は既存Done/Verifyに対するUnit・通常/最大UI・strict・build・UI後照合とmainレビューを結合し、非実機範囲をdoneへ更新する。S1V/他段階・S23/S27/S28/S34/S49の部分実装/blocked、S32/S33/S26A/M02〜M06/H01の既存done範囲は維持。H01は準備のみ。限定SDK・metadata HTTP・279入力の公開HTTP・登録metadata専用UIは今回再実行していない。permit/Mac注入を通常strict開始/resume/全媒体完成へ昇格せず、実機・品質・PRD受入/全D0・R部分証拠を維持する。
++- **次工程**: 同じsteeringへの独立した `$validate-implementation .steering/20260929-device-independent-implementation/` を案内する。別Workflowは開始しない。
++
++## 直前の再開点（履歴: 2026-10-22、独立validationのP2修正から直接依存の揃うtaskを継続）
+ 
+ - **明示入力・範囲**: 同steeringへの `$implement-steering` と「今回のP2を修正し、その後も直接依存が揃っているタスクを順に進める」を受領。S14のV-UIを再開し、必要な修正・関連検証と直接依存の揃う独立taskを順に実行した。別Workflowや独立validationは暗黙に開始しない。
+ - **保全**: 開始時の既存dirty/untrackedを含む8,910file/207,821,020bytesを `/private/tmp/fr-implement-20261021-j6xbqszu/baseline/` へcopy/hash保全し、HEAD/status/diffを保存した。S31/S48の既存成果へ加算し、旧証跡・repo rootの`README.md`・入力仕様・旧steering・project設定を保護する。
+@@ -248,7 +260,9 @@
+ 
+ ### S14 ライブラリ・詳細・履歴の状態と選択
+ 
+-- [ ] Status: blocked
++- [x] Status: done
++  - E-P2-20261022-FIX（2026-10-22）: 既存Done/VerifyをProjection13/Model15/StoreReader17 Unit、通常Library12件を含むUI17＋前提別初回1、strict6、最大字4、再起動・実VO・UI後全reader/identity照合へ対応付け、非実機範囲done。未接続操作の理由表示を製品処理の成功にせず、他taskの製品複数操作・実機・受入は維持。
++  - 以下は修正前の履歴。当時の失敗・blocked/部分引渡しを保持し、現在の判定は上記証跡を参照する。
+   - 最終比較・保全（2026-10-22）: `p2-lazy-13` は2件とも失敗（contrast2指摘残存、従来成功の説明DT-onlyも15指摘）。native Sectionのstatus独立lazy childは不採用とし、S34最終Viewのexact bytesへ復元。260入力全一致を確認し所有解除した。復元版の最大AX5 `s34-actual-ax5-11` は実文字/VoiceOver2件成功、`p2-final-cf-verify-14` は旧seed照合1成功/seed1skip・内容同一/reader0。文字large/67bytes設定hashを開始時へ復元し、runtime/compiler/analyzer診断0。厳格監査4失敗を別検証の成功で置き換えず、全失敗/候補13/復元証拠をP2ディレクトリへ保全。次は既述S23独立部を進める。
+   - 最終限定比較（2026-10-22）: S34統合版のCF18件は14成功/厳格監査4失敗。Appleのlazy subview説明と現物の保持単位を照合し、未試行の「詳細statusをLazyVStack直下の独立childへ分解」をView1fileだけで比較する。全Text/semantic font/順序/ID/combine/監査条件を保持し、contrast-onlyの上下位置と説明DT-onlyを1回実行する。改善がなければS34最終Viewへ戻しblockedとしてS23独立部へ進む。wrapperが原因と確定せず、監査の無視・AX隠蔽は行わない。
+   - 限定再開の結果（2026-10-21）: identifier A/Bは無効で復元済み。最終App/UIの253入力を凍結した実文字サイズ/VoiceOver追加2件はlargeと最大AX5で各2件成功、runtime/compiler/analyzer診断0。history/removalとhandoff結果の全文、文字高さの伸長、実読み上げ5条件を確認した。これを既存の厳格監査成功へ代用せず、P2の監査残件を保持する。既存seedのpost verifyは1成功/1skip、全reader0/内容同一。新証跡 `evidence/20261021-library-accessibility/`、S34後に変更画面の全Library監査を再実行する。
+@@ -287,7 +301,9 @@
+ 
+ ### S16 製品入口・共有Compositionとtarget接続
+ 
+-- [ ] Status: blocked
++- [x] Status: done
++  - E-P2-20261022-FIX（2026-10-22）: Composition7/OriginalPlayback9/CaptureSavePlayback1 Unit、製品入口→一覧/実再生/停止/背景/再起動、通常/最大UI・strict6とbuild/診断0、UI後stable identity/digest/全reader空を結合し既存Done/Verifyの非実機範囲done。探索ticket・Simulator拒否と通常Libraryを分離し、fixtureはtest targetのみ。S1Vや実機/品質/PRD受入は昇格しない。
++  - 以下は修正前の履歴。当時の失敗・blocked/部分引渡しを保持し、現在の判定は上記証跡を参照する。
+   - 最新部分結果/局所保留（2026-10-10）: UI13は通常サイズ・診断env0で再生進行/Stop/再生再開/背景停止維持/再起動、一覧/選択/履歴/再open、VoiceOverの3case成功、library/detail監査1失敗（detail-actionsのDT説明1＋対象nil contrast1）、skip/build診断0。全監査合格ではなくS14/S16はblockedを維持する。source126件/所有8fileと他root保護21fileを照合、旧開始失敗は再現なし・原因未修正。最大文字の同版UI-large-04と後続VERIFYはmainが検証のみ継続し、App/Test書込は凍結。再開条件は残る監査指摘の原因/実表示の特定と必要範囲の修正・再検証。位置比較を成立させるための不要な製品余白/文字制限は追加しない。独立S24を次の単独書込taskとする。
+   - 再開/所有（2026-10-09）: S22C完了後、現App/Tests/project126fileを `S16-resume-start/` とsources.jsonへ追加保全。同じ30秒合成媒体の製品条件（VideoOutput無し）と通常Viewから再生失敗を切り分ける。`registration_fix`へAVOriginalPlayback/OriginalResourceLoader/OriginalPlaybackModel/OriginalPlaybackView/OriginalPlaybackTests/LibraryFlowTests/PlaybackTestCleanupの7fileだけを単独引渡し、必要な有界・匿名SDK/loader/View診断とassert前添付を先行する。期限延長/自動play再試行/再seedなし。共有store/登録/Composition/project/LibraryViewは凍結し、mainがtasklist/統合実行/差分を所有。アクセシビリティの画面別分離・修正は後続の明示引渡しで行う。
+   - 診断比較初回（2026-10-10）: DEBUG Simulatorの明示env時だけ匿名SDK/loader/Viewのmonotonic診断をメモリ512件＋標準OSLogへ追加。App独自恒久ログなし。mainは7fileの差分・再生期限/停止手順不変を確認。N01構成の `S16-test-05`（OriginalPlaybackTests）は9件中8成功1失敗、skip0、compiler warning1。新30秒/VideoOutput無しcaseは実進行・30秒duration・停止/SDK detach/lease解放・内容不変のassert成功後、診断drop0という過剰な期待値だけ失敗（257 drop）。raw512event添付/summary/build/tests/source/commandを保持し、全caseの成功とは扱わない。同期errorLog()のiOS27非推奨/呼出thread block懸念は補助log field除去へ差戻し、bounded仕様に合わせdrop metadataと終端summaryを保持する。通常View比較は未実施。
+@@ -1109,7 +1125,7 @@
+ | FR-09 | AC-FR-09-02 | 確認済障害で停止・保存分類 | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43,S12 | dep(S43,S12)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 入力/書込故障の抑止・停止/保存・暫定無到着policy接続済 | E-S43-01/02:障害/本人STOP/終端/保存分類/2秒境界 | D0 | 部分証拠・全障害実機未評価 | DV-02、DV-10 |
+ | FR-09 | AC-FR-09-03 | 有限復旧・手動REC | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43 | dep(S43)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 有限復旧・暫定製品policyを含む必要接続済 | E-S43-01/02:Factory/1本人操作1試行/実5秒timeout/実所有/手動REC | D0 | 部分証拠・復旧品質/実機未確認 | DV-10 |
+ | FR-09 | AC-FR-09-04 | 到着/書込み・保存音声 | P05/P06/P11;CF-04/08 | EC,ES:音声規則/保存探索 | S43,S12 | dep(S43,S12)＋対応A/Q01 | O-CAPTURE/O-ORIGINAL | 実到着/書込観測接続済・Movie個別書込取得不能保持 | E-S43-01/02:実PCM/書込故障/実保存再生回帰 | D0 | 部分証拠・保存実音声未確認 | DV-02、DV-10 |
+-| FR-10 | AC-FR-10-01 | 原本/軽量版再生・複数結果/単数操作 | P08/P09/P21,T15/T20;CF-01/08,BI-15/33 | ES,EB,E-S13/14/15/25 | S14,S15,S25,S28,S34 | dep(S14,S15,S25,S28,S34)＋対応A/Q01 | O-LIBRARY | 原本製品再生と固定軽量版の実I/O・canonical wire・既存登録の明示metadata同期/動画別投影を接続、通常軽量版/複数操作UI未接続、P2監査4件未解消 | E-S15/E-S25に加えE-S27-01。E-S34-01単数破棄/履歴、S14最終通常UI14成功/strict4失敗を保持。E-S28-01:既存登録の明示metadata1page/動画別表示、Unit新21宣言27展開、専用UI1/reopen1/実HTTP1成功（metadata2要求/媒体・確認・ACK0）。 | D0 | 部分証拠、実機受入未評価 | DV-14、DV-16、DV-17 |
++| FR-10 | AC-FR-10-01 | 原本/軽量版再生・複数結果/単数操作 | P08/P09/P21,T15/T20;CF-01/08,BI-15/33 | ES,EB,E-S13/14/15/25 | S14,S15,S25,S28,S34 | dep(S14,S15,S25,S28,S34)＋対応A/Q01 | O-LIBRARY | 原本製品再生と固定軽量版の実I/O・canonical wire・既存登録の明示metadata同期/動画別投影を接続、通常軽量版/複数操作UI未接続、P2厳格AX4件はE-P2-20261022-FIXで解消 | E-S15/E-S25に加えE-S27-01。E-S34-01単数破棄/履歴、旧UI14成功/strict4失敗は履歴保持。E-P2-20261022-FIXで通常17＋未登録初回1・strict6/最大字4/fresh作成/全Unit/UI後照合/build成功。E-S28-01:既存登録の明示metadata1page/動画別表示、Unit新21宣言27展開、専用UI1/reopen1/実HTTP1成功（metadata2要求/媒体・確認・ACK0）。 | D0 | 部分証拠、実機受入未評価 | DV-14、DV-16、DV-17 |
+ | FR-10 | AC-FR-10-02 | 保存中断再起動の4分類 | P08/P09/P21,T15/T20;CF-01/08,BI-15/33 | ES,EB,E-S11,E-S12 | S12,S14 | dep(S12,S14)＋対応A/Q01 | O-LIBRARY | 通常REC/STOPから共通保存/復旧/分類/一覧へ接続済、実撮影の正常/部分/不明/失敗は実機未確認 | E-S12/E-S41保存境界、E-S49-01先着/後着終端と次REC、全Unit841展開/通常撮影UI3成功 | D0 | 部分証拠、実機受入未評価 | DV-02 |
+ | FR-10 | AC-FR-10-03 | 整理後offline・再接続等非強制 | P08/P09/P21,T15/T20;CF-01/08,BI-15/33 | ES,EB（実再生なし） | S14,S32,S34 | dep(S14,S32,S34)＋対応A/Q01 | O-LIBRARY | S32実unlinkと整理後通常一覧/原本なし投影を実装、通常整理開始と軽量版製品UIは未接続 | E-S32-03:実MOV unlink/全内容・reader/予約/失効両順序/8境界・再open成功。E-S34-01:整理後通常投影/実file照合。接続/Photosを条件へ追加せず、offline製品操作は未確認 | D0 | 部分証拠、実機受入未評価 | DV-14、DV-17 |
+ | FR-11 | AC-FR-11-01 | 指示原本の転送・全内容検証 | T03/T08/T09/T10/T11/T12;BI-01〜06 | EB,EI,E-S24 | S24,S24I | dep(S24,S24I)＋対応A/Q01 | O-IOS-BI/O-SERVER | 登録/内容に束縛したserver受信・独立最終全read・証拠/job同commit実装済、iOS転送未接続 | E-S24:guard12/pytest126/実HTTP20＋別process再起動5成功、合成16777473byte全比較 | D0 | server保存の部分証拠・製品転送/実G2B/G2C/実機未確認 | DV-12 |
+@@ -1149,7 +1165,7 @@
+ | NFR-01 | AC-NFR-01-01 | 起動/次REC/通信停止の実測 | P18,T23;CF-09,BI-09 | EC,EB:時刻/抑止契約 | S41,S43,S49,S4V | dep(S41,S43,S49,S4V)＋対応A/Q01 | O-CAPTURE/O-IOS-BI | 時刻・通常入口/次REC/同期hold基盤を実装、全媒体重畳と実機時間/目標適合は未測定 | E-S41/E-S43/E-S49-01:postSave非阻害と実return境界/通常UI。2〜3秒目標を自動成功から推定しない | D0 | 部分証拠、実機受入未評価 | DV-11、DV-12 |
+ | NFR-02 | AC-NFR-02-01 | 保存/検証受信/確認の中断 | P09/P19,T10/T18/T21/T22;CF-08,BI-04/05/20/23/29/30/33 | ES,EB,E-S11,E-S12,E-S21,E-S24 | S12,S21,S24I,S27 | dep(S12,S21,S24I,S27)＋対応A/Q01 | O-STORE/O-ORIGINAL/O-PHOTOS | 通常保存/端末証拠/確認outbox・server保存復旧と実wire確認を技術接続、通常転送/確認UIは未接続 | E-S12/E-S21/E-S24に加えE-S49-01先着通知保存境界、E-S27-01実HTTP exact確認。E-S28-01:既存登録の明示metadata1page/動画別表示、Unit新21宣言27展開、専用UI1/reopen1/実HTTP1成功（metadata2要求/媒体・確認・ACK0）。 | D0 | 部分証拠、実機受入未評価 | DV-02、DV-12、DV-14 |
+ | NFR-02 | AC-NFR-02-02 | 失効維持・写真直後中断 | P09/P19,T10/T18/T21/T22;CF-08,BI-04/05/20/23/29/30/33 | ES,EB:境界規則とdisk部分,E-S21,E-S31-01,E-S31-02 | S21,S27,S31 | dep(S21,S27,S31)＋対応A/Q01 | O-STORE/O-ORIGINAL/O-PHOTOS | 失効永続/ACKとPhotos意図/結果/非再追加・使用権実解放を技術結合、全製品producer/通常UIは未接続 | E-S21/E-S31-01/02/E-S27-01:commit前後/reopen/SDK終端/旧確認非復活。実OS中断は未実施。E-S28-01:既存登録の明示metadata1page/動画別表示、Unit新21宣言27展開、専用UI1/reopen1/実HTTP1成功（metadata2要求/媒体・確認・ACK0）。 | D0 | 部分証拠、実機受入未評価 | DV-14、DV-16 |
+-| NFR-02 | AC-NFR-02-03 | 不明/失敗と復旧表示 | P09/P19,T10/T18/T21/T22;CF-08,BI-04/05/20/23/29/30/33 | ES,EB:境界規則とdisk部分,E-S31-01 | S14,S28,S31,S34 | dep(S14,S28,S31,S34)＋対応A/Q01 | O-STORE/O-ORIGINAL/O-PHOTOS | 保存/写真/削除の不明・失敗を独立投影し、明示metadata同期/照合と単数破棄UIへ接続、未接続媒体操作は保持 | E-S14/E-S31/E-S34-01の状態UIとE-S49-01保存結果分岐。strict AX4失敗、実救済/継続は未保証。E-S28-01:既存登録の明示metadata1page/動画別表示、Unit新21宣言27展開、専用UI1/reopen1/実HTTP1成功（metadata2要求/媒体・確認・ACK0）。E-S34-BG01:新14宣言45展開＋実suspended SDK1case、exact全履歴/ownFD閉鎖/lease/stopped→通常risk・実unlink・再open。 | D0 | 部分証拠、実機受入未評価 | DV-02、DV-14、DV-16 |
++| NFR-02 | AC-NFR-02-03 | 不明/失敗と復旧表示 | P09/P19,T10/T18/T21/T22;CF-08,BI-04/05/20/23/29/30/33 | ES,EB:境界規則とdisk部分,E-S31-01 | S14,S28,S31,S34 | dep(S14,S28,S31,S34)＋対応A/Q01 | O-STORE/O-ORIGINAL/O-PHOTOS | 保存/写真/削除の不明・失敗を独立投影し、明示metadata同期/照合と単数破棄UIへ接続、未接続媒体操作は保持 | E-S14/E-S31/E-S34-01の状態UIとE-S49-01保存結果分岐。E-P2-20261022-FIXで既知strict4を含む6監査成功。実救済/継続の未接続範囲は未保証。E-S28-01:既存登録の明示metadata1page/動画別表示、Unit新21宣言27展開、専用UI1/reopen1/実HTTP1成功（metadata2要求/媒体・確認・ACK0）。E-S34-BG01:新14宣言45展開＋実suspended SDK1case、exact全履歴/ownFD閉鎖/lease/stopped→通常risk・実unlink・再open。 | D0 | 部分証拠、実機受入未評価 | DV-02、DV-14、DV-16 |
+ | NFR-02 | AC-NFR-02-04 | 整理/破棄の実削除境界復旧 | P09/P19,T10/T18/T21/T22;CF-08,BI-04/05/20/23/29/30/33 | ES,EB,E-S13:境界規則とdisk部分 | S32,S33,S34 | dep(S32,S33,S34)＋対応A/Q01 | O-STORE/O-ORIGINAL/O-PHOTOS | 両削除目的の実unlink/同writer結果commit/ローカルobserve-only復旧済、通常単数破棄UIのみ接続 | E-S32-03:実MOV unlink/全内容・reader/予約/失効両順序/8境界・再open成功。E-S34-01:整理後通常投影/実file照合。E-S33-01:単数risk/非偽装/外部保持/中断21case成功。E-S34-01:通常単数UI1＋実disk再open1成功。E-S34-BG01:新14宣言45展開＋実suspended SDK1case、exact全履歴/ownFD閉鎖/lease/stopped→通常risk・実unlink・再open。 | D0 | 部分証拠、実機受入未評価 | DV-17 |
+ | NFR-03 | AC-NFR-03-01 | 全必須gateの実施と品質適合分離 | P17/P18/P20;CF-02〜10 | EC:部分探索のみ | S41〜S49,S4V | dep(S41〜S49,S4V)＋対応A/Q01 | O-CAPTURE | 全gateを追跡し撮影補助/保存/媒体基盤を部分接続、標準表示/ISO/全通信/総合は未成立 | S41〜S49各E証拠、E-S26A-01とH01枝票。試験実施と品質適合を分離、実機未実施 | D0 | 部分証拠、実機受入未評価 | DV-01、DV-03、DV-04、DV-05、DV-06、DV-07、DV-08、DV-09、DV-10、DV-11 |
+ | NFR-03 | AC-NFR-03-02 | Log原本・設定/音声/継続品質 | P17/P18/P20;CF-02〜10 | EC:部分探索のみ | S42〜S49,S4V | dep(S42〜S49,S4V)＋対応A/Q01 | O-CAPTURE | WB/音声/補正/AF/NDを通常接続、ズーム・レンズISO/標準変換/同時品質は未成立 | S42〜S46およびE-S49-01の技術証拠。実Log/AV同期/継続の全組合せ品質は未確認 | D0 | 部分証拠、実機受入未評価 | DV-03、DV-04、DV-05、DV-07、DV-08、DV-09、DV-10、DV-11 |
+@@ -1652,7 +1668,7 @@
+ | DV-18/c01<br>AC-NFR-04-01<br>V16; BI-31 | 旧MediaVault原本の変換/preview、新規FrameRelay原本の転送、許可対象/対象外<br>→ 匿名対象/経路/許可/前後保全を対応させ対象だけ操作 | 旧写真原本削除/汎用移行/無断上書きなし。旧実データを未許可接続で保持確認しない | 対象別許可/前後hash/両repo差分/媒体・管理記録/実施範囲 | N00/S20/H01/Q01、実転送のみ該当A12 | 隔離snapshot保全は確認済。実旧媒体は未操作、対象束縛後の許可範囲だけ可 |
+ | DV-18/c02<br>AC-NFR-04-02<br>V16; BI-31/34; CF-11 | リリース前試験データ整理、対象/方法/影響未合意→具体提示→対象別明示合意後<br>→ 消す/残す対象と復旧保全を提示し、合意後だけ整理結果を記録 | この要求だけで旧実原本/本番相当記録を削除しない。未許可は未実施、deploy/本番DB移行へ派生なし | 対象・破壊操作別許可/保全/実行結果/未処理 | N00/H01/Q01/H02の当該範囲 | 整理操作は未実施。具体対象・方法と別許可が必要、H01準備だけで実施済みにしない |
+ | DV-18/c03<br>AC-NFR-03-01、AC-NFR-03-02<br>C18/C19/V16; CF-10/11; BI-33/34 | 全失敗/不一致/証拠不足/原因未確認、全21要求79AC・CF11・BI34・DI18<br>→ 各runから原本・store・ログを辿り一要因比較/反証と影響AC/代案/次調査を記録 | 非対応/実装問題/原因不明を分離、一度失敗や機種名で断定せず、工程/実装/自動/実機/PRD/初期版を別判定 | 実装版/条件版/全ACの部分証拠・残件・再試験/品質合意/判定 | H01/H02、該当本体修正とQ01 | 机上追跡は今実施可。全実機D0/R未評価、H02・M07–10は未完 |
+-| DV-18/c04<br>AC-FR-10-01、AC-FR-10-02、AC-NFR-02-03<br>C01/C19/U05/V14; BI-33 | 実装済の撮影待機/開始/録画/保存/音声障害・復旧/設定/一覧通常・要照合・原本なし/詳細/履歴/原本・軽量player/登録/媒体操作結果×通常/最大文字×縦/横、読み上げとREC連打<br>→ 各実装状態の色以外の名称/値/理由/次操作を読み上げ、文字拡大/縦横/連打後も対象と結果を照合。未接続画面は未実施として残す | 全文/操作到達/44pt等の既存規則と入力排他を確認し、受付/一部成功を確定・全件成功にしない。strict監査失敗を無視せずP2残件を区別 | 画面/AX tree/読み上げ・文字/向き/二重command/永続証拠、strict監査結果・版 | 当該画面S14/S16/S28/S34/S41–S49部分引渡し、Q01 | 通常UI/全文VoiceOverの部分成功あり。最新strict監査4失敗を保持、未接続画面は不可 |
++| DV-18/c04<br>AC-FR-10-01、AC-FR-10-02、AC-NFR-02-03<br>C01/C19/U05/V14; BI-33 | 実装済の撮影待機/開始/録画/保存/音声障害・復旧/設定/一覧通常・要照合・原本なし/詳細/履歴/原本・軽量player/登録/媒体操作結果×通常/最大文字×縦/横、読み上げとREC連打<br>→ 各実装状態の色以外の名称/値/理由/次操作を読み上げ、文字拡大/縦横/連打後も対象と結果を照合。未接続画面は未実施として残す | 全文/操作到達/44pt等の既存規則と入力排他を確認し、受付/一部成功を確定・全件成功にしない。strict監査失敗を無視せずP2残件を区別 | 画面/AX tree/読み上げ・文字/向き/二重command/永続証拠、strict監査結果・版 | 当該画面S14/S16/S28/S34/S41–S49部分引渡し、Q01 | E-P2-20261022-FIXで通常18件（前提別）・strict6/最大字4成功、実VO既存5条件を確認。聴取品質/実機/縦横の全状態は未評価、未接続画面は不可 |
+ 
+ ## 検証証跡・レビュー記録
+ 
+@@ -1678,7 +1694,7 @@
+ | E-S47-01 | 2026-10-18、explorers/workers/document_author/doc_reviewer/main | S47部分、AC-FR-07/08・FR-03-04と回帰 | 最終220入力、final-test-09/ios-build-10/現物一致 | 各run/source hash、目標/途中停止・旧予告/命令・レンズ遅延補正と手動優先・保持/戻り・通常UI | 全Unit365宣言496展開/17skip/0fail、UI3成功、Simulator/iOS build成功。途中失敗保持、重複合算なし | `evidence/20261018-s47/`。ISO本人判断/通常注入待ちblocked、DV-08/09/11・独立validation未確認 |
+ | E-S48-01 | 2026-10-20、explorers/worker/document_author/doc_reviewer/main | S48独立部、AC-FR-02-01/02と既存拒否/UI回帰 | 最終224入力、test-02/ios-build-01/現物一致 | 各command/run/source hash、実fixture描画/入力不変/二重変換拒否/有界保持/世代と停止失効 | Unit19宣言24展開＋UI1成功、Simulator/iOS build成功、失敗/skip/runtimeWarnings/compiler/analyzer0。初回compile失敗/0件・5警告保持 | `evidence/20261020-s48/`。S48本体は標準資材/実Log/通常接続待ちblocked、DV-05・独立validation未確認 |
+ | E-S31-02 | 2026-10-21、explorer/workers/document_author/doc_reviewer/main | S31終端/use解放・失効接続、AC-FR-15/AC-NFR-02と限定回帰 | 最終245入力、test-01/ios-build-01/実Photos2run/現物一致 | 各run/source、両store/commit欠落/実MOV2scope/取消し/全解放/ACK/再open・実PhotoKit許可拒否 | Unit440宣言653展開＋UI4、実Photos許可/拒否各2、build成功、skip21/実Photos各2を分離、失敗/診断0 | `evidence/20261021-s31-terminal/`。初回result抽出DB競合保持。S31全体は通常producer/複数保存等でblocked、実機/独立validation未確認 |
+-| E-S14-P2-20261022 | 2026-10-21〜22、worker/main | S14/S16・Library AX | strict最終260入力、現LibraryView同hash | strict監査/実文字/VoiceOver/CF保全 | strict14成功/4失敗、通常・最大AX5文字確認は成功 | evidence/20261021-library-accessibility/ と evidence/20261022-removal-composition/。P2未解消、現288全strict再実行ではない |
++| E-S14-P2-20261022 | 2026-10-21〜22、worker/main | S14/S16・Library AX | 当時のstrict最終260入力、当時のLibraryView同hash | strict監査/実文字/VoiceOver/CF保全 | strict14成功/4失敗、通常・最大AX5文字確認は成功 | evidence/20261021-library-accessibility/ と evidence/20261022-removal-composition/。当時P2未解消/現288全strict未実行、修正後はE-P2-20261022-FIX |
+ | E-S32-03 | 2026-10-21、worker/main | S32・原本実削除 | 253入力、両store/実MOV | 固定batch/同FD全hash/最終guard/unlink/中断/再open | Unit685展開成功(有意味684)/21skip、iOS build成功、診断0 | evidence/20261021-removal-core/。core done、製品整理UI/実機は別 |
+ | E-S33-01 | 2026-10-21、worker/main | S33・単数risk破棄 | 255入力、S32実機構 | 本人risk/目的分離/実unlink/外部保持/不明照合 | Unit706展開成功(有意味705)/21skip、Simulator build成功、診断0 | evidence/20261021-discard-core/。core done、UIはS34へ |
+ | E-S34-01 | 2026-10-22、worker/main | S34単数UI・結果/履歴 | 260入力、専用合成seed | 通常確認UI→実unlink→再open/履歴/保持対象照合 | Unit726展開/23skip、専用UI1/実disk照合1成功、seed1skip | evidence/20261022-removal-composition/。全S34/通常整理/Photos/複数UI未完 |
+@@ -1689,6 +1705,7 @@
+ | E-S28-01 | 2026-10-22、worker/main | S28既存登録の明示metadata同期 | 285入力、同writer/専用Status Simulator | 1page/続き/失効cursor分離/旧mutation-outbox/登録store/動画別表示 | Unit868展開(有意味867)/28skip、UI1/reopen1/build/実metadataHTTP1成功(2要求/媒体0) | evidence/20261022-status-sync/。全再登録/全媒体/全S28未達、最終共有版はE-S34-BG01 |
+ | E-S34-BG01 | 2026-10-22、workers/main | S34歴史的確定upload終端後の単数破棄・最終回帰 | 288入力candidate02、全run前後一致 | 全receipt/inventory・同writer最終照合/実SDK終端→ownFD-close→lease/stopped→通常risk/unlink/reopen | Unit913展開(有意味912)/29skip、実SDK1/metadataHTTP1/UI7/reopen1/build成功、CF1/seed1skip、診断0 | evidence/20261022-removal-terminal/。permit/Macは注入、SDK全FD/通常strict/全媒体/正式proof等へ昇格しない |
+ | E-H01-01 | 2026-10-22、main/読み取り調査 | H01・18票/全79AC | H01-SOURCE-01/389入力 | 全76母行/35軸更新/6旧親行保持/層別実行版を照合 | 準備版静的検証成功、実機未実施/全D0/受入未評価 | evidence/20261022-device-handoff/。実機実値/品質/許可/全組合せと反復はQ01未束縛 |
++| E-P2-20261022-FIX | 2026-10-22、explorer/workers/main、document_author/doc_reviewer | 独立指摘AX4件/fresh fixture不整合、S14/S16非実機Verify | 最終288入力不変、389 binding/旧H01から7変更382不変 | 新規App root seed・Unit/strict/通常/最大UI/実VO・UI後全reader/identity/digest・generic iOS | 全Unit590宣言562成功28skip/915展開（有意味914）、通常18前提別/strict6・最大4成功、seed各2成功1skip、UI後2成功1skip、build/診断0。失敗・取消・0件も保持 | [今回証跡](evidence/20261022-p2-ax-fixture/README.md)。S14/S16非実機done、他task/全steering/実機/品質/受入へ波及させない |
+ 
+ 本体検証ではproject/workspace・scheme・configuration・destination・Build/Test action・対象test、source revision＋dirty hash、実コマンド、結果bundle／ログ、実行件数を記録する。隔離通信は実効DB／root／worker／port等の匿名参照を添える。実行不能は理由・対象・未確認範囲・代替で確認した範囲・再開条件・担当を記録する。秘密や私的パスを転記しない。
+ 
+@@ -1726,8 +1743,11 @@
+ | V-REVIEW-20261022-CODE | E-S32/S33/S34/S23/S49/S27/S28、最終288入力 | main | 各taskの全差分/所有と修正差分を確認、全run source一致、旧失敗・P2 strict4・未接続を保持 | 各task main-reviewとH01-SOURCE-01のexecution_binding。独立validationではない |
+ | V-REVIEW-20261022-DOCS | M02〜M06の最終5文書 | main/document_author/doc_reviewer | 1fileずつ同期・他文書/source保全、PRD79対応/旧制約保持、M05のP3主語を修正して全最終指摘なし | evidence/20261022-stable-docs/。文書のみ追加build/testなし |
+ | V-REVIEW-H01 | 全76母行/35軸/389入力source binding | main/読み取り調査 | 旧枝条件/直接依存/未接続と未実機・層別証拠を照合、指摘なし | evidence/20261022-device-handoff/。準備のみdone、A01〜18/Q01/製品受入は未完 |
++| V-REVIEW-P2-20261022-FIX | 開始baselineとの3コード/4文書/tasklist、389入力と全run版 | main、文書はdocument_author/doc_reviewer | native実文字/全semanticサイズ/AX領域・全ID/combine・監査不変、cleanup現行guard/合成契約/通常回帰、実可視title tap/最新値観測、全差分・保全/適用範囲を照合 | E-P2-20261022-FIXとmain-review-final-01.json、文書指摘なし。独立validationは別明示工程 |
+ 
+ ## 振り返り・引渡し
++
++- 2026-10-22 P2修正後: E-P2-20261022-FIXで2指摘とS14/S16の非実機Verifyを完了。以下の旧最終記録は修正前の履歴として保持する。今回も他task/段階/全steering、実機・品質・受入の未達を継承し、次工程は同pathの明示独立validationのみ。
+ 
+ - 計画作成日: 2026-10-01。実装完了日・実機工程完了日・PRD受入達成日は未確定。
+ - 残る判断: 実機方式・能力、資材適合、品質条件／採用、ISO基準・既承認暫定値の実機採用等、実環境・対象別操作。各task／Q01へ局所対応し、4段階の合意を未確定へ戻さない。
+--- start/FrameRelay/Features/Library/LibraryView.swift
++++ current/FrameRelay/Features/Library/LibraryView.swift
+@@ -1,4 +1,5 @@
+ import SwiftUI
++import UIKit
+ 
+ struct LibraryView: View {
+     @Bindable var model: LibraryModel
+@@ -50,17 +51,23 @@
+                                     LibraryDetailView(model: model, capture: item.id)
+                                 } label: {
+                                     VStack(alignment: .leading, spacing: 6) {
+-                                        Text(item.title).font(.headline)
++                                        LibraryWrappingText(text: item.title, style: .headline,
++                                            identifier: "library.itemTitle.\(item.id.rawValue)")
+                                             .accessibilityIdentifier("library.itemTitle.\(item.id.rawValue)")
+-                                        Text(item.captureDateDescription)
++                                        LibraryWrappingText(text: item.captureDateDescription,
++                                            identifier: "library.itemCapturedAt.\(item.id.rawValue)")
+                                             .accessibilityIdentifier("library.itemCapturedAt.\(item.id.rawValue)")
+-                                        Text(item.status(.save))
++                                        LibraryWrappingText(text: item.status(.save),
++                                            identifier: "library.itemSave.\(item.id.rawValue)")
+                                             .accessibilityIdentifier("library.itemSave.\(item.id.rawValue)")
+-                                        Text(item.status(.original))
++                                        LibraryWrappingText(text: item.status(.original),
++                                            identifier: "library.itemOriginal.\(item.id.rawValue)")
+                                             .accessibilityIdentifier("library.itemOriginal.\(item.id.rawValue)")
+-                                        Text(item.status(.removal))
++                                        LibraryWrappingText(text: item.status(.removal),
++                                            identifier: "library.itemRemoval.\(item.id.rawValue)")
+                                             .accessibilityIdentifier("library.itemRemoval.\(item.id.rawValue)")
+-                                        Text(item.status(.photos))
++                                        LibraryWrappingText(text: item.status(.photos),
++                                            identifier: "library.itemPhotos.\(item.id.rawValue)")
+                                             .accessibilityIdentifier("library.itemPhotos.\(item.id.rawValue)")
+                                         if item.requiresReconciliation {
+                                             Text("要照合").bold()
+@@ -138,8 +145,8 @@
+                     LibrarySection {
+                         ForEach(item.statuses) { status in
+                             VStack(alignment: .leading, spacing: 4) {
+-                                Text(status.axis.title).font(.headline)
+-                                Text(status.text)
++                                LibraryWrappingText(text: status.axis.title, style: .headline)
++                                LibraryWrappingText(text: status.text)
+                             }
+                             .fixedSize(horizontal: false, vertical: true)
+                             .frame(maxWidth: .infinity, alignment: .leading)
+@@ -208,6 +215,60 @@
+         .toolbarBackground(Color(uiColor: .systemBackground), for: .navigationBar)
+         .toolbarBackgroundVisibility(.visible, for: .navigationBar)
+         .refreshable { await model.refresh() }
++    }
++}
++
++/// Native multiline text keeps its measured width and Dynamic Type traits
++/// available to UIKit's text layout and accessibility geometry.
++private struct LibraryWrappingText: UIViewRepresentable {
++    let text: String
++    var style: UIFont.TextStyle = .body
++    var identifier: String? = nil
++    @Environment(\.sizeCategory) private var sizeCategory
++
++    func makeUIView(context: Context) -> UILabel {
++        let label = UILabel()
++        label.numberOfLines = 0
++        label.lineBreakMode = .byWordWrapping
++        label.adjustsFontForContentSizeCategory = true
++        label.textColor = .label
++        label.isAccessibilityElement = true
++        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
++        label.setContentCompressionResistancePriority(.required, for: .vertical)
++        return label
++    }
++
++    func updateUIView(_ label: UILabel, context: Context) {
++        label.text = text
++        label.accessibilityIdentifier = identifier
++        label.font = .preferredFont(forTextStyle: style, compatibleWith:
++            UITraitCollection(preferredContentSizeCategory: contentSizeCategory))
++    }
++
++    func sizeThatFits(_ proposal: ProposedViewSize, uiView label: UILabel, context: Context) -> CGSize? {
++        guard let proposedWidth = proposal.width, proposedWidth.isFinite else { return nil }
++        let width = max(0, proposedWidth)
++        label.preferredMaxLayoutWidth = width
++        let measured = label.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
++        return CGSize(width: width, height: ceil(measured.height))
++    }
++
++    private var contentSizeCategory: UIContentSizeCategory {
++        switch sizeCategory {
++        case .extraSmall: .extraSmall
++        case .small: .small
++        case .medium: .medium
++        case .large: .large
++        case .extraLarge: .extraLarge
++        case .extraExtraLarge: .extraExtraLarge
++        case .extraExtraExtraLarge: .extraExtraExtraLarge
++        case .accessibilityMedium: .accessibilityMedium
++        case .accessibilityLarge: .accessibilityLarge
++        case .accessibilityExtraLarge: .accessibilityExtraLarge
++        case .accessibilityExtraExtraLarge: .accessibilityExtraExtraLarge
++        case .accessibilityExtraExtraExtraLarge: .accessibilityExtraExtraExtraLarge
++        @unknown default: .large
++        }
+     }
+ }
+ 
+@@ -355,11 +416,14 @@
+                         $0.id == submission.request.id && $0.action == submission.request.action
+                     }
+                     VStack(alignment: .leading, spacing: 4) {
+-                        Text(model.item(target.capture)?.title ?? "動画 \(target.capture.rawValue)").font(.headline)
++                        LibraryWrappingText(text: model.item(target.capture)?.title ?? "動画 \(target.capture.rawValue)", style: .headline,
++                            identifier: "library.submission.title.\(target.capture.rawValue).\(submission.request.id.rawValue)")
+                             .accessibilityIdentifier("library.submission.title.\(target.capture.rawValue).\(submission.request.id.rawValue)")
+-                        Text(submission.request.action.title)
++                        LibraryWrappingText(text: submission.request.action.title,
++                            identifier: "library.submission.action.\(target.capture.rawValue).\(submission.request.id.rawValue)")
+                             .accessibilityIdentifier("library.submission.action.\(target.capture.rawValue).\(submission.request.id.rawValue)")
+-                        Text(result?.outcome.text ?? submission.phase.text)
++                        LibraryWrappingText(text: result?.outcome.text ?? submission.phase.text,
++                            identifier: "library.submission.phase.\(target.capture.rawValue).\(submission.request.id.rawValue)")
+                             .accessibilityIdentifier("library.submission.phase.\(target.capture.rawValue).\(submission.request.id.rawValue)")
+                     }
+                     .fixedSize(horizontal: false, vertical: true)
+@@ -368,7 +432,8 @@
+                     .accessibilityIdentifier("library.submission.target.\(target.capture.rawValue).\(submission.request.id.rawValue)")
+                 }
+             } header: {
+-                Text("開始した操作の照合").foregroundStyle(Color.primary)
++                LibraryWrappingText(text: "開始した操作の照合", style: .headline,
++                    identifier: "library.submission.header.\(submission.request.id.rawValue)")
+                     .accessibilityIdentifier("library.submission.header.\(submission.request.id.rawValue)")
+             }
+         }
+--- start/FrameRelayTests/Integration/Composition/ProductLibrarySeedTests.swift
++++ current/FrameRelayTests/Integration/Composition/ProductLibrarySeedTests.swift
+@@ -18,17 +18,8 @@
+         let manifestURL = services.run.url.appendingPathComponent("s16v2-test-seed-evidence.json")
+         let creating = existing.isDisjoint(with: expected)
+         if creating {
+-            let playable = try await seedMovie("s16v2-original", services: services)
+-            try #require(playable.saveRecord.result == .unknown(.evidenceMissing))
+-            for (name, purpose) in [("s16v2-cleanup", RemovalPurpose.cleanup), ("s16v2-discard", .discard)] {
+-                let binding = try await seedMovie(name, services: services)
+-                try await seedRemovalProjection(binding, purpose: purpose, services: services)
+-            }
+-            let unfinished = try CaptureFixture(clip: "s16v2-unfinished")
+-            try await services.originals.reserveForRecording(unfinished.intent.original)
+-            guard case .committed = await services.store.execute(.commitIntent(unfinished.token(1), expectedRevision: 0, unfinished.intent)) else {
+-                Issue.record("Seed unfinished intent failed"); return
+-            }
++            try #require(before.items.isEmpty)
++            try await seedFreshLibraryFixtures(services)
+         } else {
+             // Never repair/reset a partially prepared or unexpectedly changed root.
+             try #require(expected.isSubset(of: existing))
+@@ -44,7 +35,7 @@
+         guard case .succeeded(let state) = await services.store.loadOriginalState() else {
+             Issue.record("Seed ledger unavailable"); return
+         }
+-        try #require(state.originals.allSatisfy { $0.readers.isEmpty })
++        try #require(state.logicalOriginals.allSatisfy { $0.readers.isEmpty && $0.mediaReaders.isEmpty })
+         let evidence = try await seedEvidence(services)
+         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
+         let bytes = try encoder.encode(evidence)
+@@ -66,8 +57,55 @@
+         guard case .succeeded(let state) = await services.store.loadOriginalState() else {
+             Issue.record("Post UI ledger unavailable"); return
+         }
+-        try #require(state.originals.allSatisfy { $0.readers.isEmpty })
++        try #require(state.logicalOriginals.allSatisfy { $0.readers.isEmpty && $0.mediaReaders.isEmpty })
+         print("S16_POST_UI_IDENTITY_MATCH previousRoot=\(original.root) previousContainer=\(original.container) currentRoot=\(current.root) currentContainer=\(current.container) bundle=\(Bundle.main.bundleIdentifier ?? "missing") readers=0 digest=\(current.digest)")
++    }
++
++    /// Exercise the opt-in seed's creation path in normal Unit runs, using an
++    /// isolated temporary root instead of the app's existing library.
++    @Test func freshFixturesReopenWithRemovalProjectionsAndUnchangedOriginal() async throws {
++        let parent = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
++            .appendingPathComponent("FrameRelay-library-seed-" + UUID().uuidString)
++        try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: false)
++        let services = try await ProductLibraryFactory(supportDirectory: parent).open()
++        try await seedFreshLibraryFixtures(services)
++        let evidence = try await seedEvidence(services)
++        let reopened = try await ProductLibraryFactory(supportDirectory: parent).open()
++        try #require(try await seedEvidence(reopened) == evidence)
++        guard case .loaded(let library) = await reopened.reader.loadLibrary(),
++              case .succeeded(let state) = await reopened.store.loadOriginalState() else {
++            throw BackendContractError.unavailable
++        }
++        try #require(Set(library.items.map { $0.id.rawValue }) ==
++            ["s16v2-original", "s16v2-cleanup", "s16v2-discard", "s16v2-unfinished"])
++        try #require(library.history.map { $0.id.rawValue } == ["s16v2-discard"])
++        try #require(library.recordings.contains { $0.id.rawValue == "s16v2-cleanup" && $0.removal == .removed(.cleanup) })
++        try #require(library.recordings.contains { $0.id.rawValue == "s16v2-unfinished" && $0.requiresReconciliation })
++        for name in ["s16v2-cleanup", "s16v2-discard"] {
++            let binding = try #require(evidence.bindings.first { $0.original.capture.rawValue == name })
++            try #require(await reopened.originals.observeFile(binding.reference) == .absent)
++        }
++        try #require(state.logicalOriginals.allSatisfy { $0.readers.isEmpty && $0.mediaReaders.isEmpty })
++        // Retain the disposable files until process teardown; do not unlink a
++        // live SQLite root or touch the normal app container.
++    }
++}
++
++nonisolated private func seedFreshLibraryFixtures(_ services: ProductLibraryServices) async throws {
++    let playable = try await seedMovie("s16v2-original", services: services)
++    try #require(playable.saveRecord.result == .unknown(.evidenceMissing))
++    // Cleanup needs explicitly synthetic saved/verified/played contract inputs.
++    // The original used for actual playback keeps its actual unknown inspection.
++    let fixture = OriginalRemovalFixture(run: services.run, store: services.store,
++        files: services.originals, access: services.access)
++    let cleanup = try await fixture.original("s16v2-cleanup")
++    try await seedRemovalProjection(cleanup, purpose: .cleanup, services: services)
++    let discard = try await seedMovie("s16v2-discard", services: services)
++    try await seedRemovalProjection(discard, purpose: .discard, services: services)
++    let unfinished = try CaptureFixture(clip: "s16v2-unfinished")
++    try await services.originals.reserveForRecording(unfinished.intent.original)
++    guard case .committed = await services.store.execute(.commitIntent(unfinished.token(1), expectedRevision: 0, unfinished.intent)) else {
++        throw BackendContractError.notCommitted
+     }
+ }
+ 
+@@ -157,15 +195,34 @@
+ /// that cleanup eligibility, confirmation, or the product deletion flow works.
+ nonisolated private func seedRemovalProjection(_ binding: OriginalBinding, purpose: RemovalPurpose,
+                                                services: ProductLibraryServices) async throws {
++    let selection: CleanupEvidenceSelection?
++    if purpose == .cleanup {
++        let fixture = OriginalRemovalFixture(run: services.run, store: services.store,
++            files: services.originals, access: services.access)
++        selection = try await fixture.evidence(binding, schema: "fr-final-read-v1").0
++    } else { selection = nil }
++    // These new synthetic files never start SDK/OS media tasks. Record explicit
++    // test-only observations for every reader owner, without releasing a lease.
++    let beforeReconciliation = try await mediaOriginalSnapshot(services.store)
++    let logical = try #require(beforeReconciliation.logicalOriginals.first { $0.original == binding.original })
++    try #require(logical.readers.isEmpty && logical.mediaReaders.isEmpty)
++    try await mediaReconcile(services.store, original: binding.original)
+     guard case .succeeded(let before) = await services.store.loadOriginalState(),
+           let state = before.originals.first(where: { $0.binding.original == binding.original }) else {
+         throw BackendContractError.unavailable
+     }
+     let intent = RemovalIntent(operation: .init(rawValue: "seed-removal-" + binding.original.capture.rawValue),
+                                original: binding.original, purpose: purpose)
++    let change: OriginalStoreChange
++    if let selection {
++        change = .reserveCleanup(intent, selection,
++            expectedInvalidation: state.invalidationGeneration, expectedAccess: state.accessGeneration)
++    } else {
++        change = .reserveRemoval(intent,
++            expectedInvalidation: state.invalidationGeneration, expectedAccess: state.accessGeneration)
++    }
+     guard case .committed(let receipt) = await services.store.commitOriginal(.init(operation: intent.operation,
+-        expectedRevision: before.revision, change: .reserveRemoval(intent,
+-        expectedInvalidation: state.invalidationGeneration, expectedAccess: state.accessGeneration))) else {
++        expectedRevision: before.revision, change: change)) else {
+         throw BackendContractError.notCommitted
+     }
+     let url = try await services.originals.existingURL(for: binding.reference)
+--- start/FrameRelayUITests/Flows/LibraryFlowTests.swift
++++ current/FrameRelayUITests/Flows/LibraryFlowTests.swift
+@@ -14,7 +14,7 @@
+         attach(app, "operation-library-ready")
+         XCTAssertFalse(app.alerts.firstMatch.exists, "Library must not request camera or Photos permission")
+         let original = element("library.item.s16v2-original", app)
+-        reveal(original, app)
++        _ = libraryItemTarget("s16v2-original", app)
+         XCTAssertTrue(original.label.contains("不明"))
+         selectVideo("s16v2-original", app)
+         selectVideo("s16v2-unfinished", app)
+@@ -31,8 +31,7 @@
+             XCTAssertTrue(reason.label.contains("まだ利用できません"))
+         }
+         top(app)
+-        reveal(original, app); original.tap()
+-        XCTAssertTrue(element("library.detailIdentity", app).waitForExistence(timeout: 5))
++        openOriginalDetail(app)
+         attach(app, "operation-library-detail-identity")
+         for axis in ["save", "original", "transfer", "verification", "publication", "retrieval", "confirmation", "invalidation", "photos", "removal"] {
+             let status = element("library.status." + axis, app)
+@@ -54,18 +53,18 @@
+         app.navigationBars.buttons.element(boundBy: 0).tap()
+         top(app)
+         let cleanup = element("library.item.s16v2-cleanup", app)
+-        reveal(cleanup, app)
++        _ = libraryItemTarget("s16v2-cleanup", app)
+         XCTAssertTrue(cleanup.label.contains("整理"))
+         XCTAssertFalse(element("library.item.s16v2-discard", app).exists)
+         top(app); showHistory(app)
+         let discarded = element("library.item.s16v2-discard", app)
+-        reveal(discarded, app)
++        _ = libraryItemTarget("s16v2-discard", app)
+         XCTAssertTrue(discarded.waitForExistence(timeout: 5))
+         XCTAssertFalse(element("library.item.s16v2-cleanup", app).exists)
+         attach(app, "operation-library-history")
+         app.terminate(); app.launch()
+         try waitForLibrary(app)
+-        reveal(element("library.item.s16v2-unfinished", app), app)
++        _ = libraryItemTarget("s16v2-unfinished", app)
+         XCTAssertTrue(element("library.item.s16v2-unfinished", app).label.contains("要照合"))
+         attach(app, "library-relaunch-retained-seed")
+     }
+@@ -460,18 +459,59 @@
+                        "Expected enabled refresh and no load failure")
+         // An older interrupted seed remains an ordinary row. At large Dynamic
+         // Type the expected v2 row may not be materialized until it is scrolled in.
+-        let expected = element("library.item.s16v2-cleanup", app)
+-        reveal(expected, app)
+-        XCTAssertTrue(expected.exists, "Expected the separately seeded v2 record")
++        _ = libraryItemTarget("s16v2-cleanup", app)
++        XCTAssertTrue(element("library.item.s16v2-cleanup", app).exists,
++                      "Expected the separately seeded v2 record")
+         XCTAssertTrue(refresh.isEnabled)
+         XCTAssertFalse(element("library.loadFailure", app).exists)
+         top(app)
+     }
+ 
++    /// A Dynamic Type card may be taller than the screen. Its visible title is
++    /// part of the same NavigationLink and accepts the same ordinary tap.
++    @MainActor private func libraryItemTarget(_ capture: String, _ app: XCUIApplication) -> XCUIElement {
++        let identifier = "library.item." + capture
++        var observations: [String] = []
++        func attachObservations() {
++            let attachment = XCTAttachment(string: observations.joined(separator: "\n"))
++            attachment.name = "library-item-target-" + capture
++            attachment.lifetime = .keepAlways; add(attachment)
++        }
++        for attempt in 0..<35 {
++            let item = element(identifier, app)
++            let itemExists = item.exists
++            let itemHit = itemExists && item.isHittable
++            var line = "attempt=\(attempt) parentExists=\(itemExists) parentHit=\(itemHit)"
++            if itemExists { line += " parentFrame=\(item.frame)" }
++            if itemHit {
++                observations.append(line + " target=parent")
++                attachObservations()
++                return item
++            }
++            let title = item.descendants(matching: .staticText)
++                .matching(identifier: "library.itemTitle." + capture).firstMatch
++            let titleExists = itemExists && title.exists
++            let titleHit = titleExists && title.isHittable
++            line += " titleExists=\(titleExists) titleHit=\(titleHit)"
++            if titleExists { line += " titleFrame=\(title.frame)" }
++            if titleHit {
++                observations.append(line + " target=title")
++                attachObservations()
++                return title
++            }
++            observations.append(line)
++            app.swipeUp()
++        }
++        attachObservations()
++        XCTFail("Cannot reach \(identifier) or its title")
++        return element(identifier, app)
++    }
++
+     @MainActor private func openOriginalDetail(_ app: XCUIApplication) {
+-        let original = element("library.item.s16v2-original", app)
+-        reveal(original, app); original.tap()
+-        XCTAssertTrue(element("library.detailIdentity", app).waitForExistence(timeout: 5))
++        libraryItemTarget("s16v2-original", app).tap()
++        let identity = element("library.detailIdentity", app)
++        XCTAssertTrue(identity.waitForExistence(timeout: 5))
++        XCTAssertEqual(identity.label, "動画 s16v2-original")
+     }
+ 
+     @MainActor private func openOriginal(_ app: XCUIApplication) {
+@@ -481,7 +521,8 @@
+     }
+ 
+     @MainActor private func selectVideo(_ capture: String, _ app: XCUIApplication) {
+-        let row = element("library.select." + capture, app)
++        let identifier = "library.select." + capture
++        let row = element(identifier, app)
+         reveal(row, app)
+         // SwiftUI exposes the labelled row and the actual switch separately.
+         // Tap the switch control rather than the centre of the surrounding row.
+@@ -489,9 +530,40 @@
+         XCTAssertTrue(control.exists)
+         XCTAssertTrue(control.isHittable)
+         control.tap()
+-        let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: row)
+-        XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 5), .completed)
+-        XCTAssertEqual(control.value as? String, "1")
++        var observations: [String] = []
++        let describe: (Any?) -> String = { value in
++            guard let value else { return "nil" }
++            return "\(String(reflecting: type(of: value)))=\(String(describing: value))"
++        }
++        // Resolve both current elements after SwiftUI updates the row, rather
++        // than retaining the pre-tap element as the predicate's fixed object.
++        let selected = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
++            let currentRow = element(identifier, app)
++            guard currentRow.exists else {
++                if observations.count < 32 { observations.append("row missing") }
++                return false
++            }
++            let currentControl = currentRow.descendants(matching: .switch).firstMatch
++            guard currentControl.exists else {
++                if observations.count < 32 { observations.append("child switch missing") }
++                return false
++            }
++            let rowValue = currentRow.value
++            let controlValue = currentControl.value
++            if observations.count < 32 {
++                observations.append("uptime=\(ProcessInfo.processInfo.systemUptime) "
++                    + "rowValue=\(describe(rowValue)) childValue=\(describe(controlValue)) "
++                    + "rowFrame=\(currentRow.frame) childFrame=\(currentControl.frame)")
++            }
++            return rowValue as? String == "1" && controlValue as? String == "1"
++        }, object: nil)
++        let result = XCTWaiter.wait(for: [selected], timeout: 5)
++        let attachment = XCTAttachment(string: observations.joined(separator: "\n"))
++        attachment.name = "library-selection-live-" + capture
++        attachment.lifetime = .keepAlways; add(attachment)
++        XCTAssertEqual(result, .completed)
++        let currentControl = element(identifier, app).descendants(matching: .switch).firstMatch
++        XCTAssertEqual(currentControl.value as? String, "1")
+     }
+ 
+     @MainActor private func showHistory(_ app: XCUIApplication) {
+--- start/docs/architecture.md
++++ current/docs/architecture.md
+@@ -429,7 +429,7 @@
+ | disk・実ファイル | E-S11/S13/S21等のcommit/再open/内容対応/leaseと、E-S32/S33の実unlink・中断・結果照合がある。別storeを作らずschema 7へ拡張。fixtureとinstance再openを実撮影G2B・実OS終了・電源断へ昇格しない |
+ | iOS Unit・SDK・build | S23の非送信実背景URLSession試験、S31の実Photos/終端、S41〜47/49の撮影制御・所有境界と必要なSimulator/generic iOS buildに証拠がある。S34-BG01は実suspended task→resume拒否→cancel callback→自身source FD閉鎖→exact lease/stopped→通常model破棄/再openを確認し、permit/Mac notExecutedは注入。FD閉鎖はManagedUploadSource自身の保持FDだけで、SDK所有全FDの証明ではない。S48は技術描画のみ。最終版・依存が一致する範囲だけ証拠を継承し、通常strict通信・全媒体REC・正式資材へ昇格しない |
+ | 隔離backend・実HTTP | E-S24/S26Jに受信保存/全内容検証・候補job、E-S27にはbackend全230caseと実HTTP1件の成功証拠がある。後者は全量前AVPlayer進行→確認commit応答欠落/照合→scope終端→失効commit/ACK→V2公開を技術fixtureで確認。S28とBG01最終版にはmetadata-only実HTTPの失効page→manifestの2要求/媒体0byte/新確認・ACKなしの別証拠があり、旧S27証拠を置換しない。製品authorityは正式proofを拒否したままで、実Log/Rec.709・通常UI/全製品owner・実回線受入ではない |
+-| 通常UI・実体照合 | 一覧/原本再生/撮影/既存Photos照合、S28既存登録の明示同期とS34単数破棄の通常UI・実unlink/再openに部分証拠がある。BG01最終版のUnit/generic iOS build・通常UI/専用metadata UI/再openでも確認。S14の厳格アクセシビリティ監査4失敗は未解消で、通常操作成功を監査合格にしない。複数整理/通常新規Photos/軽量版再生確認・再登録全体は未接続を保持 |
++| 通常UI・実体照合 | 一覧/原本再生/撮影/既存Photos照合、S28既存登録の明示同期とS34単数破棄の通常UI・実unlink/再openに部分証拠がある。BG01最終版のUnit/generic iOS build・通常UI/専用metadata UI/再openでも確認。S14の厳格アクセシビリティ監査4失敗は旧BG01版と直後の独立検証の過去証跡として保持する。P2修正後の結果は[現行tasklist](../.steering/20260929-device-independent-implementation/tasklist.md)と各証跡を参照し、通常操作や実文字/VoiceOverの成功を監査合格にしない。複数整理/通常新規Photos/軽量版再生確認・再登録全体は未接続を保持 |
+ | 実機・PRD受入 | DV-01〜18/全79ACへ実装版・環境・対象・事前合意・証拠を束縛する。実装task done、自動試験成功、実機採用、AC全文充足を別々に判定し、未接続を実機待ちだけへ隠さない |
+ 
+ - 実行版・コマンド・件数・診断・失敗/skip・main差分レビュー・独立validationの区別は現行tasklistを正本とする。層ごとのソース版と依存不変を照合した証拠継承を、新しいbuild/testの実行と混同しない。稼働Mac mini/実データの成立や操作許可は隔離試験から導かない。
+--- start/docs/development-guidelines.md
++++ current/docs/development-guidelines.md
+@@ -163,7 +163,7 @@
+ 
+ 実装I・自動検証A・実機確認D・PRD受入Rは同じ対象/版へ個別記録する。Iは契約のみ/本体実装済み未接続/必要接続を含む実装済みを具体化し、Aはbuild/単体/UI/結合の件数・結果・版、Dは組合せと適合/不適合/判定不能、RはAC全文への部分証拠/未達/達成を分ける。レビューは自動実行と別の証拠とし、source/依存が不変と照合できた範囲だけ旧証拠を継承する。消失・版違いは影響する必要範囲を再確認し、旧成功/失敗/guard拒否/未実施を上書きしない。
+ 
+-2026-10-22のE-S34-BG01最終288入力ではUnit560宣言/913展開成功（空template1を除く有意味912）・29skip、実SDK1件、metadata-only実HTTP1件（2要求/媒体0byte/新確認・ACKなし）、通常UI6件/専用同期UI1件/再open1件・generic iOS署名なしbuild成功を確認した。FD閉鎖の証拠はManagedUploadSource自身の保持source FDに限り、strict permit/Mac notExecutedは注入である。通常strict開始/resume・全媒体・正式proof・通常cleanup/新規Photos/複数UI・実機受入の完成へ昇格しない。厳格AX4失敗は未解消で、同hashのLibraryView保持や通常UI成功を現288入力でのstrict全件再実行/合格と扱わない。実行版・詳細件数・旧失敗版は現行tasklistと各evidenceを参照する。
++2026-10-22の旧E-S34-BG01最終288入力ではUnit560宣言/913展開成功（空template1を除く有意味912）・29skip、実SDK1件、metadata-only実HTTP1件（2要求/媒体0byte/新確認・ACKなし）、通常UI6件/専用同期UI1件/再open1件・generic iOS署名なしbuild成功を確認した。FD閉鎖の証拠はManagedUploadSource自身の保持source FDに限り、strict permit/Mac notExecutedは注入である。通常strict開始/resume・全媒体・正式proof・通常cleanup/新規Photos/複数UI・実機受入の完成へ昇格しない。厳格AX4失敗はBG01版と直後の独立検証の過去証跡として保持し、同hashのLibraryView保持や通常UI・実文字/VoiceOverの成功をstrict全件再実行/合格と扱わない。P2修正後の結果・実行版・詳細件数と旧失敗版は[現行tasklist](../.steering/20260929-device-independent-implementation/tasklist.md)と各evidenceを参照する。
+ 
+ ## Git・Review
+ 
+--- start/docs/functional-design.md
++++ current/docs/functional-design.md
+@@ -451,7 +451,7 @@
+ | --- | --- |
+ | T01・T03〜T09・T18・T20 | S41〜S47に設定、保存、WB、音声、補正、人物AF、ND、ズームの関連自動検証と通常UIの部分証拠がある。音声/AF/NDの暫定合意と実機採用を分ける。S47の限定ISO policyは未回答で通常未注入。実能力・実Log原本・画角/合焦/音声/品質/速度はDV-01〜11へ残る |
+ | T02 | S48は既知の生成fixtureによる描画・世代・所有境界の技術試験まで。S26AはLog別の資材・入力条件と比較案の記録で、適合標準LUT実体は未取得。標準Rec.709変換と通常capture/UIは未接続であり、DV-05の実機確認だけを待つ完成品ではない |
+-| T10・T19 | S11〜S16等に共通writerの実disk commit/再open、原本内容対応・実FD/lease、実MOV保存/AVPlayer/一覧・履歴の部分証拠がある。未知readerの復旧・製品追加接続は残り、S14の厳格アクセシビリティ監査4失敗は未解消。正常操作や実文字/VoiceOverの成功で監査合格にしない。端末保護・OS実終了はDV-02等で確認 |
++| T10・T19 | S11〜S16等に共通writerの実disk commit/再open、原本内容対応・実FD/lease、実MOV保存/AVPlayer/一覧・履歴の部分証拠がある。未知readerの復旧・製品追加接続は残る。S14の厳格アクセシビリティ監査4失敗は旧BG01版と直後の独立検証の過去証跡として保持し、P2修正後の結果は[現行tasklist](../.steering/20260929-device-independent-implementation/tasklist.md)と各証跡を参照する。正常操作や実文字/VoiceOverの成功で監査合格にしない。端末保護・OS実終了はDV-02等で確認 |
+ | T11・T12・T21 | S22/S22C・S24・S26Jに隔離した登録・最終保存先全内容検証・候補jobの技術証拠がある。通常原本転送の統合S24Iと正式標準変換S26は未接続/未実施。新規FrameRelay実原本の転送、旧MediaVaultの許可範囲の変換/プレビュー、品質はDV-12/13/18へ残る |
+ | T13・T14・T17・T19 | S25/S27は固定版の隔離実HTTP/AVPlayer途中再生、確認commit応答欠落の照合、全scope終端→失効commit/ACK→V2公開を技術fixtureで確認。製品authorityは正式proof未実装を拒否。S28は既存登録の明示ページ同期を部分接続し、通常軽量版再生/明示確認・再登録全体は未接続。S32/S33の実unlink/中断/再open、S34の通常単数破棄UI/結果/履歴とBG01の全historical upload終端照合後の通常model破棄には証拠があるが、通常の複数整理は未接続。実Log/Rec.709・全製品owner・実機DV-14/17の受入へ昇格しない |
+ | T15・T19 | S31に実Photos追加・意図/結果/終端の永続化、理由付き既存登録照合と使用権解放の技術証拠がある。正式媒体から通常新規保存を開始する経路・複数保存は未接続。初回OS許諾・限定選択・写真側削除後・実写真の映像/日時/音声/品質はDV-16へ残す |
+--- start/docs/repository-structure.md
++++ current/docs/repository-structure.md
+@@ -180,9 +180,9 @@
+ | `FrameRelayTests/Support/`、`Fixtures/Subjects/` | 同上 | Portのfake、`Support/Storage/SyntheticMovieFixture.swift`の合成動画、人物解析用の公開画像と`provenance.json`。アプリtargetへ含めず、実原本や認証秘密をfixture化しない。独立した`Support/Fakes/`は未作成 |
+ | `FrameRelayUITests/Flows/` | `FrameRelayUITests`、XCTest | 製品撮影・Library・接続・探索の操作と状態表示。`RemovalFlowTests.swift`は単数破棄/履歴、`ConnectionFlowTests.swift`は明示metadata同期/続きも扱う。`XCUIApplication`を通し、今後のPhotos/複数整理等の未接続操作を完了扱いにしない |
+ 
+-Unit targetはApp hostを使用し、UI targetは`FrameRelay`を操作対象とする。各同期rootは対応targetだけに所属し、現projectにmembership例外はない。試験専用画像はUnit root、合成媒体の生成器はUnitのSupportへ置き、本番Appにfixture生成・自動seedの分岐を追加しない。既存の`Integration/Composition/ProductLibrarySeedTests.swift`は明示opt-inで通常writerへ試験データを投入する補助であり、通常起動処理ではない。実通信probeも環境変数によるopt-inで、通常のUnit実行と区別する。
+-
+-試験観点と受入条件の対応は機能設計T01〜T21を正本とする。実行版・件数・結果・未実行理由はsteeringの証跡へ残し、雛形の`example`やskip/未実行を機能検証の成功にしない。厳格アクセシビリティ監査4失敗は未解消で、通常UI/専用metadata UIの成功から監査合格を作らない。実機の録画品質・回線制限・Photos成立をfakeやSimulatorで代替済みにせず、NFR-04の実データ参照先・合意・試験結果も対象steeringへ記録する。家族動画やMac mini原本をアプリbundleやrepoへ複製しない。
++Unit targetはApp hostを使用し、UI targetは`FrameRelay`を操作対象とする。各同期rootは対応targetだけに所属し、現projectにmembership例外はない。試験専用画像はUnit root、合成媒体の生成器はUnitのSupportへ置き、本番Appにfixture生成・自動seedの分岐を追加しない。既存の`Integration/Composition/ProductLibrarySeedTests.swift`の`seedNormalAppContainer`は明示opt-inで通常App rootのwriterへ試験データを投入する補助であり、通常起動処理ではない。同suiteの`freshFixturesReopenWithRemovalProjectionsAndUnchangedOriginal`は通常Unitで隔離tmp rootを作り、製品guardを維持した現行cleanup契約、再open、内容同一性とreader解放を検証する。合成証拠を実Log/標準Rec.709・通信・品質・製品cleanup成立の証明にしない。実通信probeも環境変数によるopt-inで、通常のUnit実行と区別する。
++
++試験観点と受入条件の対応は機能設計T01〜T21を正本とする。実行版・件数・結果・未実行理由はsteeringの証跡へ残し、雛形の`example`やskip/未実行を機能検証の成功にしない。厳格アクセシビリティ監査4失敗は旧BG01版と直後の独立検証の過去証跡として保持し、P2修正後の結果は[現行tasklist](../.steering/20260929-device-independent-implementation/tasklist.md)と各証跡を参照する。通常UI/専用metadata UIや実文字/VoiceOverの成功から監査合格を作らない。実機の録画品質・回線制限・Photos成立をfakeやSimulatorで代替済みにせず、NFR-04の実データ参照先・合意・試験結果も対象steeringへ記録する。家族動画やMac mini原本をアプリbundleやrepoへ複製しない。
+ 
+ ## ファイル命名
+ 

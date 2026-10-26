@@ -16,6 +16,8 @@ nonisolated enum OriginalPlayerPhase: Equatable, Sendable {
     private var session: Session?
     private var usedSessions: Set<PlaybackSessionID> = []
     private var admissionClosed: Set<OriginalContent> = []
+    private var removalSeals: [MediaOperationID: OriginalRemovalAdmissionSeal] = [:]
+    private var removedOriginals: Set<OriginalContent> = []
     private var ownedSessions: [PlaybackSessionID: Session] = [:]
     private var terminalInventory: [OriginalPlaybackOwnerTerminal] = []
     private var createdOwners: [OriginalContent: Int] = [:]
@@ -43,14 +45,16 @@ nonisolated enum OriginalPlayerPhase: Equatable, Sendable {
 
     func open(_ original: OriginalContent, operation: MediaOperationID,
               session id: PlaybackSessionID) async -> BackendOutcome<OriginalPlaybackProgress> {
-        guard session == nil, !usedSessions.contains(id), !admissionClosed.contains(original) else { return .notExecuted }
+        guard session == nil, !usedSessions.contains(id), !admissionClosed.contains(original), !removedOriginals.contains(original),
+              !removalSeals.values.contains(where: { $0.target.original == original }) else { return .notExecuted }
         return await start(Session(id: id, original: original, operation: operation))
     }
 
     /// The caller retains responsibility for a source rejected as a duplicate.
     @MainActor func playOriginal(_ source: OriginalPlaybackSource,
                       session id: PlaybackSessionID) async -> BackendOutcome<OriginalPlaybackProgress> {
-        guard session == nil, !usedSessions.contains(id), !admissionClosed.contains(source.lease.original) else { return .notExecuted }
+        guard session == nil, !usedSessions.contains(id), !admissionClosed.contains(source.lease.original), !removedOriginals.contains(source.lease.original),
+              !removalSeals.values.contains(where: { $0.target.original == source.lease.original }) else { return .notExecuted }
         let value = Session(id: id, original: source.lease.original, operation: source.lease.operation)
         value.source = source
         return await start(value)
@@ -271,6 +275,16 @@ nonisolated enum OriginalPlayerPhase: Equatable, Sendable {
 
     @MainActor func stopAndObserve(original: OriginalContent) async throws -> OriginalPlaybackTermination {
         admissionClosed.insert(original)
+        return try await stopOwnersAndObserve(original: original)
+    }
+
+    @MainActor func stopForRemoval(_ seal: OriginalRemovalAdmissionSeal) async throws -> OriginalPlaybackTermination {
+        if let existing = removalSeals[seal.target.operation], existing != seal { throw BackendContractError.identityMismatch }
+        removalSeals[seal.target.operation] = seal
+        return try await stopOwnersAndObserve(original: seal.target.original)
+    }
+
+    private func stopOwnersAndObserve(original: OriginalContent) async throws -> OriginalPlaybackTermination {
         let retained = ownedSessions.values.filter { $0.original == original }
         for value in retained { await stop(value, finalPhase: .stopped) }
         for value in retained {
@@ -293,6 +307,23 @@ nonisolated enum OriginalPlayerPhase: Equatable, Sendable {
             throw BackendContractError.readersActive
         }
         admissionClosed.remove(acknowledgement.record.rendition.original)
+    }
+
+    @MainActor func resumeAfterRemoval(_ release: OriginalRemovalAdmissionRelease) async throws {
+        let original = release.seal.target.original
+        let terminals = terminalInventory.filter { $0.original == original }
+        guard removalSeals[release.seal.target.operation] == release.seal,
+              !ownedSessions.values.contains(where: { $0.original == original }),
+              terminals.count == createdOwners[original, default: 0],
+              terminals.allSatisfy({ $0.tasksJoined && $0.sdkDetached && ($0.source == nil || $0.release?.lease == $0.source?.lease) }) else {
+            throw BackendContractError.readersActive
+        }
+        // The producer/registry has checked the exact durable row and common
+        // writer epoch. Newly admitted rendition owners must not strand this
+        // still-sealed SDK owner after that common boundary has reopened.
+        if release.resolution == .removed { removedOriginals.insert(original) }
+        removalSeals.removeValue(forKey: release.seal.target.operation)
+        // The invalidation owner alone can remove admissionClosed.
     }
 
     private func observeTerminal(_ value: Session) {

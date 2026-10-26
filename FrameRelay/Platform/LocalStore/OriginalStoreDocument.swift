@@ -53,10 +53,22 @@ extension RecordingStoreDocument {
         if legacy {
             guard entry.acceptedVerificationSchema == nil else { throw BackendContractError.invalidValue }
             switch entry.mutation.change {
-            case .acquireMedia, .releaseMedia, .reconcileMedia, .reserveCleanup:
+            case .acquireMedia, .releaseMedia, .reconcileMedia, .reserveCleanup, .removalBatch, .removalNotExecuted, .removalIssue:
                 throw BackendContractError.invalidValue
             default: break
             }
+        }
+        switch entry.mutation.change {
+        case .removalBatch(let batch):
+            try projection.acceptRemovalBatch(batch, receipt: entry.receipt)
+            return
+        case .removalIssue(let batch, let target, let failure):
+            try projection.removalIssue(batch: batch, target: target, failure: failure)
+            return
+        case .removalNotExecuted(let batch, let target, let reason):
+            try projection.removalNotExecuted(batch: batch, target: target, reason: reason)
+            return
+        default: break
         }
         if case .bind(let binding) = entry.mutation.change {
             try validateBinding(binding)
@@ -71,7 +83,7 @@ extension RecordingStoreDocument {
         }
         let original: OriginalContent
         switch entry.mutation.change {
-        case .bind: throw BackendContractError.wrongStage
+        case .bind, .removalBatch, .removalNotExecuted, .removalIssue: throw BackendContractError.wrongStage
         case .acquire(let lease), .release(let lease): original = lease.original
         case .reserveRemoval(let intent, _, _), .resolveRemoval(let intent, _),
              .reserveCleanup(let intent, _, _, _): original = intent.original
@@ -84,7 +96,7 @@ extension RecordingStoreDocument {
         }
         var state = projection.originals[index]
         switch entry.mutation.change {
-        case .bind: break
+        case .bind, .removalBatch, .removalNotExecuted, .removalIssue: break
         case .acquire(let lease):
             try MediaStoredValueValidation.lease(lease)
             guard state.binding != nil, state.removal == nil, state.invalidation == nil,
@@ -135,17 +147,20 @@ extension RecordingStoreDocument {
         case .reserveRemoval(let intent, let invalidation, let access):
             if !legacy, intent.purpose == .cleanup { throw BackendContractError.ineligibleOriginal }
             try reserveRemoval(intent, invalidation: invalidation, access: access, legacy: legacy, state: &state)
+            try projection.removalReserved(intent, binding: state.binding)
         case .reserveCleanup(let intent, let selection, let invalidation, let access):
             guard !legacy, intent.purpose == .cleanup,
                   entry.acceptedVerificationSchema == (try projection.cleanupSchema(original: original, selection: selection)) else {
                 throw BackendContractError.ineligibleOriginal
             }
             try reserveRemoval(intent, invalidation: invalidation, access: access, legacy: false, state: &state)
+            try projection.removalReserved(intent, binding: state.binding)
         case .resolveRemoval(let intent, let resolution):
             guard state.removal == intent else { throw BackendContractError.identityMismatch }
             state.removal = nil
             state.resolvedRemoval = intent
             state.removalResolution = resolution
+            try projection.removalResolved(intent, resolution: resolution)
         case .reserveInvalidation(let invalidation):
             try MediaStoredValueValidation.invalidation(invalidation.record)
             if !legacy {

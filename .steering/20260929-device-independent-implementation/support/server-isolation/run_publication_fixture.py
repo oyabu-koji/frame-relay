@@ -14,6 +14,7 @@ import time
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, required=True)
+    parser.add_argument("--probe-mode", choices=("publication", "metadata-only"), default="publication")
     parser.add_argument("--checkpoint-sha256", required=True)
     parser.add_argument("--execute-reviewed-integration", action="store_true")
     args = parser.parse_args()
@@ -22,6 +23,11 @@ def main():
     helper = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(helper)
     config, checkpoint = helper.verified_config(args.config)
+    mode = helper.probe_mode(config)
+    contract = helper.probe_contract(mode)
+    report_field = helper.evidence_field(config)
+    if args.probe_mode != mode:
+        raise RuntimeError("Supervisor probe mode mismatch")
     preparation = Path(config["preparation"])
     runtime = Path(config["runtime"])
     if (helper.record(preparation / "checkpoint.json")["sha256"] != args.checkpoint_sha256 or
@@ -31,10 +37,10 @@ def main():
         raise RuntimeError("Changed input or reused fixture execution")
     helper.verify_inputs(config, checkpoint)
     commands = {name: [config["interpreter"], "-I", "-B", "-S", str(support / filename),
-                       "--config", str(args.config)] for name, filename in (
+                       "--config", str(args.config), "--probe-mode", mode] for name, filename in (
                            ("listener", "publication_fixture_listener.py"), ("simulator", "run_publication_simulator_probe.py"))}
     if not args.execute_reviewed_integration:
-        print(json.dumps({"executed": False, "commands": commands,
+        print(json.dumps({"probe_mode": mode, "probe_contract": contract, "executed": False, "commands": commands,
             "simulator_execute_suffix": ["--listener-pid", "<actual owned PID>", "--execute-reviewed-xcode"],
             "fixture_only": True, "runtime": str(runtime)}, indent=2))
         return 0
@@ -44,7 +50,7 @@ def main():
     environment["PATH"] = "/usr/bin:/bin"
     logs, children = {}, {}
     started, received_signal = time.monotonic(), None
-    outcome = {"run_identity": config["run_identity"], "parent_pid": os.getpid(), "children": {},
+    outcome = {"probe_mode": mode, "run_identity": config["run_identity"], "parent_pid": os.getpid(), "children": {},
         "signals_sent": [], "passed": False, "secret_environment_read": False, "fixture_only": True}
     def interrupted(signum, _frame):
         nonlocal received_signal
@@ -72,7 +78,8 @@ def main():
         if name not in children or collect(name, 0):
             return
         child = children[name]
-        for sig, seconds in ((signal.SIGINT, 40 if name == "simulator" else 15),
+        for sig, seconds in ((signal.SIGINT,
+                helper.METADATA_COMMAND_COUNT * helper.METADATA_TIMEOUT_SECONDS + 10 if name == "simulator" else 15),
                              (signal.SIGTERM, 10), (signal.SIGKILL, 5)):
             if child.poll() is None:
                 child.send_signal(sig)
@@ -110,7 +117,9 @@ def main():
                 raise TimeoutError("Simulator deadline exceeded")
             if listener.poll() is not None:
                 collect("listener", 0)
-                if collect("simulator", 35):  # wrapper requests stop before 3 metadata queries, each bounded to 10s
+                # Wrapper requests stop before four bounded SDK metadata/export
+                # calls. Give that audit its complete, explicitly bounded span.
+                if collect("simulator", helper.METADATA_COMMAND_COUNT * helper.METADATA_TIMEOUT_SECONDS + 10):
                     break
                 raise RuntimeError("Listener exited during Simulator execution")
             time.sleep(0.1)
@@ -146,7 +155,7 @@ def main():
         for name in required_artifacts:
             try:
                 outcome["result_hashes"][name] = helper.record(runtime / name)
-                if name in ("result.json", "listener-results.json", "wrapper-result.json"):
+                if name in ("result.json", "listener-results.json", "wrapper-result.json", "test-summary.json", "test-tests.json", "build-results.json"):
                     document = helper.read_json(runtime / name)
                     if not isinstance(document, dict):
                         raise RuntimeError("Unexpected child result document")
@@ -163,6 +172,7 @@ def main():
             "xcode_exit_code": wrapper_summary.get("xcode_exit_code"),
             "test_verification": wrapper_summary.get("test_verification"),
             "build_diagnostics": wrapper_summary.get("build_diagnostics"),
+            report_field: wrapper_summary.get(report_field),
             "observed_test_failures": wrapper_summary.get("observed_test_failures"),
             "observed_build_failure": wrapper_summary.get("observed_build_failure"),
             "metadata_collection": wrapper_summary.get("metadata_collection"),
@@ -174,15 +184,43 @@ def main():
             runner = documents["result.json"]
             listener_result = documents["listener-results.json"]
             wrapper_result = documents["wrapper-result.json"]
-            observation = helper.publication_observations(listener_result)
+            observation = helper.wire_observations(listener_result, config)
             if observation != listener_result.get("wire_observation"):
                 raise RuntimeError("Publication wire observations changed")
+            # Read the raw SDK documents and exact exported attachment again in
+            # this parent. Listener/wrapper booleans are not playback evidence.
+            playback = helper.probe_evidence(runtime, config, documents["test-summary.json"],
+                documents["test-tests.json"], listener_result["fixture"])
+            if (wrapper_result.get(report_field) != playback or wrapper_result.get("test_verification") !=
+                    {**playback["test_verification"], "evaluation": "completed"}):
+                raise RuntimeError("Wrapper playback evidence differs from raw parent evaluation")
+            manifest = contract["attachment_directory"] + "/manifest.json"
+            outcome["result_hashes"][manifest] = helper.record(runtime / manifest)
+            outcome["artifact_status"][manifest] = {"available": True}
+            attachment = contract["attachment_directory"] + "/" + playback["attachment_file"]
+            outcome["result_hashes"][attachment] = helper.record(runtime / attachment)
+            outcome["artifact_status"][attachment] = {"available": True}
+            outcome[report_field] = playback
+            observation["avplayer_progress_before_full_download" if mode == "publication" else "coordinator_metadata_commit_reopen"] = playback["passed"]
+            if set(observation) != set(contract["required_observations"]):
+                raise RuntimeError("Incomplete required publication observations")
             outcome["http_observation"] = observation
+            owner = runner["owner_close_before_guard_finish"]
+            owner_observation = helper.owner_close_observation(owner["connection_events"], owner["tracked_connections"],
+                runner["fd_before_guard_finish"], runner["initial_fds"], runtime)
+            if owner.get("observation") != owner_observation:
+                raise RuntimeError("Owner-close evidence differs from pre-rescue parent evaluation")
+            outcome["owner_close_before_guard_finish"] = owner_observation
+            post_rescue_fds = helper.owner_close_observation([], [], runner["fd_after_guard_finish"], runner["initial_fds"], runtime)
             audit = [json.loads(line) for line in (runtime / "audit.jsonl").read_text().splitlines()]
             outcome["passed"] = (set(exits) == set(commands) and all_exited and
                 all(item["available"] for item in outcome["artifact_status"].values()) and
                 all(value["exit_code"] == 0 for value in exits.values()) and
                 runner.get("passed") is True and listener_result.get("passed") is True and wrapper_result.get("passed") is True and
+                all(value.get("probe_mode", "publication") == mode for value in (runner, listener_result, wrapper_result)) and
+                owner_observation["passed"] is True and runner["guard"]["sqlite_connections_alive_before_explicit_close"] == 0 and
+                runner.get("remaining_created_threads_before_guard_finish") == [] and
+                post_rescue_fds["passed"] is True and runner["guard"]["sqlite_connections_alive_after_explicit_close"] == 0 and
                 runner.get("run_identity") == listener_result.get("run_identity") == wrapper_result.get("run_identity") == config["run_identity"] and
                 runner.get("pid") == listener_result.get("pid") == exits["listener"]["pid"] and wrapper_result.get("pid") == exits["simulator"]["pid"] and
                 not any(row["event"].startswith("denied:") for row in audit) and all(value is True for value in observation.values()) and

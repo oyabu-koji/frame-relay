@@ -1,0 +1,115 @@
+{
+  "scope": {
+    "baselineFiles": 8119,
+    "baselineBytes": 186781360,
+    "changed": [
+      ".steering/20260929-device-independent-implementation/tasklist.md",
+      "FrameRelay.xcodeproj/project.pbxproj",
+      "FrameRelay/Application/Library/LibrarySnapshot.swift",
+      "FrameRelay/Application/Library/LibraryStoreReader.swift",
+      "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+      "FrameRelay/Application/Ports/RenditionMediaPorts.swift",
+      "FrameRelay/Composition/ProductComposition.swift",
+      "FrameRelay/Composition/ProductLibraryFactory.swift",
+      "FrameRelay/Domain/Media/TemporaryMediaState.swift",
+      "FrameRelay/Domain/Operations/BackendCommit.swift",
+      "FrameRelay/Features/Library/LibraryModel.swift",
+      "FrameRelay/Features/Library/LibraryView.swift",
+      "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+      "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift",
+      "FrameRelay/Platform/LocalStore/TemporaryMediaStoreProjection.swift",
+      "FrameRelay/Platform/TemporaryMedia/ManagedTemporaryMedia.swift",
+      "FrameRelayTests/Integration/Storage/LibraryStoreReaderTests.swift",
+      "docs/architecture.md",
+      "docs/functional-design.md",
+      "docs/repository-structure.md"
+    ],
+    "newSourceAndTestFiles": [
+      "FrameRelay/Application/Library/LibraryPhotoReconciliation.swift",
+      "FrameRelay/Application/MediaOperations/PhotoRegistrationReconciler.swift",
+      "FrameRelay/Application/MediaOperations/PhotoSaveCoordinator.swift",
+      "FrameRelay/Application/Ports/PhotoLibraryPorts.swift",
+      "FrameRelay/Domain/Media/PhotoRegistration.swift",
+      "FrameRelay/Platform/LocalStore/PhotoStoreProjection.swift",
+      "FrameRelay/Platform/Photos/NativePhotoLibrary.swift",
+      "FrameRelayTests/Application/LibraryPhotoProjectionTests.swift",
+      "FrameRelayTests/Domain/PhotoRegistrationTests.swift",
+      "FrameRelayTests/Integration/Composition/ProductPhotoCompositionTests.swift",
+      "FrameRelayTests/Integration/Photos/NativePhotoLibraryTests.swift",
+      "FrameRelayTests/Integration/Photos/PhotoSaveCoordinatorTests.swift",
+      "FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift",
+      "FrameRelayTests/Integration/Photos/PhotoTemporaryRecoveryTests.swift",
+      "FrameRelayTests/Integration/Storage/PhotoRegistrationStoreTests.swift",
+      "FrameRelayUITests/Flows/PhotoPermissionsFlowTests.swift"
+    ],
+    "missing": [],
+    "unchanged": 8099,
+    "oldEvidenceChanged": [],
+    "priorRenderChanged": []
+  },
+  "finalSourceInputs": {
+    "count": 243,
+    "identicalRuns": [
+      "s31-photos-authorized-07",
+      "s31-photos-denied-08",
+      "s31-unit-final-09",
+      "s31-ui-10",
+      "s31-ios-build-11"
+    ],
+    "currentMatches": true
+  },
+  "configuration": {
+    "project": "FrameRelay.xcodeproj",
+    "scheme": "FrameRelay",
+    "testPlan": "FrameRelay",
+    "configuration": "Debug",
+    "simulator": "7FD88306-1CFD-4181-83E6-ED765F8830B0",
+    "runtime": "iOS 27.0",
+    "minimumIOS": "27.0",
+    "swiftLanguageMode": "5.0",
+    "Xcode": "27.0 (27A266a)",
+    "compiler": "6.4",
+    "projectDelta": "four Photos usage-description lines only"
+  },
+  "validation": {
+    "unit": {
+      "passedDeclarations": 429,
+      "passedExecutions": 618,
+      "skipped": 20,
+      "failed": 0
+    },
+    "realPhotosAuthorized": 1,
+    "realPhotosDenied": 1,
+    "UI": 4,
+    "genericIOSUnsignedBuild": "succeeded",
+    "runtimeCompilerAnalyzerDiagnostics": 0
+  },
+  "documentation": {
+    "files": {
+      "docs/architecture.md": "845395289da788e0c833e13197fa52e4603d478af4a7c63f173f13cabbb996ab",
+      "docs/functional-design.md": "a06a0a5276d5cc7983118096052d2f186d71d3a4c97d2c5fcb55fd131d2f54fe",
+      "docs/repository-structure.md": "d2d2a6bce56761430e7bf54d2f2e7c383a47c7b84e2dd8274f66c5d80112c36b"
+    },
+    "reviewAgent": "s31_doc_review",
+    "findings": "D7 registration-key definition corrected; subsequent filename paragraph reviewed; final no findings",
+    "localLinkFailures": []
+  },
+  "tasklist": {
+    "ACIDsRetained": 79,
+    "taskStateChanges": {
+      "S31": [
+        "pending",
+        "blocked"
+      ]
+    },
+    "S31": "blocked; lower processing implemented and verified; normal producer/operations and unresolved-media reclamation remain"
+  },
+  "review": "Main reviewed production diff, identity/commit/SDK termination/resource ownership boundaries, product non-connection, verification results, and scope. This is implementation V-REVIEW, not independent implementation validation.",
+  "limits": [
+    "No formal Log/Rec.709 proof or normal save/download/batch producer",
+    "Unknown/failed media/use reclamation and invalidation/full-reader integration incomplete",
+    "Legacy extensionless file read compatibility retained; Photos reuse unsupported",
+    "First authorization UI, actual limited selection, actual user deletion, process crash/power loss and device quality unverified"
+  ],
+  "whitespace": "tracked and all new source/test files: no findings"
+}

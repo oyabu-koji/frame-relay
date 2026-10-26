@@ -38,3 +38,22 @@ class StorageBindingRequest(BaseModel):
         if not 1 <= int(value) <= maximum:
             raise ValueError("Integer outside explicit wire range")
         return value
+
+
+class OriginalInventoryRequest(BaseModel):
+    """A bounded metadata query, never a media acquisition or old registration adoption."""
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
+    destination_id: CanonicalID
+    registration_id: CanonicalID
+    registration_generation: str
+    limit: str = "32"
+    cursor: Annotated[str, Field(min_length=1, max_length=640, pattern=r"^[A-Za-z0-9_-]+$")] | None = None
+
+    @field_validator("registration_generation", "limit")
+    @classmethod
+    def canonical_inventory_unsigned(cls, value, info):
+        maximum = (1 << 63) - 1 if info.field_name == "registration_generation" else 32
+        if (not value.isascii() or not value.isdigit() or str(int(value)) != value or
+                not 1 <= int(value) <= maximum):
+            raise ValueError("Expected canonical bounded decimal string")
+        return value

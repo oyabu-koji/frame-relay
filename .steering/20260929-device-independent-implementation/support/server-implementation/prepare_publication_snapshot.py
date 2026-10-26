@@ -85,32 +85,63 @@ def archived_base(support):
 
 
 def verify_cases(nodes,support,base):
-    # Only the explicitly selected S27 core cases are an execution prerequisite.
-    # The remaining tests are retained in source and are not reported as run.
-    if len(nodes)!=4 or len(nodes)!=len(set(nodes)):
-        raise RuntimeError("Expected four explicit S27 core nodes")
+    inherited_path=support/"cases-conversion.json"
+    archived_path=base.parent/"preparation-001/source-snapshot/server-implementation/cases-conversion.json"
+    if inherited_path.read_bytes()!=archived_path.read_bytes():
+        raise RuntimeError("S26J explicit case inventory differs from its reviewed archive")
+    inherited=json.loads(inherited_path.read_text())
+    if len(inherited)!=137 or nodes[:137]!=inherited or len(nodes)!=170 or len(nodes)!=len(set(nodes)):
+        raise RuntimeError("Expected all 137 S26J nodes as the exact prefix of 170 unique nodes")
+    publication_name="tests/test_frame_relay_publication.py"
+    publication=ast.parse((support/"backend-overlay"/publication_name).read_text())
+    required=[publication_name+"::"+node.name for node in publication.body
+              if isinstance(node,ast.FunctionDef) and node.name.startswith("test_")]
+    if len(required)!=33 or nodes[137:]!=required:
+        raise RuntimeError("All 33 publication nodes must follow in AST declaration order")
     counts={}
+    modules={publication_name:publication}
     for entry in nodes:
         name,function=entry.split("::")
-        if name!="tests/test_frame_relay_publication.py":
-            raise RuntimeError("Unexpected core test module")
-        module=ast.parse((support/"backend-overlay"/name).read_text())
+        if name not in modules:
+            path=support/"backend-overlay"/name
+            if not path.is_file():path=base/"backend"/name
+            modules[name]=ast.parse(path.read_text())
+        module=modules[name]
         candidates=[n for n in module.body if isinstance(n,ast.FunctionDef) and n.name==function]
         if len(candidates)!=1:raise RuntimeError("Unknown explicit case")
         count=1
         for decorator in candidates[0].decorator_list:
             if not (isinstance(decorator,ast.Call) and isinstance(decorator.func,ast.Attribute)
-                    and decorator.func.attr=="parametrize" and len(decorator.args)>=2):
+                    and decorator.func.attr=="parametrize" and isinstance(decorator.func.value,ast.Attribute)
+                    and decorator.func.value.attr=="mark" and isinstance(decorator.func.value.value,ast.Name)
+                    and decorator.func.value.value.id=="pytest" and len(decorator.args)>=2):
                 raise RuntimeError("Unexpected skip/decorator: explicit count needs review")
             values=decorator.args[1]
+            if isinstance(values,ast.Call):
+                # The preserved S22 authentication helper has one literal return
+                # with three pytest.param entries. Inspect it; never call it.
+                if not (entry==inherited[0] and isinstance(values.func,ast.Name)
+                        and values.func.id=="_auth_cases" and not values.args and not values.keywords):
+                    raise RuntimeError("Dynamic parametrization requires review")
+                helpers=[n for n in module.body if isinstance(n,ast.FunctionDef) and n.name=="_auth_cases"]
+                if len(helpers)!=1 or len(helpers[0].body)!=1 or not isinstance(helpers[0].body[0],ast.Return):
+                    raise RuntimeError("Unexpected S22 authentication matrix")
+                values=helpers[0].body[0].value
+                if not (isinstance(values,ast.List) and len(values.elts)==3 and all(
+                        isinstance(value,ast.Call) and isinstance(value.func,ast.Attribute)
+                        and value.func.attr=="param" and isinstance(value.func.value,ast.Name)
+                        and value.func.value.id=="pytest" for value in values.elts)):
+                    raise RuntimeError("Expected three literal S22 pytest.param entries")
             if not isinstance(values,(ast.List,ast.Tuple)) or not values.elts:
                 raise RuntimeError("Expected nonempty explicit parametrization")
             if any(isinstance(n,ast.keyword) and n.arg=="marks" for n in ast.walk(values)):
                 raise RuntimeError("Parameterized skip/xfail requires review")
             count*=len(values.elts)
         counts[entry]=count
-    if sum(counts.values())!=9:raise RuntimeError("Expected nine S27 core cases")
-    return 9,4,counts
+    if (sum(counts[entry] for entry in inherited)!=160 or sum(counts[entry] for entry in required)!=70
+            or sum(counts.values())!=230):
+        raise RuntimeError("Expected S26J 137/160 plus publication 33/70, total 170/230")
+    return 230,33,counts
 
 
 def main():
@@ -162,7 +193,8 @@ def main():
     if (support/"backend-publication-overlay.diff").read_text()!=difference:
         raise RuntimeError("Publication review diff is stale")
     nodes=json.loads((support/"cases-publication.json").read_text())
-    expected_cases,new_cases,case_counts=verify_cases(nodes,support,base)
+    expected_cases,publication_nodes,case_counts=verify_cases(nodes,support,base)
+    publication_cases=sum(case_counts[entry] for entry in nodes[137:])
     output=ROOT/"S27"
     snapshot=output/("snapshot-"+args.revision)
     preparation=output/("preparation-"+args.revision)
@@ -210,7 +242,9 @@ def main():
         "base_archive_manifest":archive_before["archive-manifest.json"],"base_archive_entry_count":345,
         "s26j_tmp_input_reverified":False,
         "s20_original_copy_complete":False,"external_source_and_runtime_unchanged":True,"s22_tests_and_001_002_003_sql_unchanged":True,
-        "expected_nodes":len(nodes),"expected_cases":expected_cases,"selected_publication_tests":new_cases,
+        "expected_nodes":len(nodes),"expected_cases":expected_cases,
+        "inherited_nodes":137,"inherited_cases":160,
+        "selected_publication_tests":publication_nodes,"selected_publication_cases":publication_cases,
         "case_expansion":case_counts,
         "python_ast_files":parsed,"python_compile_files":parsed,
         "backend_imported":False,"tests_executed":False,"runtime_created":False}
@@ -219,7 +253,8 @@ def main():
         for path in root.rglob("*"):
             if path.is_file():path.chmod(0o444)
     print(json.dumps({"preparation":str(preparation),"snapshot_files":len(snapshot_manifest),
-        "expected_nodes":len(nodes),"expected_cases":expected_cases,"runtime_created":False,
+        "expected_nodes":len(nodes),"expected_cases":expected_cases,
+        "selected_publication_tests":publication_nodes,"selected_publication_cases":publication_cases,"runtime_created":False,
         "checkpoint_sha256":record(preparation/"checkpoint-files.json")["sha256"]}))
 
 

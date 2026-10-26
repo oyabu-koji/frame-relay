@@ -1,0 +1,30 @@
+{
+  "executed": false,
+  "commands": {
+    "listener": [
+      "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+      "-I",
+      "-B",
+      "-S",
+      "/private/tmp/fr-di-20261015-s27/S27/http-preparation-001/source-snapshot/publication_fixture_listener.py",
+      "--config",
+      "/private/tmp/fr-di-20261015-s27/S27/http-preparation-001/config.json"
+    ],
+    "simulator": [
+      "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+      "-I",
+      "-B",
+      "-S",
+      "/private/tmp/fr-di-20261015-s27/S27/http-preparation-001/source-snapshot/run_publication_simulator_probe.py",
+      "--config",
+      "/private/tmp/fr-di-20261015-s27/S27/http-preparation-001/config.json"
+    ]
+  },
+  "simulator_execute_suffix": [
+    "--listener-pid",
+    "<actual owned PID>",
+    "--execute-reviewed-xcode"
+  ],
+  "fixture_only": true,
+  "runtime": "/private/tmp/fr-di-20261015-s27/S27/runtime-publication-001"
+}

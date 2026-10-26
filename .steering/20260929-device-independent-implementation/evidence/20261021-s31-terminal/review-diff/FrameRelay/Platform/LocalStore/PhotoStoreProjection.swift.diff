@@ -1,0 +1,66 @@
+--- baseline/FrameRelay/Platform/LocalStore/PhotoStoreProjection.swift
++++ FrameRelay/Platform/LocalStore/PhotoStoreProjection.swift
+@@ -88,7 +88,7 @@
+                 throw BackendContractError.identityMismatch
+             }
+             let record = photoRegistrations[index]
+-            guard record.usageRelease == nil else { throw BackendContractError.wrongStage }
++            guard record.usageRelease == nil, record.terminalUsageRelease == nil else { throw BackendContractError.wrongStage }
+             guard record.registration.mediaUse == release.mediaUse,
+                   record.registration.directoryIdentity == release.directoryIdentity,
+                   record.registration.fileIdentity == release.fileIdentity,
+@@ -101,9 +101,53 @@
+             }
+             // This narrow successful-registration proof is the only photo path
+             // allowed to retire this exact old epoch. General release stays strict.
+-            try applyTemporary(.release(release.intent.media, release.mediaUse))
++            try applyTemporary(.release(release.intent.media, release.mediaUse), photoRelease: true)
+             photoRegistrations[index].usageRelease = .init(command: command, release: release, commit: receipt,
++                expectedStoreIdentity: expectedStoreIdentity)
++        case .terminal(let terminal):
++            guard let index = photoRegistrations.firstIndex(where: { $0.registration.intent == terminal.intent }) else {
++                throw BackendContractError.identityMismatch
++            }
++            let record = photoRegistrations[index]
++            guard record.usageTerminal == nil, record.usageRelease == nil,
++                  record.terminalUsageRelease == nil else { throw BackendContractError.wrongStage }
++            guard record.registration.mediaUse == terminal.mediaUse,
++                  record.registration.directoryIdentity == terminal.directoryIdentity,
++                  record.registration.fileIdentity == terminal.fileIdentity,
++                  let media = temporaryMedia.first(where: { $0.id == terminal.intent.media }),
++                  media.directoryIdentity == terminal.directoryIdentity, media.fileIdentity == terminal.fileIdentity,
++                  media.usages.contains(terminal.mediaUse) else { throw BackendContractError.identityMismatch }
++            photoRegistrations[index].usageTerminal = .init(command: command, terminal: terminal, commit: receipt,
++                expectedStoreIdentity: expectedStoreIdentity)
++        case .releaseTerminalUsage(let release):
++            guard let index = photoRegistrations.firstIndex(where: { $0.registration.intent == release.intent }) else {
++                throw BackendContractError.identityMismatch
++            }
++            let record = photoRegistrations[index]
++            guard record.usageRelease == nil, record.terminalUsageRelease == nil else {
++                throw BackendContractError.wrongStage
++            }
++            guard let terminal = record.usageTerminal, terminal.terminal == release.terminal,
++                  terminal.command == release.terminalCommand, terminal.commit == release.terminalCommit,
++                  record.registration.mediaUse == release.terminal.mediaUse,
++                  record.registration.directoryIdentity == release.terminal.directoryIdentity,
++                  record.registration.fileIdentity == release.terminal.fileIdentity,
++                  let media = temporaryMedia.first(where: { $0.id == release.intent.media }),
++                  media.directoryIdentity == release.terminal.directoryIdentity,
++                  media.fileIdentity == release.terminal.fileIdentity,
++                  media.usages.contains(release.terminal.mediaUse) else {
++                throw BackendContractError.identityMismatch
++            }
++            try applyTemporary(.release(release.intent.media, release.terminal.mediaUse), photoRelease: true)
++            photoRegistrations[index].terminalUsageRelease = .init(command: command, release: release, commit: receipt,
+                 expectedStoreIdentity: expectedStoreIdentity)
+         }
+     }
++
++    /// Results in the journal are the retention authority. A released reader is
++    /// not permission to unlink an unsuccessful/unknown registration copy. A
++    /// successful explicit retry on that same copy ends the earlier retention.
++    nonisolated func needsPhotoRetention(_ media: TemporaryMediaID) -> Bool {
++        PhotoRegistrationRecord.retainsCopy(media, in: photoRegistrations)
++    }
+ }

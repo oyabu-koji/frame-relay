@@ -1,0 +1,59 @@
+{
+  "config": {
+    "action": "publication-fixture-only",
+    "derived_data": "/private/tmp/fr-di-20261015-s27/PublicationDerivedData20261022-002",
+    "destination": "platform=iOS Simulator,id=CA378511-84F8-415D-A025-CD7CB59B54D3",
+    "fixture": {
+      "byteCount": 969998,
+      "fixtureOnly": true,
+      "mime": "video/quicktime",
+      "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261015-s25-test03/synthetic-rendition-60s.mov",
+      "sha256": "8a77b6c2cfdedbe850148210eada8851956f10942203aec4eae8f9e552a8b984"
+    },
+    "fixture_record": {
+      "kind": "file",
+      "sha256": "8a77b6c2cfdedbe850148210eada8851956f10942203aec4eae8f9e552a8b984",
+      "size": 969998
+    },
+    "interpreter": "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+    "listener_deadline_seconds": 1200,
+    "preparation": "/private/tmp/fr-di-20261015-s27/S27/http-preparation-002",
+    "run_identity": "355a7d0a-8122-415d-ab39-47be5119a7ae",
+    "runtime": "/private/tmp/fr-di-20261015-s27/S27/runtime-publication-002",
+    "snapshot": "/private/tmp/fr-di-20261015-s27/S27/http-snapshot-002",
+    "tests": [
+      "FrameRelayTests/PublicationHTTPFixtureTests/canonicalPlaybackConfirmationInvalidationAndReplacement()"
+    ]
+  },
+  "commands": {
+    "dry_run": [
+      "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+      "-I",
+      "-B",
+      "-S",
+      "/private/tmp/fr-di-20261015-s27/S27/http-preparation-002/source-snapshot/run_publication_fixture.py",
+      "--config",
+      "/private/tmp/fr-di-20261015-s27/S27/http-preparation-002/config.json",
+      "--checkpoint-sha256",
+      "e61b3474e9506d48cbbe89eba272d43a3eb6fedb2e50ff9c797ab16dc12d841b"
+    ],
+    "execute": [
+      "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+      "-I",
+      "-B",
+      "-S",
+      "/private/tmp/fr-di-20261015-s27/S27/http-preparation-002/source-snapshot/run_publication_fixture.py",
+      "--config",
+      "/private/tmp/fr-di-20261015-s27/S27/http-preparation-002/config.json",
+      "--checkpoint-sha256",
+      "e61b3474e9506d48cbbe89eba272d43a3eb6fedb2e50ff9c797ab16dc12d841b",
+      "--execute-reviewed-integration"
+    ]
+  },
+  "checkpoint_sha256": "e61b3474e9506d48cbbe89eba272d43a3eb6fedb2e50ff9c797ab16dc12d841b",
+  "changes": [
+    "publication_fixture_listener.py"
+  ],
+  "app279_backend273_same": true,
+  "review": "fresh002 identity/runtime/DD; only testmetadata scalar fix; formal authority/production wire unchanged"
+}

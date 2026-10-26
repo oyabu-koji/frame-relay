@@ -18,45 +18,16 @@ def helper_module():
     return helper
 
 
-def evaluate(summary, tests, config):
-    cases = []
-    def visit(node):
-        if node.get("nodeType") == "Test Case":
-            cases.append(node)
-        for child in node.get("children", []):
-            visit(child)
-    for node in tests.get("testNodes", []):
-        visit(node)
-    expected = {name.removeprefix("FrameRelayTests/") for name in config["tests"]}
-    identifiers = [node.get("nodeIdentifier") for node in cases]
-    counts = {key: summary.get(key) for key in ("totalTestCount", "passedTests", "failedTests", "skippedTests", "expectedFailures")}
-    expected_counts = {"totalTestCount": len(expected), "passedTests": len(expected),
-        "failedTests": 0, "skippedTests": 0, "expectedFailures": 0}
-    devices = summary.get("devicesAndConfigurations", [])
-    executions = sum(max(1, len([child for child in node.get("children", []) if child.get("nodeType") == "Arguments"])) for node in cases)
-    passed = (bool(expected) and summary.get("result") == "Passed" and counts == expected_counts and
-        all(type(value) is int for value in counts.values()) and len(devices) == 1 and
-        devices[0].get("device", {}).get("deviceId") == config["destination"].split("id=")[1] and
-        all(type(devices[0].get(key)) is int and devices[0][key] == value
-            for key, value in expected_counts.items() if key != "totalTestCount") and
-        len(cases) == len(expected) and set(identifiers) == expected and executions == len(expected) and
-        all(node.get("result") == "Passed" for node in cases) and
-        not any(child.get("nodeType") == "Arguments" for node in cases for child in node.get("children", [])))
-    return {"passed": passed, "summary_counts": counts, "declarations": identifiers,
-        "execution_count": executions, "nonpassing_declarations": [
-            {"identifier": node.get("nodeIdentifier"), "result": node.get("result")}
-            for node in cases if node.get("result") != "Passed"]}
-
-
 def redact(raw, credentials):
     for secret in sorted(set(credentials), key=len, reverse=True):
         raw = raw.replace(secret.encode(), b"<redacted disposable fixture credential>")
     return raw
 
 
-def collect_metadata(helper, runtime, bundle, environment, config, credentials):
+def collect_metadata(helper, runtime, bundle, environment, config, credentials, fixture):
     """Collect each document after actual Xcode exit, including failed/interrupted runs."""
     clean_environment = {k: v for k, v in environment.items() if not k.startswith("TEST_RUNNER_")}
+    contract = helper.probe_contract(helper.probe_mode(config))
     documents, collection = {}, {}
 
     def retain_stderr(observation, raw):
@@ -84,7 +55,7 @@ def collect_metadata(helper, runtime, bundle, environment, config, credentials):
             observation["attempted"] = True
             result = subprocess.run(["/usr/bin/xcrun", "xcresulttool", "get", *arguments,
                 "--path", str(bundle)], env=clean_environment, stdin=subprocess.DEVNULL,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10, check=False)
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=helper.METADATA_TIMEOUT_SECONDS, check=False)
             observation["tool_exit_code"] = result.returncode
             retain_stderr(observation, result.stderr)
             if result.returncode != 0:
@@ -109,29 +80,70 @@ def collect_metadata(helper, runtime, bundle, environment, config, credentials):
     verification = {"passed": False, "evaluation": "metadata_unavailable"}
     if "summary" in documents and "tests" in documents:
         try:
-            verification = {**evaluate(documents["summary"], documents["tests"], config), "evaluation": "completed"}
+            verification = {**helper.evaluate_probe_tests(documents["summary"], documents["tests"], config), "evaluation": "completed"}
         except Exception as error:
             verification = {"passed": False, "evaluation": "failed", "failure_type": type(error).__name__}
     build = documents.get("build")
     diagnostics = {"available": build is not None}
     if build is not None:
         diagnostics.update({key: build.get(key) for key in ("status", "errorCount", "warningCount", "analyzerWarningCount")})
+    progress = {"passed": False, "evaluation": "SDK_attachment_unavailable"}
+    attachment_collection = {"attempted": False, "collected": False, "directory": contract["attachment_directory"],
+        "test_identifier": contract["test"], "credential_environment_passed": False}
+    collection["attachments"] = attachment_collection
+    try:
+        if not bundle.exists():
+            raise RuntimeError("Missing result bundle for SDK progress attachment")
+        directory = runtime / contract["attachment_directory"]
+        directory.mkdir(mode=0o700)
+        attachment_collection["attempted"] = True
+        exported = subprocess.run(["/usr/bin/xcrun", "xcresulttool", "export", "attachments", "--path", str(bundle),
+            "--test-id", contract["test"], "--output-path", str(directory)], env=clean_environment,
+            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            timeout=helper.METADATA_TIMEOUT_SECONDS, check=False)
+        attachment_collection["tool_exit_code"] = exported.returncode
+        retain_stderr(attachment_collection, exported.stderr)
+        if exported.returncode != 0:
+            raise RuntimeError("SDK progress attachment export failed")
+        # The directory is private before xcresulttool writes. Preserve exactly
+        # its manifest/text, never synthesize a successful progress observation.
+        for path in directory.iterdir():
+            info = path.lstat()
+            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_size > 65536:
+                raise RuntimeError("Unexpected SDK progress export artifact")
+            path.chmod(0o600)
+            raw = path.read_bytes()
+            if redact(raw, credentials) != raw:
+                raise RuntimeError("Disposable credential unexpectedly reflected in private SDK attachment")
+        progress = helper.probe_evidence(runtime, config, documents.get("summary", {}),
+            documents.get("tests", {}), fixture)
+        attachment_collection["collected"] = True
+    except subprocess.TimeoutExpired as error:
+        retain_stderr(attachment_collection, error.stderr)
+        attachment_collection["failure_type"] = type(error).__name__
+    except Exception as error:
+        attachment_collection["failure_type"] = type(error).__name__
     summary = documents.get("summary", {})
     return {"metadata_collection": collection, "test_verification": verification,
         "build_diagnostics": diagnostics,
         "observed_test_failures": summary.get("failedTests"),
         "observed_build_failure": None if build is None else build.get("status") != "succeeded" or build.get("errorCount") != 0,
+        helper.evidence_field(config): progress,
         "metadata_extraction_failed": any(not item["collected"] for item in collection.values())}
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, required=True)
+    parser.add_argument("--probe-mode", choices=("publication", "metadata-only"), default="publication")
     parser.add_argument("--listener-pid", type=int)
     parser.add_argument("--execute-reviewed-xcode", action="store_true")
     args = parser.parse_args()
     helper = helper_module()
     config, checkpoint = helper.verified_config(args.config)
+    mode, contract = helper.probe_mode(config), helper.probe_contract(helper.probe_mode(config))
+    if args.probe_mode != mode:
+        raise RuntimeError("Simulator wrapper probe mode mismatch")
     runtime = Path(config["runtime"])
     bundle = runtime / "publication-fixture.xcresult"
     command = ["/usr/bin/xcodebuild", "-project", str(helper.PROJECT / "FrameRelay.xcodeproj"),
@@ -147,9 +159,9 @@ def main():
         raise RuntimeError("Missing live listener, changed app source, or reused result")
     environment = {k: os.environ[k] for k in ("HOME", "LANG", "LC_ALL", "LC_CTYPE", "TZ") if k in os.environ}
     environment["PATH"] = "/usr/bin:/bin"
-    credentials, process, output, bound_pid = (), None, b"", None
+    credentials, process, output, bound_pid, fixture = (), None, b"", None, None
     started = time.monotonic()
-    outcome = {"run_identity": config["run_identity"], "pid": os.getpid(), "passed": False,
+    outcome = {"probe_mode": mode, "run_identity": config["run_identity"], "pid": os.getpid(), "passed": False,
         "command": command, "credentials_in_argv": False, "signals_sent": [], "test_verification": {"passed": False},
         "metadata_collection": {}, "metadata_extraction_failed": None,
         "limitation": "Xcode internal artifacts can retain disposable environment; listener exit revokes its only bearer"}
@@ -185,8 +197,10 @@ def main():
         values = secret["environment"]
         fixture = json.loads(values["FR_S27_FIXTURE_JSON"])
         if (secret.get("run_identity") != config["run_identity"] or secret.get("listener_pid") != bound_pid or
-                secret.get("url") != ready["url"] or set(values) != set(helper.KEYS) or
+                secret.get("probe_mode", "publication") != mode or
+                secret.get("url") != ready["url"] or set(values) != set(contract["environment_keys"]) or
                 values["FR_S27_HTTP_FIXTURE"] != "1" or values["FR_S27_ORIGIN"] != ready["url"] or
+                (mode == "metadata-only" and values.get("FR_S28_METADATA_ONLY") != "1") or
                 len(values["FR_S27_FIXTURE_JSON"].encode()) > 16384 or fixture.get("fixture_only") is not True or
                 fixture.get("run_identity") != config["run_identity"] or
                 fixture.get("wire_sha256") != helper.WIRE_SHA256 or fixture.get("media_type") != "video/quicktime" or
@@ -223,7 +237,7 @@ def main():
             except Exception as error:
                 outcome["stop_failure_type"] = type(error).__name__
         if outcome.get("xcode_actual_exit_observed") is True:
-            outcome.update(collect_metadata(helper, runtime, bundle, environment, config, credentials))
+            outcome.update(collect_metadata(helper, runtime, bundle, environment, config, credentials, fixture))
         else:
             outcome["metadata_not_attempted_reason"] = "xcode_actual_exit_not_observed"
         for sig, old in old_handlers.items():
@@ -240,6 +254,7 @@ def main():
             if outcome.get("xcode_actual_exit_observed") is True else None)
         outcome["passed"] = (outcome.get("xcode_actual_exit_observed") is True and outcome.get("xcode_exit_code") == 0 and
             outcome["test_verification"]["passed"] and outcome["app_sources_unchanged"] and
+            outcome.get(helper.evidence_field(config), {}).get("passed") is True and
             outcome["metadata_extraction_failed"] is False and outcome.get("observed_build_failure") is False and
             not outcome["signals_sent"] and not any(key.endswith("failure_type") for key in outcome) and not outcome.get("timed_out"))
         helper.write_json(runtime / "wrapper-result.json", outcome, private=True)

@@ -27,19 +27,25 @@ nonisolated struct RenditionReadTerminal: Equatable, Sendable {
 }
 
 /// A PhotoKit consumer retains this use through the actual performChanges
-/// terminal callback. Closing that SDK access does not release the use: S31
-/// calls releaseUsage only after committing successful Photos registration.
-/// Failure/unknown results keep the use and file. The URL is not a lasting grant.
+/// terminal callback. Closing SDK access does not itself release the use: S31
+/// persists the exact terminal before release. Failure/unknown results retain
+/// the copy independently of the terminated reader. The URL is not a grant.
 nonisolated struct TemporaryLocalMedia: Equatable, Sendable {
     let url: URL
     let handoff: PhotoMediaHandoff
+    var contentType: String? = nil
+    var photoReadWitness: PhotoSaveLocalReadWitness? = nil
 }
 
 nonisolated protocol TemporaryLocalMediaPort: Sendable {
     func resolvePhotoMedia(_ usage: TemporaryMediaUsage) async throws -> TemporaryLocalMedia
-    /// Observes the real SDK terminal and closes its file access, without
-    /// asserting registration success or releasing the durable photo usage.
+    /// Called after the real SDK terminal, or proof that the SDK never started.
+    /// Closes file access without asserting success or releasing the durable use.
     func finishPhotoMedia(_ usage: TemporaryMediaUsage) async throws
+    /// Attests to this exact owner/use after non-start or successful local
+    /// closure. A fresh owner cannot manufacture a past SDK terminal.
+    func photoUsageTerminal(_ registration: CommittedPhotoRegistrationIntent,
+                            termination: PhotoUsageTermination) async throws -> PhotoUsageTerminal
 }
 
 nonisolated protocol TemporaryMediaWritingPort: TemporaryMediaPort {

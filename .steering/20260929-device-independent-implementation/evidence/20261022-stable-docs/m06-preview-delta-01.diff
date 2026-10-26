@@ -1,0 +1,175 @@
+--- preview00/glossary.md
++++ candidate/glossary.md
+@@ -28,7 +28,7 @@
+ | 通常一覧 | 撮影項目を独立した状態軸とともに表示する導線。整理成功後も原本なし・軽量版取得/再生可否・確認・Photosを示し、不明/未処理/未削除も要照合等を付けて残す |
+ | 破棄成功履歴 | 同じ原本・目的・操作について実不在と破棄成功結果を照合できた管理記録の分類。原本本体を移すゴミ箱ではなく、容量整理成功や不明結果を分類しない |
+ 
+-参照先: [機能設計 D6・S6](functional-design.md)、[アーキテクチャ「削除の最終境界」](architecture.md#削除の最終境界)。
++参照先: [機能設計 D6・S6](functional-design.md)、[アーキテクチャ「commitと復旧の契約」](architecture.md#commitと復旧の契約)。
+ 
+ ### 撮影プレビュー
+ 
+@@ -278,7 +278,7 @@
+ - 主要情報: 原本同一性・内容世代・参照、操作ID、容量整理／破棄の目的、本人操作、証拠世代または提示リスク、実行・照合結果。
+ - 本プロジェクトでの使用: 外部URLや「写真」参照を削除対象へ変換しない。意図記録だけでは成功にせず、削除済み／未削除／確認が必要をローカルで復旧する。未実行意図を再起動時に自動実行しない。
+ - 削除境界: 全reader/実handle解放と予約・管理root/leafを照合し、同FD全hash後、同writerで最終条件を再判定してMOVだけをunlinkする。実不在/FD閉鎖と結果commitを照合し、復旧は観測だけとする。
+-- 終端履歴とfence: S34-BG01の単数リスク破棄で使う`OriginalRemovalTransportFence`は、対象のhistorical upload全task receipt集合とhash前inventoryを保持する一時的な照合値。同writer最終unlinkで再構築し、ABA/新attempt/task/関連登録変更を拒否する。既存schema 7/Codable旧command・fenceなし旧CASを維持し、未知/旧source/再利用task/複数attempt/download/活動中を自動停止・回収しない。通常cleanup/Photos/複数UIの完成を意味せず、原本unlink後もupload copyを保持する。
++- 終端履歴とfence: S34-BG01の単数リスク破棄で使う`OriginalRemovalTransportFence`は、対象のhistorical upload全task receipt集合とhash前inventoryを保持する一時的な照合値。同writer最終unlinkで再構築し、ABA/新attempt/task/関連登録変更を拒否する。対象に無関係な別clip更新は許し、fenceなし旧callerの全writer revision CAS（期待revision照合）とschema 7/Codable旧commandを維持する。未知/copy中/attach gap/旧source/再利用task/同operation複数attempt/download/活動中は保留し、自動停止・回収しない。通常cleanup/Photos/複数UIの完成を意味せず、原本unlink後もupload copyを保持する。
+ - 関連する論理名・参照先: `LocalOriginalRef / RemovalPurpose / RemovalIntent / RemovalResult / ReconciliationEvidence`、[機能設計 D6・S6](functional-design.md)。
+ 
+ ### 写真登録キー・登録記録・一時コピー
+@@ -287,7 +287,7 @@
+ - 主要情報: キーとは別に、完全な原本/映像/内容を含む`RenditionIdentity`と撮影日時を登録意図へ固定し、同writerで照合する。同じ変換版IDを別内容へ付け替える再試行も拒否する。動画別操作ID・対象集合、登録状態、取得可能な写真側参照・証拠、一時媒体の用途・取得範囲・検証状態・所有者・使用権・解放可否・使用量を対応させる。
+ - 本プロジェクトでの使用: 同じキーで登録を直列化する。写真側参照の欠落だけで再追加せず、過去の登録結果と現在の存在観測、結果不明の照合記録と媒体本体を分けて保持する。部分バッファを完全な登録用ファイルや原本検証証拠にせず、空き容量不要とは扱わない。
+ - 権限・照合限界: 保存時はaddOnly、必要な不明結果等の照合時だけ対象/理由を示してreadWriteを案内する。拒否・限定・対応不明・未発見を未保存や再追加許可へ変えず、無条件再追加/写真側削除後の自動復活をしない。手動再保存/アルバムはU2の未合意事項。
+-- 終端・解放・回収: Photosの実SDK非開始または完了とFD閉鎖を元intent/use・owner/epoch・ファイル同一性とexact commitへ束縛し、その元useだけを登録結果と独立に解放する。再生専用データは使用終了後に回収し、Photos登録用コピー本体のunlinkは登録成功かつ全使用権解放後とする。unknown/failed/notAttemptedの本体・identifier/再追加抑止・照合証拠を保持し、従来の成功recordによる限定回収も維持する。保持容量/期限・未知copy回収等の未合意policyを追加しない。
++- 終端・解放・回収: Photosの実SDK非開始または完了とFD閉鎖を元intent/use・owner/epoch・ファイル同一性とexact commitへ束縛し、その元useだけを登録結果と独立に解放する。再生専用データは使用終了後に回収し、Photos登録用コピー本体のunlinkは登録成功かつ全使用権解放後とする。unknown/failed/notAttemptedの本体・identifier/再追加抑止・照合証拠を保持し、従来の成功recordによる限定回収も維持する。本体回収でも確認記録・登録履歴・照合証拠を消さず、保持容量/期限・未知copy回収等の未合意policyを追加しない。
+ - 関連する論理名・参照先: `PhotoRegistrationKey / PhotoRegistration / TemporaryMedia`、使用権、[機能設計 D7・S7](functional-design.md)。
+ 
+ ## 技術用語
+@@ -295,7 +295,7 @@
+ ### Swift・SwiftUI・Xcodeとプロジェクト設定
+ 
+ - 定義・用途: Swiftは実装言語、SwiftUIはUI基盤、Xcodeは既存ネイティブiOS projectの開発・ビルド環境。
+-- Version policy: 最低対応iOSの既存設定`27.0`、Swift言語モード`5.0`を維持する。言語モードはコンパイラの実バージョンではなく、Xcode・コンパイラ・SDKの実バージョンは未確認。
++- Version policy: 最低対応iOSの既存設定`27.0`、Swift言語モード`5.0`を維持する。言語モードとコンパイラの実バージョンを区別し、使用するXcode・コンパイラ・SDK・実行構成は開発環境と版別証跡で確認する。
+ - 関連用語: target、scheme、destination。技術名の記載を機能成立の証拠にしない。
+ - 参照先: [PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md)、[開発ガイドライン「開発環境」](development-guidelines.md#開発環境)。
+ 
+@@ -315,16 +315,16 @@
+ 
+ | 用語 | 定義と本プロジェクトでの用途 | 関係 |
+ | --- | --- | --- |
+-| Presentation | 表示用の値と本人入力を扱う責務 | `Features/`等へ配置する目標。I/Oや削除規則を直接実行しない |
++| Presentation | 表示用の値と本人入力を扱う責務 | `Features/`等に実在し、I/Oや削除規則を直接実行しない |
+ | Application | 撮影・媒体操作・復旧等の順序と状態所有を調停する責務 | Domainの規則とPortを利用する |
+ | Domain | 値と副作用のない製品規則を扱う責務 | 時刻・能力・証拠を入力で受け、UI・DB・端末APIに依存しない |
+ | Platform | 端末・保存・通信・再生・Photos等の具体I/Oを扱う責務 | Portを実装し、外部表現を境界内へ閉じる |
+-| Port | Applicationから利用するI/Oの契約 | protocolや値契約の配置は`Application/Ports/`を目標とする |
+-| Adapter／Service | Portを具体技術へ接続する実装 | 具体技術名・型は採用と実装時に決める |
++| Port | Applicationから利用するI/Oの契約 | protocolや値契約は`Application/Ports/`に置き、具象SDK/外部DTOを漏らさない |
++| Adapter／Service | Portを具体技術へ接続する実装 | 具体名はarchitectureの採用状況と実配置に対応させる |
+ | Composition | 具象実装を生成して契約へ注入する組み立て箇所 | 規則や独自の成功判定を置かない |
+ | command／event／snapshot | 実行要求／型付きの発生事実／表示等に渡す値のまとまり | 担当間の窓口。snapshotや表示キャッシュを永続証拠の正本にしない |
+ 
+-各層は同一App module内の論理境界であり、別target・packageの採用を意味しない。`CaptureCoordinator`、`MediaOperations`、`OperationStore`、`Library`、`Recovery`は先行設計の責務名で、同名実装の存在を示さない。
++各層は同一App module内の論理境界であり、別target・packageの採用や自動的な依存強制を意味しない。`CaptureCoordinator`、`MediaOperations`、`OperationStore`、`Library`、`Recovery`等の責務名と実型名を区別し、実在配置はリポジトリ構造を参照する。
+ 
+ 参照先: [アーキテクチャ「システム境界」](architecture.md#システム境界)、[リポジトリ構造「依存関係」](repository-structure.md#依存関係)。
+ 
+@@ -335,14 +335,16 @@
+ | commit成功 | Portが永続storeへの保存成功を確認した段階 | UI受付、子contextのsave、HTTP成功では代用しない。Gitのcommitとは文脈を分ける |
+ | 期待世代 | 更新が前提とする対象の世代 | 保存時に現世代と照合し、古い更新や二重commitを拒否する |
+ | 直列化／項目排他 | 同一対象の競合操作を一つの順序で実行すること | 原本単位の削除・失効、写真登録キー単位の登録に使用。`await`付きactorだけで操作全体の排他が完成したとしない |
+-| 冪等性 | 同じ操作を繰り返し受けても追加の副作用や状態矛盾を生まない性質 | 操作ID・失効ID等で照合する必要契約。現行MediaVaultで成立済みとはしない |
++| 冪等性 | 同じ操作を繰り返し受けても追加の副作用や状態矛盾を生まない性質 | 操作ID・失効ID・元mutation等で照合する。隔離技術証拠を稼働MediaVault全体の成立へ拡張しない |
+ 
+ DB・ファイル・Photos・Mac miniの一括原子更新は仮定しない。操作意図、副作用、結果保存の境界で照合が必要になる。参照先: [アーキテクチャ「commitと復旧の契約」](architecture.md#commitと復旧の契約)、[開発ガイドライン「非同期処理・操作の寿命」](development-guidelines.md#非同期処理操作の寿命)。
+ 
+ ### 使用権・lease・MediaIOGate・取消し
+ 
+-- 定義: 使用権は媒体を記録・読取・削除等の用途で扱っていることを管理する権利。`lease`は全動画通信の共通ゲートが許可中のI/Oへ渡す利用許可。MediaIOGateはその許可と抑止理由を扱う論理責務。
+-- 本プロジェクトでの使用: 原本削除や一時コピー回収は、記録・読取の実解放を待つ。通信はWi-Fi・REC／保存・本人停止等の条件を独立に保持し、一条件の解消で他の抑止を消さない。leaseと媒体の使用権は用途を明示する。
++- 定義: 使用権/leaseは媒体やI/Oを用途・操作・ownerへ束縛して管理する契約。原本read lease、軽量版scopeの使用権、一時コピーのphoto/retrieval用途、通信開始のpermitを区別し、一つの解放を他用途の全解放にしない。MediaIOGateは全動画通信の許可と抑止理由を扱う論理責務。
++- 本プロジェクトでの使用: 原本削除や一時コピー回収は必要な全reader/実handleの解放を照合する。原本read leaseは内容/操作/owner/epoch・実FD/SDK attachmentと対応させ、軽量版/一時媒体は完全な版・用途・範囲・使用者を保持する。通信はWi-Fi・REC/保存・本人停止等を独立に保持し、原本lease取得だけで通信開始を許可しない。
++- SDK実終端・ownerClosed: 実completion等で対象SDK操作の終了を観測することと、owner自身の保持資源を閉鎖して記録することを分ける。背景uploadではexactなOS session/task/attemptの実SDK終端→ManagedUploadSource自身の保持FD閉鎖→ownerClosed commit→exact lease解放→stoppedを照合する。SDK所有全FDの閉鎖やMac未実行まで証明せず、試験で注入したstrict permit/Mac notExecutedを実ネットワーク観測値としない。
++- 未知の所有者: 再起動後の旧source、copy中/attach gap、活動中task等で実終端/解放の証拠がなければ保留する。task一覧の不在・finishEvents・配送handler完了から全reader解放を作らず、元useの解放とコピー本体の回収条件も分ける。
+ - 取消しの区別: 要求受付、端末上の実停止、外部副作用の結果は別イベント。task取消し・画面離脱でMac保存やPhotos追加まで取り消せたとは扱わない。
+ - 関連用語・参照先: 直列化、動画通信、[アーキテクチャ「並行処理・寿命・キャンセル」](architecture.md#並行処理寿命キャンセル)、[「全動画通信の共通契約」](architecture.md#全動画通信の共通契約)。
+ 
+@@ -350,19 +352,19 @@
+ 
+ - 定義: 記録経路は音声付き原本を書き出す経路、表示経路は現在映像を見せる経路、解析経路は人物・ND・構図等の補助結果を作る経路。
+ - 本プロジェクトでの使用: 表示変換や予告を原本へ混ぜず、遅い解析をRECの一律の待ち条件にしない。MainActorはUI更新の隔離に使う設計で、録画データ・動画I/O・ハッシュ・解析をUI状態更新へ載せない。
+-- Version policy: 以下は[アーキテクチャ「技術スタック」](architecture.md#技術スタック)の用途・候補状態を引き継ぐ。OS標準APIの使用可否は採るSDKと実機で確認し、外部依存導入を意味しない。
++- Version policy: 以下は[アーキテクチャ「技術スタック」](architecture.md#技術スタック)の内部採用と候補の区別を引き継ぐ。実装に用いたAPIを正式方式・全能力・品質の実機採用へ昇格せず、外部依存導入を意味しない。
+ 
+ | 技術 | 本プロジェクトでの用途・状態 |
+ | --- | --- |
+-| AVFoundation／Core Media、AVKit | 撮影・音声・時間・書込・再生の基盤候補。MovieFileOutputとDataOutput＋AssetWriter等の出力方式は未決 |
+-| Core Image／Metal、Vision | 固定Rec.709表示・端末内解析の候補。導入済み・品質成立済みとしない |
+-| Core Data／SQLite store | 復旧証拠をまとめるローカルストアの第一案。schema・commit・移行・障害時保証は検証待ち |
+-| FoundationファイルI/O／CryptoKit SHA-256 | 管理媒体と全内容識別の設計案。サーバー側方式との合意・負荷検証が必要 |
+-| URLSession／Network | 共通ゲートを適用する動画通信adapterの第一案。経路表示だけでWi-Fi強制成立とはしない |
+-| Photos／PhotoKit | 「写真」追加・結果照合を担うOS機能／API。追加・読取権限の範囲はU2 |
+-| Keychain／OSLog | 秘密保管／診断出力に使う設計。診断ログは復旧証拠と分離する |
+-| Swift Concurrency | 状態所有・task寿命・UI隔離に使う設計。端末API所定のqueue制約と既存言語設定を保つ |
+-| Swift Testing／XCTest | 既存雛形に沿った単体・統合／UIテストの基盤。雛形の存在は受入検証の証拠ではない |
++| AVFoundation／Core Media、AVKit | 撮影・音声・時間・候補記録経路・原本/固定版実再生に使用。MovieFileOutput/DataOutput＋AssetWriter等の正式方式・実能力/品質の採用とは分ける |
++| Core Image／Metal、Vision | Core Imageは生成cubeによる独立技術描画、Visionは人物解析本体で使用。Metalの製品方式、正式Log→Rec.709資材/通常表示は採用済みにせず、SDK特徴量一致も人物同一性・実合焦の証明にしない |
++| Core Data／SQLite store | 共通writerへ採用し、schema 7の記録/journal・commit/再open・削除最終照合を共有。AtomicFile候補は比較/障害試験用。未知schema/破損を空storeへ置換せず、実機保護/OS終了の保証とは分ける |
++| FoundationファイルI/O／CryptoKit SHA-256 | 管理原本・固定FD/read lease・全内容識別・実unlink等に採用。ファイル名/サイズ/URLだけで内容同一性を作らず、内部採用を外部in-place改変防止や実機耐久性の保証にしない |
++| URLSession／Network | 登録・固定Range・背景OS session/taskのadapterに使用。経路表示だけでWi-Fi強制成立とせず、通常strict開始/resume・全媒体producerの未接続を保持する |
++| Photos／PhotoKit | 実追加/結果照合・同writer意図/終端証拠と必要時読取の下位処理。正式媒体による通常新規保存/複数producer・実機品質とは分ける |
++| Keychain／OSLog | 接続先/store identity/登録意図に束縛した資格保管と診断。秘密はログ等へ入れず、診断を復旧証拠の代わりにしない。再登録/秘密更新等の接続は別に扱う |
++| Swift Concurrency | 実装の状態所有・task寿命・UI隔離に使用。端末API所定のqueue制約と既存言語設定を保つ |
++| Swift Testing／XCTest | 実在する単体/統合・UIテストの基盤。空雛形・skipと意味ある実行を分け、自動成功を実機/PRD受入へ昇格しない |
+ 
+ ## 略語・運用用語
+ 
+@@ -401,18 +403,44 @@
+ 
+ 参照先: [PRD「未決事項」「補足・承認履歴」](product-requirements.md)、[開発ガイドライン「判定と証跡」「Definition of Done」](development-guidelines.md#判定と証跡)。
+ 
++### DIの実装状態・4軸・局所保留・部分引渡し
++
++DI（実機なし先行実装）の4段階は共通保存/原本/一覧、連携/媒体制御、Photos/削除、撮影/補助表示の変更単位であり、次の実装状態とは別の分類である。
++
++| 実装状態 | 定義・区別 |
++| --- | --- |
++| 未実装 | 必要な本体や実I/Oがまだ存在しない状態。設計・型・画面の存在を本体の完成にしない |
++| 探索候補 | 成立性を調べる方式候補/試験用組立。製品接続や実機方式の採用と区別する |
++| 本体実装済み・未接続 | 対象の実I/O等は存在するが、必要なconsumer/producer・通常Composition等との接続が不足する状態。実機待ちだけと表示しない |
++| 必要接続を含む実装済み | 対象の本体と必要接続が存在する状態。実機未確認を別記し、自動検証/受入達成まで自動的に意味しない |
++
++| 軸 | 対象/版ごとに記録する意味 |
++| --- | --- |
++| I（実装） | 実装状態と必要接続・未接続・暫定値の範囲 |
++| A（自動検証） | build/単体/UI/結合等の実行版・件数・結果・証拠。通常レビューとは別 |
++| D（実機確認） | 実機の組合せ・環境と適合/不適合/判定不能 |
++| R（PRD受入） | PRDのAC全文に対する部分証拠/未達/達成 |
++
++- 直接依存・局所保留: 不足事実が必要な処理だけを止め、理由/影響/再開条件を残すこと。実機・G1/G2B・資材・前段全体の未完了を独立taskの開始条件へ加えず、当該taskの必須検証も免除しない。
++- 部分引渡し: 同じ対象/版の実装・接続・検証・レビュー範囲を所有者へ渡し、残件と再開条件を分けること。substatusの完了をtask全体やPRD受入の完了にしない。
++- 軽微可逆判断・暫定値: 戻せる内部配置/adapter分割/版付き設定等について根拠・候補・適用範囲・影響・担当・版を記録して進める判断。本人承認済み暫定policyと未回答案を分け、暫定値の接続を実機品質の採用としない。
++
++参照先: [開発ガイドライン「基本原則」「判定と証跡」「Definition of Done」](development-guidelines.md)、[アーキテクチャ設計](architecture.md)。
++
+ ### U1〜U8・技術候補
+ 
+ - 定義: U1〜U8は機能設計で確定部分とユーザー判断・詳細化を待つ部分を整理する論点。技術候補は成立性・契約・負荷等の確認後に選定する方式。
+ - 本プロジェクトでの使用: U1＝ライブラリと破棄操作、U2＝軽量版再生と写真権限、U3＝通信復帰・背景動作、U4＝ズームUI、U5＝人物なし・主役UI、U6＝レンズISO・補正・設定、U7＝音声復旧・負荷対応、U8＝変換出力。
+-- R3確定部分: U1の操作別の複数選択範囲、U2の全体一時取得を待たないストリーミング第一候補、U3の本人が開始した通信の条件付き自動再開。再度の回答待ちへ戻さない。
++- R3/DI確定部分: U1の操作別の複数選択・整理後の通常一覧/破棄成功履歴、U2のストリーミング第一候補・保存時addOnly/必要時だけ理由付きreadWrite、U3の条件付き自動再開・OS許可範囲の既開始背景/ロック・媒体なしモバイル状態同期・独立失敗続行/共通待機。再度の回答待ちへ戻さない。
+ - S45合意部分: U5の人物なし時のタップ位置AF、初回意図の本人選択・保存復元・未選択REC非阻害、見失い猶予の変更可能な暫定3秒と期限後のピント保持・再指定待ち。実機品質の受入とは分ける。
+-- 残件: U1〜U3の選択・停止UI、処理順・一部失敗後の方針、再生元・写真権限、一時媒体の方式・使用量上限・期限・復旧、再開条件の保存・二重処理防止、背景・ロック等と、U4〜U8の合意済み部分を除く案・数値は未合意。ストリーミングの配信・認証・版固定や実機成立も未検証で、用語・論理型・目標ディレクトリだけで採用済みとしない。
++- S43/S46合意部分: U7の音声無到着2秒・本人1操作1試行の音声入出力再構成・復旧全体上限5秒、ND結果を入力映像観測時点から1秒で失効させる設定は変更可能な承認済み暫定値。NDの保留はREC条件にせず、実音声/AF/NDの品質採用は実機評価へ残す。
++- 残件: 選択/停止UI・処理順・再生元の具体方式、写真のアルバム/外部削除後の手動再保存、一時媒体の容量/期限・未知copy回収、S47 ISO未回答案、変換出力品質・削除後続policy等は未合意。正式資材・通常strict開始/resume・全媒体/製品接続と実機品質も別の未成立範囲で、技術証拠や用語の存在だけで完了にしない。
+ - 参照先: [機能設計「ユーザー判断待ちの具体案」](functional-design.md#ユーザー判断待ちの具体案)、[アーキテクチャ「技術的制約と未決事項」](architecture.md#技術的制約と未決事項)。
+ 
+ ### 品質ゲート・証跡・Definition of Done
+ 
+-- 定義: 品質ゲートは変更範囲に必要なbuild・診断・test・起動・実機等の確認。証跡は対象・条件・実施結果・判定を追跡できる記録。Definition of Doneは対象変更を完了とする条件。
++- 定義: 品質ゲートは変更範囲に必要なbuild・診断・test・起動・実機等の確認。証跡は対象/版・条件・実施結果・判定を追跡できる記録で、通常mainレビュー・専門文書レビュー・独立validationも実行証拠と分ける。
++- 本体task Doneと製品DoD: 前者は割当てた本体/必要接続・全substatus/Finish・必要な意味ある試験/build/実I/O/UI・mainレビューの完了。必須検証失敗/未実行があれば当該taskをdoneにしない。後者は全21要求・79AC全文、必要な実機/実通信・事前品質合意・実データ条件の充足で別に判定する。独立した本体の完了を製品全体の受入へ読み替えず、当該taskに必須の実機検証も免除しない。
+ - 本プロジェクトでの使用: 文書だけの変更はリンク・構造・正本との整合・差分範囲を静的確認する。アプリ変更は実在project、scheme、destination、対象testを確認してから実行する。固定カバレッジ閾値は未合意。
+ - 関連用語: targetはビルド対象、schemeは各actionの実行構成、destinationは実行先。target名からschemeを推定しない。build成功、起動確認、試験実施、受入合格を分ける。
+ - 参照先: [開発ガイドライン「品質ゲート」「Definition of Done」](development-guidelines.md#品質ゲート)。
+@@ -446,6 +474,8 @@
+ | プレビュー（対象不明） | 撮影プレビュー／構図予告／Rec.709軽量プレビュー | 現在映像、未来の範囲目安、保存後の確認用動画を区別 |
+ | 軽量版／軽量プレビュー | 成果物はRec.709軽量版、確認用途は軽量プレビュー | 同じ動画の用途差。初出ではRec.709を明示 |
+ | 原本／Log原本／iPhone原本／ローカル原本 | 所在を区別するときはFrameRelay内のiPhone原本／Mac mini原本 | 「原本」だけで削除先を曖昧にしない |
++| 原本削除＝管理記録/一覧から消去 | 原本本体の実削除／管理記録保持／整理成功は通常一覧 | 媒体本体・記録・表示分類を分ける |
++| 破棄履歴＝ゴミ箱 | 照合済み破棄成功の管理履歴 | 原本本体を移して保持せず、不明結果を履歴へ隠さない |
+ | 確認済み（対象不明） | 保存検証済み／軽量プレビューの明示確認済み／破棄対象と消失リスクの確認 | 機械検証・本人の映像確認・破棄意思を分ける |
+ | 確認が必要＝再視聴が必要 | 対象処理の結果照合が必要 | 結果不明からの復旧をFR-13の確認操作と混同しない |
+ | 削除／整理（目的不明） | 容量整理（FR-14）／不要動画の破棄（FR-17） | 同じローカル削除でも目的・許可条件を分ける |
+@@ -460,6 +490,8 @@
+ | 追跡OFF＝ピント固定 | 追跡OFF時の人物優先AF | FR-05の動作を維持 |
+ | 引き伸ばしなし＝完全無劣化・最良画質 | 条件と根拠を持つ停止候補 | 倍率だけで実画質を保証しない |
+ | キャンセル済み＝外部操作未実行 | 取消し受付／実停止／副作用の結果 | Mac保存・Photos追加等の結果を照合する |
++| lease解放＝コピー回収／全reader解放 | 用途別使用権解放／本体回収条件／全ownerの実終端 | 元useの解放だけで他用途・SDK内部・媒体本体の回収を推定しない |
++| 新登録ACK＝旧登録の必要ACK | 登録別の全必要ACK | 再登録で旧登録の差し替え保留を自動解除しない |
+ | Photos／PhotoKit／「写真」 | 機能・保存先は「写真」、技術境界はPhotos／PhotoKit | 製品操作とAPIを区別 |
+ | commit（対象不明） | 永続storeへのcommit／Git commit | 保存確定と変更履歴の操作を区別 |
+ | 確定・対応済み・完了（根拠不明） | 要求承認／設計案／実装済み／試験実施／受入合格を明記 | 合意と実機成立を混同しない |

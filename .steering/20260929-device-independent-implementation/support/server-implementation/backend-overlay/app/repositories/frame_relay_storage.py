@@ -2,6 +2,8 @@
 from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from functools import wraps
+import base64
+import binascii
 import hashlib
 import inspect
 import json
@@ -87,6 +89,64 @@ def authorize(conn, session_id, requested, secret):
         if str(value[key]) != str(requested[key]):
             raise StorageError("storage_binding_mismatch")
     return value
+
+
+INVENTORY_CURSOR_VERSION = "fr-original-inventory-v1"
+INVENTORY_CAPTURE_MAX_BYTES = 2048
+
+
+def inventory_cursor(request, after):
+    # A cursor is a scoped keyset, not an authorization credential. Replaying
+    # the same cursor is harmless; registration authentication is still required.
+    value = {key: request[key] for key in ("destination_id", "registration_id", "registration_generation", "limit")}
+    value.update({"version": INVENTORY_CURSOR_VERSION, "after": after})
+    return base64.urlsafe_b64encode(canonical(value).encode("ascii")).decode("ascii").rstrip("=")
+
+
+def inventory_after(request):
+    token = request["cursor"]
+    if token is None:
+        return None
+    try:
+        value = json.loads(base64.b64decode(token + "=" * (-len(token) % 4), altchars=b"-_", validate=True))
+        after = value["after"]
+        if (not isinstance(after, str) or str(UUID(after)) != after or
+                inventory_cursor(request, after) != token):
+            raise ValueError("Noncanonical or differently scoped cursor")
+    except (ValueError, TypeError, KeyError, binascii.Error):
+        raise StorageError("storage_inventory_cursor_invalid") from None
+    return after
+
+
+def inventory_capture_bound(conn, session_id, destination):
+    # Check the byte length before materializing a possibly oversized opaque
+    # identity. The existing upload API's identity contract is unchanged.
+    row = conn.execute("SELECT length(CAST(capture_id AS BLOB)) FROM fr_upload_bindings "
+        "WHERE session_id=? AND destination_id=?", (session_id, destination)).fetchone()
+    if row is None:
+        raise StorageError("storage_inventory_cursor_invalid")
+    if type(row[0]) is not int or not 1 <= row[0] <= INVENTORY_CAPTURE_MAX_BYTES:
+        raise StorageError("storage_inventory_item_too_large")
+
+
+def inventory_sessions(conn, request, secret):
+    if not conn.in_transaction or not available(conn):
+        raise StorageError("storage_schema_unavailable")
+    authenticate(conn, request, secret)
+    after = inventory_after(request)
+    if after is not None:
+        inventory_capture_bound(conn, after, request["destination_id"])
+    # Missing states and evidence attached to a non-completed state are also
+    # candidates: the service must reject their inconsistency, never omit them
+    # and return a misleading empty or shortened successful page.
+    rows = conn.execute("""SELECT b.session_id FROM fr_upload_bindings b
+        LEFT JOIN fr_upload_states s ON s.session_id=b.session_id
+        LEFT JOIN fr_storage_evidence e ON e.session_id=b.session_id
+        WHERE b.destination_id=? AND (? IS NULL OR b.session_id>?)
+          AND (s.status='completed' OR s.session_id IS NULL OR e.session_id IS NOT NULL)
+        ORDER BY b.session_id COLLATE BINARY LIMIT ?""",
+        (request["destination_id"], after, after, int(request["limit"]) + 1)).fetchall()
+    return after, [row[0] for row in rows]
 
 
 def allocate_claim(conn, job):

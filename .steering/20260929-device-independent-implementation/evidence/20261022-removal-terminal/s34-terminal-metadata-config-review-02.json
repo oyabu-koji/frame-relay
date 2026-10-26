@@ -1,0 +1,77 @@
+{
+  "config": {
+    "action": "publication-metadata-only-fixture",
+    "derived_data": "/private/tmp/fr-di-20261015-s27/MetadataDerivedData20261022-002",
+    "destination": "platform=iOS Simulator,id=CA378511-84F8-415D-A025-CD7CB59B54D3",
+    "fixture": {
+      "byteCount": 969998,
+      "fixtureOnly": true,
+      "mime": "video/quicktime",
+      "path": "/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261015-s25-test03/synthetic-rendition-60s.mov",
+      "sha256": "8a77b6c2cfdedbe850148210eada8851956f10942203aec4eae8f9e552a8b984"
+    },
+    "fixture_record": {
+      "kind": "file",
+      "sha256": "8a77b6c2cfdedbe850148210eada8851956f10942203aec4eae8f9e552a8b984",
+      "size": 969998
+    },
+    "interpreter": "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+    "listener_deadline_seconds": 1200,
+    "preparation": "/private/tmp/fr-di-20261015-s27/S27/metadata-http-preparation-002",
+    "probe_contract": {
+      "attachment_directory": "metadata-attachments",
+      "attachment_extension": "json",
+      "attachment_stem": "s28-metadata-observation",
+      "environment_keys": [
+        "FR_S27_HTTP_FIXTURE",
+        "FR_S27_ORIGIN",
+        "FR_S27_BEARER",
+        "FR_S27_REGISTRATION_SECRET",
+        "FR_S27_FIXTURE_SECRET",
+        "FR_S27_FIXTURE_JSON",
+        "FR_S28_METADATA_ONLY"
+      ],
+      "mode": "metadata-only",
+      "report_schema": "fr-s28-metadata-observation-v1",
+      "required_observations": [
+        "coordinator_metadata_commit_reopen",
+        "exactly_two_metadata_requests",
+        "all_metadata_handlers_terminal",
+        "one_complete_empty_invalidation_page",
+        "manifest_matches_current_v1",
+        "zero_media_and_distribution_requests",
+        "zero_confirmation_ack_lookup_requests",
+        "zero_fixture_control_requests"
+      ],
+      "test": "StatusSynchronizationHTTPFixtureTests/metadataOnlyPageAndManifestUseCoordinator()"
+    },
+    "probe_mode": "metadata-only",
+    "run_identity": "de1a0b51-9f97-4f21-bb95-6d0bcf3d7e76",
+    "runtime": "/private/tmp/fr-di-20261015-s27/S27/runtime-metadata-only-002",
+    "snapshot": "/private/tmp/fr-di-20261015-s27/S27/metadata-http-snapshot-002",
+    "tests": [
+      "FrameRelayTests/StatusSynchronizationHTTPFixtureTests/metadataOnlyPageAndManifestUseCoordinator()"
+    ]
+  },
+  "checkpoint": "a97713f1321d44d30809139c3108f3d5cd9961087f09e118f75dcdcfb9d2ce04",
+  "counts": {
+    "app": 288,
+    "backend_snapshot": 273,
+    "HTTP_helpers": 9
+  },
+  "reviewed_exact_execution": [
+    "/Users/oyabu/dev/rep/latest_template/backend/.venv/bin/python",
+    "-I",
+    "-B",
+    "-S",
+    "/private/tmp/fr-di-20261015-s27/S27/metadata-http-preparation-002/source-snapshot/run_publication_fixture.py",
+    "--config",
+    "/private/tmp/fr-di-20261015-s27/S27/metadata-http-preparation-002/config.json",
+    "--checkpoint-sha256",
+    "a97713f1321d44d30809139c3108f3d5cd9961087f09e118f75dcdcfb9d2ce04",
+    "--probe-mode",
+    "metadata-only",
+    "--execute-reviewed-integration"
+  ],
+  "executable_scope": "reviewed loopback synthetic metadata-only; no media/control"
+}

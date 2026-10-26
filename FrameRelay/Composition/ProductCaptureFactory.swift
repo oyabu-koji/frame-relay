@@ -35,8 +35,9 @@ import Foundation
     nonisolated static let proposedLensISOPolicyV1 = CaptureLensISOPolicy(version: "s47-lens-iso-proposal-v1", maximumStops: 1)
 
     static func make(services: ProductLibraryServices,
+                     mediaBoundary: (any CaptureMediaBoundaryPort)? = nil,
                      didSave: @escaping @MainActor @Sendable () async -> Void) -> ProductCaptureCoordinator {
-        make(services: services, didSave: didSave, makeDeviceWithControls: { candidate, audioPolicy, subjectPolicy, ndPolicy, zoomPolicy, lensPolicy in
+        make(services: services, mediaBoundary: mediaBoundary, didSave: didSave, makeDeviceWithControls: { candidate, audioPolicy, subjectPolicy, ndPolicy, zoomPolicy, lensPolicy in
             #if !targetEnvironment(simulator)
             guard await permission(for: .video) else { throw ExplorationIssue.permissionDenied }
             guard await permission(for: .audio) else {
@@ -52,15 +53,17 @@ import Foundation
 
     /// Keep the device builder and coordinator on the same versioned policy.
     static func make(services: ProductLibraryServices,
+                     mediaBoundary: (any CaptureMediaBoundaryPort)? = nil,
                      didSave: @escaping @MainActor @Sendable () async -> Void,
                      makeDevice: @escaping @Sendable (ExplorationOutputCandidate, ProductCaptureAudioPolicy, CaptureSubjectPolicy, CaptureNDPolicy) async throws
                         -> any ProductCaptureDevicePort) -> ProductCaptureCoordinator {
-        make(services: services, didSave: didSave, makeDeviceWithControls: { candidate, audio, subjects, nd, _, _ in
+        make(services: services, mediaBoundary: mediaBoundary, didSave: didSave, makeDeviceWithControls: { candidate, audio, subjects, nd, _, _ in
             try await makeDevice(candidate, audio, subjects, nd)
         })
     }
 
     static func make(services: ProductLibraryServices,
+                     mediaBoundary: (any CaptureMediaBoundaryPort)? = nil,
                      didSave: @escaping @MainActor @Sendable () async -> Void,
                      makeDeviceWithControls: @escaping @Sendable (ExplorationOutputCandidate, ProductCaptureAudioPolicy, CaptureSubjectPolicy, CaptureNDPolicy, CaptureZoomPolicy, CaptureLensISOPolicy?) async throws
                         -> any ProductCaptureDevicePort) -> ProductCaptureCoordinator {
@@ -70,13 +73,15 @@ import Foundation
         let preferences = CapturePreferenceStore(url: services.run.url.appendingPathComponent("capture-preferences.json"))
         let save = OriginalSaveCoordinator(store: services.store, originals: services.originals,
                                            inspection: AVOriginalInspectionAdapter(originals: services.originals))
+        let boundary = mediaBoundary ?? ProductCaptureMediaBoundary(background:
+            ProductBackgroundMediaFactory(openLibrary: { services }))
         return ProductCaptureCoordinator(preferences: preferences, makeDevice: { candidate in
             try await makeDeviceWithControls(candidate, audioPolicy, subjectPolicy, ndPolicy, provisionalZoomPolicyV1, nil)
         }, save: save, bindOriginal: { reference in
             let operation = MediaOperationID(rawValue: "capture-bind-" + UUID().uuidString)
             if case .succeeded = await services.access.bind(reference, operation: operation) { return true }
             return false
-        }, didSave: didSave, audioPolicy: audioPolicy, subjectPolicy: subjectPolicy, ndPolicy: ndPolicy, zoomPolicy: provisionalZoomPolicyV1,
+        }, didSave: didSave, mediaBoundary: boundary, audioPolicy: audioPolicy, subjectPolicy: subjectPolicy, ndPolicy: ndPolicy, zoomPolicy: provisionalZoomPolicyV1,
             calendarNow: { Date() }, captureNow: { ExplorationCaptureValues.now() })
     }
 

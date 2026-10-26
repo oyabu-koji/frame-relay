@@ -18,17 +18,8 @@ struct ProductLibrarySeedTests {
         let manifestURL = services.run.url.appendingPathComponent("s16v2-test-seed-evidence.json")
         let creating = existing.isDisjoint(with: expected)
         if creating {
-            let playable = try await seedMovie("s16v2-original", services: services)
-            try #require(playable.saveRecord.result == .unknown(.evidenceMissing))
-            for (name, purpose) in [("s16v2-cleanup", RemovalPurpose.cleanup), ("s16v2-discard", .discard)] {
-                let binding = try await seedMovie(name, services: services)
-                try await seedRemovalProjection(binding, purpose: purpose, services: services)
-            }
-            let unfinished = try CaptureFixture(clip: "s16v2-unfinished")
-            try await services.originals.reserveForRecording(unfinished.intent.original)
-            guard case .committed = await services.store.execute(.commitIntent(unfinished.token(1), expectedRevision: 0, unfinished.intent)) else {
-                Issue.record("Seed unfinished intent failed"); return
-            }
+            try #require(before.items.isEmpty)
+            try await seedFreshLibraryFixtures(services)
         } else {
             // Never repair/reset a partially prepared or unexpectedly changed root.
             try #require(expected.isSubset(of: existing))
@@ -44,7 +35,7 @@ struct ProductLibrarySeedTests {
         guard case .succeeded(let state) = await services.store.loadOriginalState() else {
             Issue.record("Seed ledger unavailable"); return
         }
-        try #require(state.originals.allSatisfy { $0.readers.isEmpty })
+        try #require(state.logicalOriginals.allSatisfy { $0.readers.isEmpty && $0.mediaReaders.isEmpty })
         let evidence = try await seedEvidence(services)
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
         let bytes = try encoder.encode(evidence)
@@ -66,8 +57,55 @@ struct ProductLibrarySeedTests {
         guard case .succeeded(let state) = await services.store.loadOriginalState() else {
             Issue.record("Post UI ledger unavailable"); return
         }
-        try #require(state.originals.allSatisfy { $0.readers.isEmpty })
+        try #require(state.logicalOriginals.allSatisfy { $0.readers.isEmpty && $0.mediaReaders.isEmpty })
         print("S16_POST_UI_IDENTITY_MATCH previousRoot=\(original.root) previousContainer=\(original.container) currentRoot=\(current.root) currentContainer=\(current.container) bundle=\(Bundle.main.bundleIdentifier ?? "missing") readers=0 digest=\(current.digest)")
+    }
+
+    /// Exercise the opt-in seed's creation path in normal Unit runs, using an
+    /// isolated temporary root instead of the app's existing library.
+    @Test func freshFixturesReopenWithRemovalProjectionsAndUnchangedOriginal() async throws {
+        let parent = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
+            .appendingPathComponent("FrameRelay-library-seed-" + UUID().uuidString)
+        try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: false)
+        let services = try await ProductLibraryFactory(supportDirectory: parent).open()
+        try await seedFreshLibraryFixtures(services)
+        let evidence = try await seedEvidence(services)
+        let reopened = try await ProductLibraryFactory(supportDirectory: parent).open()
+        try #require(try await seedEvidence(reopened) == evidence)
+        guard case .loaded(let library) = await reopened.reader.loadLibrary(),
+              case .succeeded(let state) = await reopened.store.loadOriginalState() else {
+            throw BackendContractError.unavailable
+        }
+        try #require(Set(library.items.map { $0.id.rawValue }) ==
+            ["s16v2-original", "s16v2-cleanup", "s16v2-discard", "s16v2-unfinished"])
+        try #require(library.history.map { $0.id.rawValue } == ["s16v2-discard"])
+        try #require(library.recordings.contains { $0.id.rawValue == "s16v2-cleanup" && $0.removal == .removed(.cleanup) })
+        try #require(library.recordings.contains { $0.id.rawValue == "s16v2-unfinished" && $0.requiresReconciliation })
+        for name in ["s16v2-cleanup", "s16v2-discard"] {
+            let binding = try #require(evidence.bindings.first { $0.original.capture.rawValue == name })
+            try #require(await reopened.originals.observeFile(binding.reference) == .absent)
+        }
+        try #require(state.logicalOriginals.allSatisfy { $0.readers.isEmpty && $0.mediaReaders.isEmpty })
+        // Retain the disposable files until process teardown; do not unlink a
+        // live SQLite root or touch the normal app container.
+    }
+}
+
+nonisolated private func seedFreshLibraryFixtures(_ services: ProductLibraryServices) async throws {
+    let playable = try await seedMovie("s16v2-original", services: services)
+    try #require(playable.saveRecord.result == .unknown(.evidenceMissing))
+    // Cleanup needs explicitly synthetic saved/verified/played contract inputs.
+    // The original used for actual playback keeps its actual unknown inspection.
+    let fixture = OriginalRemovalFixture(run: services.run, store: services.store,
+        files: services.originals, access: services.access)
+    let cleanup = try await fixture.original("s16v2-cleanup")
+    try await seedRemovalProjection(cleanup, purpose: .cleanup, services: services)
+    let discard = try await seedMovie("s16v2-discard", services: services)
+    try await seedRemovalProjection(discard, purpose: .discard, services: services)
+    let unfinished = try CaptureFixture(clip: "s16v2-unfinished")
+    try await services.originals.reserveForRecording(unfinished.intent.original)
+    guard case .committed = await services.store.execute(.commitIntent(unfinished.token(1), expectedRevision: 0, unfinished.intent)) else {
+        throw BackendContractError.notCommitted
     }
 }
 
@@ -157,15 +195,34 @@ nonisolated private func seedMovie(_ name: String, services: ProductLibraryServi
 /// that cleanup eligibility, confirmation, or the product deletion flow works.
 nonisolated private func seedRemovalProjection(_ binding: OriginalBinding, purpose: RemovalPurpose,
                                                services: ProductLibraryServices) async throws {
+    let selection: CleanupEvidenceSelection?
+    if purpose == .cleanup {
+        let fixture = OriginalRemovalFixture(run: services.run, store: services.store,
+            files: services.originals, access: services.access)
+        selection = try await fixture.evidence(binding, schema: "fr-final-read-v1").0
+    } else { selection = nil }
+    // These new synthetic files never start SDK/OS media tasks. Record explicit
+    // test-only observations for every reader owner, without releasing a lease.
+    let beforeReconciliation = try await mediaOriginalSnapshot(services.store)
+    let logical = try #require(beforeReconciliation.logicalOriginals.first { $0.original == binding.original })
+    try #require(logical.readers.isEmpty && logical.mediaReaders.isEmpty)
+    try await mediaReconcile(services.store, original: binding.original)
     guard case .succeeded(let before) = await services.store.loadOriginalState(),
           let state = before.originals.first(where: { $0.binding.original == binding.original }) else {
         throw BackendContractError.unavailable
     }
     let intent = RemovalIntent(operation: .init(rawValue: "seed-removal-" + binding.original.capture.rawValue),
                                original: binding.original, purpose: purpose)
+    let change: OriginalStoreChange
+    if let selection {
+        change = .reserveCleanup(intent, selection,
+            expectedInvalidation: state.invalidationGeneration, expectedAccess: state.accessGeneration)
+    } else {
+        change = .reserveRemoval(intent,
+            expectedInvalidation: state.invalidationGeneration, expectedAccess: state.accessGeneration)
+    }
     guard case .committed(let receipt) = await services.store.commitOriginal(.init(operation: intent.operation,
-        expectedRevision: before.revision, change: .reserveRemoval(intent,
-        expectedInvalidation: state.invalidationGeneration, expectedAccess: state.accessGeneration))) else {
+        expectedRevision: before.revision, change: change)) else {
         throw BackendContractError.notCommitted
     }
     let url = try await services.originals.existingURL(for: binding.reference)

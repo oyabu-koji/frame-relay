@@ -6,6 +6,8 @@ nonisolated enum LibraryAction: String, CaseIterable, Sendable, Identifiable {
     var isPlayback: Bool { self == .playOriginal || self == .playRendition }
     static var multiple: [Self] { allCases.filter(\.supportsMultiple) }
     static var single: [Self] { allCases.filter { !$0.supportsMultiple } }
+    /// A transfer also has a one-video entry without changing its batch support.
+    static var detail: [Self] { [.transfer] + single }
 
     var title: String {
         switch self {
@@ -99,4 +101,14 @@ nonisolated struct LibrarySubmission: Equatable, Sendable, Identifiable {
     let request: LibraryCommandRequest
     var phase: LibrarySubmissionPhase
     var id: MediaOperationID { request.id }
+}
+
+/// The dialog owns these exact values. Refresh and selection changes cannot
+/// substitute another content generation/reference under the same capture ID.
+nonisolated struct LibraryRemovalReview: Equatable, Sendable, Identifiable {
+    let id: MediaOperationID
+    let action: LibraryAction
+    let targets: [LibraryCommandTarget]
+    let displayedRevision: UInt64
+    let information: [String]
 }

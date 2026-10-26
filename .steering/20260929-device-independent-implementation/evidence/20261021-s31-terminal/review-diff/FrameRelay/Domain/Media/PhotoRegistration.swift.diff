@@ -1,0 +1,115 @@
+--- baseline/FrameRelay/Domain/Media/PhotoRegistration.swift
++++ FrameRelay/Domain/Media/PhotoRegistration.swift
+@@ -220,11 +220,59 @@
+     }
+ }
+ 
++/// SDK lifetime and Photos registration outcome are separate facts. A terminal
++/// proves either definite non-start or the real completion plus closed local
++/// access. It never promotes an unknown addition to success.
++nonisolated enum PhotoUsageTermination: Equatable, Sendable, Codable {
++    case notStarted, sdkCompleted
++}
++
++nonisolated struct PhotoUsageTerminal: Equatable, Sendable, Codable {
++    let intent: PhotoRegistrationIntent
++    let mediaUse: TemporaryMediaUseRecord
++    let directoryIdentity: TemporaryFileIdentity
++    let fileIdentity: TemporaryFileIdentity
++    let termination: PhotoUsageTermination
++
++    init(registration: CommittedPhotoRegistrationIntent, termination: PhotoUsageTermination) throws {
++        guard registration.isCommitted, let directoryIdentity = registration.directoryIdentity,
++              let fileIdentity = registration.fileIdentity else { throw BackendContractError.notCommitted }
++        intent = registration.intent
++        mediaUse = registration.mediaUse
++        self.directoryIdentity = directoryIdentity
++        self.fileIdentity = fileIdentity
++        self.termination = termination
++    }
++}
++
++/// Releases the original photo reader using an exact committed terminal, even
++/// when the external addition remains unknown. Retention of its copy is derived
++/// independently from registration results under the same writer.
++nonisolated struct PhotoTerminalUsageRelease: Equatable, Sendable, Codable {
++    let terminal: PhotoUsageTerminal
++    let terminalCommand: MediaOperationID
++    let terminalCommit: BackendCommitReceipt
++    var intent: PhotoRegistrationIntent { terminal.intent }
++
++    init(record: PhotoRegistrationRecord) throws {
++        guard let value = record.usageTerminal,
++              value.commit.matches(.photo(value.command, record.registration.intent.key),
++                                   revision: value.commit.previousRevision) else {
++            throw BackendContractError.notCommitted
++        }
++        terminal = value.terminal
++        terminalCommand = value.command
++        terminalCommit = value.commit
++    }
++}
++
+ nonisolated enum PhotoRegistrationChange: Equatable, Sendable, Codable {
+     case intent(PhotoRegistrationIntent)
+     case result(PhotoRegistrationResult)
+     case presence(PhotoPresenceObservation)
+     case releaseUsage(PhotoUsageRelease)
++    case terminal(PhotoUsageTerminal)
++    case releaseTerminalUsage(PhotoTerminalUsageRelease)
+ 
+     var intent: PhotoRegistrationIntent {
+         switch self {
+@@ -232,6 +280,8 @@
+         case .result(let value): value.intent
+         case .presence(let value): value.intent
+         case .releaseUsage(let value): value.intent
++        case .terminal(let value): value.intent
++        case .releaseTerminalUsage(let value): value.intent
+         }
+     }
+     var key: PhotoRegistrationKey { intent.key }
+@@ -254,6 +304,20 @@
+ nonisolated struct StoredPhotoUsageRelease: Equatable, Sendable {
+     let command: MediaOperationID
+     let release: PhotoUsageRelease
++    let commit: BackendCommitReceipt
++    var expectedStoreIdentity: RegistrationStoreIdentity? = nil
++}
++
++nonisolated struct StoredPhotoUsageTerminal: Equatable, Sendable {
++    let command: MediaOperationID
++    let terminal: PhotoUsageTerminal
++    let commit: BackendCommitReceipt
++    var expectedStoreIdentity: RegistrationStoreIdentity? = nil
++}
++
++nonisolated struct StoredPhotoTerminalUsageRelease: Equatable, Sendable {
++    let command: MediaOperationID
++    let release: PhotoTerminalUsageRelease
+     let commit: BackendCommitReceipt
+     var expectedStoreIdentity: RegistrationStoreIdentity? = nil
+ }
+@@ -264,12 +328,22 @@
+     var results: [StoredPhotoRegistrationResult] = []
+     var presenceObservations: [StoredPhotoPresenceObservation] = []
+     var usageRelease: StoredPhotoUsageRelease? = nil
++    var usageTerminal: StoredPhotoUsageTerminal? = nil
++    var terminalUsageRelease: StoredPhotoTerminalUsageRelease? = nil
+ 
+     var outcome: PhotoRegistrationOutcome? { results.last?.result.outcome }
+     var localIdentifier: PhotoAssetIdentifier? {
+         results.reversed().compactMap { $0.result.outcome.localIdentifier }.first
+     }
+     var currentPresence: PhotoPresenceObservation? { presenceObservations.last?.observation }
++
++    /// A terminal releases a reader, not its unsuccessful registration copy.
++    /// Success of the latest explicit attempt on that same copy ends retention.
++    static func retainsCopy(_ media: TemporaryMediaID, in records: [Self]) -> Bool {
++        guard let last = records.last(where: { $0.registration.intent.media == media }) else { return false }
++        if case .succeeded? = last.outcome { return false }
++        return true
++    }
+ }
+ 
+ /// Domain validation is also used by decoders; journal replay additionally

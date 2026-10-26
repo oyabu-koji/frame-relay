@@ -3,7 +3,7 @@ import Darwin
 
 /// One composition-owned access/ordering boundary. Every product SDK reader must
 /// register an attachment. Exploration inspection before binding remains separate.
-actor ManagedOriginalAccess: OriginalAccessPort, OriginalPlaybackAccessPort, OriginalOperationOrderingPort {
+actor ManagedOriginalAccess: OriginalAccessPort, OriginalPlaybackAccessPort, OriginalOperationOrderingPort, OriginalRemovalExecutionPort {
     private struct Reader {
         let lease: OriginalReadLease
         var handle: ManagedOriginalReadHandle?
@@ -21,6 +21,7 @@ actor ManagedOriginalAccess: OriginalAccessPort, OriginalPlaybackAccessPort, Ori
     private let mediaRecoveryObserver: (any MediaReaderRecoveryPort)?
     private let epoch = ReaderReconciliationEpoch(rawValue: UUID().uuidString)
     private var readers: [ReadLeaseID: Reader] = [:]
+    private var removing: Set<MediaOperationID> = []
 
     init(store: any RecordingStorePort & OriginalStorePort, originals: ManagedOriginalStore,
          recoveryObserver: (any OriginalReaderRecoveryPort)? = nil,
@@ -292,25 +293,141 @@ actor ManagedOriginalAccess: OriginalAccessPort, OriginalPlaybackAccessPort, Ori
         return await reconcileReaders(original)
     }
 
-    func reconcileRemoval(_ intent: RemovalIntent,
-                          result: BackendOutcome<RemovalResolutionReceipt>) async -> BackendOutcome<RemovalIntent> {
-        guard case .succeeded(let receipt) = result, receipt.intent == intent,
-              case .succeeded(let snapshot) = await store.loadOriginalState(),
-              let state = snapshot.originals.first(where: { $0.binding.original == intent.original }),
-              state.removal == intent else { return .unknown }
-        // Reconcile existing facts only. This operation never performs unlink.
-        switch (receipt.resolution, await originals.observeFile(state.binding.reference)) {
-        case (.removed, .absent): break
-        case (.notRemoved, .present):
-            do {
-                let handle = try await originals.openBoundRead(state.binding)
-                try handle.handle.close()
-            } catch { return .unknown }
+    func removeOriginal(batch: OriginalRemovalBatch, target: OriginalRemovalTarget,
+        evidence: CleanupEvidenceSelection?, quiescence: OriginalRemovalQuiescence)
+        async -> BackendOutcome<RemovalResolutionReceipt> {
+        guard batch.targets.contains(target), quiescence.target == target,
+              quiescence.transport.target == .original(target.original),
+              removing.insert(target.operation).inserted else { return .notExecuted }
+        defer { removing.remove(target.operation) }
+        guard case .succeeded(let released) = await reconcileReaders(target.original),
+              released == quiescence.readers else { return .notExecuted }
+        if let fence = quiescence.transportFence {
+            guard PublicationStoreBoundary.exact(fence.seal.batch, batch.operation),
+                  PublicationStoreBoundary.exact(fence.seal.target, target),
+                  case .succeeded(let current) = await store.loadRemovalTransportInventory(target.original),
+                  current == fence.inventory else { return .notExecuted }
+            switch quiescence.transport {
+            case .neverStarted(let target):
+                guard fence.stops.isEmpty, PublicationStoreBoundary.exact(target, .original(fence.inventory.original)) else { return .notExecuted }
+            case .stopped(let receipt):
+                guard fence.stops.contains(where: { PublicationStoreBoundary.exact($0, receipt) }) else { return .notExecuted }
+            }
+        }
+        let intent = batch.intent(for: target)
+        let binding: OriginalBinding
+        switch await reserveBatchRemoval(batch, target: target, evidence: evidence, released: released) {
+        case .succeeded(let value): binding = value
+        case .notExecuted: return .notExecuted
+        case .failed(let failure): return .failed(failure)
         default: return .unknown
         }
-        guard case .committed = await store.commitOriginal(.init(operation: freshOperation("removal-resolve"),
-            expectedRevision: snapshot.revision, change: .resolveRemoval(intent, receipt.resolution))) else { return .unknown }
-        return .succeeded(intent)
+        let handle: ManagedOriginalRemovalHandle
+        do { handle = try await originals.prepareOriginalRemoval(binding) }
+        catch CaptureContractError.evidenceMismatch { return .failed(.contentMismatch) }
+        catch ExplorationStorageError.unsafePath { return .failed(.contentMismatch) }
+        catch { return .failed(.inaccessible) }
+        guard case .succeeded(let latest) = await store.loadOriginalState(),
+              let state = latest.logicalOriginals.first(where: { $0.original == target.original }),
+              let epoch = latest.reconciliationEpoch,
+              state.removal == intent, state.readersReleased(in: epoch),
+              !readers.values.contains(where: { $0.lease.original == target.original }) else {
+            try? handle.close(); return .unknown
+        }
+        let boundary = OriginalRemovalBoundary(batch: batch, target: target, intent: intent,
+            expectedRevision: latest.revision, expectedInvalidation: state.invalidationGeneration,
+            expectedAccess: state.accessGeneration, epoch: epoch, transportFence: quiescence.transportFence)
+        let boundaryResult = await store.performRemovalBoundary(boundary) { try handle.unlink() }
+        // Even an unlink whose response failed is resolved only by fresh local
+        // observation, after this verifier's own descriptors actually close.
+        do { try handle.close() } catch { return .failed(.inaccessible) }
+        if boundaryResult == .unknown { return .unknown }
+        return await observeRemovalInternal(intent)
+    }
+
+    private func reserveBatchRemoval(_ batch: OriginalRemovalBatch, target: OriginalRemovalTarget,
+        evidence: CleanupEvidenceSelection?, released: AllReadersReleasedReceipt) async -> BackendOutcome<OriginalBinding> {
+        let intent = batch.intent(for: target)
+        for _ in 0..<3 {
+            guard case .succeeded(let snapshot) = await store.loadOriginalState(),
+                  let record = snapshot.removalBatches.first(where: { $0.batch == batch }),
+                  record.targets.contains(where: { $0.target == target && $0.status == .unprocessed }),
+                  let state = snapshot.logicalOriginals.first(where: { $0.original == target.original }),
+                  let binding = state.binding, binding.reference == target.reference,
+                  state.removal == nil, state.invalidation == nil,
+                  state.readersReleased(in: snapshot.reconciliationEpoch),
+                  released.original == target.original, released.accessGeneration == state.accessGeneration,
+                  released.epoch == epoch,
+                  !readers.values.contains(where: { $0.lease.original == target.original }) else { return .notExecuted }
+            let change: OriginalStoreChange
+            switch batch.purpose {
+            case .cleanup:
+                guard let evidence else { return .notExecuted }
+                change = .reserveCleanup(intent, evidence, expectedInvalidation: state.invalidationGeneration,
+                    expectedAccess: state.accessGeneration)
+            case .discard:
+                guard batch.authorization == .discardRiskAcknowledged(target), batch.targets == [target] else { return .notExecuted }
+                change = .reserveRemoval(intent, expectedInvalidation: state.invalidationGeneration,
+                    expectedAccess: state.accessGeneration)
+            }
+            let mutation = OriginalStoreMutation(operation: freshOperation("batch-removal-reserve"),
+                expectedRevision: snapshot.revision, change: change)
+            switch await store.commitOriginal(mutation) {
+            case .committed: return .succeeded(binding)
+            case .rejected(.revisionConflict): continue
+            case .rejected: return .notExecuted
+            case .unavailable:
+                guard case .succeeded = await store.lookupOriginalCommit(mutation) else { return .unknown }
+                return .succeeded(binding)
+            }
+        }
+        return .unknown
+    }
+
+    func observeRemoval(_ intent: RemovalIntent) async -> BackendOutcome<RemovalResolutionReceipt> {
+        guard removing.insert(intent.operation).inserted else { return .inProgress }
+        defer { removing.remove(intent.operation) }
+        return await observeRemovalInternal(intent)
+    }
+
+    private func observeRemovalInternal(_ intent: RemovalIntent,
+        expected: RemovalResolution? = nil) async -> BackendOutcome<RemovalResolutionReceipt> {
+        guard case .succeeded(let snapshot) = await store.loadOriginalState(),
+              let state = snapshot.originals.first(where: { $0.binding.original == intent.original }) else { return .unknown }
+        if state.resolvedRemoval == intent, let result = state.removalResolution {
+            guard expected == nil || expected == result else { return .unknown }
+            return .succeeded(.init(intent: intent, resolution: result))
+        }
+        guard state.removal == intent else { return .unknown }
+        let observation: ManagedOriginalRemovalObservation
+        do { observation = try await originals.prepareRemovalObservation(state.binding) }
+        catch CaptureContractError.evidenceMismatch { return .failed(.contentMismatch) }
+        catch { return .failed(.inaccessible) }
+        defer { observation.close() }
+        let resolution = observation.resolution
+        guard expected == nil || expected == resolution else { return .unknown }
+        let mutation = OriginalStoreMutation(operation: freshOperation("batch-removal-resolve"),
+            expectedRevision: snapshot.revision, change: .resolveRemoval(intent, resolution))
+        switch await store.commitRemovalObservation(mutation, check: { try observation.confirmAndClose() }) {
+        case .committed: return .succeeded(.init(intent: intent, resolution: resolution))
+        case .unavailable:
+            guard case .succeeded = await store.lookupOriginalCommit(mutation) else { return .unknown }
+            return .succeeded(.init(intent: intent, resolution: resolution))
+        case .rejected: return .unknown
+        }
+    }
+
+    func reconcileRemoval(_ intent: RemovalIntent,
+                          result: BackendOutcome<RemovalResolutionReceipt>) async -> BackendOutcome<RemovalIntent> {
+        guard case .succeeded(let requested) = result, requested.intent == intent,
+              removing.insert(intent.operation).inserted else { return .unknown }
+        defer { removing.remove(intent.operation) }
+        // Legacy callers use the identical final file-check/result transaction.
+        // A requested resolution that does not match observation commits nothing.
+        switch await observeRemovalInternal(intent, expected: requested.resolution) {
+        case .succeeded(let observed) where observed == requested: return .succeeded(intent)
+        default: return .unknown
+        }
     }
 
     func reserveInvalidation(_ record: InvalidationRecord) async -> BackendOutcome<InvalidationPermit> {

@@ -1,0 +1,32 @@
+--- baseline/docs/architecture.md
++++ docs/architecture.md
+@@ -308,21 +308,23 @@
+ 
+ ### Photosと一時コピーの境界
+ 
+-Photosへの変更とアプリの操作記録は別の保存境界になる。S31の意図・追加結果・存在観測・成功使用権解放は、共通writerのschema 7 `backendJournal`へcommandを加算する。`PhotoRegistrationRecord`はjournal再生から生成する派生projectionで、写真専用DBや別の正本を作らない。store identity・command・登録キー・期待revision・payloadを含む元mutationを`lookupCommit`で照合し、応答欠落を未保存や新しい追加許可へ変えない。
+-
+-`PhotoSaveCoordinator`はS25の完全取得・内容検証済み媒体と`photoHandoff`使用権を受け、意図exact commit確認→必要時addOnly→完全媒体のresolve→実SDK完了または未開始確定→保持FDの閉鎖→結果exact commit確認→成功した使用権の解放を通る。`NativePhotoLibrary`は元の撮影日時と`shouldMoveFile = false`で追加し、placeholderだけを成功証拠にしない。Task取消しをSDK終端とみなさず、実完了まで媒体を保持する。[写真ライブラリへの変更要求](https://developer.apple.com/documentation/photokit/requesting-changes-to-the-photo-library)
++Photosへの変更とアプリの操作記録は別の保存境界になる。S31の意図・追加結果・存在観測・SDK終端証拠・使用権解放は、共通writerのschema 7 `backendJournal`へcommandを加算する。`PhotoRegistrationRecord`はjournal再生から生成する派生projectionで、写真専用DBや別の正本を作らない。store identity・command・登録キー・期待revision・payloadを含む元mutationを`lookupCommit`で照合し、応答欠落を未保存や新しい追加許可へ変えない。
++
++`PhotoSaveCoordinator`はS25の完全取得・内容検証済み媒体と`photoHandoff`使用権を受け、意図exact commit確認→必要時addOnly→完全媒体のresolve→実SDK完了または未開始確定→保持FDの閉鎖を通る。SDK非開始の確定、または実completionとFD閉鎖を`PhotoUsageTerminal`として追加結果とは別にcommitし、そのexact commitを確認して元の使用権だけを解放する。結果commitの不明を登録失敗へ丸めず、使用権を解放しても結果・identifier・再追加抑止の記録を維持する。`NativePhotoLibrary`は元の撮影日時と`shouldMoveFile = false`で追加し、placeholderだけを成功証拠にしない。Task取消しをSDK終端とみなさず、実完了まで媒体を保持する。[写真ライブラリへの変更要求](https://developer.apple.com/documentation/photokit/requesting-changes-to-the-photo-library)
+ 
+ 新規一時ファイル名はMIMEの完全一致に従い、`video/quicktime`は`UUID.mov`、`video/mp4`は`UUID.mp4`とする。原本の命名や媒体byte列・音声を変えず、拡張子だけを実container・Rec.709適合の証拠にしない。旧extensionless UUIDの読取互換と既存媒体を保護し、無断rename・移行はしない。旧extensionless媒体のPhotos再利用は未対応で、通常取得producerの接続時に扱う。
+ 
+-撮影ID・変換版の登録キーごとに直列化し、成功・不明・意図のみの中断から新追加を許可しない。未追加が確定した直前の`notAttempted`/`failed`だけに、新しい本人操作の`retryOf`を束縛できる。同じ版・撮影日時を維持するこの再試行は、本人が写真側で削除した後の手動再保存の合意ではない。
++撮影ID・変換版の登録キーごとに直列化し、成功・不明・意図のみの中断から新追加を許可しない。未追加が確定した直前の`notAttempted`/`failed`だけに、新しい本人操作の`retryOf`を束縛できる。同じ媒体・版・撮影日時を照合して新しいphoto使用権を獲得し、新意図へ束縛する。旧useは再利用しない。この再試行は、本人が写真側で削除した後の手動再保存の合意ではない。
+ 
+ 既存登録の照合はLibraryの対象・理由付き本人操作から`PhotoRegistrationReconciler`へ渡し、必要時だけreadWriteを求め、保存済みidentifierだけをexact fetchする。名前・日時による推定同定はしない。identifier欠落は対応不明とし、限定・拒否・読取許可済みでも未発見なら未保存や再追加許可にしない。写真側の存在観測と過去の追加結果は別々に保存・表示し、存在を確認できても過去の不明結果を成功へ書き換えない。起動・一覧refreshで権限要求やPhotos照合を行わず、写真権限の不足で撮影を止めない。[Photosの権限](https://developer.apple.com/documentation/photokit/delivering-an-enhanced-privacy-experience-in-your-photos-app)
+ 
+-成功commit後に解放前の中断から再openした場合、同じ一時rootの排他lockは旧一時媒体ownerとの同時存在を防ぐ。SDK実終端とFD閉鎖の根拠は、保存処理が実completion→finish成功後に永続化した成功recordであり、lock取得から推定しない。意図/成功のexact commit・元owner/lease/epoch・directory/file identityが一致した元photo useだけを回収する。他用途や一般の旧epoch使用権へ広げず、不明・失敗時の一時媒体はこの成功限定回収の対象外とする。原本や復旧記録の削除で代用しない。instance破棄・再openの試験を、実プロセス終了の証明として扱わない。
++使用権の解放とコピー本体の回収を分ける。新しい終端証拠は登録意図・元use・owner/lease/epoch・directory/file identityへ束縛し、意図と終端のexact `lookupCommit`後に`.releaseTerminalUsage`でそのphoto useだけを解放する。`restore`と`ManagedTemporaryMedia.closeOwner`はこの証拠を使い、失効時の全reader解放へ接続する。SDK稼働中、Task取消しだけ、finish失敗、別intentの応答、終端証拠のない旧unknown/意図のみの記録から終端を推定しない。他用途や一般の旧epoch使用権へ解放許可を広げない。
++
++既存の成功限定回収も維持する。成功commit後・解放前の中断から再openした場合、実completion→finish成功後に保存された成功recordと意図のexact commit・元use・directory/file identityを照合する。同じ一時rootの排他lockは旧ownerとの同時存在を防ぐが、SDK終端そのものの証拠にしない。いずれの使用権解放でも、登録結果がunknown/failed/notAttemptedのコピーは保持し、登録成功かつ全使用者なしの本体だけを回収する。原本や復旧記録の削除で代用しない。instance破棄・再openの試験を、実プロセス終了の証明として扱わない。
+ 
+ 複数の写真保存でも受理時の対象集合と動画別の操作/版を固定し、取得・登録の成否と未処理を分けて保持する。取得済み版を登録するローカル段階にはWi-Fiの継続を要求しない。streaming確認とPhotos登録は別操作・状態であり、部分バッファを完全な登録用ファイルへ昇格させない。
+ 
+-TemporaryMedia担当はstreamingバッファを含む用途・取得範囲・所有者・解放可否と、動画別/全体の一時使用量を管理する。空き容量不要とは扱わず、容量不足では新規取得を止め、使用中のデータを無断回収しない。再生用は使用終了後、登録用は登録成功かつ使用者なしで解放し、恒久的な再生コピーへ転用しない。中断断片は次回起動等で照合し、再開対象でない本体を回収しても確認記録と未解決結果の照合情報を残す。バッファ方式・容量上限・保持期限の具体値はU2の残件とする。
++TemporaryMedia担当はstreamingバッファを含む用途・取得範囲・所有者・解放可否と、動画別/全体の一時使用量を管理する。空き容量不要とは扱わず、容量不足では新規取得を止め、使用中のデータを無断回収しない。再生用は使用終了後、登録用コピー本体は登録成功かつ全使用者なしで回収し、恒久的な再生コピーへ転用しない。取得中断の断片は次回起動等で照合し、再開対象でない本体を回収しても確認記録と未解決結果の照合情報を残す。終端済みでも結果不明・失敗の登録用コピーを自動回収する方針は未実装で、バッファ方式・容量上限・保持期限とともにU2の残件とする。
+ 
+ 実SDK adapter・同writer・S25媒体/使用権の下位接続と、正式Rec.709媒体および通常保存start producerの接続を区別する。後者は未接続で、新規保存を製品成功として有効化しない。自動検証の結果は現行tasklistを正本とし、SDK実装を検証成功や実機品質へ昇格しない。初回OS許諾・限定アクセス・本人の写真側削除後・実写真の映像/日時/音声/品質はDV-16へ残す。
+ 

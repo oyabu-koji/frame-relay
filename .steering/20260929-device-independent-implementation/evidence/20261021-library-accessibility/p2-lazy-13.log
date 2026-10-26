@@ -1,0 +1,1310 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project FrameRelay.xcodeproj -scheme FrameRelay -configuration Debug -destination "platform=iOS Simulator,id=DFE46693-E8DD-4814-8957-4F327699F719" -derivedDataPath /private/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData -resultBundlePath /private/tmp/fr-implement-20261021-j6xbqszu/p2-lazy-13.xcresult -disableAutomaticPackageResolution -parallel-testing-enabled NO -collect-test-diagnostics never "-only-testing:FrameRelayUITests/LibraryFlowTests/testAccessibilityDetailActionsContrastOnly" "-only-testing:FrameRelayUITests/LibraryFlowTests/testAccessibilityReconciliationDescriptionDynamicTypeOnly" test
+
+2026-10-22 01:07:08.934 xcodebuild[85504:52083425] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+Writing result bundle at path:
+	/private/tmp/fr-implement-20261021-j6xbqszu/p2-lazy-13.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (3 targets)
+    Target 'FrameRelayTests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelayUITests' in project 'FrameRelay'
+        ➜ Explicit dependency on target 'FrameRelay' in project 'FrameRelay'
+    Target 'FrameRelay' in project 'FrameRelay' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+Build description signature: 8d0805badfe86177523ec01a50f94a7c
+Build description path: /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/XCBuildData/8d0805badfe86177523ec01a50f94a7c.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/oyabu/dev/rep/FrameRelay/FrameRelay.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+SwiftDriver FrameRelay normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelay -Onone @/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator -F /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-generated-files.hmap -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-own-target-headers.hmap -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-project-headers.hmap -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources-normal/arm64 -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources/arm64 -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+SwiftCompile normal arm64 Compiling\ LibraryView.swift /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Features/Library/LibraryView.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 /Users/oyabu/dev/rep/FrameRelay/FrameRelay/Features/Library/LibraryView.swift (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-SwiftPerFileCompile LibraryView.swift
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ FrameRelay (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftCompile normal arm64 (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling LibraryView.swift (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriver\ Compilation FrameRelay normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelay -Onone @/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator -F /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-generated-files.hmap -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-own-target-headers.hmap -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-project-headers.hmap -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources-normal/arm64 -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources/arm64 -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for FrameRelay (in target 'FrameRelay' from project 'FrameRelay')
+
+SwiftDriver\ Compilation\ Requirements FrameRelay normal arm64 com.apple.xcode.tools.swift.compiler (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name FrameRelay -Onone @/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator -F /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-generated-files.hmap -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-own-target-headers.hmap -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-project-headers.hmap -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources-normal/arm64 -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources/arm64 -Xcc -I/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay-Swift.h -working-directory /Users/oyabu/dev/rep/FrameRelay -experimental-emit-module-separately -disable-cmo
+
+Copy /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.swiftmodule/arm64-apple-ios-simulator.abi.json /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.abi.json (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.abi.json /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftsourceinfo (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftsourceinfo /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Ld /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib normal (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios27.0-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator -F/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator -filelist /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.LinkFileList -install_name @rpath/FrameRelay.debug.dylib -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.swiftmodule -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -Xlinker -no_adhoc_codesign -o /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib
+
+ConstructStubExecutorLinkFileList /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-ExecutorLinkFileList-normal-arm64.txt (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    construct-stub-executor-link-file-list /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'FrameRelay' from project 'FrameRelay')
+
+Ld /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay normal (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios27.0-simulator -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator -F/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay-ExecutorLinkFileList-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __entitlements -Xlinker /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay.app-Simulated.xcent -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __ents_der -Xlinker /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay.app-Simulated.xcent.der /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib -Xlinker -no_adhoc_codesign -o /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay
+
+ExtractAppIntentsMetadata (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name FrameRelay --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 27.0 --bundle-identifier com.oyabu.FrameRelay --output /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app --target-triple arm64-apple-ios27.0-simulator --binary-file /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay --dependency-file /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay_dependency_info.dat --stringsdata-file /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftFileList --metadata-file-list /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay.DependencyMetadataFileList --static-metadata-file-list /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/FrameRelay.DependencyStaticMetadataFileList --swift-const-vals-list /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/Objects-normal/arm64/FrameRelay.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-22 01:07:12.869 appintentsmetadataprocessor[85540:52083738] Starting appintentsmetadataprocessor export
+2026-10-22 01:07:12.871 appintentsmetadataprocessor[85540:52083738] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+CopySwiftLibs /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib --scan-folder /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --scan-folder /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns --scan-folder /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/SystemExtensions --scan-folder /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/empty-FrameRelay.plist -producttype com.apple.product-type.application -genpkginfo /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelay.build/assetcatalog_generated_info.plist -o /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/Info.plist
+
+ProcessInfoPlistFile /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/empty-FrameRelayTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Info.plist
+
+Ld /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests normal (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios27.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -filelist /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.LinkFileList -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -bundle_loader /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay -Xlinker -object_path_lto -Xlinker /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.swiftmodule -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib -Xlinker -no_adhoc_codesign -o /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests
+
+CopySwiftLibs /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests --scan-folder /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Frameworks --scan-folder /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/PlugIns --scan-folder /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/SystemExtensions --scan-folder /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ExtractAppIntentsMetadata (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name FrameRelayTests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 27.0 --bundle-identifier com.oyabu.FrameRelayTests --output /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest --target-triple arm64-apple-ios27.0-simulator --binary-file /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest/FrameRelayTests --dependency-file /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests_dependency_info.dat --stringsdata-file /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.SwiftFileList --metadata-file-list /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests.DependencyMetadataFileList --static-metadata-file-list /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/FrameRelayTests.DependencyStaticMetadataFileList --swift-const-vals-list /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayTests.build/Objects-normal/arm64/FrameRelayTests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-22 01:07:13.186 appintentsmetadataprocessor[85543:52083763] Starting appintentsmetadataprocessor export
+2026-10-22 01:07:13.187 appintentsmetadataprocessor[85543:52083763] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+CodeSign /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest (in target 'FrameRelayTests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/PlugIns/FrameRelayTests.xctest
+
+CodeSign /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/FrameRelay.debug.dylib
+
+CodeSign /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib
+/tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app/__preview.dylib: replacing existing signature
+
+CodeSign /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app
+
+Validate /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app (in target 'FrameRelay' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-validationUtility /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelay.app -shallow-bundle -infoplist-subpath Info.plist
+
+ProcessInfoPlistFile /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist (in target 'FrameRelayUITests' from project 'FrameRelay')
+    cd /Users/oyabu/dev/rep/FrameRelay
+    builtin-infoPlistUtility /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/empty-FrameRelayUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/FrameRelay.build/Debug-iphonesimulator/FrameRelayUITests.build/ProductTypeInfoPlistAdditions.plist -o /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Products/Debug-iphonesimulator/FrameRelayUITests-Runner.app/PlugIns/FrameRelayUITests.xctest/Info.plist
+
+PruneExplicitPrecompiledModules /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/fr-implement-20261021-j6xbqszu/P2DerivedData/SDKExplicitPrecompiledModules
+
+2026-10-22 01:07:14.510779+0900 FrameRelayUITests-Runner[85548:52083926] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-22 01:07:16.517.
+Test Suite 'FrameRelayUITests.xctest' started at 2026-10-22 01:07:16.518.
+Test Suite 'LibraryFlowTests' started at 2026-10-22 01:07:16.518.
+Test Case '-[FrameRelayUITests.LibraryFlowTests testAccessibilityDetailActionsContrastOnly]' started.
+    t =     0.00s Start Test at 2026-10-22 01:07:16.519
+    t =     0.02s Set Up
+    t =     0.03s Open com.oyabu.FrameRelay
+    t =     0.03s     Launch com.oyabu.FrameRelay
+2026-10-22 01:07:16.588 xcodebuild[85504:52083425] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-22 01:07:16.588 xcodebuild[85504:52083425] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.48s         Setting up automation session
+objc[85548]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.NUrxb4/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1067d4398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.NUrxb4/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x109e84310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     2.92s         Wait for com.oyabu.FrameRelay to idle
+    t =     4.72s Waiting 10.0s for "library.refresh" Button to exist
+    t =     5.81s     Checking `Expect predicate `existsNoRetry == 1` for object "library.refresh" Button`
+    t =     5.81s         Checking existence of `"library.refresh" Button`
+    t =     7.07s Find the "library.refresh" Button
+    t =     7.11s Checking existence of `"library.loadFailure" Any`
+    t =     7.19s Checking existence of `"library.item.s16v2-cleanup" Any`
+    t =     7.22s Find the "library.item.s16v2-cleanup" Any
+    t =     7.28s Checking existence of `"library.item.s16v2-cleanup" Button`
+    t =     7.32s Find the "library.refresh" Button
+    t =     7.34s Checking existence of `"library.loadFailure" Any`
+    t =     7.42s Find the "library.scope" Any
+    t =     7.45s Checking existence of `"library.item.s16v2-original" Any`
+    t =     7.49s Find the "library.item.s16v2-original" Any
+    t =     7.53s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =     7.54s     Wait for com.oyabu.FrameRelay to idle
+    t =     7.54s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =     7.57s     Check for interrupting elements affecting "FrameRelay" Application
+    t =     7.60s     Synthesize event
+    t =     8.02s     Wait for com.oyabu.FrameRelay to idle
+    t =    10.13s Checking existence of `"library.item.s16v2-original" Button`
+    t =    10.19s Find the "library.item.s16v2-original" Button
+    t =    10.24s Tap "library.item.s16v2-original" Button
+    t =    10.24s     Wait for com.oyabu.FrameRelay to idle
+    t =    10.24s     Find the "library.item.s16v2-original" Button
+    t =    10.28s     Check for interrupting elements affecting "library.item.s16v2-original" Button
+    t =    10.32s     Synthesize event
+    t =    10.61s     Wait for com.oyabu.FrameRelay to idle
+    t =    10.97s Waiting 5.0s for "library.detailIdentity" Any to exist
+    t =    12.05s     Checking `Expect predicate `existsNoRetry == 1` for object "library.detailIdentity" Any`
+    t =    12.06s         Checking existence of `"library.detailIdentity" Any`
+    t =    12.11s Checking existence of `"library.action.playOriginal" Button`
+    t =    12.13s Find the "library.action.playOriginal" Button
+    t =    12.15s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    12.15s     Wait for com.oyabu.FrameRelay to idle
+    t =    12.15s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    12.16s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    12.18s     Synthesize event
+    t =    12.60s     Wait for com.oyabu.FrameRelay to idle
+    t =    14.75s Checking existence of `"library.action.playOriginal" Button`
+    t =    14.79s Find the "library.action.playOriginal" Button
+    t =    14.81s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    14.90s Added attachment named 'accessibility-detail-actions-contrast-only-before'
+    t =    14.90s Requesting snapshot of accessibility hierarchy for app with pid 85566
+    t =    14.97s Requesting snapshot of accessibility hierarchy for app with pid 85566
+    t =    14.99s Added attachment named 'accessibility-detail-actions-contrast-only-before-tree'
+    t =    14.99s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.action." OR identifier BEGINSWITH "library.reason." OR identifier BEGINSWITH "library.status." OR identifier BEGINSWITH "library.detailReconciliation" OR identifier BEGINSWITH "library.historyExplanation" OR identifier BEGINSWITH "library.item.s16v2-discard" OR identifier BEGINSWITH "library.submission." OR identifier BEGINSWITH "originalPlayback." OR identifier BEGINSWITH "product.capture"'
+    t =    15.00s Find the Any (Element at index 0)
+    t =    15.02s Find the "library.status.save" StaticText
+    t =    15.04s Find the "library.status.save" StaticText
+    t =    15.06s Find the "library.status.save" StaticText
+    t =    15.07s Find the "library.status.save" StaticText
+    t =    15.09s Find the Any (Element at index 1)
+    t =    15.10s Find the "library.status.original" StaticText
+    t =    15.12s Find the "library.status.original" StaticText
+    t =    15.14s Find the "library.status.original" StaticText
+    t =    15.15s Find the "library.status.original" StaticText
+    t =    15.17s Find the Any (Element at index 2)
+    t =    15.19s Find the "library.status.transfer" StaticText
+    t =    15.20s Find the "library.status.transfer" StaticText
+    t =    15.22s Find the "library.status.transfer" StaticText
+    t =    15.24s Find the "library.status.transfer" StaticText
+    t =    15.25s Find the Any (Element at index 3)
+    t =    15.27s Find the "library.status.verification" StaticText
+    t =    15.29s Find the "library.status.verification" StaticText
+    t =    15.30s Find the "library.status.verification" StaticText
+    t =    15.32s Find the "library.status.verification" StaticText
+    t =    15.34s Find the Any (Element at index 4)
+    t =    15.35s Find the "library.status.publication" StaticText
+    t =    15.37s Find the "library.status.publication" StaticText
+    t =    15.39s Find the "library.status.publication" StaticText
+    t =    15.40s Find the "library.status.publication" StaticText
+    t =    15.42s Find the Any (Element at index 5)
+    t =    15.44s Find the "library.status.retrieval" StaticText
+    t =    15.46s Find the "library.status.retrieval" StaticText
+    t =    15.47s Find the "library.status.retrieval" StaticText
+    t =    15.49s Find the "library.status.retrieval" StaticText
+    t =    15.51s Find the Any (Element at index 6)
+    t =    15.52s Find the "library.status.confirmation" StaticText
+    t =    15.54s Find the "library.status.confirmation" StaticText
+    t =    15.56s Find the "library.status.confirmation" StaticText
+    t =    15.58s Find the "library.status.confirmation" StaticText
+    t =    15.60s Find the Any (Element at index 7)
+    t =    15.61s Find the "library.status.invalidation" StaticText
+    t =    15.63s Find the "library.status.invalidation" StaticText
+    t =    15.65s Find the "library.status.invalidation" StaticText
+    t =    15.67s Find the "library.status.invalidation" StaticText
+    t =    15.68s Find the Any (Element at index 8)
+    t =    15.70s Find the "library.status.photos" StaticText
+    t =    15.72s Find the "library.status.photos" StaticText
+    t =    15.74s Find the "library.status.photos" StaticText
+    t =    15.76s Find the "library.status.photos" StaticText
+    t =    15.77s Find the Any (Element at index 9)
+    t =    15.79s Find the "library.status.photoPresence" StaticText
+    t =    15.81s Find the "library.status.photoPresence" StaticText
+    t =    15.83s Find the "library.status.photoPresence" StaticText
+    t =    15.85s Find the "library.status.photoPresence" StaticText
+    t =    15.86s Find the Any (Element at index 10)
+    t =    15.88s Find the "library.status.removal" StaticText
+    t =    15.90s Find the "library.status.removal" StaticText
+    t =    15.92s Find the "library.status.removal" StaticText
+    t =    15.93s Find the "library.status.removal" StaticText
+    t =    15.95s Find the Any (Element at index 11)
+    t =    15.97s Find the "library.detailReconciliationHeading" StaticText
+    t =    15.99s Find the "library.detailReconciliationHeading" StaticText
+    t =    16.01s Find the "library.detailReconciliationHeading" StaticText
+    t =    16.02s Find the "library.detailReconciliationHeading" StaticText
+    t =    16.04s Find the Any (Element at index 12)
+    t =    16.06s Find the "library.detailReconciliationExplanation" StaticText
+    t =    16.08s Find the "library.detailReconciliationExplanation" StaticText
+    t =    16.10s Find the "library.detailReconciliationExplanation" StaticText
+    t =    16.12s Find the "library.detailReconciliationExplanation" StaticText
+    t =    16.13s Find the Any (Element at index 13)
+    t =    16.15s Find the "library.action.playOriginal" Button
+    t =    16.17s Find the "library.action.playOriginal" Button
+    t =    16.19s Find the "library.action.playOriginal" Button
+    t =    16.20s Find the "library.action.playOriginal" Button
+    t =    16.22s Find the Any (Element at index 14)
+    t =    16.24s Find the "library.action.playRendition" Button
+    t =    16.26s Find the "library.action.playRendition" Button
+    t =    16.28s Find the "library.action.playRendition" Button
+    t =    16.30s Find the "library.action.playRendition" Button
+    t =    16.31s Find the Any (Element at index 15)
+    t =    16.33s Find the "library.reason.playRendition" StaticText
+    t =    16.35s Find the "library.reason.playRendition" StaticText
+    t =    16.37s Find the "library.reason.playRendition" StaticText
+    t =    16.39s Find the "library.reason.playRendition" StaticText
+    t =    16.40s Find the Any (Element at index 16)
+    t =    16.42s Find the "library.action.confirmRendition" Button
+    t =    16.44s Find the "library.action.confirmRendition" Button
+    t =    16.46s Find the "library.action.confirmRendition" Button
+    t =    16.48s Find the "library.action.confirmRendition" Button
+    t =    16.50s Find the Any (Element at index 17)
+    t =    16.52s Find the "library.reason.confirmRendition" StaticText
+    t =    16.53s Find the "library.reason.confirmRendition" StaticText
+    t =    16.56s Find the "library.reason.confirmRendition" StaticText
+    t =    16.57s Find the "library.reason.confirmRendition" StaticText
+    t =    16.59s Find the Any (Element at index 18)
+    t =    16.61s Find the "library.action.discard" Button
+    t =    16.63s Find the "library.action.discard" Button
+    t =    16.65s Find the "library.action.discard" Button
+    t =    16.67s Find the "library.action.discard" Button
+    t =    16.68s Get all elements bound by index for: Descendants matching type NavigationBar
+    t =    16.70s Find the NavigationBar (Element at index 0)
+    t =    16.71s Find the "動画の詳細" NavigationBar
+    t =    16.73s Find the "動画の詳細" NavigationBar
+    t =    16.74s Find the "動画の詳細" NavigationBar
+    t =    16.76s Find the "動画の詳細" NavigationBar
+    t =    16.77s Get all elements bound by index for: Descendants matching type CollectionView
+    t =    16.79s Get all elements bound by index for: Descendants matching type ScrollView
+    t =    16.80s Find the ScrollView (Element at index 0)
+    t =    16.81s Find the ScrollView
+    t =    16.83s Find the ScrollView
+    t =    16.84s Find the ScrollView at {{0.0, 0.0}, {402.0, 874.0}}
+    t =    16.86s Find the ScrollView
+    t =    16.87s Added attachment named 'accessibility-detail-actions-contrast-only-before-candidate-frames'
+    t =    17.18s Find the Any (Descendant with identity binding to AX element pid: 85566, elementOrHash.elementID: 4815596480.142)
+    t =    17.20s Find the Any (Descendant with identity binding to AX element pid: 85566, elementOrHash.elementID: 4815596480.142)
+    t =    17.21s Find the "軽量版の明示確認" StaticText
+    t =    17.23s Find the "軽量版の明示確認" StaticText
+    t =    17.24s Find the "軽量版の明示確認" StaticText
+    t =    17.26s Find the "軽量版の明示確認" StaticText
+    t =    17.27s Find the "軽量版の明示確認" StaticText
+    t =    17.29s Requesting snapshot of accessibility hierarchy for app with pid 85566
+    t =    17.31s Find: Descendant with identity binding to AX element pid: 85566, elementOrHash.elementID: 4815596480.142
+    t =    17.34s Requesting snapshot of accessibility hierarchy for app with pid 85566
+    t =    17.37s Find: Descendant with identity binding to AX element pid: 85566, elementOrHash.elementID: 4815596480.142
+    t =    17.37s Requesting snapshot of accessibility hierarchy for app with pid 85566
+    t =    17.40s Added attachment named 'accessibility-detail-actions-contrast-only-unhandled-issue'
+    t =    17.40s Find the Any (Descendant with identity binding to AX element pid: 85566, elementOrHash.elementID: 4815596480.142)
+    t =    17.41s Checking existence of `"軽量版の明示確認" StaticText`
+    t =    17.43s Find the "軽量版の明示確認" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityDetailActionsContrastOnly] : Contrast failed
+    t =    17.49s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    17.57s Added attachment named 'accessibility-detail-actions-contrast-only-after'
+    t =    17.57s Requesting snapshot of accessibility hierarchy for app with pid 85566
+    t =    17.64s Requesting snapshot of accessibility hierarchy for app with pid 85566
+    t =    17.67s Added attachment named 'accessibility-detail-actions-contrast-only-after-tree'
+    t =    17.67s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.action." OR identifier BEGINSWITH "library.reason." OR identifier BEGINSWITH "library.status." OR identifier BEGINSWITH "library.detailReconciliation" OR identifier BEGINSWITH "library.historyExplanation" OR identifier BEGINSWITH "library.item.s16v2-discard" OR identifier BEGINSWITH "library.submission." OR identifier BEGINSWITH "originalPlayback." OR identifier BEGINSWITH "product.capture"'
+    t =    17.69s Find the Any (Element at index 0)
+    t =    17.70s Find the "library.status.save" StaticText
+    t =    17.72s Find the "library.status.save" StaticText
+    t =    17.74s Find the "library.status.save" StaticText
+    t =    17.76s Find the "library.status.save" StaticText
+    t =    17.78s Find the Any (Element at index 1)
+    t =    17.80s Find the "library.status.original" StaticText
+    t =    17.81s Find the "library.status.original" StaticText
+    t =    17.83s Find the "library.status.original" StaticText
+    t =    17.85s Find the "library.status.original" StaticText
+    t =    17.87s Find the Any (Element at index 2)
+    t =    17.89s Find the "library.status.transfer" StaticText
+    t =    17.90s Find the "library.status.transfer" StaticText
+    t =    17.92s Find the "library.status.transfer" StaticText
+    t =    17.94s Find the "library.status.transfer" StaticText
+    t =    17.96s Find the Any (Element at index 3)
+    t =    17.98s Find the "library.status.verification" StaticText
+    t =    17.99s Find the "library.status.verification" StaticText
+    t =    18.01s Find the "library.status.verification" StaticText
+    t =    18.03s Find the "library.status.verification" StaticText
+    t =    18.05s Find the Any (Element at index 4)
+    t =    18.06s Find the "library.status.publication" StaticText
+    t =    18.08s Find the "library.status.publication" StaticText
+    t =    18.10s Find the "library.status.publication" StaticText
+    t =    18.12s Find the "library.status.publication" StaticText
+    t =    18.13s Find the Any (Element at index 5)
+    t =    18.15s Find the "library.status.retrieval" StaticText
+    t =    18.17s Find the "library.status.retrieval" StaticText
+    t =    18.19s Find the "library.status.retrieval" StaticText
+    t =    18.20s Find the "library.status.retrieval" StaticText
+    t =    18.22s Find the Any (Element at index 6)
+    t =    18.24s Find the "library.status.confirmation" StaticText
+    t =    18.26s Find the "library.status.confirmation" StaticText
+    t =    18.28s Find the "library.status.confirmation" StaticText
+    t =    18.29s Find the "library.status.confirmation" StaticText
+    t =    18.31s Find the Any (Element at index 7)
+    t =    18.33s Find the "library.status.invalidation" StaticText
+    t =    18.35s Find the "library.status.invalidation" StaticText
+    t =    18.37s Find the "library.status.invalidation" StaticText
+    t =    18.38s Find the "library.status.invalidation" StaticText
+    t =    18.40s Find the Any (Element at index 8)
+    t =    18.42s Find the "library.status.photos" StaticText
+    t =    18.43s Find the "library.status.photos" StaticText
+    t =    18.45s Find the "library.status.photos" StaticText
+    t =    18.47s Find the "library.status.photos" StaticText
+    t =    18.49s Find the Any (Element at index 9)
+    t =    18.51s Find the "library.status.photoPresence" StaticText
+    t =    18.52s Find the "library.status.photoPresence" StaticText
+    t =    18.54s Find the "library.status.photoPresence" StaticText
+    t =    18.56s Find the "library.status.photoPresence" StaticText
+    t =    18.58s Find the Any (Element at index 10)
+    t =    18.60s Find the "library.status.removal" StaticText
+    t =    18.61s Find the "library.status.removal" StaticText
+    t =    18.63s Find the "library.status.removal" StaticText
+    t =    18.65s Find the "library.status.removal" StaticText
+    t =    18.67s Find the Any (Element at index 11)
+    t =    18.69s Find the "library.detailReconciliationHeading" StaticText
+    t =    18.71s Find the "library.detailReconciliationHeading" StaticText
+    t =    18.73s Find the "library.detailReconciliationHeading" StaticText
+    t =    18.75s Find the "library.detailReconciliationHeading" StaticText
+    t =    18.76s Find the Any (Element at index 12)
+    t =    18.78s Find the "library.detailReconciliationExplanation" StaticText
+    t =    18.80s Find the "library.detailReconciliationExplanation" StaticText
+    t =    18.82s Find the "library.detailReconciliationExplanation" StaticText
+    t =    18.84s Find the "library.detailReconciliationExplanation" StaticText
+    t =    18.86s Find the Any (Element at index 13)
+    t =    18.87s Find the "library.action.playOriginal" Button
+    t =    18.89s Find the "library.action.playOriginal" Button
+    t =    18.91s Find the "library.action.playOriginal" Button
+    t =    18.93s Find the "library.action.playOriginal" Button
+    t =    18.95s Find the Any (Element at index 14)
+    t =    18.97s Find the "library.action.playRendition" Button
+    t =    18.99s Find the "library.action.playRendition" Button
+    t =    19.01s Find the "library.action.playRendition" Button
+    t =    19.02s Find the "library.action.playRendition" Button
+    t =    19.04s Find the Any (Element at index 15)
+    t =    19.06s Find the "library.reason.playRendition" StaticText
+    t =    19.08s Find the "library.reason.playRendition" StaticText
+    t =    19.10s Find the "library.reason.playRendition" StaticText
+    t =    19.12s Find the "library.reason.playRendition" StaticText
+    t =    19.13s Find the Any (Element at index 16)
+    t =    19.15s Find the "library.action.confirmRendition" Button
+    t =    19.17s Find the "library.action.confirmRendition" Button
+    t =    19.19s Find the "library.action.confirmRendition" Button
+    t =    19.21s Find the "library.action.confirmRendition" Button
+    t =    19.22s Find the Any (Element at index 17)
+    t =    19.24s Find the "library.reason.confirmRendition" StaticText
+    t =    19.26s Find the "library.reason.confirmRendition" StaticText
+    t =    19.28s Find the "library.reason.confirmRendition" StaticText
+    t =    19.30s Find the "library.reason.confirmRendition" StaticText
+    t =    19.31s Find the Any (Element at index 18)
+    t =    19.33s Find the "library.action.discard" Button
+    t =    19.35s Find the "library.action.discard" Button
+    t =    19.37s Find the "library.action.discard" Button
+    t =    19.39s Find the "library.action.discard" Button
+    t =    19.41s Get all elements bound by index for: Descendants matching type NavigationBar
+    t =    19.42s Find the NavigationBar (Element at index 0)
+    t =    19.44s Find the "動画の詳細" NavigationBar
+    t =    19.45s Find the "動画の詳細" NavigationBar
+    t =    19.47s Find the "動画の詳細" NavigationBar
+    t =    19.48s Find the "動画の詳細" NavigationBar
+    t =    19.50s Get all elements bound by index for: Descendants matching type CollectionView
+    t =    19.51s Get all elements bound by index for: Descendants matching type ScrollView
+    t =    19.52s Find the ScrollView (Element at index 0)
+    t =    19.54s Find the ScrollView
+    t =    19.55s Find the ScrollView
+    t =    19.57s Find the ScrollView at {{0.0, 0.0}, {402.0, 874.0}}
+    t =    19.59s Find the ScrollView
+    t =    19.60s Added attachment named 'accessibility-detail-actions-contrast-only-after-candidate-frames'
+    t =    19.60s Checking existence of `"library.action.discard" Button`
+    t =    19.62s Find the "library.action.discard" Button
+    t =    19.65s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    19.65s     Wait for com.oyabu.FrameRelay to idle
+    t =    19.65s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    19.66s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    19.68s     Synthesize event
+    t =    20.10s     Wait for com.oyabu.FrameRelay to idle
+    t =    20.62s Checking existence of `"library.action.discard" Button`
+    t =    20.66s Find the "library.action.discard" Button
+    t =    20.69s Find the "library.action.discard" Button
+    t =    20.71s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    20.79s Added attachment named 'accessibility-detail-actions-bottom-contrast-only-before'
+    t =    20.79s Requesting snapshot of accessibility hierarchy for app with pid 85566
+    t =    20.85s Requesting snapshot of accessibility hierarchy for app with pid 85566
+    t =    20.88s Added attachment named 'accessibility-detail-actions-bottom-contrast-only-before-tree'
+    t =    20.88s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.action." OR identifier BEGINSWITH "library.reason." OR identifier BEGINSWITH "library.status." OR identifier BEGINSWITH "library.detailReconciliation" OR identifier BEGINSWITH "library.historyExplanation" OR identifier BEGINSWITH "library.item.s16v2-discard" OR identifier BEGINSWITH "library.submission." OR identifier BEGINSWITH "originalPlayback." OR identifier BEGINSWITH "product.capture"'
+    t =    20.90s Find the Any (Element at index 0)
+    t =    20.92s Find the "library.status.save" StaticText
+    t =    20.93s Find the "library.status.save" StaticText
+    t =    20.95s Find the "library.status.save" StaticText
+    t =    20.97s Find the "library.status.save" StaticText
+    t =    20.98s Find the Any (Element at index 1)
+    t =    21.00s Find the "library.status.original" StaticText
+    t =    21.02s Find the "library.status.original" StaticText
+    t =    21.04s Find the "library.status.original" StaticText
+    t =    21.05s Find the "library.status.original" StaticText
+    t =    21.07s Find the Any (Element at index 2)
+    t =    21.09s Find the "library.status.transfer" StaticText
+    t =    21.11s Find the "library.status.transfer" StaticText
+    t =    21.13s Find the "library.status.transfer" StaticText
+    t =    21.14s Find the "library.status.transfer" StaticText
+    t =    21.16s Find the Any (Element at index 3)
+    t =    21.18s Find the "library.status.verification" StaticText
+    t =    21.20s Find the "library.status.verification" StaticText
+    t =    21.21s Find the "library.status.verification" StaticText
+    t =    21.23s Find the "library.status.verification" StaticText
+    t =    21.25s Find the Any (Element at index 4)
+    t =    21.27s Find the "library.status.publication" StaticText
+    t =    21.28s Find the "library.status.publication" StaticText
+    t =    21.30s Find the "library.status.publication" StaticText
+    t =    21.32s Find the "library.status.publication" StaticText
+    t =    21.34s Find the Any (Element at index 5)
+    t =    21.35s Find the "library.status.retrieval" StaticText
+    t =    21.37s Find the "library.status.retrieval" StaticText
+    t =    21.39s Find the "library.status.retrieval" StaticText
+    t =    21.41s Find the "library.status.retrieval" StaticText
+    t =    21.42s Find the Any (Element at index 6)
+    t =    21.44s Find the "library.status.confirmation" StaticText
+    t =    21.46s Find the "library.status.confirmation" StaticText
+    t =    21.48s Find the "library.status.confirmation" StaticText
+    t =    21.49s Find the "library.status.confirmation" StaticText
+    t =    21.51s Find the Any (Element at index 7)
+    t =    21.53s Find the "library.status.invalidation" StaticText
+    t =    21.55s Find the "library.status.invalidation" StaticText
+    t =    21.57s Find the "library.status.invalidation" StaticText
+    t =    21.58s Find the "library.status.invalidation" StaticText
+    t =    21.60s Find the Any (Element at index 8)
+    t =    21.62s Find the "library.status.photos" StaticText
+    t =    21.63s Find the "library.status.photos" StaticText
+    t =    21.65s Find the "library.status.photos" StaticText
+    t =    21.67s Find the "library.status.photos" StaticText
+    t =    21.69s Find the Any (Element at index 9)
+    t =    21.71s Find the "library.status.photoPresence" StaticText
+    t =    21.72s Find the "library.status.photoPresence" StaticText
+    t =    21.74s Find the "library.status.photoPresence" StaticText
+    t =    21.76s Find the "library.status.photoPresence" StaticText
+    t =    21.78s Find the Any (Element at index 10)
+    t =    21.80s Find the "library.status.removal" StaticText
+    t =    21.81s Find the "library.status.removal" StaticText
+    t =    21.83s Find the "library.status.removal" StaticText
+    t =    21.85s Find the "library.status.removal" StaticText
+    t =    21.87s Find the Any (Element at index 11)
+    t =    21.89s Find the "library.detailReconciliationHeading" StaticText
+    t =    21.91s Find the "library.detailReconciliationHeading" StaticText
+    t =    21.93s Find the "library.detailReconciliationHeading" StaticText
+    t =    21.94s Find the "library.detailReconciliationHeading" StaticText
+    t =    21.96s Find the Any (Element at index 12)
+    t =    21.98s Find the "library.detailReconciliationExplanation" StaticText
+    t =    22.00s Find the "library.detailReconciliationExplanation" StaticText
+    t =    22.02s Find the "library.detailReconciliationExplanation" StaticText
+    t =    22.04s Find the "library.detailReconciliationExplanation" StaticText
+    t =    22.05s Find the Any (Element at index 13)
+    t =    22.07s Find the "library.action.playOriginal" Button
+    t =    22.09s Find the "library.action.playOriginal" Button
+    t =    22.11s Find the "library.action.playOriginal" Button
+    t =    22.13s Find the "library.action.playOriginal" Button
+    t =    22.15s Find the Any (Element at index 14)
+    t =    22.16s Find the "library.action.playRendition" Button
+    t =    22.18s Find the "library.action.playRendition" Button
+    t =    22.20s Find the "library.action.playRendition" Button
+    t =    22.22s Find the "library.action.playRendition" Button
+    t =    22.24s Find the Any (Element at index 15)
+    t =    22.26s Find the "library.reason.playRendition" StaticText
+    t =    22.27s Find the "library.reason.playRendition" StaticText
+    t =    22.29s Find the "library.reason.playRendition" StaticText
+    t =    22.31s Find the "library.reason.playRendition" StaticText
+    t =    22.33s Find the Any (Element at index 16)
+    t =    22.35s Find the "library.action.confirmRendition" Button
+    t =    22.36s Find the "library.action.confirmRendition" Button
+    t =    22.38s Find the "library.action.confirmRendition" Button
+    t =    22.40s Find the "library.action.confirmRendition" Button
+    t =    22.42s Find the Any (Element at index 17)
+    t =    22.44s Find the "library.reason.confirmRendition" StaticText
+    t =    22.45s Find the "library.reason.confirmRendition" StaticText
+    t =    22.47s Find the "library.reason.confirmRendition" StaticText
+    t =    22.49s Find the "library.reason.confirmRendition" StaticText
+    t =    22.51s Find the Any (Element at index 18)
+    t =    22.53s Find the "library.action.discard" Button
+    t =    22.55s Find the "library.action.discard" Button
+    t =    22.57s Find the "library.action.discard" Button
+    t =    22.58s Find the "library.action.discard" Button
+    t =    22.60s Get all elements bound by index for: Descendants matching type NavigationBar
+    t =    22.62s Find the NavigationBar (Element at index 0)
+    t =    22.63s Find the "動画の詳細" NavigationBar
+    t =    22.65s Find the "動画の詳細" NavigationBar
+    t =    22.66s Find the "動画の詳細" NavigationBar
+    t =    22.68s Find the "動画の詳細" NavigationBar
+    t =    22.69s Get all elements bound by index for: Descendants matching type CollectionView
+    t =    22.70s Get all elements bound by index for: Descendants matching type ScrollView
+    t =    22.72s Find the ScrollView (Element at index 0)
+    t =    22.73s Find the ScrollView
+    t =    22.75s Find the ScrollView
+    t =    22.77s Find the ScrollView at {{0.0, 0.0}, {402.0, 874.0}}
+    t =    22.78s Find the ScrollView
+    t =    22.79s Added attachment named 'accessibility-detail-actions-bottom-contrast-only-before-candidate-frames'
+    t =    23.09s Find the Any (Descendant with identity binding to AX element pid: 85566, elementOrHash.elementID: 4815599040.150)
+    t =    23.10s Find the Any (Descendant with identity binding to AX element pid: 85566, elementOrHash.elementID: 4815599040.150)
+    t =    23.12s Find the "原本の削除" StaticText
+    t =    23.13s Find the "原本の削除" StaticText
+    t =    23.15s Find the "原本の削除" StaticText
+    t =    23.17s Find the "原本の削除" StaticText
+    t =    23.18s Find the "原本の削除" StaticText
+    t =    23.20s Requesting snapshot of accessibility hierarchy for app with pid 85566
+    t =    23.22s Find: Descendant with identity binding to AX element pid: 85566, elementOrHash.elementID: 4815599040.150
+    t =    23.25s Requesting snapshot of accessibility hierarchy for app with pid 85566
+    t =    23.28s Find: Descendant with identity binding to AX element pid: 85566, elementOrHash.elementID: 4815599040.150
+    t =    23.28s Requesting snapshot of accessibility hierarchy for app with pid 85566
+    t =    23.31s Added attachment named 'accessibility-detail-actions-bottom-contrast-only-unhandled-issue'
+    t =    23.31s Find the Any (Descendant with identity binding to AX element pid: 85566, elementOrHash.elementID: 4815599040.150)
+    t =    23.32s Checking existence of `"原本の削除" StaticText`
+    t =    23.34s Find the "原本の削除" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityDetailActionsContrastOnly] : Contrast failed
+    t =    23.36s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    23.44s Added attachment named 'accessibility-detail-actions-bottom-contrast-only-after'
+    t =    23.44s Requesting snapshot of accessibility hierarchy for app with pid 85566
+    t =    23.51s Requesting snapshot of accessibility hierarchy for app with pid 85566
+    t =    23.53s Added attachment named 'accessibility-detail-actions-bottom-contrast-only-after-tree'
+    t =    23.53s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.action." OR identifier BEGINSWITH "library.reason." OR identifier BEGINSWITH "library.status." OR identifier BEGINSWITH "library.detailReconciliation" OR identifier BEGINSWITH "library.historyExplanation" OR identifier BEGINSWITH "library.item.s16v2-discard" OR identifier BEGINSWITH "library.submission." OR identifier BEGINSWITH "originalPlayback." OR identifier BEGINSWITH "product.capture"'
+    t =    23.55s Find the Any (Element at index 0)
+    t =    23.57s Find the "library.status.save" StaticText
+    t =    23.58s Find the "library.status.save" StaticText
+    t =    23.60s Find the "library.status.save" StaticText
+    t =    23.62s Find the "library.status.save" StaticText
+    t =    23.63s Find the Any (Element at index 1)
+    t =    23.65s Find the "library.status.original" StaticText
+    t =    23.67s Find the "library.status.original" StaticText
+    t =    23.68s Find the "library.status.original" StaticText
+    t =    23.70s Find the "library.status.original" StaticText
+    t =    23.72s Find the Any (Element at index 2)
+    t =    23.74s Find the "library.status.transfer" StaticText
+    t =    23.76s Find the "library.status.transfer" StaticText
+    t =    23.78s Find the "library.status.transfer" StaticText
+    t =    23.80s Find the "library.status.transfer" StaticText
+    t =    23.81s Find the Any (Element at index 3)
+    t =    23.83s Find the "library.status.verification" StaticText
+    t =    23.85s Find the "library.status.verification" StaticText
+    t =    23.87s Find the "library.status.verification" StaticText
+    t =    23.89s Find the "library.status.verification" StaticText
+    t =    23.91s Find the Any (Element at index 4)
+    t =    23.93s Find the "library.status.publication" StaticText
+    t =    23.95s Find the "library.status.publication" StaticText
+    t =    23.97s Find the "library.status.publication" StaticText
+    t =    23.99s Find the "library.status.publication" StaticText
+    t =    24.00s Find the Any (Element at index 5)
+    t =    24.02s Find the "library.status.retrieval" StaticText
+    t =    24.04s Find the "library.status.retrieval" StaticText
+    t =    24.06s Find the "library.status.retrieval" StaticText
+    t =    24.08s Find the "library.status.retrieval" StaticText
+    t =    24.09s Find the Any (Element at index 6)
+    t =    24.11s Find the "library.status.confirmation" StaticText
+    t =    24.13s Find the "library.status.confirmation" StaticText
+    t =    24.15s Find the "library.status.confirmation" StaticText
+    t =    24.16s Find the "library.status.confirmation" StaticText
+    t =    24.18s Find the Any (Element at index 7)
+    t =    24.20s Find the "library.status.invalidation" StaticText
+    t =    24.22s Find the "library.status.invalidation" StaticText
+    t =    24.24s Find the "library.status.invalidation" StaticText
+    t =    24.25s Find the "library.status.invalidation" StaticText
+    t =    24.27s Find the Any (Element at index 8)
+    t =    24.29s Find the "library.status.photos" StaticText
+    t =    24.31s Find the "library.status.photos" StaticText
+    t =    24.32s Find the "library.status.photos" StaticText
+    t =    24.34s Find the "library.status.photos" StaticText
+    t =    24.36s Find the Any (Element at index 9)
+    t =    24.38s Find the "library.status.photoPresence" StaticText
+    t =    24.40s Find the "library.status.photoPresence" StaticText
+    t =    24.42s Find the "library.status.photoPresence" StaticText
+    t =    24.43s Find the "library.status.photoPresence" StaticText
+    t =    24.45s Find the Any (Element at index 10)
+    t =    24.47s Find the "library.status.removal" StaticText
+    t =    24.49s Find the "library.status.removal" StaticText
+    t =    24.51s Find the "library.status.removal" StaticText
+    t =    24.52s Find the "library.status.removal" StaticText
+    t =    24.54s Find the Any (Element at index 11)
+    t =    24.56s Find the "library.detailReconciliationHeading" StaticText
+    t =    24.58s Find the "library.detailReconciliationHeading" StaticText
+    t =    24.60s Find the "library.detailReconciliationHeading" StaticText
+    t =    24.62s Find the "library.detailReconciliationHeading" StaticText
+    t =    24.63s Find the Any (Element at index 12)
+    t =    24.65s Find the "library.detailReconciliationExplanation" StaticText
+    t =    24.67s Find the "library.detailReconciliationExplanation" StaticText
+    t =    24.69s Find the "library.detailReconciliationExplanation" StaticText
+    t =    24.71s Find the "library.detailReconciliationExplanation" StaticText
+    t =    24.72s Find the Any (Element at index 13)
+    t =    24.74s Find the "library.action.playOriginal" Button
+    t =    24.76s Find the "library.action.playOriginal" Button
+    t =    24.78s Find the "library.action.playOriginal" Button
+    t =    24.80s Find the "library.action.playOriginal" Button
+    t =    24.82s Find the Any (Element at index 14)
+    t =    24.84s Find the "library.action.playRendition" Button
+    t =    24.85s Find the "library.action.playRendition" Button
+    t =    24.87s Find the "library.action.playRendition" Button
+    t =    24.89s Find the "library.action.playRendition" Button
+    t =    24.91s Find the Any (Element at index 15)
+    t =    24.93s Find the "library.reason.playRendition" StaticText
+    t =    24.95s Find the "library.reason.playRendition" StaticText
+    t =    24.97s Find the "library.reason.playRendition" StaticText
+    t =    24.98s Find the "library.reason.playRendition" StaticText
+    t =    25.00s Find the Any (Element at index 16)
+    t =    25.02s Find the "library.action.confirmRendition" Button
+    t =    25.04s Find the "library.action.confirmRendition" Button
+    t =    25.06s Find the "library.action.confirmRendition" Button
+    t =    25.08s Find the "library.action.confirmRendition" Button
+    t =    25.09s Find the Any (Element at index 17)
+    t =    25.11s Find the "library.reason.confirmRendition" StaticText
+    t =    25.13s Find the "library.reason.confirmRendition" StaticText
+    t =    25.15s Find the "library.reason.confirmRendition" StaticText
+    t =    25.17s Find the "library.reason.confirmRendition" StaticText
+    t =    25.19s Find the Any (Element at index 18)
+    t =    25.21s Find the "library.action.discard" Button
+    t =    25.23s Find the "library.action.discard" Button
+    t =    25.25s Find the "library.action.discard" Button
+    t =    25.27s Find the "library.action.discard" Button
+    t =    25.28s Get all elements bound by index for: Descendants matching type NavigationBar
+    t =    25.30s Find the NavigationBar (Element at index 0)
+    t =    25.31s Find the "動画の詳細" NavigationBar
+    t =    25.33s Find the "動画の詳細" NavigationBar
+    t =    25.34s Find the "動画の詳細" NavigationBar
+    t =    25.36s Find the "動画の詳細" NavigationBar
+    t =    25.37s Get all elements bound by index for: Descendants matching type CollectionView
+    t =    25.38s Get all elements bound by index for: Descendants matching type ScrollView
+    t =    25.40s Find the ScrollView (Element at index 0)
+    t =    25.41s Find the ScrollView
+    t =    25.43s Find the ScrollView
+    t =    25.44s Find the ScrollView at {{0.0, 0.0}, {402.0, 874.0}}
+    t =    25.46s Find the ScrollView
+    t =    25.47s Added attachment named 'accessibility-detail-actions-bottom-contrast-only-after-candidate-frames'
+    t =    25.48s Tear Down
+    t =    25.48s     Waiting 2.0s for "originalPlayback.close" Button to exist
+    t =    26.57s         Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.close" Button`
+    t =    26.57s             Checking existence of `"originalPlayback.close" Button`
+    t =    26.62s             Capturing element debug description
+    t =    27.49s         Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.close" Button`
+    t =    27.49s             Checking existence of `"originalPlayback.close" Button`
+    t =    27.54s             Capturing element debug description
+    t =    27.54s         Checking existence of `"originalPlayback.close" Button`
+    t =    27.56s     Collecting debug information to assist test failure triage
+    t =    27.56s         Requesting snapshot of accessibility hierarchy for app with pid 85566
+Test Case '-[FrameRelayUITests.LibraryFlowTests testAccessibilityDetailActionsContrastOnly]' failed (27.890 seconds).
+Test Case '-[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly]' started.
+    t =     0.00s Start Test at 2026-10-22 01:07:44.410
+    t =     0.02s Set Up
+    t =     0.02s Open com.oyabu.FrameRelay
+    t =     0.02s     Launch com.oyabu.FrameRelay
+    t =     0.02s         Terminate com.oyabu.FrameRelay:85566
+2026-10-22 01:07:45.526 xcodebuild[85504:52083425] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-22 01:07:45.526 xcodebuild[85504:52083425] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.33s         Setting up automation session
+    t =     3.62s         Wait for com.oyabu.FrameRelay to idle
+    t =     5.35s Waiting 10.0s for "library.refresh" Button to exist
+    t =     6.44s     Checking `Expect predicate `existsNoRetry == 1` for object "library.refresh" Button`
+    t =     6.44s         Checking existence of `"library.refresh" Button`
+    t =     7.69s Find the "library.refresh" Button
+    t =     7.75s Checking existence of `"library.loadFailure" Any`
+    t =     7.83s Checking existence of `"library.item.s16v2-cleanup" Any`
+    t =     7.86s Find the "library.item.s16v2-cleanup" Any
+    t =     7.92s Checking existence of `"library.item.s16v2-cleanup" Button`
+    t =     7.96s Find the "library.refresh" Button
+    t =     7.99s Checking existence of `"library.loadFailure" Any`
+    t =     8.06s Find the "library.scope" Any
+    t =     8.10s Checking existence of `"library.item.s16v2-original" Any`
+    t =     8.13s Find the "library.item.s16v2-original" Any
+    t =     8.18s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =     8.18s     Wait for com.oyabu.FrameRelay to idle
+    t =     8.18s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =     8.20s     Check for interrupting elements affecting "FrameRelay" Application
+    t =     8.23s     Synthesize event
+    t =     8.65s     Wait for com.oyabu.FrameRelay to idle
+    t =    10.76s Checking existence of `"library.item.s16v2-original" Button`
+    t =    10.81s Find the "library.item.s16v2-original" Button
+    t =    10.86s Tap "library.item.s16v2-original" Button
+    t =    10.86s     Wait for com.oyabu.FrameRelay to idle
+    t =    10.86s     Find the "library.item.s16v2-original" Button
+    t =    10.90s     Check for interrupting elements affecting "library.item.s16v2-original" Button
+    t =    10.94s     Synthesize event
+    t =    11.23s     Wait for com.oyabu.FrameRelay to idle
+    t =    11.60s Waiting 5.0s for "library.detailIdentity" Any to exist
+    t =    12.68s     Checking `Expect predicate `existsNoRetry == 1` for object "library.detailIdentity" Any`
+    t =    12.68s         Checking existence of `"library.detailIdentity" Any`
+    t =    12.73s Checking existence of `"library.detailReconciliationExplanation" Any`
+    t =    12.76s Find the "library.detailReconciliationExplanation" Any
+    t =    12.80s Swipe up Target Application 'com.oyabu.FrameRelay'
+    t =    12.80s     Wait for com.oyabu.FrameRelay to idle
+    t =    12.80s     Find the Target Application 'com.oyabu.FrameRelay'
+    t =    12.81s     Check for interrupting elements affecting "FrameRelay" Application
+    t =    12.83s     Synthesize event
+    t =    13.25s     Wait for com.oyabu.FrameRelay to idle
+    t =    15.36s Checking existence of `"library.detailReconciliationExplanation" StaticText`
+    t =    15.41s Find the "library.detailReconciliationExplanation" StaticText
+    t =    15.45s Checking existence of `"library.detailReconciliationExplanation" StaticText`
+    t =    15.48s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    15.56s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-before'
+    t =    15.56s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    15.65s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    15.67s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-before-tree'
+    t =    15.67s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.action." OR identifier BEGINSWITH "library.reason." OR identifier BEGINSWITH "library.status." OR identifier BEGINSWITH "library.detailReconciliation" OR identifier BEGINSWITH "library.historyExplanation" OR identifier BEGINSWITH "library.item.s16v2-discard" OR identifier BEGINSWITH "library.submission." OR identifier BEGINSWITH "originalPlayback." OR identifier BEGINSWITH "product.capture"'
+    t =    15.69s Find the Any (Element at index 0)
+    t =    15.70s Find the "library.status.save" StaticText
+    t =    15.72s Find the "library.status.save" StaticText
+    t =    15.74s Find the "library.status.save" StaticText
+    t =    15.75s Find the "library.status.save" StaticText
+    t =    15.77s Find the Any (Element at index 1)
+    t =    15.78s Find the "library.status.original" StaticText
+    t =    15.80s Find the "library.status.original" StaticText
+    t =    15.82s Find the "library.status.original" StaticText
+    t =    15.83s Find the "library.status.original" StaticText
+    t =    15.85s Find the Any (Element at index 2)
+    t =    15.87s Find the "library.status.transfer" StaticText
+    t =    15.88s Find the "library.status.transfer" StaticText
+    t =    15.90s Find the "library.status.transfer" StaticText
+    t =    15.92s Find the "library.status.transfer" StaticText
+    t =    15.93s Find the Any (Element at index 3)
+    t =    15.95s Find the "library.status.verification" StaticText
+    t =    15.96s Find the "library.status.verification" StaticText
+    t =    15.98s Find the "library.status.verification" StaticText
+    t =    16.00s Find the "library.status.verification" StaticText
+    t =    16.02s Find the Any (Element at index 4)
+    t =    16.03s Find the "library.status.publication" StaticText
+    t =    16.05s Find the "library.status.publication" StaticText
+    t =    16.07s Find the "library.status.publication" StaticText
+    t =    16.09s Find the "library.status.publication" StaticText
+    t =    16.10s Find the Any (Element at index 5)
+    t =    16.12s Find the "library.status.retrieval" StaticText
+    t =    16.14s Find the "library.status.retrieval" StaticText
+    t =    16.16s Find the "library.status.retrieval" StaticText
+    t =    16.17s Find the "library.status.retrieval" StaticText
+    t =    16.19s Find the Any (Element at index 6)
+    t =    16.21s Find the "library.status.confirmation" StaticText
+    t =    16.23s Find the "library.status.confirmation" StaticText
+    t =    16.24s Find the "library.status.confirmation" StaticText
+    t =    16.26s Find the "library.status.confirmation" StaticText
+    t =    16.28s Find the Any (Element at index 7)
+    t =    16.30s Find the "library.status.invalidation" StaticText
+    t =    16.32s Find the "library.status.invalidation" StaticText
+    t =    16.34s Find the "library.status.invalidation" StaticText
+    t =    16.36s Find the "library.status.invalidation" StaticText
+    t =    16.38s Find the Any (Element at index 8)
+    t =    16.41s Find the "library.status.photos" StaticText
+    t =    16.43s Find the "library.status.photos" StaticText
+    t =    16.45s Find the "library.status.photos" StaticText
+    t =    16.47s Find the "library.status.photos" StaticText
+    t =    16.49s Find the Any (Element at index 9)
+    t =    16.51s Find the "library.status.photoPresence" StaticText
+    t =    16.53s Find the "library.status.photoPresence" StaticText
+    t =    16.55s Find the "library.status.photoPresence" StaticText
+    t =    16.56s Find the "library.status.photoPresence" StaticText
+    t =    16.58s Find the Any (Element at index 10)
+    t =    16.60s Find the "library.status.removal" StaticText
+    t =    16.62s Find the "library.status.removal" StaticText
+    t =    16.64s Find the "library.status.removal" StaticText
+    t =    16.66s Find the "library.status.removal" StaticText
+    t =    16.67s Find the Any (Element at index 11)
+    t =    16.69s Find the "library.detailReconciliationHeading" StaticText
+    t =    16.71s Find the "library.detailReconciliationHeading" StaticText
+    t =    16.73s Find the "library.detailReconciliationHeading" StaticText
+    t =    16.75s Find the "library.detailReconciliationHeading" StaticText
+    t =    16.76s Find the Any (Element at index 12)
+    t =    16.78s Find the "library.detailReconciliationExplanation" StaticText
+    t =    16.80s Find the "library.detailReconciliationExplanation" StaticText
+    t =    16.82s Find the "library.detailReconciliationExplanation" StaticText
+    t =    16.84s Find the "library.detailReconciliationExplanation" StaticText
+    t =    16.86s Find the Any (Element at index 13)
+    t =    16.87s Find the "library.action.playOriginal" Button
+    t =    16.89s Find the "library.action.playOriginal" Button
+    t =    16.91s Find the "library.action.playOriginal" Button
+    t =    16.93s Find the "library.action.playOriginal" Button
+    t =    16.95s Find the Any (Element at index 14)
+    t =    16.96s Find the "library.action.playRendition" Button
+    t =    16.98s Find the "library.action.playRendition" Button
+    t =    17.00s Find the "library.action.playRendition" Button
+    t =    17.02s Find the "library.action.playRendition" Button
+    t =    17.04s Find the Any (Element at index 15)
+    t =    17.06s Find the "library.reason.playRendition" StaticText
+    t =    17.07s Find the "library.reason.playRendition" StaticText
+    t =    17.09s Find the "library.reason.playRendition" StaticText
+    t =    17.11s Find the "library.reason.playRendition" StaticText
+    t =    17.13s Find the Any (Element at index 16)
+    t =    17.15s Find the "library.action.confirmRendition" Button
+    t =    17.17s Find the "library.action.confirmRendition" Button
+    t =    17.19s Find the "library.action.confirmRendition" Button
+    t =    17.20s Find the "library.action.confirmRendition" Button
+    t =    17.22s Find the Any (Element at index 17)
+    t =    17.24s Find the "library.reason.confirmRendition" StaticText
+    t =    17.26s Find the "library.reason.confirmRendition" StaticText
+    t =    17.28s Find the "library.reason.confirmRendition" StaticText
+    t =    17.30s Find the "library.reason.confirmRendition" StaticText
+    t =    17.31s Find the Any (Element at index 18)
+    t =    17.33s Find the "library.action.discard" Button
+    t =    17.35s Find the "library.action.discard" Button
+    t =    17.37s Find the "library.action.discard" Button
+    t =    17.39s Find the "library.action.discard" Button
+    t =    17.41s Get all elements bound by index for: Descendants matching type NavigationBar
+    t =    17.42s Find the NavigationBar (Element at index 0)
+    t =    17.44s Find the "動画の詳細" NavigationBar
+    t =    17.45s Find the "動画の詳細" NavigationBar
+    t =    17.47s Find the "動画の詳細" NavigationBar
+    t =    17.48s Find the "動画の詳細" NavigationBar
+    t =    17.50s Get all elements bound by index for: Descendants matching type CollectionView
+    t =    17.51s Get all elements bound by index for: Descendants matching type ScrollView
+    t =    17.52s Find the ScrollView (Element at index 0)
+    t =    17.54s Find the ScrollView
+    t =    17.55s Find the ScrollView
+    t =    17.57s Find the ScrollView at {{0.0, 0.0}, {402.0, 874.0}}
+    t =    17.58s Find the ScrollView
+    t =    17.60s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-before-candidate-frames'
+    t =    19.57s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639616.149)
+    t =    19.59s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639616.149)
+    t =    19.60s Find the "写真側の存在の照合記録なし" StaticText
+    t =    19.62s Find the "写真側の存在の照合記録なし" StaticText
+    t =    19.63s Find the "写真側の存在の照合記録なし" StaticText
+    t =    19.65s Find the "写真側の存在の照合記録なし" StaticText
+    t =    19.66s Find the "写真側の存在の照合記録なし" StaticText
+    t =    19.68s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    19.70s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639616.149
+    t =    19.73s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    19.76s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639616.149
+    t =    19.76s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    19.79s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    19.79s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639616.149)
+    t =    19.80s Checking existence of `"写真側の存在の照合記録なし" StaticText`
+    t =    19.81s Find the "写真側の存在の照合記録なし" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    19.84s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640736.121)
+    t =    19.85s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640736.121)
+    t =    19.87s Find the "原本の整理・破棄の確認情報" StaticText
+    t =    19.88s Find the "原本の整理・破棄の確認情報" StaticText
+    t =    19.90s Find the "原本の整理・破棄の確認情報" StaticText
+    t =    19.91s Find the "原本の整理・破棄の確認情報" StaticText
+    t =    19.93s Find the "原本の整理・破棄の確認情報" StaticText
+    t =    19.94s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    19.97s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640736.121
+    t =    20.00s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    20.02s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640736.121
+    t =    20.02s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    20.05s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    20.05s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640736.121)
+    t =    20.07s Checking existence of `"原本の整理・破棄の確認情報" StaticText`
+    t =    20.08s Find the "原本の整理・破棄の確認情報" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    20.10s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638496.144)
+    t =    20.11s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638496.144)
+    t =    20.13s Find the "確認の失効" StaticText
+    t =    20.14s Find the "確認の失効" StaticText
+    t =    20.16s Find the "確認の失効" StaticText
+    t =    20.18s Find the "確認の失効" StaticText
+    t =    20.19s Find the "確認の失効" StaticText
+    t =    20.21s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    20.23s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638496.144
+    t =    20.26s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    20.29s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638496.144
+    t =    20.29s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    20.32s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    20.32s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638496.144)
+    t =    20.33s Checking existence of `"確認の失効" StaticText`
+    t =    20.34s Find the "確認の失効" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    20.37s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802641056.123)
+    t =    20.38s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802641056.123)
+    t =    20.39s Find the "この動画の操作" StaticText
+    t =    20.41s Find the "この動画の操作" StaticText
+    t =    20.43s Find the "この動画の操作" StaticText
+    t =    20.44s Find the "この動画の操作" StaticText
+    t =    20.46s Find the "この動画の操作" StaticText
+    t =    20.47s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    20.50s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802641056.123
+    t =    20.53s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    20.56s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802641056.123
+    t =    20.56s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    20.59s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    20.59s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802641056.123)
+    t =    20.61s Checking existence of `"この動画の操作" StaticText`
+    t =    20.62s Find the "この動画の操作" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    20.64s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638656.145)
+    t =    20.66s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638656.145)
+    t =    20.67s Find the "確認の失効状態はまだ取得できません" StaticText
+    t =    20.69s Find the "確認の失効状態はまだ取得できません" StaticText
+    t =    20.71s Find the "確認の失効状態はまだ取得できません" StaticText
+    t =    20.72s Find the "確認の失効状態はまだ取得できません" StaticText
+    t =    20.74s Find the "確認の失効状態はまだ取得できません" StaticText
+    t =    20.76s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    20.78s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638656.145
+    t =    20.81s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    20.84s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638656.145
+    t =    20.84s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    20.87s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    20.87s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638656.145)
+    t =    20.88s Checking existence of `"確認の失効状態はまだ取得できません" StaticText`
+    t =    20.90s Find the "確認の失効状態はまだ取得できません" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    20.92s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640896.122)
+    t =    20.93s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640896.122)
+    t =    20.95s Find the "library.removalReviewInformation" StaticText
+    t =    20.96s Find the "library.removalReviewInformation" StaticText
+    t =    20.98s Find the "library.removalReviewInformation" StaticText
+    t =    21.00s Find the "library.removalReviewInformation" StaticText
+    t =    21.01s Find the "library.removalReviewInformation" StaticText
+    t =    21.03s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    21.05s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640896.122
+    t =    21.08s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    21.11s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640896.122
+    t =    21.11s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    21.14s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    21.14s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640896.122)
+    t =    21.15s Checking existence of `"library.removalReviewInformation" StaticText`
+    t =    21.16s Find the "library.removalReviewInformation" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    21.19s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640576.120)
+    t =    21.20s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640576.120)
+    t =    21.22s Find the "library.detailReconciliationExplanation" StaticText
+    t =    21.23s Find the "library.detailReconciliationExplanation" StaticText
+    t =    21.25s Find the "library.detailReconciliationExplanation" StaticText
+    t =    21.27s Find the "library.detailReconciliationExplanation" StaticText
+    t =    21.28s Find the "library.detailReconciliationExplanation" StaticText
+    t =    21.30s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    21.32s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640576.120
+    t =    21.35s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    21.38s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640576.120
+    t =    21.38s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    21.41s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    21.41s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640576.120)
+    t =    21.42s Checking existence of `"library.detailReconciliationExplanation" StaticText`
+    t =    21.43s Find the "library.detailReconciliationExplanation" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    21.46s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802637536.143)
+    t =    21.48s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802637536.143)
+    t =    21.49s Find the "軽量版の確認記録はまだ取得できません" StaticText
+    t =    21.51s Find the "軽量版の確認記録はまだ取得できません" StaticText
+    t =    21.52s Find the "軽量版の確認記録はまだ取得できません" StaticText
+    t =    21.54s Find the "軽量版の確認記録はまだ取得できません" StaticText
+    t =    21.55s Find the "軽量版の確認記録はまだ取得できません" StaticText
+    t =    21.57s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    21.59s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802637536.143
+    t =    21.63s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    21.65s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802637536.143
+    t =    21.65s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    21.68s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    21.68s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802637536.143)
+    t =    21.70s Checking existence of `"軽量版の確認記録はまだ取得できません" StaticText`
+    t =    21.71s Find the "軽量版の確認記録はまだ取得できません" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    21.74s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638976.146)
+    t =    21.75s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638976.146)
+    t =    21.77s Find the "写真への過去の登録結果" StaticText
+    t =    21.78s Find the "写真への過去の登録結果" StaticText
+    t =    21.80s Find the "写真への過去の登録結果" StaticText
+    t =    21.81s Find the "写真への過去の登録結果" StaticText
+    t =    21.83s Find the "写真への過去の登録結果" StaticText
+    t =    21.84s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    21.87s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638976.146
+    t =    21.90s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    21.92s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638976.146
+    t =    21.93s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    21.95s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    21.95s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802638976.146)
+    t =    21.97s Checking existence of `"写真への過去の登録結果" StaticText`
+    t =    21.98s Find the "写真への過去の登録結果" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    22.01s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639136.147)
+    t =    22.02s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639136.147)
+    t =    22.03s Find the "写真への登録記録なし" StaticText
+    t =    22.05s Find the "写真への登録記録なし" StaticText
+    t =    22.06s Find the "写真への登録記録なし" StaticText
+    t =    22.08s Find the "写真への登録記録なし" StaticText
+    t =    22.10s Find the "写真への登録記録なし" StaticText
+    t =    22.11s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    22.14s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639136.147
+    t =    22.17s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    22.19s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639136.147
+    t =    22.19s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    22.22s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    22.22s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639136.147)
+    t =    22.24s Checking existence of `"写真への登録記録なし" StaticText`
+    t =    22.25s Find the "写真への登録記録なし" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    22.27s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639456.148)
+    t =    22.29s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639456.148)
+    t =    22.30s Find the "写真側の存在の照合" StaticText
+    t =    22.32s Find the "写真側の存在の照合" StaticText
+    t =    22.33s Find the "写真側の存在の照合" StaticText
+    t =    22.35s Find the "写真側の存在の照合" StaticText
+    t =    22.36s Find the "写真側の存在の照合" StaticText
+    t =    22.38s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    22.40s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639456.148
+    t =    22.43s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    22.46s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639456.148
+    t =    22.46s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    22.49s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    22.49s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639456.148)
+    t =    22.51s Checking existence of `"写真側の存在の照合" StaticText`
+    t =    22.52s Find the "写真側の存在の照合" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    22.54s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639936.150)
+    t =    22.55s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639936.150)
+    t =    22.57s Find the "原本の削除" StaticText
+    t =    22.59s Find the "原本の削除" StaticText
+    t =    22.60s Find the "原本の削除" StaticText
+    t =    22.62s Find the "原本の削除" StaticText
+    t =    22.63s Find the "原本の削除" StaticText
+    t =    22.65s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    22.67s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639936.150
+    t =    22.70s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    22.73s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639936.150
+    t =    22.73s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    22.76s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    22.76s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802639936.150)
+    t =    22.78s Checking existence of `"原本の削除" StaticText`
+    t =    22.79s Find the "原本の削除" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    22.81s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640416.119)
+    t =    22.82s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640416.119)
+    t =    22.84s Find the "library.detailReconciliationHeading" StaticText
+    t =    22.85s Find the "library.detailReconciliationHeading" StaticText
+    t =    22.87s Find the "library.detailReconciliationHeading" StaticText
+    t =    22.89s Find the "library.detailReconciliationHeading" StaticText
+    t =    22.90s Find the "library.detailReconciliationHeading" StaticText
+    t =    22.92s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    22.94s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640416.119
+    t =    22.97s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    23.00s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640416.119
+    t =    23.00s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    23.03s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    23.03s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640416.119)
+    t =    23.04s Checking existence of `"library.detailReconciliationHeading" StaticText`
+    t =    23.06s Find the "library.detailReconciliationHeading" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    23.08s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640096.151)
+    t =    23.09s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640096.151)
+    t =    23.11s Find the "削除記録なし" StaticText
+    t =    23.12s Find the "削除記録なし" StaticText
+    t =    23.14s Find the "削除記録なし" StaticText
+    t =    23.15s Find the "削除記録なし" StaticText
+    t =    23.17s Find the "削除記録なし" StaticText
+    t =    23.18s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    23.21s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640096.151
+    t =    23.24s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    23.27s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640096.151
+    t =    23.27s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    23.30s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    23.30s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802640096.151)
+    t =    23.31s Checking existence of `"削除記録なし" StaticText`
+    t =    23.32s Find the "削除記録なし" StaticText
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    23.35s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802641216.124)
+    t =    23.36s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802641216.124)
+    t =    23.38s Find the "library.action.playOriginal" Button
+    t =    23.39s Find the "library.action.playOriginal" Button
+    t =    23.41s Find the "library.action.playOriginal" Button
+    t =    23.42s Find the "library.action.playOriginal" Button
+    t =    23.44s Find the "library.action.playOriginal" Button
+    t =    23.45s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    23.48s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802641216.124
+    t =    23.51s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    23.53s Find: Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802641216.124
+    t =    23.53s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    23.56s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-unhandled-issue'
+    t =    23.56s Find the Any (Descendant with identity binding to AX element pid: 85663, elementOrHash.elementID: 4802641216.124)
+    t =    23.58s Checking existence of `"library.action.playOriginal" Button`
+    t =    23.59s Find the "library.action.playOriginal" Button
+/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/LibraryFlowTests.swift:590: error: -[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly] : Dynamic Type font sizes are partially unsupported
+    t =    23.61s Find the Target Application 'com.oyabu.FrameRelay'
+    t =    23.70s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-after'
+    t =    23.70s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    23.77s Requesting snapshot of accessibility hierarchy for app with pid 85663
+    t =    23.80s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-after-tree'
+    t =    23.80s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "library.action." OR identifier BEGINSWITH "library.reason." OR identifier BEGINSWITH "library.status." OR identifier BEGINSWITH "library.detailReconciliation" OR identifier BEGINSWITH "library.historyExplanation" OR identifier BEGINSWITH "library.item.s16v2-discard" OR identifier BEGINSWITH "library.submission." OR identifier BEGINSWITH "originalPlayback." OR identifier BEGINSWITH "product.capture"'
+    t =    23.82s Find the Any (Element at index 0)
+    t =    23.83s Find the "library.status.save" StaticText
+    t =    23.85s Find the "library.status.save" StaticText
+    t =    23.87s Find the "library.status.save" StaticText
+    t =    23.89s Find the "library.status.save" StaticText
+    t =    23.90s Find the Any (Element at index 1)
+    t =    23.92s Find the "library.status.original" StaticText
+    t =    23.94s Find the "library.status.original" StaticText
+    t =    23.96s Find the "library.status.original" StaticText
+    t =    23.97s Find the "library.status.original" StaticText
+    t =    23.99s Find the Any (Element at index 2)
+    t =    24.01s Find the "library.status.transfer" StaticText
+    t =    24.03s Find the "library.status.transfer" StaticText
+    t =    24.04s Find the "library.status.transfer" StaticText
+    t =    24.06s Find the "library.status.transfer" StaticText
+    t =    24.08s Find the Any (Element at index 3)
+    t =    24.09s Find the "library.status.verification" StaticText
+    t =    24.11s Find the "library.status.verification" StaticText
+    t =    24.13s Find the "library.status.verification" StaticText
+    t =    24.15s Find the "library.status.verification" StaticText
+    t =    24.16s Find the Any (Element at index 4)
+    t =    24.18s Find the "library.status.publication" StaticText
+    t =    24.20s Find the "library.status.publication" StaticText
+    t =    24.22s Find the "library.status.publication" StaticText
+    t =    24.24s Find the "library.status.publication" StaticText
+    t =    24.25s Find the Any (Element at index 5)
+    t =    24.27s Find the "library.status.retrieval" StaticText
+    t =    24.29s Find the "library.status.retrieval" StaticText
+    t =    24.31s Find the "library.status.retrieval" StaticText
+    t =    24.32s Find the "library.status.retrieval" StaticText
+    t =    24.34s Find the Any (Element at index 6)
+    t =    24.36s Find the "library.status.confirmation" StaticText
+    t =    24.38s Find the "library.status.confirmation" StaticText
+    t =    24.39s Find the "library.status.confirmation" StaticText
+    t =    24.41s Find the "library.status.confirmation" StaticText
+    t =    24.43s Find the Any (Element at index 7)
+    t =    24.44s Find the "library.status.invalidation" StaticText
+    t =    24.46s Find the "library.status.invalidation" StaticText
+    t =    24.48s Find the "library.status.invalidation" StaticText
+    t =    24.50s Find the "library.status.invalidation" StaticText
+    t =    24.51s Find the Any (Element at index 8)
+    t =    24.53s Find the "library.status.photos" StaticText
+    t =    24.55s Find the "library.status.photos" StaticText
+    t =    24.57s Find the "library.status.photos" StaticText
+    t =    24.58s Find the "library.status.photos" StaticText
+    t =    24.60s Find the Any (Element at index 9)
+    t =    24.62s Find the "library.status.photoPresence" StaticText
+    t =    24.64s Find the "library.status.photoPresence" StaticText
+    t =    24.66s Find the "library.status.photoPresence" StaticText
+    t =    24.67s Find the "library.status.photoPresence" StaticText
+    t =    24.69s Find the Any (Element at index 10)
+    t =    24.71s Find the "library.status.removal" StaticText
+    t =    24.73s Find the "library.status.removal" StaticText
+    t =    24.74s Find the "library.status.removal" StaticText
+    t =    24.76s Find the "library.status.removal" StaticText
+    t =    24.78s Find the Any (Element at index 11)
+    t =    24.80s Find the "library.detailReconciliationHeading" StaticText
+    t =    24.82s Find the "library.detailReconciliationHeading" StaticText
+    t =    24.84s Find the "library.detailReconciliationHeading" StaticText
+    t =    24.85s Find the "library.detailReconciliationHeading" StaticText
+    t =    24.87s Find the Any (Element at index 12)
+    t =    24.89s Find the "library.detailReconciliationExplanation" StaticText
+    t =    24.91s Find the "library.detailReconciliationExplanation" StaticText
+    t =    24.93s Find the "library.detailReconciliationExplanation" StaticText
+    t =    24.95s Find the "library.detailReconciliationExplanation" StaticText
+    t =    24.97s Find the Any (Element at index 13)
+    t =    24.98s Find the "library.action.playOriginal" Button
+    t =    25.00s Find the "library.action.playOriginal" Button
+    t =    25.02s Find the "library.action.playOriginal" Button
+    t =    25.04s Find the "library.action.playOriginal" Button
+    t =    25.06s Find the Any (Element at index 14)
+    t =    25.08s Find the "library.action.playRendition" Button
+    t =    25.09s Find the "library.action.playRendition" Button
+    t =    25.11s Find the "library.action.playRendition" Button
+    t =    25.13s Find the "library.action.playRendition" Button
+    t =    25.15s Find the Any (Element at index 15)
+    t =    25.17s Find the "library.reason.playRendition" StaticText
+    t =    25.19s Find the "library.reason.playRendition" StaticText
+    t =    25.21s Find the "library.reason.playRendition" StaticText
+    t =    25.22s Find the "library.reason.playRendition" StaticText
+    t =    25.24s Find the Any (Element at index 16)
+    t =    25.26s Find the "library.action.confirmRendition" Button
+    t =    25.28s Find the "library.action.confirmRendition" Button
+    t =    25.30s Find the "library.action.confirmRendition" Button
+    t =    25.32s Find the "library.action.confirmRendition" Button
+    t =    25.33s Find the Any (Element at index 17)
+    t =    25.35s Find the "library.reason.confirmRendition" StaticText
+    t =    25.37s Find the "library.reason.confirmRendition" StaticText
+    t =    25.39s Find the "library.reason.confirmRendition" StaticText
+    t =    25.41s Find the "library.reason.confirmRendition" StaticText
+    t =    25.43s Find the Any (Element at index 18)
+    t =    25.45s Find the "library.action.discard" Button
+    t =    25.47s Find the "library.action.discard" Button
+    t =    25.49s Find the "library.action.discard" Button
+    t =    25.51s Find the "library.action.discard" Button
+    t =    25.53s Get all elements bound by index for: Descendants matching type NavigationBar
+    t =    25.54s Find the NavigationBar (Element at index 0)
+    t =    25.56s Find the "動画の詳細" NavigationBar
+    t =    25.57s Find the "動画の詳細" NavigationBar
+    t =    25.59s Find the "動画の詳細" NavigationBar
+    t =    25.60s Find the "動画の詳細" NavigationBar
+    t =    25.62s Get all elements bound by index for: Descendants matching type CollectionView
+    t =    25.63s Get all elements bound by index for: Descendants matching type ScrollView
+    t =    25.64s Find the ScrollView (Element at index 0)
+    t =    25.66s Find the ScrollView
+    t =    25.67s Find the ScrollView
+    t =    25.69s Find the ScrollView at {{0.0, 0.0}, {402.0, 874.0}}
+    t =    25.71s Find the ScrollView
+    t =    25.72s Added attachment named 'accessibility-detail-reconciliation-dynamic-type-only-after-candidate-frames'
+    t =    25.73s Tear Down
+    t =    25.73s     Waiting 2.0s for "originalPlayback.close" Button to exist
+    t =    26.74s         Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.close" Button`
+    t =    26.74s             Checking existence of `"originalPlayback.close" Button`
+    t =    26.76s             Capturing element debug description
+    t =    27.73s         Checking `Expect predicate `existsNoRetry == 1` for object "originalPlayback.close" Button`
+    t =    27.73s             Checking existence of `"originalPlayback.close" Button`
+    t =    27.78s             Capturing element debug description
+    t =    27.78s         Checking existence of `"originalPlayback.close" Button`
+    t =    27.81s     Collecting debug information to assist test failure triage
+    t =    27.81s         Requesting snapshot of accessibility hierarchy for app with pid 85663
+Test Case '-[FrameRelayUITests.LibraryFlowTests testAccessibilityReconciliationDescriptionDynamicTypeOnly]' failed (28.105 seconds).
+Test Suite 'LibraryFlowTests' failed at 2026-10-22 01:08:12.515.
+	 Executed 2 tests, with 17 failures (0 unexpected) in 55.995 (55.997) seconds
+Test Suite 'FrameRelayUITests.xctest' failed at 2026-10-22 01:08:12.516.
+	 Executed 2 tests, with 17 failures (0 unexpected) in 55.995 (55.998) seconds
+Test Suite 'Selected tests' failed at 2026-10-22 01:08:12.517.
+	 Executed 2 tests, with 17 failures (0 unexpected) in 55.995 (55.999) seconds
+2026-10-22 01:08:12.852 xcodebuild[85504:52083425] [MT] IDETestOperationsObserverDebug: 59.496 elapsed -- Testing started completed.
+2026-10-22 01:08:12.852 xcodebuild[85504:52083425] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-22 01:08:12.852 xcodebuild[85504:52083425] [MT] IDETestOperationsObserverDebug: 59.496 sec, +59.496 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/fr-implement-20261021-j6xbqszu/p2-lazy-13.xcresult
+
+Failing tests:
+	LibraryFlowTests.testAccessibilityDetailActionsContrastOnly()
+	LibraryFlowTests.testAccessibilityReconciliationDescriptionDynamicTypeOnly()
+
+** TEST FAILED **
+
+Testing started

@@ -1,0 +1,27 @@
+{
+  "agent_type": "doc_reviewer",
+  "files": [
+    "docs/architecture.md",
+    "docs/functional-design.md",
+    "docs/development-guidelines.md",
+    "docs/repository-structure.md"
+  ],
+  "initial_findings": [
+    {
+      "severity": "P2",
+      "file": "docs/repository-structure.md",
+      "line": 80,
+      "message": "App入口に容量整理未接続と残り、条件付き接続の他節と矛盾。"
+    }
+  ],
+  "resolution": "document_authorが80行の当該文だけを修正。",
+  "final_findings": [],
+  "reviewed_repository_structure_sha256": "9e2eea0819655df23d60d030e256bbeb50f56c623157462c9e98bee758ade7a3",
+  "static_checks": {
+    "local_links": 57,
+    "missing": 0,
+    "table_structure_unchanged": true,
+    "diff_check": "passed"
+  },
+  "scope": "読み取り専用の文書差分レビュー。独立実装validation、Unit/UI・実機受入の判定ではない。"
+}

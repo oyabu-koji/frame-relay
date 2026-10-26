@@ -1,0 +1,168 @@
+--- s34-terminal-candidate-01/FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift
++++ s34-terminal-candidate-02/FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift
+@@ -436,7 +436,7 @@
+               let snapshot = await load(), inventory.matchesProjection(snapshot) else { return .unknown }
+         let stops: [TransportStopReceipt]
+         if let historical = OriginalRemovalTransportHistory.stoppedTasks(original, backend: snapshot) { stops = historical }
+-        else if OriginalRemovalTransportHistory.neverStarted(original, backend: snapshot),
++        else if OriginalRemovalTransportHistory.neverStartedForRemoval(original, backend: snapshot),
+                 !snapshot.backgroundTasks.contains(where: { $0.intent.context.target.original == original }),
+                 snapshot.requests.filter({ $0.target.original == original }).allSatisfy({
+                     $0.attempt == nil && $0.session == nil && $0.transport == .queued
+--- s34-terminal-candidate-01/FrameRelay/Application/Ports/OriginalRemovalPorts.swift
++++ s34-terminal-candidate-02/FrameRelay/Application/Ports/OriginalRemovalPorts.swift
+@@ -83,10 +83,19 @@
+     }
+ }
+ 
+-/// Transport history only. Actual SDK/rendition owners require a separate terminal
+-/// inventory even when this returns true.
++/// Upload history only. S25 invalidation owns its separate rendition stop and
++/// lease inventory; this legacy predicate is not an all-media removal proof.
+ nonisolated enum OriginalRemovalTransportHistory {
+     static func neverStarted(_ original: OriginalContent, backend: BackendStoreSnapshot) -> Bool {
++        backend.requests.filter { $0.target == .original(original) }.allSatisfy {
++            $0.attempt == nil && $0.session == nil && $0.transport == .queued
++        } && !backend.verifications.contains(where: { $0.expected.target == .original(original) })
++    }
++
++    /// S34-only admission: every same-original target, including rendition and
++    /// prepared background work, must be unstarted. It never replaces S25's
++    /// actual owner stop with an upload-history condition.
++    static func neverStartedForRemoval(_ original: OriginalContent, backend: BackendStoreSnapshot) -> Bool {
+         backend.requests.filter { $0.target.original == original }.allSatisfy {
+             PublicationStoreBoundary.exact($0.target.original, original)
+                 && $0.attempt == nil && $0.session == nil && $0.transport == .queued
+@@ -229,7 +238,7 @@
+         guard PublicationStoreBoundary.exact(seal.target.original, inventory.original),
+               inventory.storeIdentity == backend.storeIdentity, inventory.matchesProjection(backend) else { return false }
+         if stops.isEmpty {
+-            return OriginalRemovalTransportHistory.neverStarted(inventory.original, backend: backend)
++            return OriginalRemovalTransportHistory.neverStartedForRemoval(inventory.original, backend: backend)
+                 && backend.backgroundTasks.allSatisfy { $0.intent.context.target.original != inventory.original }
+                 && backend.requests.filter { $0.target.original == inventory.original }.allSatisfy {
+                     $0.attempt == nil && $0.session == nil && $0.transport == .queued
+--- s34-terminal-candidate-01/FrameRelayTests/Integration/Composition/ProductHistoricalRemovalTests.swift
++++ s34-terminal-candidate-02/FrameRelayTests/Integration/Composition/ProductHistoricalRemovalTests.swift
+@@ -3,6 +3,54 @@
+ @testable import FrameRelay
+ 
+ @MainActor struct ProductHistoricalRemovalTests {
++    @Test func unregisteredNeverStartedInventorySealAndNormalDiscardNeedNoSDKFactory() async throws {
++        let library = ProductLibraryFactory(supportDirectory: try historicalRemovalParent())
++        let services = try await library.open()
++        let fixture = OriginalRemovalFixture(run: services.run, store: services.store, files: services.originals, access: services.access)
++        let binding = try await fixture.original("no-registration-normal-discard", unknown: true)
++        guard case .succeeded(let concrete) = await services.store.loadRemovalTransportInventory(binding.original) else {
++            Issue.record("No-registration concrete writer inventory must be observable")
++            throw BackendContractError.unavailable
++        }
++        let port: any OriginalStorePort = services.store
++        guard case .succeeded(let erased) = await port.loadRemovalTransportInventory(binding.original) else { throw BackendContractError.unavailable }
++        #expect(concrete == erased && concrete.storeIdentity == nil)
++        let counters = BackgroundFactoryProbe()
++        let background = ProductBackgroundMediaFactory(library: library,
++            sessionFactory: { _ in await counters.sdkCreated(); throw BackendContractError.unavailable },
++            sourceFactory: { _ in await counters.sourceCreated(); throw BackendContractError.unavailable })
++        let batch = try fixture.discardBatch(binding, name: "observe-only-before-normal-risk")
++        let before = try await mediaOriginalSnapshot(services.store)
++        guard case .committed = await services.store.commitOriginal(.init(operation: batch.operation, expectedRevision: before.revision,
++            change: .removalBatch(batch))) else { throw BackendContractError.notCommitted }
++        let seal = OriginalRemovalAdmissionSeal(batch: batch.operation, target: batch.targets[0], nonce: UUID().uuidString)
++        guard case .succeeded(let observed) = await background.sealForRemoval(seal) else {
++            Issue.record("The no-registration factory must seal its exact unstarted inventory")
++            throw BackendContractError.readersActive
++        }
++        #expect(observed.inventory == concrete && observed.stops.isEmpty)
++        #expect(await counters.counts() == [0, 0])
++        _ = try await mediaOriginalCommit(services.store, .removalNotExecuted(batch: batch.operation, target: batch.targets[0], reason: .unavailable))
++        let ready = try await mediaOriginalSnapshot(services.store)
++        let state = try #require(ready.logicalOriginals.first)
++        let epoch = try #require(ready.reconciliationEpoch)
++        #expect(await background.releaseAfterRemoval(.init(seal: seal, epoch: epoch,
++            access: state.accessGeneration, invalidation: state.invalidationGeneration, resolution: nil)))
++        let composition = historicalRemovalComposition(library, background: background)
++        await composition.open()
++        let model = try #require(composition.library)
++        #expect(model.availability(.discard, captures: [binding.original.capture]) == .available)
++        let review = try #require(model.prepareRemovalReview(.discard, captures: [binding.original.capture]))
++        await model.submit(review)
++        #expect(model.submission?.phase == .awaitingRecordedResult)
++        #expect(model.submission?.request.discardRiskAcknowledged == true)
++        #expect(model.item(binding.original.capture)?.isDiscardHistory == true)
++        #expect(model.item(binding.original.capture)?.operationResults.contains(where: { $0.id == review.id && $0.outcome == .succeeded }) == true)
++        #expect(await services.originals.observeFile(binding.reference) == .absent)
++        #expect(try await mediaSnapshot(services.store).storeIdentity == nil)
++        #expect(await counters.counts() == [0, 0])
++    }
++
+     @Test func normalCompositionRequiresExplicitRiskAndProjectsHistoricalDiscardAfterReopen() async throws {
+         let parent = try historicalRemovalParent()
+         let library = ProductLibraryFactory(supportDirectory: parent)
+--- s34-terminal-candidate-01/FrameRelayTests/Integration/OriginalRemovalTransportFenceTests.swift
++++ s34-terminal-candidate-02/FrameRelayTests/Integration/OriginalRemovalTransportFenceTests.swift
+@@ -5,6 +5,31 @@
+ /// Real MOV/hash/unlink/disk tests. SDK events in this suite are explicitly
+ /// synthetic; the opt-in native SDK chain is a separate test suite.
+ @MainActor struct OriginalRemovalTransportFenceTests {
++    @Test(arguments: StorageCandidate.allCases)
++    func concreteAndExistentialInventoryUseTheSameWriterWitness(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let fixture = try OriginalRemovalFixture(run: run, candidate: candidate)
++            let binding = try await fixture.original("no-registration-inventory", unknown: true)
++            let concrete: BackendOutcome<OriginalRemovalTransportInventory>
++            switch candidate {
++            case .atomicFile:
++                let concreteStore = try #require(fixture.store as? AtomicFileRecordingStore)
++                concrete = await concreteStore.loadRemovalTransportInventory(binding.original)
++            case .sqlite:
++                let concreteStore = try #require(fixture.store as? SQLiteRecordingStore)
++                concrete = await concreteStore.loadRemovalTransportInventory(binding.original)
++            }
++            let port: any OriginalStorePort = fixture.store
++            guard case .succeeded(let actual) = concrete,
++                  case .succeeded(let throughPort) = await port.loadRemovalTransportInventory(binding.original) else {
++                Issue.record("Concrete and existential async calls must reach the writer, not the protocol default")
++                throw BackendContractError.unavailable
++            }
++            #expect(actual == throughPort)
++            #expect(actual.storeIdentity == nil && actual.tasks.isEmpty && actual.requests.isEmpty && actual.journal.isEmpty)
++        }
++    }
++
+     @Test(arguments: StorageCandidate.allCases, ["pause", "aba", "verification", "registration", "other", "leaf"])
+     func hashWindowKeepsExactTargetHistory(candidate: StorageCandidate, change: String) async throws {
+         try await withStorageRun { run in
+--- s34-terminal-candidate-01/FrameRelay/Application/Library/LibraryStoreReader.swift
++++ s34-terminal-candidate-02/FrameRelay/Application/Library/LibraryStoreReader.swift
+@@ -73,7 +73,7 @@
+                 if state?.removal != nil { item.removalUnavailableReason = "前の削除結果を照合してください。" }
+                 else if state?.invalidation != nil { item.removalUnavailableReason = "確認の失効を照合中です。完了後に操作してください。" }
+                 else if let original = item.original,
+-                        !OriginalRemovalTransportHistory.neverStarted(original, backend: backend),
++                        !OriginalRemovalTransportHistory.neverStartedForRemoval(original, backend: backend),
+                         OriginalRemovalTransportHistory.stoppedTasks(original, backend: backend) == nil {
+                     item.removalUnavailableReason = "以前の通信の終了を確認できません。原本を保持しています。"
+                 }
+--- s34-terminal-candidate-01/FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift
++++ s34-terminal-candidate-02/FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift
+@@ -37,7 +37,9 @@
+     func loadUnfinished() -> UnfinishedRecordingLoadResult { disk.loadUnfinished() }
+     func loadRecordings() -> RecordingStoreLoadResult { disk.loadRecordings() }
+     func loadOriginalState() -> BackendOutcome<OriginalStoreSnapshot> { disk.loadOriginalState() }
+-    func loadRemovalTransportInventory(_ original: OriginalContent) -> BackendOutcome<OriginalRemovalTransportInventory> {
++    // Match the async requirement explicitly so a concrete actor call cannot
++    // select the nonisolated protocol extension's unavailable default.
++    func loadRemovalTransportInventory(_ original: OriginalContent) async -> BackendOutcome<OriginalRemovalTransportInventory> {
+         disk.loadRemovalTransportInventory(original)
+     }
+     func commitOriginal(_ mutation: OriginalStoreMutation) -> OriginalStoreCommitResult { disk.commitOriginal(mutation) }
+@@ -78,7 +80,7 @@
+     func loadUnfinished() -> UnfinishedRecordingLoadResult { disk.loadUnfinished() }
+     func loadRecordings() -> RecordingStoreLoadResult { disk.loadRecordings() }
+     func loadOriginalState() -> BackendOutcome<OriginalStoreSnapshot> { disk.loadOriginalState() }
+-    func loadRemovalTransportInventory(_ original: OriginalContent) -> BackendOutcome<OriginalRemovalTransportInventory> {
++    func loadRemovalTransportInventory(_ original: OriginalContent) async -> BackendOutcome<OriginalRemovalTransportInventory> {
+         disk.loadRemovalTransportInventory(original)
+     }
+     func commitOriginal(_ mutation: OriginalStoreMutation) -> OriginalStoreCommitResult { disk.commitOriginal(mutation) }

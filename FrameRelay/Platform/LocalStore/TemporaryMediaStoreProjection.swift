@@ -1,14 +1,14 @@
 import Foundation
 
 extension MediaStoreProjection {
-    nonisolated mutating func applyTemporary(_ change: TemporaryMediaChange) throws {
+    nonisolated mutating func applyTemporary(_ change: TemporaryMediaChange, photoRelease: Bool = false) throws {
         try MediaStoredValueValidation.text(change.id.rawValue)
         if case .create(let value) = change {
             try requireCurrentRegistration(value.registration)
             try MediaStoredValueValidation.rendition(value.rendition)
+            try TemporaryMediaLeaf.validate(value.leaf, contentType: value.contentType)
             guard !temporaryMedia.contains(where: { $0.id == value.id || $0.leaf == value.leaf }),
-                  UUID(uuidString: value.leaf) != nil, value.capturedAt.timeIntervalSince1970.isFinite,
-                  ["video/quicktime", "video/mp4"].contains(value.contentType),
+                  value.capturedAt.timeIntervalSince1970.isFinite,
                   value.ranges.isEmpty, value.verifiedContent == nil, value.usages.isEmpty,
                   value.releasedUsages.isEmpty, value.fileIdentity == nil,
                   !value.reclaiming, !value.reclaimed,
@@ -69,6 +69,14 @@ extension MediaStoreProjection {
             mediaUses.append(use.lease)
             value.usages.append(use)
         case .release(_, let use):
+            // Registered photo readers require the exact Photos release event;
+            // a generic release cannot erase an unknown/past SDK owner.
+            if use.usage.purpose == .photoHandoff, !photoRelease,
+               let registered = photoRegistrations.last(where: { $0.registration.mediaUse == use }) {
+                // Older schema-7 success journals used the generic release.
+                // Keep them readable; new terminal release has its own proof.
+                guard case .succeeded? = registered.outcome else { throw BackendContractError.wrongStage }
+            }
             guard let position = value.usages.firstIndex(of: use),
                   let originalIndex = originals.firstIndex(where: { $0.original == value.rendition.original }),
                   let leaseIndex = originals[originalIndex].mediaReaders.firstIndex(of: use.lease) else {
@@ -77,12 +85,12 @@ extension MediaStoreProjection {
             originals[originalIndex].mediaReaders.remove(at: leaseIndex)
             value.usages.remove(at: position)
             value.releasedUsages.append(use)
-            if value.usages.isEmpty { value.reclaiming = true }
+            if value.usages.isEmpty, !needsPhotoRetention(value.id) { value.reclaiming = true }
         case .reclaim:
-            guard value.usages.isEmpty else { throw BackendContractError.readersActive }
+            guard value.usages.isEmpty, !needsPhotoRetention(value.id) else { throw BackendContractError.readersActive }
             value.reclaiming = true
         case .reclaimed:
-            guard value.reclaiming, value.usages.isEmpty else { throw BackendContractError.wrongStage }
+            guard value.reclaiming, value.usages.isEmpty, !needsPhotoRetention(value.id) else { throw BackendContractError.wrongStage }
             value.reclaimed = true
         }
         temporaryMedia[index] = value

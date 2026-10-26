@@ -1,0 +1,385 @@
+--- start/FrameRelay/Features/Playback/OriginalPlaybackView.swift
++++ final/FrameRelay/Features/Playback/OriginalPlaybackView.swift
+@@ -1,5 +1,6 @@
+ import AVKit
+ import SwiftUI
++import UIKit
+ 
+ struct OriginalPlaybackView: View {
+     @Bindable var model: OriginalPlaybackModel
+@@ -7,50 +8,63 @@
+ 
+     var body: some View {
+         NavigationStack {
+-            ScrollView {
+-            VStack(alignment: .leading, spacing: 16) {
+-                if let player = model.playback.player {
+-                    VideoPlayer(player: player)
+-                        .frame(minHeight: 240)
+-                        .accessibilityLabel("iPhone原本の動画プレーヤー")
+-                        .accessibilityIdentifier("originalPlayback.player")
+-                        .onAppear { model.playback.recordPresentation(.videoViewAppeared) }
+-                        .onDisappear { model.playback.recordPresentation(.videoViewDisappeared) }
++            VStack(spacing: 0) {
++                ScrollView {
++                    VStack(alignment: .leading, spacing: 16) {
++                        if let player = model.playback.player {
++                            VideoPlayer(player: player)
++                                .frame(minHeight: 240)
++                                .accessibilityLabel("iPhone原本の動画プレーヤー")
++                                .accessibilityIdentifier("originalPlayback.player")
++                                .onAppear { model.playback.recordPresentation(.videoViewAppeared) }
++                                .onDisappear { model.playback.recordPresentation(.videoViewDisappeared) }
++                        }
++                        Text(status).accessibilityIdentifier("originalPlayback.status")
++                        Text("再生位置：\(model.playback.elapsedSeconds, format: .number.precision(.fractionLength(1)))秒")
++                            .accessibilityLabel("再生位置")
++                            .accessibilityValue(Text("\(model.playback.elapsedSeconds, format: .number.precision(.fractionLength(1)))秒"))
++                            .accessibilityIdentifier("originalPlayback.elapsed")
++                        if let issue = model.playback.issue { Text(issue) }
++                        OriginalPlaybackExplanationText(text: "原本の再生では軽量版の明示確認や写真への保存は行いません。")
++                            .accessibilityIdentifier("originalPlayback.explanation")
++                    }
++                    .padding()
+                 }
+-                Text(status).accessibilityIdentifier("originalPlayback.status")
+-                Text("再生位置：\(model.playback.elapsedSeconds, format: .number.precision(.fractionLength(1)))秒")
+-                    .accessibilityLabel("再生位置")
+-                    .accessibilityValue(Text("\(model.playback.elapsedSeconds, format: .number.precision(.fractionLength(1)))秒"))
+-                    .accessibilityIdentifier("originalPlayback.elapsed")
+-                if let issue = model.playback.issue { Text(issue) }
+-                Text("原本の再生では軽量版の明示確認や写真への保存は行いません。")
+-                    .font(.footnote)
+-                if model.playback.isBusy {
+-                    Button("再生を停止") { Task { await model.stop() } }
++                .frame(maxWidth: .infinity, maxHeight: .infinity)
++                .accessibilityIdentifier("originalPlayback.content")
++                VStack(spacing: 12) {
++                    if model.playback.isBusy {
++                        Button {
++                            Task { await model.stop() }
++                        } label: {
++                            Text("再生を停止")
++                                .font(.body)
++                                .frame(maxWidth: .infinity, minHeight: 44)
++                        }
+                         .disabled(model.playback.phase == .stopping)
++                        .tint(Color.primary)
+                         .accessibilityIdentifier("originalPlayback.stop")
++                    }
++                    Button {
++                        Task {
++                            await model.close()
++                            if model.target == nil { dismiss() }
++                        }
++                    } label: {
++                        Text("閉じる")
++                            .font(.body)
++                            .frame(maxWidth: .infinity, minHeight: 44)
++                    }
++                    .buttonStyle(.bordered)
++                    .tint(Color.primary)
++                    .accessibilityIdentifier("originalPlayback.close")
+                 }
+-            }
+-            .padding()
+-            }
+-            .navigationTitle("原本の再生")
+-            .safeAreaInset(edge: .bottom) {
+-                Button {
+-                    Task {
+-                        await model.close()
+-                        if model.target == nil { dismiss() }
+-                    }
+-                } label: {
+-                    Text("閉じる")
+-                        .font(.body)
+-                        .frame(maxWidth: .infinity, minHeight: 44)
+-                }
+-                .buttonStyle(.bordered)
+-                .tint(Color.primary)
+-                .accessibilityIdentifier("originalPlayback.close")
++                .fixedSize(horizontal: false, vertical: true)
+                 .padding()
+                 .background(Color(uiColor: .systemBackground))
+             }
++            .frame(maxWidth: .infinity, maxHeight: .infinity)
++            .navigationTitle("原本の再生")
+         }
+         .interactiveDismissDisabled()
+         .onAppear { model.playback.recordPresentation(.viewAppeared) }
+@@ -74,3 +88,54 @@
+         }
+     }
+ }
++
++/// Measure the complete semantic footnote at its actual proposed width.
++private struct OriginalPlaybackExplanationText: UIViewRepresentable {
++    let text: String
++    @Environment(\.sizeCategory) private var sizeCategory
++
++    func makeUIView(context: Context) -> UILabel {
++        let label = UILabel()
++        label.numberOfLines = 0
++        label.lineBreakMode = .byWordWrapping
++        label.adjustsFontForContentSizeCategory = true
++        label.textColor = .label
++        label.isAccessibilityElement = true
++        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
++        label.setContentCompressionResistancePriority(.required, for: .vertical)
++        return label
++    }
++
++    func updateUIView(_ label: UILabel, context: Context) {
++        label.text = text
++        label.accessibilityIdentifier = "originalPlayback.explanation"
++        label.font = .preferredFont(forTextStyle: .footnote, compatibleWith:
++            UITraitCollection(preferredContentSizeCategory: contentSizeCategory))
++    }
++
++    func sizeThatFits(_ proposal: ProposedViewSize, uiView label: UILabel, context: Context) -> CGSize? {
++        guard let proposedWidth = proposal.width, proposedWidth.isFinite else { return nil }
++        let width = max(0, proposedWidth)
++        label.preferredMaxLayoutWidth = width
++        let measured = label.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
++        return CGSize(width: width, height: ceil(measured.height))
++    }
++
++    private var contentSizeCategory: UIContentSizeCategory {
++        switch sizeCategory {
++        case .extraSmall: .extraSmall
++        case .small: .small
++        case .medium: .medium
++        case .large: .large
++        case .extraLarge: .extraLarge
++        case .extraExtraLarge: .extraExtraLarge
++        case .extraExtraExtraLarge: .extraExtraExtraLarge
++        case .accessibilityMedium: .accessibilityMedium
++        case .accessibilityLarge: .accessibilityLarge
++        case .accessibilityExtraLarge: .accessibilityExtraLarge
++        case .accessibilityExtraExtraLarge: .accessibilityExtraExtraLarge
++        case .accessibilityExtraExtraExtraLarge: .accessibilityExtraExtraExtraLarge
++        @unknown default: .large
++        }
++    }
++}
+--- start/FrameRelayUITests/Flows/LibraryFlowTests.swift
++++ final/FrameRelayUITests/Flows/LibraryFlowTests.swift
+@@ -93,10 +93,9 @@
+         openOriginal(app)
+         waitForProgress(app)
+         attach(app, "operation-original-playback-progress")
+-        reveal(app.buttons["originalPlayback.stop"], app)
+-        attach(app, "operation-original-explanation-and-stop-reached")
+-        app.buttons["originalPlayback.stop"].tap()
+-        waitForText(element("originalPlayback.status", app), "再生を停止しました")
++        observeStableOriginalPlaybackStop(app)
++        reachOriginalPlaybackExplanation(app, name: "playing", requiresStop: true)
++        tapOriginalPlaybackStopAndWait(app)
+         app.buttons["originalPlayback.close"].tap()
+         let replay = app.buttons["library.action.playOriginal"]
+         reveal(replay, app)
+@@ -176,13 +175,13 @@
+         registerPlaybackCleanup(for: app)
+         app.launch(); try waitForLibrary(app)
+         openOriginal(app)
+-        let status = element("originalPlayback.status", app)
+-        XCTAssertTrue(status.waitForExistence(timeout: 10))
++        waitForProgress(app)
+         let stop = app.buttons["originalPlayback.stop"]
+-        reveal(stop, app)
++        XCTAssertTrue(stop.isHittable)
+         XCTAssertTrue(stop.isEnabled)
+-        stop.tap()
+-        waitForText(status, "再生を停止しました")
++        try audit(app, "player-playing-with-stop")
++        tapOriginalPlaybackStopAndWait(app)
++        reachOriginalPlaybackExplanation(app, name: "stopped", requiresStop: false)
+         try audit(app, "player-stopped")
+     }
+ 
+@@ -597,6 +596,184 @@
+         attach(app, "history-after-handoff-four-submission-texts")
+     }
+ 
++    /// Observe actual changing playback values without scrolling the stop
++    /// control back into place. This also covers the single/double digit edge.
++    @MainActor private func observeStableOriginalPlaybackStop(_ app: XCUIApplication) {
++        var observations: [String] = []
++        var secondsObserved = Set<Double>()
++        var stopFrames: [CGRect] = []
++        var alwaysHittable = true
++        var alwaysEnabled = true
++        let progress = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
++            let elapsed = element("originalPlayback.elapsed", app)
++            let value = elapsed.value as? String ?? "missing"
++            let seconds = value.components(separatedBy: CharacterSet(charactersIn: "0123456789.").inverted)
++                .compactMap(Double.init).first
++            if let seconds { secondsObserved.insert(seconds) }
++            let stop = app.buttons["originalPlayback.stop"]
++            let exists = stop.exists
++            let frame = exists ? stop.frame : .zero
++            let hittable = exists && stop.isHittable
++            let enabled = exists && stop.isEnabled
++            alwaysHittable = alwaysHittable && hittable
++            alwaysEnabled = alwaysEnabled && enabled
++            if exists { stopFrames.append(frame) }
++            observations.append("uptime=\(ProcessInfo.processInfo.systemUptime) elapsed=\(value) "
++                + "elapsedFrame=\(elapsed.frame) stopExists=\(exists) stopFrame=\(frame) "
++                + "stopHittable=\(hittable) stopEnabled=\(enabled)")
++            return (seconds ?? 0) >= 10.2
++        }, object: nil)
++        // The product fixture is 30 seconds. Bound this observation so the
++        // explicit stop still precedes natural playback completion.
++        let result = XCTWaiter.wait(for: [progress], timeout: 16)
++        let lowerEdges = stopFrames.map(\.minY)
++        let upperEdges = stopFrames.map(\.maxY)
++        let verticalMovement = max((lowerEdges.max() ?? 0) - (lowerEdges.min() ?? 0),
++                                   (upperEdges.max() ?? 0) - (upperEdges.min() ?? 0))
++        observations.append("result=\(result.rawValue) distinctElapsed=\(secondsObserved.sorted()) "
++            + "verticalMovement=\(verticalMovement)")
++        let attachment = XCTAttachment(string: observations.joined(separator: "\n"))
++        attachment.name = "playback-stop-position-during-elapsed-updates"
++        attachment.lifetime = .keepAlways; add(attachment)
++        if result != .completed { attachPlaybackFailure(app, stage: "stop-position-progress-timeout") }
++        XCTAssertEqual(result, .completed)
++        XCTAssertGreaterThanOrEqual(secondsObserved.filter { $0 >= 5 && $0 < 10 }.count, 3,
++                                    "Observe multiple real values in the previous wrapping range")
++        XCTAssertTrue(secondsObserved.contains { $0 < 10 })
++        XCTAssertTrue(secondsObserved.contains { $0 >= 10 }, "Cover the move to two elapsed digits")
++        XCTAssertGreaterThanOrEqual(stopFrames.count, 3)
++        XCTAssertTrue(alwaysHittable, "Stop must remain reachable without scrolling")
++        XCTAssertTrue(alwaysEnabled)
++        XCTAssertLessThanOrEqual(verticalMovement, 1, "Elapsed updates must not move the stop control")
++        XCTAssertGreaterThanOrEqual(stopFrames.map(\.height).min() ?? 0, 44)
++        attach(app, "operation-original-stop-stable-and-reached")
++    }
++
++    /// Scroll only the presented player's content, then verify its complete
++    /// explanation fits above the separate operation area.
++    @MainActor private func reachOriginalPlaybackExplanation(_ app: XCUIApplication,
++        name: String, requiresStop: Bool) {
++        let scroll = app.scrollViews.matching(identifier: "originalPlayback.content").firstMatch
++        let explanation = scroll.staticTexts.matching(identifier: "originalPlayback.explanation").firstMatch
++        let ready = scroll.waitForExistence(timeout: 5) && explanation.waitForExistence(timeout: 5)
++        if !ready { attach(app, "playback-explanation-" + name + "-missing") }
++        XCTAssertTrue(ready, "Reach the explanation in the presented player's own scroll view")
++        guard ready else { return }
++        let expected = "原本の再生では軽量版の明示確認や写真への保存は行いません。"
++        let navigationBar = app.navigationBars["原本の再生"].firstMatch
++        let window = app.windows.firstMatch.frame
++        var observations: [String] = []
++        var stopFrames: [CGRect] = []
++        var stopStayedReachable = true
++        func observe(_ stage: String) -> (viewport: CGRect, frame: CGRect, label: String, hittable: Bool) {
++            let scrollFrame = scroll.frame
++            let visible = scrollFrame.intersection(window)
++            let navigationFrame = navigationBar.exists ? navigationBar.frame : .zero
++            let top = max(visible.minY, navigationFrame.maxY)
++            let viewport = CGRect(x: visible.minX, y: top, width: visible.width,
++                                  height: max(0, visible.maxY - top))
++            let frame = explanation.frame
++            let label = explanation.label
++            let hittable = explanation.isHittable
++            let stop = app.buttons["originalPlayback.stop"]
++            let stopExists = stop.exists
++            let stopFrame = stopExists ? stop.frame : .zero
++            let stopHittable = stopExists && stop.isHittable
++            if requiresStop {
++                stopStayedReachable = stopStayedReachable && stopHittable
++                if stopExists { stopFrames.append(stopFrame) }
++            }
++            observations.append("uptime=\(ProcessInfo.processInfo.systemUptime) stage=\(stage) "
++                + "scrollFrame=\(scrollFrame) navigationFrame=\(navigationFrame) viewport=\(viewport) "
++                + "explanationFrame=\(frame) fullyWithinViewport=\(viewport.contains(frame)) "
++                + "explanationHittable=\(hittable) label=\(label) "
++                + "stopExists=\(stopExists) stopFrame=\(stopFrame) stopHittable=\(stopHittable)")
++            return (viewport, frame, label, hittable)
++        }
++        var current = observe("before-scroll")
++        for attempt in 0..<6 {
++            if current.viewport.contains(current.frame) { break }
++            if current.frame.height > current.viewport.height { break }
++            if current.frame.maxY > current.viewport.maxY {
++                scroll.swipeUp()
++            } else {
++                scroll.swipeDown()
++            }
++            current = observe("after-scroll-\(attempt + 1)")
++        }
++        let lowerEdges = stopFrames.map(\.minY)
++        let upperEdges = stopFrames.map(\.maxY)
++        let verticalMovement = max((lowerEdges.max() ?? 0) - (lowerEdges.min() ?? 0),
++                                   (upperEdges.max() ?? 0) - (upperEdges.min() ?? 0))
++        observations.append("requiresStop=\(requiresStop) stopVerticalMovement=\(verticalMovement)")
++        let attachment = XCTAttachment(string: observations.joined(separator: "\n"))
++        attachment.name = "playback-explanation-" + name + "-viewport-and-stop-frames"
++        attachment.lifetime = .keepAlways; add(attachment)
++        attach(app, "playback-explanation-" + name + "-reached")
++        XCTAssertTrue(navigationBar.exists)
++        XCTAssertEqual(current.label, expected, "Preserve the complete explanation")
++        XCTAssertGreaterThan(current.viewport.height, 0)
++        XCTAssertTrue(current.viewport.contains(current.frame), "The complete text frame must fit above the operation area")
++        XCTAssertTrue(current.hittable)
++        if requiresStop {
++            XCTAssertFalse(stopFrames.isEmpty)
++            XCTAssertTrue(stopStayedReachable, "Scrolling the explanation must preserve stop access")
++            XCTAssertLessThanOrEqual(verticalMovement, 1, "Scrolling must not move the stop control")
++        }
++    }
++
++    @MainActor private func tapOriginalPlaybackStopAndWait(_ app: XCUIApplication) {
++        let stopping = "再生を停止し、原本の読み取り終了を確認しています"
++        let stopped = "再生を停止しました"
++        var observations: [String] = []
++        var stoppingWasDisabled = true
++        func observe(_ stage: String) -> (phase: String, stopExists: Bool, stopEnabled: Bool,
++                                         stopHittable: Bool, playerExists: Bool) {
++            let status = element("originalPlayback.status", app)
++            let phase = status.exists ? status.label : "missing"
++            let stop = app.buttons["originalPlayback.stop"]
++            let exists = stop.exists
++            let enabled = exists && stop.isEnabled
++            let hittable = exists && stop.isHittable
++            let playerExists = element("originalPlayback.player", app).exists
++            if phase == stopping { stoppingWasDisabled = stoppingWasDisabled && !enabled }
++            observations.append("uptime=\(ProcessInfo.processInfo.systemUptime) stage=\(stage) phase=\(phase) "
++                + "stopExists=\(exists) stopFrame=\(exists ? stop.frame : .zero) "
++                + "stopEnabled=\(enabled) stopHittable=\(hittable) playerExists=\(playerExists)")
++            return (phase, exists, enabled, hittable, playerExists)
++        }
++        func attachObservations(_ stage: String) {
++            let attachment = XCTAttachment(string: observations.joined(separator: "\n"))
++            attachment.name = "playback-stop-transition-" + stage
++            attachment.lifetime = .keepAlways; add(attachment)
++        }
++        let before = observe("before-single-tap")
++        attachObservations("before-single-tap")
++        XCTAssertTrue(before.stopExists)
++        XCTAssertTrue(before.stopEnabled)
++        XCTAssertTrue(before.stopHittable, "The ordinary tap must reach the stop control")
++        app.buttons["originalPlayback.stop"].tap()
++        let transition = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
++            let current = observe("after-single-tap")
++            // Releasing the real reader can complete before the first snapshot.
++            return current.phase == stopping || current.phase == stopped
++        }, object: nil)
++        let transitionResult = XCTWaiter.wait(for: [transition], timeout: 10)
++        attachObservations("accepted")
++        if transitionResult != .completed { attachPlaybackFailure(app, stage: "stop-tap-transition-timeout") }
++        XCTAssertEqual(transitionResult, .completed, "One tap must begin or complete stopping")
++        let releaseCompleted = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
++            let current = observe("awaiting-final-stop")
++            return current.phase == stopped && !current.stopExists && !current.playerExists
++        }, object: nil)
++        let releaseResult = XCTWaiter.wait(for: [releaseCompleted], timeout: 10)
++        attachObservations("completed")
++        if releaseResult != .completed { attachPlaybackFailure(app, stage: "stop-completion-timeout") }
++        XCTAssertEqual(releaseResult, .completed)
++        XCTAssertTrue(stoppingWasDisabled, "Disable repeat stop while real reader release is pending")
++        attach(app, "operation-original-stopped-after-single-tap")
++    }
++
+     @MainActor private func waitForProgress(_ app: XCUIApplication) {
+         let elapsed = element("originalPlayback.elapsed", app)
+         attachPlaybackTime("progress-wait-begin")

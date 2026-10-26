@@ -1,0 +1,20 @@
+{
+  "agent": "stable_docs_review",
+  "role": "doc_reviewer",
+  "task": "M05 candidate01",
+  "start_sha256": "b79d7ca6df8ca10196b755a893256fd12baf9dcd1bda61d9df1d5f1f9535a4f6",
+  "end_sha256": "b79d7ca6df8ca10196b755a893256fd12baf9dcd1bda61d9df1d5f1f9535a4f6",
+  "findings": [
+    {
+      "severity": "P3",
+      "line": 88,
+      "issue": "playback-only data reclamation omitted; generic copy unlink can appear to require Photos success",
+      "authority": "functional-design:367; architecture:359",
+      "minimal_fix": "state playback-only reclamation after use separately from Photos-copy unlink after registration success and all use release"
+    }
+  ],
+  "other_findings": [],
+  "local_links": 14,
+  "diff_check": 0,
+  "executed_build_test_network": false
+}

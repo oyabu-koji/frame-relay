@@ -1,0 +1,36 @@
+{
+  "task": "S49 independent integration candidate01",
+  "time": 1792602902.466607,
+  "reviewed": {
+    "FrameRelay/Application/MediaIO/BackgroundMediaCoordinator.swift": "d9c26c83f172f4e5d83de78597325f2a59f6ee31ce6424d20e0a1336a1ed6fe8",
+    "FrameRelay/Composition/ProductBackgroundMediaFactory.swift": "2596fa4dc9887310627e5eb9af9e58d05ecd25735fc7df16447af8d8549f99ab",
+    "FrameRelayTests/Integration/Composition/ProductBackgroundCompositionTests.swift": "48aa2010ecfd98326731640219864e9bddd7792219c4f11a82d421a25a372526",
+    "FrameRelayTests/Integration/Remote/BackgroundEventDrainTests.swift": "844c694bb83dae3971ecb3a4ad1c05560f004e302a9b71245fbb2a42c3b1f924",
+    "FrameRelay/Application/Capture/ProductCaptureCoordinator.swift": "e414694502b678f5c221bc0a866e375c898d361b94588c2624557a2e25b08c57",
+    "FrameRelay/Composition/ProductCaptureFactory.swift": "f15f7e47a8457e7dcb5f7769530893e14f2d7b88c293e6ce99df39aa843437c4",
+    "FrameRelay/Composition/ProductComposition.swift": "4cd48eebd4bb7e043f64769d9c6b2945ce085384bcb11a5bffd7c6ef3c33bd0f",
+    "FrameRelayTests/Application/ProductCapturePostSaveTests.swift": "28cb6bd724c441ca034ac2ca2866e0ddfe3c9e30e6f7350a81f73cfb5c68b03c",
+    "FrameRelay/Application/MediaIO/CaptureMediaAdmission.swift": "dc366cb0c0e228456558b3e23dc8d2dfa4292ca86459e9ff98e22fb032d9ce18",
+    "FrameRelay/Application/Ports/CaptureMediaBoundaryPort.swift": "5d81da2248cbf3a3425df9bcada44f2e1499ee2bb80cff825140a9b89fa34f85",
+    "FrameRelay/Composition/ProductCaptureMediaBoundary.swift": "4394a7e6523cda604be7cf0c9dd301510b95b0b4077f90978eda1b79e4e5df1c",
+    "FrameRelayTests/Application/ProductCaptureMediaBoundaryTests.swift": "e616981e0cb1ce76d4fb3aca260a27b8b774c38c943efc060c07d46c7b199d9e"
+  },
+  "scope": "8 existing +4 new; shared store/domain/SDK/file owner/UI/project unchanged",
+  "checks": [
+    "synchronous context/visit/nonce admission before first await; acceptance clocks fixed before stop wait",
+    "Lifecycle token issued only after cancellable preflight readiness; old completion cannot start next REC",
+    "owner-specific recording/saving/recovery lifetime, no postSave hash wait",
+    "same writer capture wait ownership and current snapshots; prior persisted waits/person intent preserved",
+    "exact SDK terminal then ownsource close, ownerClosed, actual lease release and stopped commit; unknown reply retains same mutation",
+    "reopened exact durable stopped + terminal/ownerClosed fact accepted without source adoption; different old attempt remains unknown",
+    "normal strict/SDK resume still closed; final resume atomicity and S25/all-media integration not solved"
+  ],
+  "tests": {
+    "s49-unit-01": "524 passed declarations/839 cases,25skipped; no failure/runtime/analyzer;1 compiler warning",
+    "s49-ios-build-01": "success;diagnostics0;279 unchanged inputs"
+  },
+  "required_delta": [
+    "fix test-only conditional copyCheckpoint sendability warning",
+    "failed recordingEnded persistence with pendingFile or file_finalization_unconfirmed already observed: consume exact old completion to avoid retained owner forever; reproduce with test-first candidate before production edit"
+  ]
+}

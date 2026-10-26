@@ -1,0 +1,34 @@
+{
+  "command": [
+    "xcodebuild",
+    "-project",
+    "FrameRelay.xcodeproj",
+    "-scheme",
+    "FrameRelay",
+    "-configuration",
+    "Debug",
+    "-destination",
+    "platform=iOS Simulator,id=DDD99DE3-20A7-4A18-B766-F9ECE5EB8F97",
+    "-derivedDataPath",
+    "/private/tmp/fr-validation-20261022-lh_5wn0r/DerivedData",
+    "-resultBundlePath",
+    "/private/tmp/fr-validation-20261022-lh_5wn0r/ui-strict-01.xcresult",
+    "-disableAutomaticPackageResolution",
+    "-parallel-testing-enabled",
+    "NO",
+    "-collect-test-diagnostics",
+    "never",
+    "-only-testing:FrameRelayUITests/LibraryFlowTests",
+    "-only-testing:FrameRelayUITests/ProductCaptureFlowTests",
+    "-only-testing:FrameRelayUITests/PhotoPermissionsFlowTests",
+    "-only-testing:FrameRelayUITests/ConnectionFlowTests",
+    "-skip-testing:FrameRelayUITests/ConnectionFlowTests/testRegisteredMetadataSynchronizationPreservesSavedPublication",
+    "test"
+  ],
+  "start": 1792625964.728744,
+  "added_environment": {
+    "TEST_RUNNER_FR_REMOVAL_UI": "0",
+    "TEST_RUNNER_FR_REMOVAL_SEED_TOKEN": ""
+  },
+  "fixture": "Read-only byte copy of historical CF synthetic app root onto second new Simulator; no existing Simulator used or reseeded. Seed creation failure reported separately."
+}

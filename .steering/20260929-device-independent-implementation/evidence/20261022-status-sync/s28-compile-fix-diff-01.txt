@@ -1,0 +1,133 @@
+--- candidate01/FrameRelayTests/Application/BackendStatusSynchronizationCoordinatorTests.swift
++++ candidate02/FrameRelayTests/Application/BackendStatusSynchronizationCoordinatorTests.swift
+@@ -300,7 +300,7 @@
+     private(set) var mutations: [BackendStoreMutation] = []
+     private(set) var lookups: [BackendStoreMutation] = []
+     init(base: any MediaDiskStore) { self.base = base }
+-    func commit(_ mutation: BackendStoreMutation) async -> BackendCommitResult {
++    @MainActor func commit(_ mutation: BackendStoreMutation) async -> BackendCommitResult {
+         if case .publication = mutation.change {
+             mutations.append(mutation)
+             if losePublication {
+@@ -310,21 +310,21 @@
+         }
+         return await base.commit(mutation)
+     }
+-    func lookupCommit(_ mutation: BackendStoreMutation) async -> BackendCommitResult {
++    @MainActor func lookupCommit(_ mutation: BackendStoreMutation) async -> BackendCommitResult {
+         lookups.append(mutation)
+         if case .publication = mutation.change, hideLookup { return .unknown }
+         return await base.lookupCommit(mutation)
+     }
+-    func establishRegistrationIdentity(expectedRevision: UInt64, expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity {
++    @MainActor func establishRegistrationIdentity(expectedRevision: UInt64, expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity {
+         try await base.establishRegistrationIdentity(expectedRevision: expectedRevision, expectedIdentity: expectedIdentity)
+     }
+-    func load() async -> BackendStoreLoadResult { await base.load() }
+-    func execute(_ command: RecordingStoreCommand) async -> RecordingStoreResult { await base.execute(command) }
+-    func loadUnfinished() async -> UnfinishedRecordingLoadResult { await base.loadUnfinished() }
+-    func loadRecordings() async -> RecordingStoreLoadResult { await base.loadRecordings() }
+-    func loadOriginalState() async -> BackendOutcome<OriginalStoreSnapshot> { await base.loadOriginalState() }
+-    func commitOriginal(_ mutation: OriginalStoreMutation) async -> OriginalStoreCommitResult { await base.commitOriginal(mutation) }
+-    func lookupInvalidation(_ acknowledgement: InvalidationAcknowledgement) async -> BackendOutcome<InvalidationID> { await base.lookupInvalidation(acknowledgement) }
++    @MainActor func load() async -> BackendStoreLoadResult { await base.load() }
++    @MainActor func execute(_ command: RecordingStoreCommand) async -> RecordingStoreResult { await base.execute(command) }
++    @MainActor func loadUnfinished() async -> UnfinishedRecordingLoadResult { await base.loadUnfinished() }
++    @MainActor func loadRecordings() async -> RecordingStoreLoadResult { await base.loadRecordings() }
++    @MainActor func loadOriginalState() async -> BackendOutcome<OriginalStoreSnapshot> { await base.loadOriginalState() }
++    @MainActor func commitOriginal(_ mutation: OriginalStoreMutation) async -> OriginalStoreCommitResult { await base.commitOriginal(mutation) }
++    @MainActor func lookupInvalidation(_ acknowledgement: InvalidationAcknowledgement) async -> BackendOutcome<InvalidationID> { await base.lookupInvalidation(acknowledgement) }
+ }
+ 
+ @MainActor final class StatusMetadataRemote: PublicationRemotePort {
+@@ -343,25 +343,25 @@
+         if let index = manifests.firstIndex(where: { PublicationStoreBoundary.exact($0.0, rendition.original) }) { manifests[index].1 = value }
+         else { manifests.append((rendition.original, value)) }
+     }
+-    func manifest(original: OriginalContent, registration: RegistrationIdentity) async -> BackendOutcome<PublicationManifest> {
++    @MainActor func manifest(original: OriginalContent, registration: RegistrationIdentity) async -> BackendOutcome<PublicationManifest> {
+         manifestCalls.append(original)
+         await onManifest?(original)
+         return manifests.first(where: { PublicationStoreBoundary.exact($0.0, original) })?.1 ?? .unknown
+     }
+-    func invalidations(registration: RegistrationIdentity, after: InvalidationID?) async -> BackendOutcome<PublicationInvalidationPage> {
++    @MainActor func invalidations(registration: RegistrationIdentity, after: InvalidationID?) async -> BackendOutcome<PublicationInvalidationPage> {
+         afters.append(after)
+         await onInvalidations?()
+         return pages.isEmpty ? .succeeded(.init(records: [], nextAfter: nil)) : pages.removeFirst()
+     }
+-    func send(_ entry: BackendSyncEntry) async -> BackendOutcome<BackendSyncResponse> {
++    @MainActor func send(_ entry: BackendSyncEntry) async -> BackendOutcome<BackendSyncResponse> {
+         if !sent.contains(where: { PublicationStoreBoundary.exact($0, entry) }) { sent.append(entry) }
+         return loseSendReply ? .unknown : .succeeded(response(entry))
+     }
+-    func lookup(_ entry: BackendSyncEntry) async -> BackendOutcome<BackendSyncResponse> {
++    @MainActor func lookup(_ entry: BackendSyncEntry) async -> BackendOutcome<BackendSyncResponse> {
+         sent.contains(where: { PublicationStoreBoundary.exact($0, entry) }) ? .succeeded(response(entry)) : .notExecuted
+     }
+-    func distribute(_ request: PublicationDistributionRequest) async -> BackendOutcome<PublicationDistribution> { mediaCalls += 1; return .unknown }
+-    func lookupDistribution(_ request: PublicationDistributionRequest) async -> BackendOutcome<PublicationDistribution> { mediaCalls += 1; return .unknown }
++    @MainActor func distribute(_ request: PublicationDistributionRequest) async -> BackendOutcome<PublicationDistribution> { mediaCalls += 1; return .unknown }
++    @MainActor func lookupDistribution(_ request: PublicationDistributionRequest) async -> BackendOutcome<PublicationDistribution> { mediaCalls += 1; return .unknown }
+     private func response(_ entry: BackendSyncEntry) -> BackendSyncResponse {
+         switch entry {
+         case .confirmation(let value): .confirmation(value.intent.operation)
+--- candidate01/FrameRelayTests/Integration/Composition/ProductStatusSynchronizationTests.swift
++++ candidate02/FrameRelayTests/Integration/Composition/ProductStatusSynchronizationTests.swift
+@@ -143,11 +143,11 @@
+     var onStop: (@MainActor () async throws -> Void)?
+     private(set) var stops = 0
+     private(set) var resumes = 0
+-    func stopAndObserve(original: OriginalContent) async throws -> OriginalPlaybackTermination {
++    @MainActor func stopAndObserve(original: OriginalContent) async throws -> OriginalPlaybackTermination {
+         stops += 1; try await onStop?()
+         return .init(original: original, admissionClosed: true, createdOwners: 0, terminals: [])
+     }
+-    func resumeAfterInvalidation(_ acknowledgement: InvalidationAcknowledgement) async throws { resumes += 1 }
++    @MainActor func resumeAfterInvalidation(_ acknowledgement: InvalidationAcknowledgement) async throws { resumes += 1 }
+ }
+ nonisolated private struct StatusUnavailableCredentials: RegistrationAuthorizationPort {
+     func authorization(for connection: RegistrationConnection, intent: RegistrationIntent?, storeIdentity: RegistrationStoreIdentity) async throws -> RegistrationAuthorization {
+@@ -355,25 +355,25 @@
+     private(set) var distributeCount = 0
+     private(set) var lookupDistributionCount = 0
+     init(base: URLSessionPublicationRemote) { self.base = base }
+-    func manifest(original: OriginalContent, registration: RegistrationIdentity) async -> BackendOutcome<PublicationManifest> {
++    @MainActor func manifest(original: OriginalContent, registration: RegistrationIdentity) async -> BackendOutcome<PublicationManifest> {
+         manifestStarted += 1
+         let value = await base.manifest(original: original, registration: registration)
+         manifestCompleted += 1
+         return value
+     }
+-    func invalidations(registration: RegistrationIdentity, after: InvalidationID?) async -> BackendOutcome<PublicationInvalidationPage> {
++    @MainActor func invalidations(registration: RegistrationIdentity, after: InvalidationID?) async -> BackendOutcome<PublicationInvalidationPage> {
+         invalidationsStarted += 1
+         let value = await base.invalidations(registration: registration, after: after)
+         invalidationsCompleted += 1
+         return value
+     }
+-    func send(_ entry: BackendSyncEntry) async -> BackendOutcome<BackendSyncResponse> {
++    @MainActor func send(_ entry: BackendSyncEntry) async -> BackendOutcome<BackendSyncResponse> {
+         switch entry { case .confirmation: confirmationSend += 1; case .invalidation: ackSend += 1 }
+         return await base.send(entry)
+     }
+-    func lookup(_ entry: BackendSyncEntry) async -> BackendOutcome<BackendSyncResponse> { operationLookup += 1; return await base.lookup(entry) }
+-    func distribute(_ request: PublicationDistributionRequest) async -> BackendOutcome<PublicationDistribution> { distributeCount += 1; return .failed(.rejected) }
+-    func lookupDistribution(_ request: PublicationDistributionRequest) async -> BackendOutcome<PublicationDistribution> { lookupDistributionCount += 1; return .failed(.rejected) }
++    @MainActor func lookup(_ entry: BackendSyncEntry) async -> BackendOutcome<BackendSyncResponse> { operationLookup += 1; return await base.lookup(entry) }
++    @MainActor func distribute(_ request: PublicationDistributionRequest) async -> BackendOutcome<PublicationDistribution> { distributeCount += 1; return .failed(.rejected) }
++    @MainActor func lookupDistribution(_ request: PublicationDistributionRequest) async -> BackendOutcome<PublicationDistribution> { lookupDistributionCount += 1; return .failed(.rejected) }
+ }
+ 
+ @MainActor private struct StatusHTTPConfiguration {
+--- candidate01/FrameRelayTests/Integration/Storage/StatusSynchronizationStoreTests.swift
++++ candidate02/FrameRelayTests/Integration/Storage/StatusSynchronizationStoreTests.swift
+@@ -133,7 +133,7 @@
+     }
+ }
+ 
+-@MainActor func statusInvalidator(store: any MediaOperationStorePort & OriginalStorePort, identity: RegistrationStoreIdentity,
++@MainActor func statusInvalidator(store: any MediaDiskStore, identity: RegistrationStoreIdentity,
+                                 run: ExplorationRunDirectory) -> MediaInvalidationCoordinator {
+     .init(store: store, identity: identity, ordering: ManagedOriginalAccess(store: store, originals: ManagedOriginalStore(run: run)),
+           scopes: RenditionScopeRegistry(leases: RenditionReadLeases(store: store)), external: PublicationExternalFixture())

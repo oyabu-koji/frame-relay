@@ -63,7 +63,17 @@ SwiftUIはMainActor上の投影・操作受付を扱い、長いhash／DB／媒�
 
 端末の接続先／登録意図→サーバー登録／結果照会→端末commitを初回基盤にする。登録応答欠落は同一意図で照合し、通常再起動と新登録を分ける。Keychain等の標準資格情報保管候補を使い、秘密をstore／ログへ平文複製しない。具体API・schema・認証の採用はS20／S22の現行契約照合と隔離試験で記録する。
 
+S28の明示新登録は、登録意図・登録記録が空の現在storeと、別store UUIDに束縛された有効なv2残存資格情報を区別する独立経路とする。通常の復元・初回入力・保存済み情報による続行で旧資格情報を採用しない。本人操作で同writerの新UUIDを確定し、await後も同UUID・登録空を照合してから新しい接続先／認証を検査する。Keychainは`store.<UUID>.connection`／`store.<UUID>.initial.<destination>`へcreate-onlyで追加し、旧global項目の移動・上書き・削除、旧secret・確認・ACKの転用をしない。reopenでは現在UUIDのnamespaceを優先し、その記録が不正ならglobalへfallbackしない。同storeの中断は同intentで照合／続行し、別destinationや新secretで回避しない。未知・読取不能・破損・v1 unboundを新登録許可へ変換せず、旧initialが存在しない既知形を旧登録やremote未実行の証明にしない。UIは旧記録保持と確認・ACK非継承を示して明示入力／開始を受け、離脱時に認証入力を消す。remote-only履歴列挙と通常媒体の未接続は、この登録開始の部分引渡しとは別に保持する。
+
+同じS28の原本metadata列挙は、`GET /frame-relay/v1/uploads/inventory`を現登録のBearer／secretで認証し、同destinationの保存完了bindingと有効な保存evidenceの対応から既存OriginalContentを返す。公開artifactや正式変換proofを要せず、現在の外部ファイル存在を保証しない。1ページ最大32件・応答256KiB・cursor640ASCII、captureは元UTF8を保持したこの列挙専用2048bytes上限とし、超過・破損completed・不正cursorはpage全体を拒否する。既存保存APIのidentity受理範囲を縮小せず、切詰め／行の黙示除外で成功にしない。cursorは不変session UUIDのkeysetと現destination／registration／generation／limitへ束縛する。端末は元request cursorと応答identityを照合し、同writerのschema7 journalへcurrent store UUID／登録／command／pageの観測として加算する。元mutationの確定／exact lookup後だけ続きを進め、1操作1ページ・明示続行、再openの保持と先頭からの再照合を行う。空ページを削除根拠にしない。LibraryはRecordingStoreEntryを作らないremote専用投影で日時不明・原本対応／媒体未取得を示し、captureのUTF8 exactと内容世代／hash／bytesで重複・衝突を区別する。local原本の置換／自動bind、旧確認／ACKの復元、媒体取得を生成しない。正式版manifest・通常再生／確認・全媒体の残件は別substatusに保持する。
+
+S28のmanifest観測（2026-10-24）: `PublicationManifestObservation`をschema7の同writer/journalへ加算し、現store UUID・現登録・既知原本の元command/exact mutationに束縛する。既知集合はlocal logical originalsと同identity/現登録の有効catalogをUTF8 exactで固定し、catalogだけでlocal bindingを作らない。nil/current/revision/invalidation generation/replacement pending/media typeを保持し、同revisionのcurrent/形式矛盾と退行を拒否する。既存`.publication`の版採用・確認state・配布/ACK guardを変更せず、pure観測から確認・失効・ACK・媒体許可・削除権限を生成しない。nilは過去authorityを消さない。元authority mutationの不明結果だけをexact確定したpollはmetadata未照合のpartialを保持し、次の明示pollで取得/保存する。local/remote一覧と詳細は最後の版ID・世代/形式・未公開/置換待ち、取得記録と実媒体未照合/オフライン不可を別投影し、現在到達や正式変換品質の保証にしない。 既存writerの正規化比較と新catalogのUTF8 identityを混同せず、authority採用開始/最終同revision CAS直前で最新logicalのexact原本対応を再照合する。正規化同値でもexactが異なる対象はpure metadataだけを保持し、失効はexact logicalが存在し衝突しない場合だけ引き渡す。旧writer/replay互換や過去併合履歴を修復しない。
+
+S28の既取得軽量版consumer（2026-10-24）: local/remoteの単数導線を`ProductRenditionFactory`へ接続する。同store UUID・最新登録・exact logical original・現公開版/失効・正のcommitted配布観測・完全coverageを同revisionで選び、既存root/owner.lockだけを開き、実root/inode/full hashを独立照合して新しいuseを取得する。app lifetimeのownerとin-flight openを共有し、invalidation/removalと同じregistryへ登録する。端末内の完全媒体は原本の不在やWi-Fiに依存せず、network取得/正式変換proofを作らない。原本/local/remote共通のMainActor予約を最初のawait前に取る。実AV進行で得たlive tokenだけを同presentationの本人ボタンへ渡し、停止/自然終了後も同token・unknown時も同actionを用いる。閉鎖は開始/SDK停止/使用解放と確認taskをjoinしてtokenを消し、再launchで復元しない。旧停止callbackは捕捉したpresentation/taskだけをjoinする。一時媒体は新useだけを解放し、既存の最後use回収条件を保持する。旧unknown useを解放/採用しない。長文全文と全12文字サイズを維持し、scroll内容から再生停止/確認/閉じるfooterを分ける。consumerの成立と、正式producer/通常strict正resume/全媒体停止/実機品質の残件を分離する。
+
 全媒体経路（原本、軽量版取得、streaming／一時取得、サムネイル）を同じ通信gateへ接続する。媒体を含まない状態同期は別gate。Wi-FiとVPN基礎回線、本人停止／取消、REC／保存、対象固定、結果不明を再開直前にも確認する。OSが許す背景upload／downloadと復帰callbackを実装し、実OS成立はDV-12へ残す。Macの既開始検証／変換をRECで止めず、Mac ACKをREC開始条件にしない。
+
+S49の同期許可契約（2026-10-23）: coordinatorの最終resume境界で共通`CaptureMediaAdmission`から、元origin/revisionに束縛した単回の`CaptureMediaResumeAuthorization`を発行してasync SDK portへ渡す。SDK側はawait/queue hop後の実action直前に、hold更新と同じNSLock内でorigin/revision/未hold/未消費を再判定し、消費して短い非escaping/nonasync actionだけを行う。holdのbegin→end後も古い許可を失効し、throwでも消費を戻さない。lock内のawait/redispatch/admission再入を禁止し、新しい本人承認を求める仕組みにはしない。nativeの正のtask.resumeは未接続でnotExecutedを維持するため、契約・配線・注入競合の確認と、実SDK正開始/全媒体実停止/実通信RECの成立を分ける。
 
 S20で既存Range全hashとwriter競合を再観測し、内容同一性を守る検査と短い配布／公開確定区間を設計する。計画時に検査省略・負荷閾値を決めない。固定版配信は新要求の受理時に現公開版照合と配布台帳commitを行い、全公開pointer更新は期待世代＋全必要失効ACKを通す。公開前に受理した旧版応答と公開後の旧版新要求を分け、前者も必要ACK／実停止・解放と競合試験する。
 
@@ -75,7 +85,15 @@ Photos追加は、同一軽量版の完全取得と使用権→登録意図commi
 
 S31の登録下位処理・権限UIはN01と既存T03契約から開始し、試験実媒体を用いた実行可能SimulatorのPhotos操作を先行する。S21との永続接続、S25との完全取得媒体・使用権の製品接続を別substatusにし、未接続は製品成功にしない。S34の写真／整理／破棄UIも別substatusで管理し、整理はS32、破棄はS33の実接続・検証が揃い次第、S16の同じCompositionへO-COMPOSEだけが直列接続する。Photosの未完了は両削除操作の引渡しを止めない。S28との追加導線は当該接続だけに依存し、S34全体／S3Vのdoneには全必要接続と検証を要求する。
 
+S31の回収/閉鎖境界（2026-10-23）: 同exact登録/結果列/終端/modeの使用権回収は単一Taskへ合流する。既完了の元useはintent/terminal/releaseのmutation/commitとdir/file/store identityを同writerで再照合し、自ownerの実FD終端が確定した閉鎖後はread-onlyで返す。新FD/root再open/回収/再追加は行わず、部分閉鎖や証拠不足はunknownとする。一般APIも閉鎖済みFileHandleのdescriptor参照前に拒否する。succeeded(record)は記録の確定であり、元のunknown/failed/notAttempted・identifier・コピー保持を写真保存成功へ変えない。
+
+S31/S34の完全local軽量版Photos consumer（2026-10-24）: 同writerのschema7 journalへ親batchと固定source/子operationを加算し、queued→starting/notProcessedを保持する。初回手動受付はnative default-routeの現在Wi-Fi観測を要求し、不明/不適合時は予約・使用権・SDKを開始しない。受理済みの取得完了local段階にWi-Fi継続を要求せず、原本所在・明示確認やMac再接続を追加条件にしない。最新store UUID/登録/版・失効・元UTF8 exact原本・完全媒体の内容/日時/MIME/dir-file identityを受付と子開始で再判定し、同PhotoKeyをqueued/startingとstandalone間でも予約する。Photos結果は子ID＋固定sourceで既存PhotoRegistrationRecordへjoinし、第二の成功flagを作らない。app lifetime coordinatorは同sessionで本人受理・明示再開したjobだけを処理し、再起動queuedは明示continue/cancel、starting/intent/unknownは無条件SDK再追加しない。captureでは未開始子をholdし、lock外wake時に現snapshotを再読する。Photos意図保存前のREC preflightでは進行中prepareをjoinし、preparedの使用権を解放する。Photos保持記録がなく最後のuseとなれば既存規則で一時媒体が回収されても、子のqueuedは受付記録として残る。続行時に同じ固定sourceを再準備できなければnotProcessed(.unavailable)となり、queued表示は媒体保持や続行成功を保証しない。原本の状態・Photosの追加結果・ローカル終端は別々に照合する。PreparedPhotoSourceは最初のawait前にperform/releaseのTaskを固定し、SDK開始後unknownを外側から解放しない。known-not-addedの明示retryだけ既存PhotoSaveCoordinator内でfresh useを1回取り、同writer/実全hash/現ownerを再照合する。prepare→begin前中断の旧orphan useは終端と推定せず保持する。Libraryはlocal/remote専用の写真選択集合を固定し、childごとの受付・Photos結果・存在照合を分ける。原本削除用referenceのremote捏造、未合意の再保存/保持policy、正式producer/通常strict正resume/実機受入への昇格は行わない。
+
 整理は動画別の最新ローカル保存証拠・確認・内容対応・失効を再判定して本人指示をcommitする。破棄はこれらの成立不要だが対象と消失リスクを単数で確認する。両方ともordering予約→実停止／全解放→実unlink→ローカル結果照合→commitを通る。媒体とDBの一括原子性は仮定しない。中断後は存在と記録から削除済み／未削除／要確認を示し、未実行削除を自動実行しない。整理成功は通常一覧、破棄成功だけ履歴。不明は要照合として通常の作業導線に残す。
+
+S34の条件付き複数整理（2026-10-23）: 同じCompositionの`LibraryRemovalCommands`から既存`CleanupCoordinator`へ固定集合を渡す。全選択原本の存在・内容/保存記録の対応が確定し、適格候補が1件以上ある場合に本人確認を提示する。表示用の適格性は削除権限にせず、各実行直前と同writerの最終unlinkで保存検証・有効確認・登録・支持schema・失効・全readerを再判定する。条件不足/終端不明の子は未実行/要照合として保持し、独立した次の子を処理する。未解決子のsealは保持しつつ、終了を確認できた子だけを最新epoch/accessで再観測・解放する。
+
+S34-BG01の全transport receipt集合とhash前inventoryのfenceは両削除目的に共用する。同writerの最終区間でinventoryを再構築し、関連状態のABA/新attempt/task/登録変更を拒否する。fenceなし旧callerの全writer revision CAS、schema7/旧command、cleanup固有の最終証拠guardを維持する。未知/活動中/旧source/downloadの終端を推定せず、正式証拠producer・通常strict通信・Photosの不足は直接依存部分へ残す。合成proof/SDK fakeの技術試験を、実転送・標準Rec.709変換・品質・実機受入の証拠へ昇格しない。
 
 ## 撮影・解析・描画
 
@@ -110,6 +128,23 @@ S46の本人承認（2026-10-18）: 入力信号別の交換可能な暫定基�
 ズームは目標選択時点では実倍率を変えない。制御中の観測実倍率で目標超過を防ぎ、目標・途中停止を同じ制御器へ渡す。停止支援候補は実カメラ・形式・解像度・補正の根拠付きとし、整数倍率だけで品質保証しない。設定は目的・根拠・適用範囲・版・変更箇所・未採用フラグ付きの暫定値、DV-08後の採用値を別記録する。数値・吸着方式・詳細設定画面を計画で追加決定しない。
 
 D02資材は由来・版・利用条件・入力Log適合を先に確認する。資材適合待ちはS26変換本体／S48表示変換だけへ局所化し、周辺版管理・描画分離・既知入力機能試験を先行する。既知入力の技術試験は本人の画質採用試験ではない。出力1080p HEVC等は候補のまま、G3事前合意→DV-13評価→G5採用を維持する。
+
+### S26A 資材・入力条件の記録（2026-10-22）
+
+公開一次資料の読取調査だけを実施した。以下はLog別の識別と不足箇所の記録であり、標準変換資材の取得・組込・品質採用を意味しない。
+
+| 対象 | 確認できた入力・標準表示の根拠 | 資材・適合状態 |
+| --- | --- | --- |
+| Apple Log | [AVFoundation](https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog)はBT.2020 primariesとApple定義Logを示す。[FCP](https://support.apple.com/ja-jp/guide/final-cut-pro/ver24f966423/mac)はApple LogからRec.709へのApple製3D LUTを説明する | 実体未取得。配布元/資材版/hash、組込・再配布条件、RGB/YCbCrとfull/video range、LUT DOMAIN、独立した既知入力/期待出力が未確認 |
+| Apple Log 2 | [AVFoundation](https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog2)はApple Gamut primariesの別Log条件を示す。FCPはLog2用の別Rec.709 3D LUTを説明する | 同じ項目が未確認。Log1用資材やBT.2020の一般係数を流用しない |
+| 識別・SDK入力 | [VideoToolbox](https://developer.apple.com/documentation/videotoolbox/kvtcompressionpropertykey_logtransferfunction)はLog1/2を区別し、指定と入力bufferの不一致を拒否する。現SDKのCoreVideo headerはLog2の通常primaries/transfer attachmentを未定義または欠落、YCbCr matrixをBT.2020として扱う | Log識別/encoding条件はRec.709変換の保証ではない。YCbCr matrixからLog2のprimariesをBT.2020と判定しない |
+| 表示用途 | [Final Cut Camera](https://support.apple.com/en-ge/guide/final-cut-camera/dev14d309a3f/ios)は撮影Logに対応するSDR Rec.709/HDR HLG preview LUTを説明する | 内蔵機能やcustom LUT共有の説明だけを、Apple内蔵資材の取得・組込・再配布の許諾としない |
+
+調べた公開ページでは未認証の独立LUT実体リンクを確認できず、resources URLは製品ページへredirectした。配布が存在しない、または全経路で認証必須とは断定しない。認証・素材download・変換処理は実施していない。既存`rec709.cube`の2³ identity、17³のidentity/swapは生成技術fixtureであり標準資材ではない。`apple-log-v2`は検出規則の版でありLog2専用LUTを表さない。actual-log-parser-not-validatedも未解消のまま残す。
+
+技術適合は資材取得後にLog別の由来/版/hash/利用条件と入力域を固定し、独立した既知入力・期待出力、range変換、二重変換拒否、原本不変を確認する。現在のidentity/swap成功は描画・所有・安全境界だけの証拠で、S26正式変換やS48標準表示を開かない。
+
+G3比較案は、同一入力・同一標準変換の参照と圧縮候補を使い、色変換の正しさと圧縮劣化を分ける。採用実Log、縦横/24・30fps、肌/空/暗部/細部/動き/音声を対応付け、本人iPhoneの通常サイズ/通常再生で比較し、許容候補の容量と取得時間を確認する。具体素材、表示環境、比較方法、許容範囲、有限候補数、出力設定はQ01未合意。G3事前合意→DV-13評価→G5採用を維持し、参照映像を製品高品質版の追加要求にしない。写真登録後の日時/音声/表示はDV-16の別結合証拠とする。
 
 ## ゲートと直接依存
 

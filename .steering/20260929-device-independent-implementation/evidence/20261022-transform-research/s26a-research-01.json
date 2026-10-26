@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-22",
+  "status": "read-only official research completed by library_accessibility_analysis; S26A pending recording in design",
+  "sources": [
+    {
+      "url": "https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog",
+      "fact": "BT.2020 primaries + Apple Log transfer; Log1 separate from Log2"
+    },
+    {
+      "url": "https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog2",
+      "fact": "Apple Gamut primaries + Apple Log transfer; BT.2020 YCbCr matrix does not establish primaries"
+    },
+    {
+      "url": "https://developer.apple.com/documentation/videotoolbox/kvtcompressionpropertykey_logtransferfunction",
+      "fact": "Distinct identifiers; matching encoding input required; no Rec.709 conversion guarantee"
+    },
+    {
+      "url": "https://support.apple.com/ja-jp/guide/final-cut-pro/ver24f966423/mac",
+      "fact": "Separate Apple Log/Log2 to Rec.709 3D LUT descriptions"
+    },
+    {
+      "url": "https://support.apple.com/en-ge/guide/final-cut-camera/dev14d309a3f/ios",
+      "fact": "Corresponding SDR Rec.709/HDR HLG preview LUTs"
+    }
+  ],
+  "assets_acquired": false,
+  "missing": [
+    "file bytes",
+    "publisher/distribution/version/sha256",
+    "embedding and redistribution terms",
+    "RGB/YCbCr and full/video range",
+    "LUT DOMAIN and expected output",
+    "independent known Log1/Log2 inputs"
+  ],
+  "not_inferred": [
+    "all routes require authentication",
+    "no LUT distribution exists",
+    "FCP built-in features grant redistribution",
+    "generated identity/swap fixtures are standard transforms"
+  ],
+  "quality": "technical compatibility first; Q01 G3 agreement -> DV13 evaluation -> G5 adoption; concrete source/display/method/tolerance/count/output still unbound"
+}
