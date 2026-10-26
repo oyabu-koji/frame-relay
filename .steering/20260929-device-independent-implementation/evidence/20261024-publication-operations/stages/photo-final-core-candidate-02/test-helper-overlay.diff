@@ -1,0 +1,78 @@
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/photo-final-core-candidate-01/source-snapshot/FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift
+index 74aecea..922ab55 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/photo-final-core-candidate-01/source-snapshot/FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Photos/PhotoSaveFixture.swift
+@@ -28,8 +28,8 @@ nonisolated struct PhotoSaveFixture: Sendable {
+             guard await rendition.temporary.releaseUsage(complete.usage) == .succeeded(complete.id) else { throw BackendContractError.unavailable }
+         }
+         let faults = await PhotoSaveFaultStore(base: rendition.store)
+-        let library = PhotoSaveLibrary()
+-        let media = PhotoSaveMedia(base: rendition.temporary)
++        let library = PhotoSaveLibrary.make()
++        let media = PhotoSaveMedia.make(base: rendition.temporary)
+         let coordinator = PhotoSaveCoordinator(store: faults, identity: identity, temporaryMedia: media, library: library)
+         return .init(rendition: rendition, faults: faults, identity: identity, receipt: receipt,
+             library: library, media: media, coordinator: coordinator)
+@@ -99,6 +99,14 @@ actor PhotoSaveLibrary: PhotoLibraryPort {
+             : command.registration.intent
+         return .init(intent: intent, outcome: outcome)
+     }
++    func add(_ command: PhotoLibraryAddCommand, start: PhotoSaveStartAuthorization) async -> PhotoLibraryAddAttempt {
++        switch await photoSaveFakeStart(command, start: start) {
++        case .heldBeforeStart: return .heldBeforeStart
++        case .started: return .completed(await add(command))
++        case .cancelledBeforeStart, .refused:
++            return .completed(.init(intent: command.registration.intent, outcome: .notAttempted(.rejected)))
++        }
++    }
+     func complete() { delayed = false; terminal?.resume(); terminal = nil }
+     func lookup(_ identifier: PhotoAssetIdentifier) -> PhotoLibraryLookupResult {
+         lookups.append(identifier)
+@@ -107,6 +115,7 @@ actor PhotoSaveLibrary: PhotoLibraryPort {
+ }
+ 
+ actor PhotoSaveMedia: TemporaryMediaPort, TemporaryLocalMediaPort, PhotoTemporaryUsageRecoveryPort {
++    nonisolated static func make(base: ManagedTemporaryMedia) -> PhotoSaveMedia { PhotoSaveMedia(base: base) }
+     let base: ManagedTemporaryMedia
+     private var finishFails = false
+     private var releaseBlocked = false
+@@ -191,6 +200,10 @@ actor PhotoSaveMedia: TemporaryMediaPort, TemporaryLocalMediaPort, PhotoTemporar
+         return matches(mutation) ? .unknown : await base.lookupCommit(mutation)
+     }
+     @MainActor func load() async -> BackendStoreLoadResult { await base.load() }
++    @MainActor func performPhotoSaveIfCurrent(_ command: PhotoLibraryAddCommand,
++        action: @Sendable () -> Void) async -> Bool {
++        await base.performPhotoSaveIfCurrent(command, action: action)
++    }
+     @MainActor func execute(_ command: RecordingStoreCommand) async -> RecordingStoreResult { await base.execute(command) }
+     @MainActor func loadUnfinished() async -> UnfinishedRecordingLoadResult { await base.loadUnfinished() }
+     @MainActor func loadRecordings() async -> RecordingStoreLoadResult { await base.loadRecordings() }
+@@ -200,3 +213,15 @@ actor PhotoSaveMedia: TemporaryMediaPort, TemporaryLocalMediaPort, PhotoTemporar
+         await base.lookupInvalidation(acknowledgement)
+     }
+ }
++
++/// Only controlled test fakes use the legacy branch. Native and the protocol
++/// default have no legacy fallback. An empty synchronous action is a fake
++/// boundary observation, never proof of PhotoKit invocation or completion.
++nonisolated func photoSaveFakeStart(_ command: PhotoLibraryAddCommand,
++                                   start: PhotoSaveStartAuthorization) async -> PhotoSaveStartDisposition {
++    if start.isLegacyTestInput {
++        guard let input = start.claim.dispatchInput(for: command.registration.intent) else { return .refused }
++        return start.claim.performIfPending(input: input, action: {})
++    }
++    return await start.perform(command, action: {})
++}
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/photo-final-core-candidate-01/source-snapshot/FrameRelayTests/Integration/Photos/PhotoSaveFinalStoreDriftTests.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Photos/PhotoSaveFinalStoreDriftTests.swift
+index e3a7eb0..4e78f7b 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/photo-final-core-candidate-01/source-snapshot/FrameRelayTests/Integration/Photos/PhotoSaveFinalStoreDriftTests.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Photos/PhotoSaveFinalStoreDriftTests.swift
+@@ -324,7 +324,7 @@ private nonisolated func photoDriftAbsent(_ url: URL) throws {
+         usageID: .init(rawValue: unicode ? "photo-use-caf\u{00e9}" : "photo-drift-use-" + UUID().uuidString)) else { throw BackendContractError.unavailable }
+     let receipt = try await rendition.temporary.stateFor(complete.id).receipt(for: usage)
+     guard await rendition.temporary.releaseUsage(complete.usage) == .succeeded(complete.id) else { throw BackendContractError.unavailable }
+-    let faults = PhotoSaveFaultStore(base: rendition.store), library = PhotoSaveLibrary(), media = PhotoSaveMedia(base: rendition.temporary)
++    let faults = PhotoSaveFaultStore(base: rendition.store), library = PhotoSaveLibrary.make(), media = PhotoSaveMedia.make(base: rendition.temporary)
+     let coordinator = PhotoSaveCoordinator(store: faults, identity: identity, temporaryMedia: media, library: library)
+     return .init(rendition: rendition, faults: faults, identity: identity, receipt: receipt, library: library, media: media, coordinator: coordinator)
+ }

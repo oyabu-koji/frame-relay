@@ -1,0 +1,13 @@
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-01/source-snapshot/FrameRelayUITests/Flows/UploadMetadataFlowTests.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/UploadMetadataFlowTests.swift
+index 205c412..86ea7d4 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-ui-candidate-01/source-snapshot/FrameRelayUITests/Flows/UploadMetadataFlowTests.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/UploadMetadataFlowTests.swift
+@@ -271,7 +271,7 @@ final class UploadMetadataFlowTests: XCTestCase {
+             fixed[identifier] = label; fixed["library.request.historyHeading." + id] = "単数の通信操作の保存記録"
+             planLabels[label, default: 0] += 1
+         }
+-        for (identifier, label) in identities {
++        for (identifier, _) in identities {
+             let suffix = String(identifier.dropFirst("library.request.historyIdentity.".count))
+             guard suffix.count > 37 else { throw MetadataUIFailure.unexpected }
+             let command = String(suffix.prefix(36)), token = String(suffix.dropFirst(37))

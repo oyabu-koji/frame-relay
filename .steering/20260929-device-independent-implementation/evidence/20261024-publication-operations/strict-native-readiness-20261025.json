@@ -1,0 +1,32 @@
+{
+  "checked_UTC": "2026-10-24T17:56:46.303035+00:00",
+  "independentValidation": false,
+  "primarySources": [
+    {
+      "title": "Apple URLSessionTaskDelegate redirect callback",
+      "url": "https://developer.apple.com/documentation/foundation/urlsessiontaskdelegate/urlsession%28_%3Atask%3Awillperformhttpredirection%3Anewrequest%3Acompletionhandler%3A%29",
+      "verifiedBy": "official source extract in web search; HTML directs to Markdown. web Markdown unsupported; local Python TLS certificate verification failed, no bypass",
+      "factJapanese": "このdelegate callbackはdefault/ephemeral向けで、background sessionのredirectは自動追従する。"
+    },
+    {
+      "title": "Apple NWParameters.requiredInterfaceType",
+      "url": "https://developer.apple.com/documentation/network/nwparameters/requiredinterfacetype",
+      "factJapanese": "Network.frameworkには接続/listenerへinterface typeを要求する別APIがある。現URLSession background taskへの同一保証を示す資料ではない。"
+    }
+  ],
+  "localCurrentFacts": [
+    "BackgroundMediaSession.swift89 creates native background session and disablescellular",
+    "resume at181 remains notExecuted; positive strictpermit producer absent",
+    "current requirement rejects redirects before furthermedia dispatch; callback addition alone tobackgroundsession does not supply this guarantee"
+  ],
+  "inferenceExplicit": [
+    "現backgroundURLSessionを正resumeへ開けるには、redirect制御とVPN基礎回線/経路変更/OS再試行での媒体byte前保証を備える採用witness/transport範囲の確定が必要。これはLUT/ISO/Q01とは別の直接条件。",
+    "Network.framework等の別経路が不可能という結論ではない。現journal/SDK owner/recoveryと整合した設計・根拠が未確定で、現在のpositive許可には使わない。"
+  ],
+  "directReadyIndependentBranches": [
+    "chunk descriptor/range/hash/bounded copy; newtypedsource/fingerprint; suspendedSDKcancel/FD/lease exactproof",
+    "PhotoKit final synchronous dispatch capture exclusion",
+    "uploadmetadata reservation/HTTPprotocol/currentwriterprojection"
+  ],
+  "noMediaOrFixtureOperationsForResearch": true
+}

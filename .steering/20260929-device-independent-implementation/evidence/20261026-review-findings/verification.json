@@ -1,0 +1,50 @@
+{
+  "execution_binding": "DI-SOURCE-20261026-01",
+  "final_binding": "DI-SOURCE-20261026-02",
+  "status": "関連検証成功",
+  "declared": 29,
+  "expanded": 42,
+  "passed_declarations": 29,
+  "passed_expanded": 42,
+  "failed": 0,
+  "skipped": 0,
+  "suite_names": [
+    "LibraryPhotoProjectionTests",
+    "LibraryPhotoSaveTests",
+    "PhotoSaveBatchCoordinatorTests",
+    "ProductPhotoCaptureStopTests"
+  ],
+  "regression": "ProductPhotoCaptureStopTests/anAlreadyInflightPreparationIsJoinedAndReleasedWithoutCreatingAPhotoIntent() Passed",
+  "assertions": [
+    "intent前REC stopの実prepare join/release後reclaiming/reclaimedと実cache不在",
+    "queued/同fixed child/登録結果なし・保持保証をしない表示",
+    "明示resumeで同child notProcessed(.unavailable)と写真/管理の未処理表示",
+    "Photos status/permission/add/lookup/guarded start全呼出0",
+    "全reader0とretained synthetic source bytes不変。実原本/実Photos成功へ拡張しない",
+    "受理SDK completion待ち、外部unknown/localunknown分離、STOP/leave等の既存関連回帰を維持"
+  ],
+  "compiler_analyzer_runtime_warnings": {
+    "compiler": 0,
+    "analyzer": 0,
+    "runtime": 0
+  },
+  "other_build_tool_messages": {
+    "AppIntents_metadata_extraction_skipped": 3,
+    "reason": "no AppIntents.framework dependency; test skipではない"
+  },
+  "failures": [],
+  "skipped_tests": [],
+  "not_executed": {
+    "full_unit": "表示1行/回帰1件の修正に関連4suiteを選択。旧Unit185は過去版の履歴として保持し、新版全Unit成功へ昇格しない。",
+    "real_PhotoKit_HTTP_native_transport": "policy/SDK/metadata実装は変更なし。旧fixtureの再seedやSDK追加/削除を避け今回再実行せず、DI14/DI18各stage限定の証拠と継承条件を参照。",
+    "UI_full_flow_max_dynamic_type_VoiceOver": "表示投影を実行試験で確認。レイアウト/controlsは不変。実画面での通常/最大/読み上げ再実行はしていない。",
+    "device_build_launch_quality_PRD": "実機・品質・PRD受入の対象外。Simulator test hostの実起動とコンパイルを実行したが製品UI/実機の起動受入ではない。",
+    "independent_validate_implementation": "ユーザー指示により自動開始しない。"
+  },
+  "tool_query_failures_retained": [
+    "初回sandbox simctl list exit1 / CoreSimulator権限エラー。権限拡張後一覧取得成功。",
+    "初回sandbox xcode-listはexit0だがCoreSimulator unavailable等の照会診断。権限拡張後照会成功。",
+    "初回xcresult summary/tests抽出exit64（権限/内部TestReport生成競合）。順次の権限拡張抽出は両exit0。テスト失敗と混同しない。"
+  ],
+  "source_snapshot_unchanged": true
+}

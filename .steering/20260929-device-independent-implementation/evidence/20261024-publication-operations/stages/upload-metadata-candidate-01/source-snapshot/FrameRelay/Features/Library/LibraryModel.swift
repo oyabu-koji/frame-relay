@@ -1,0 +1,640 @@
+import Foundation
+import Observation
+
+@MainActor @Observable
+final class LibraryModel {
+    private let reader: any LibraryReadPort
+    private let commands: any LibraryCommandPort
+    private let photos: (any LibraryPhotoReconciliationPort)?
+    private let removals: (any LibraryRemovalReconciliationPort)?
+    private let remoteRenditions: (any LibraryRemoteRenditionPort)?
+    private let photoSaves: (any LibraryPhotoSavePort)?
+    private let requestControls: (any MediaRequestControlPort)?
+    private let transfers: LibraryTransferCommands?
+    private let uploadMetadata: (any UploadMetadataPort)?
+    var hasUploadMetadataPort: Bool { uploadMetadata != nil }
+    private(set) var uploadMetadataBusy: Set<MediaOperationID> = []
+    private(set) var uploadMetadataMessages: [MediaOperationID: String] = [:]
+    @ObservationIgnored private var uploadMetadataPendingInputs: [MediaOperationID: UploadMetadataRequest] = [:]
+    var hasTransferPort: Bool { transfers != nil }
+    private(set) var pendingTransferAcceptance: OriginalUploadAcceptanceRequest?
+    private(set) var isSubmittingTransfer = false
+    private(set) var transferMessage: String?
+    var hasPhotoSavePort: Bool { photoSaves != nil }
+    var hasMediaRequestControlPort: Bool { requestControls != nil }
+    private(set) var pendingMediaControlPlan: MediaPersonControlPlan?
+    private(set) var isSubmittingMediaControl = false
+    private(set) var mediaControlMessage: String?
+    private(set) var mediaControlStops: [MediaOperationID: MediaPersonControlStopDisposition] = [:]
+    private(set) var remotePhotoSelected: Set<RemoteInventoryOriginalID> = []
+    private(set) var photoSaveMessage: String?
+    private(set) var isSubmittingPhotos = false
+    private(set) var pendingPhotoAcceptance: PhotoSaveBatchRequest?
+    @ObservationIgnored private var photoRetryActions: [MediaOperationID: MediaOperationID] = [:]
+    private(set) var remotePlaybackMessages: [RemoteInventoryOriginalID: String] = [:]
+    private var remotePlaybackPending: Set<RemoteInventoryOriginalID> = []
+    private(set) var snapshot: LibrarySnapshot?
+    private(set) var failure: LibraryReadFailure?
+    private(set) var isLoading = false
+    private(set) var selected: Set<CaptureID> = []
+    private(set) var submissions: [LibrarySubmission] = []
+    var submission: LibrarySubmission? { submissions.last }
+    private(set) var inputIssue: String?
+    private(set) var removalReconciliations: Set<MediaOperationID> = []
+    private(set) var removalReconciliationMessages: [MediaOperationID: String] = [:]
+    private(set) var photoReconciliations: Set<MediaOperationID> = []
+    private(set) var photoReconciliationMessages: [MediaOperationID: String] = [:]
+    @ObservationIgnored private var photoReconciliationActions: [MediaOperationID: MediaOperationID] = [:]
+    @ObservationIgnored private var refreshRequested = false
+    @ObservationIgnored private var refreshWaiters: [CheckedContinuation<Void, Never>] = []
+
+    init(reader: any LibraryReadPort, commands: any LibraryCommandPort = UnconnectedLibraryCommands(),
+         photos: (any LibraryPhotoReconciliationPort)? = nil,
+         removals: (any LibraryRemovalReconciliationPort)? = nil,
+         remoteRenditions: (any LibraryRemoteRenditionPort)? = nil,
+         photoSaves: (any LibraryPhotoSavePort)? = nil,
+         requestControls: (any MediaRequestControlPort)? = nil,
+         transfers: LibraryTransferCommands? = nil,
+         uploadMetadata: (any UploadMetadataPort)? = nil) {
+        self.reader = reader
+        self.commands = commands
+        self.photos = photos
+        self.removals = removals
+        self.remoteRenditions = remoteRenditions
+        self.photoSaves = photoSaves
+        self.requestControls = requestControls
+        self.transfers = transfers
+        self.uploadMetadata = uploadMetadata
+    }
+
+    func refresh() async {
+        if isLoading {
+            refreshRequested = true
+            await withCheckedContinuation { refreshWaiters.append($0) }
+            return
+        }
+        isLoading = true
+        repeat {
+            refreshRequested = false
+            switch await reader.loadLibrary() {
+            case .loaded(let value):
+                snapshot = value
+                failure = nil
+                // Original-upload selection must not silently lose an intended
+                // target when a refresh changes the current rows.
+                if transfers == nil { selected.formIntersection(Set(value.recordings.map(\.id))) }
+                remotePhotoSelected.formIntersection(Set(value.remoteItems.map(\.id)))
+            case .unavailable(let reason):
+                // Keep prior rows explicitly stale. Never replace a read failure with an empty library.
+                failure = reason
+            }
+        } while refreshRequested
+        isLoading = false
+        let waiters = refreshWaiters
+        refreshWaiters.removeAll()
+        for waiter in waiters { waiter.resume() }
+    }
+
+    func remotePlaybackAvailability(_ item: LibraryRemoteItem) -> LibraryActionAvailability {
+        guard !isLoading, failure == nil, snapshot?.remoteItems.contains(item) == true,
+              !remotePlaybackPending.contains(item.id), let remoteRenditions else {
+            return .unavailable("現在の保存記録を読み込んでから操作してください。")
+        }
+        return remoteRenditions.availability(item)
+    }
+
+    func uploadMetadataAvailability(_ row: LibraryMediaRequest, reconcile: Bool = false) -> LibraryActionAvailability {
+        guard uploadMetadata != nil, !isLoading, failure == nil,
+              snapshot?.mediaRequests.contains(where: { LibraryMediaRequestProjection.samePresentation($0.request, row.request) }) == true else {
+            return .unavailable("現在の通信要求と登録の保存記録を読み込んでから操作してください。")
+        }
+        guard !uploadMetadataBusy.contains(row.id) else { return .unavailable("この転送要求のMacへの照会を処理中です。") }
+        if reconcile {
+            guard uploadMetadataPendingInputs[row.id] != nil || row.uploadMetadataReconciliationRequest != nil else {
+                return .unavailable("照合するMacへの照会記録はありません。")
+            }
+        } else {
+            guard row.uploadMetadataRequest != nil else { return .unavailable("この転送要求と現在の登録が一致しません。元の記録を保持しています。") }
+            if row.request.session == nil && row.request.intent != .running && !row.hasUploadMetadataQuery {
+                return .unavailable("本人停止・取消中は、新しいMacの転送準備を作りません。")
+            }
+        }
+        return .available
+    }
+
+    func refreshUploadMetadata(_ row: LibraryMediaRequest, reconcile: Bool = false) async {
+        let available = uploadMetadataAvailability(row, reconcile: reconcile)
+        guard available == .available, let uploadMetadata else { uploadMetadataMessages[row.id] = available.reason; return }
+        let fixed = reconcile ? uploadMetadataPendingInputs[row.id] ?? row.uploadMetadataReconciliationRequest : row.uploadMetadataRequest
+        guard let request = fixed else { return }
+        // The exact existing operation, original, start revision, DeviceRegistration
+        // and store UUID are fixed here before suspension, never rebound later.
+        uploadMetadataPendingInputs[row.id] = request; uploadMetadataBusy.insert(row.id)
+        let result = reconcile ? await uploadMetadata.reconcilePending(request) : await uploadMetadata.refresh(request)
+        uploadMetadataBusy.remove(row.id)
+        switch result {
+        case .recorded(let record):
+            guard record.isCommitted, UploadMetadataValidation.exact(record.observation.query.query.request, request) else {
+                uploadMetadataMessages[row.id] = "元のMacへの照会結果を確定できません。同じ記録を照合してください。"
+                await refresh(); return
+            }
+            uploadMetadataPendingInputs.removeValue(forKey: row.id)
+            uploadMetadataMessages[row.id] = "Macへの照会結果を保存しました。この照会では原本を送信していません。保存済みの状態を確認してください。"
+        case .rejected(let error):
+            if error != .revisionConflict { uploadMetadataPendingInputs.removeValue(forKey: row.id) }
+            uploadMetadataMessages[row.id] = error == .wrongStage
+                ? "現在の本人意思やMacの受付記録では、新しい転送準備を実行できません。原本は保持しています。"
+                : "Macへの照会結果を保存できません。現在の登録・接続と同じ要求の記録を確認してください。"
+        case .unknown:
+            uploadMetadataMessages[row.id] = "Macへの照会または結果の保存は未確定です。同じ記録を照合してください。再びアプリを開いても新しい転送準備を自動で作りません。"
+        }
+        await refresh()
+    }
+
+    func mediaRequestAvailability(_ action: MediaPersonControlAction, request row: LibraryMediaRequest) -> LibraryActionAvailability {
+        guard requestControls != nil, !isLoading, failure == nil, let snapshot, snapshot.storeIdentity != nil else {
+            return .unavailable("現在の通信要求の保存記録を読み込んでから操作してください。")
+        }
+        guard !isSubmittingMediaControl, pendingMediaControlPlan == nil else {
+            return .unavailable("先の通信操作の記録を照合してください。")
+        }
+        guard let current = snapshot.mediaRequests.first(where: {
+            LibraryMediaRequestProjection.samePresentation($0.request, row.request)
+        }) else { return .unavailable("通信要求が更新されました。再読み込みして確認してください。") }
+        return current.availability(action)
+    }
+
+    var allMediaPauseAvailability: LibraryActionAvailability {
+        guard requestControls != nil, !isLoading, failure == nil, let snapshot, snapshot.storeIdentity != nil else {
+            return .unavailable("現在の通信要求の保存記録を読み込んでから操作してください。")
+        }
+        guard !isSubmittingMediaControl, pendingMediaControlPlan == nil else {
+            return .unavailable("先の通信操作の記録を照合してください。")
+        }
+        guard !snapshot.mediaRequests.isEmpty else { return .unavailable("開始指示済みの通信要求はありません。") }
+        guard snapshot.mediaRequests.contains(where: { $0.availability(.pause) == .available }) else {
+            return .unavailable("停止を記録できる通信要求はありません。対象別の記録を確認してください。")
+        }
+        return .available
+    }
+
+    func controlMediaRequest(_ action: MediaPersonControlAction, request row: LibraryMediaRequest) async {
+        let available = mediaRequestAvailability(action, request: row)
+        guard available == .available else { mediaControlMessage = available.reason; return }
+        await beginMediaControl(action: action, scope: .single, requests: [row])
+    }
+
+    func pauseAllMediaRequests() async {
+        let available = allMediaPauseAvailability
+        guard available == .available, let snapshot else { mediaControlMessage = available.reason; return }
+        // Includes queued/waiting and terminal rows. The same writer evaluates
+        // every fixed child and records its individual nonprocessing reason.
+        await beginMediaControl(action: .pause, scope: .allPause, requests: snapshot.mediaRequests)
+    }
+
+    private func beginMediaControl(action: MediaPersonControlAction, scope: MediaPersonControlScope,
+        requests: [LibraryMediaRequest]) async {
+        guard let identity = snapshot?.storeIdentity, let requestControls,
+              !isSubmittingMediaControl, pendingMediaControlPlan == nil else { return }
+        let plan: MediaPersonControlPlan
+        do {
+            plan = try .init(parent: .init(rawValue: UUID().uuidString.lowercased()), storeIdentity: identity,
+                scope: scope, action: action, children: requests.map {
+                    .init(command: .init(rawValue: UUID().uuidString.lowercased()), target: $0.target)
+                })
+        } catch {
+            mediaControlMessage = "通信要求の対象を固定できません。保存記録を再読み込みしてください。"
+            return
+        }
+        // Reserve the complete immutable plan and all child IDs before await.
+        pendingMediaControlPlan = plan
+        isSubmittingMediaControl = true
+        let result = await requestControls.submitPersonControl(plan)
+        isSubmittingMediaControl = false
+        receiveMediaControl(result, plan: plan)
+        await refresh()
+    }
+
+    func reconcileMediaControl() async {
+        guard !isSubmittingMediaControl, let plan = pendingMediaControlPlan, let requestControls else { return }
+        isSubmittingMediaControl = true
+        let result = await requestControls.lookupPersonControl(plan)
+        isSubmittingMediaControl = false
+        receiveMediaControl(result, plan: plan)
+        await refresh()
+    }
+
+    private func receiveMediaControl(_ result: MediaPersonControlResult, plan: MediaPersonControlPlan) {
+        switch result {
+        case .recorded(let record, let stops):
+            guard LibraryMediaRequestProjection.matches(record, stops: stops, plan: plan) else {
+                mediaControlMessage = "元の通信操作の記録を確定できません。同じ指示の記録を照合してください。"
+                return
+            }
+            pendingMediaControlPlan = nil
+            for stop in stops { mediaControlStops[stop.child] = stop.disposition }
+            mediaControlMessage = plan.action == .resumeIntent
+                ? "停止解除の指示の受付結果を保存しました。対象別の結果と残る待機条件を確認してください。通信の開始・実際の再開は行っていません。"
+                : "通信操作の対象別の受付結果を保存しました。本人意思・未処理理由と停止要求を確認してください。通信処理の終了は未確認です。"
+        case .rejected:
+            pendingMediaControlPlan = nil
+            mediaControlMessage = "通信操作を記録できませんでした。保存記録を再読み込みして対象を確認してください。"
+        case .unknown:
+            mediaControlMessage = "通信操作の受付結果は不明です。対象\(plan.children.count)件の指示を保持しています。同じ指示の受付結果を照合してください。"
+        }
+    }
+
+    func playRemoteRendition(_ item: LibraryRemoteItem) async {
+        guard remotePlaybackAvailability(item) == .available, let remoteRenditions else { return }
+        remotePlaybackPending.insert(item.id)
+        let result = await remoteRenditions.play(original: item.original, destination: item.destination,
+            operation: .init(rawValue: UUID().uuidString))
+        remotePlaybackPending.remove(item.id)
+        switch result {
+        case .accepted: remotePlaybackMessages[item.id] = "再生機能に引き渡しました。再生状態はプレーヤーで確認してください。"
+        case .rejected(let why): remotePlaybackMessages[item.id] = why
+        case .unknown: remotePlaybackMessages[item.id] = "再生の受付結果を確認できません。"
+        }
+        await refresh()
+    }
+
+    func select(_ capture: CaptureID, selected shouldSelect: Bool) {
+        if !shouldSelect { selected.remove(capture); return }
+        guard snapshot?.recordings.contains(where: { $0.id == capture }) == true else { return }
+        selected.insert(capture)
+    }
+
+    func clearSelection() { selected.removeAll() }
+
+    func selectRemotePhoto(_ id: RemoteInventoryOriginalID, selected shouldSelect: Bool) {
+        guard snapshot?.remoteItems.contains(where: { $0.id == id }) == true else { return }
+        if shouldSelect { remotePhotoSelected.insert(id) } else { remotePhotoSelected.remove(id) }
+    }
+
+    func photoSaveAvailability(captures: Set<CaptureID>, remotes: Set<RemoteInventoryOriginalID>) -> LibraryActionAvailability {
+        guard !isLoading, failure == nil, let snapshot, let photoSaves else {
+            return .unavailable("現在の保存記録を読み込んでから操作してください。")
+        }
+        guard !isSubmittingPhotos, pendingPhotoAcceptance == nil else {
+            return .unavailable("写真保存要求の受付結果を照合してください。")
+        }
+        let local = snapshot.recordings.filter { captures.contains($0.id) }
+        let remote = snapshot.remoteItems.filter { remotes.contains($0.id) }
+        guard local.count == captures.count, remote.count == remotes.count else {
+            return .unavailable("対象が更新されました。動画を選び直してください。")
+        }
+        let sources = local.compactMap(\.photoSaveSource) + remote.compactMap(\.photoSaveSource)
+        var keys: [PhotoRegistrationKey] = []
+        for source in sources {
+            guard !keys.contains(where: { PhotoSaveBatchValueValidation.exact($0, source.key) }) else {
+                return .unavailable("同じ軽量版が複数選択されています。対象を選び直してください。")
+            }
+            keys.append(source.key)
+        }
+        return photoSaves.availability(sources: sources,
+            reasons: local.map(\.photoSaveUnavailableReason) + remote.map(\.photoSaveUnavailableReason))
+    }
+
+    func submitPhotos(captures: Set<CaptureID>, remotes: Set<RemoteInventoryOriginalID>) async {
+        let availability = photoSaveAvailability(captures: captures, remotes: remotes)
+        guard availability == .available, let snapshot else { photoSaveMessage = availability.reason; return }
+        let local = snapshot.recordings.filter { captures.contains($0.id) }
+        let remote = snapshot.remoteItems.filter { remotes.contains($0.id) }
+        let targets = local.compactMap { item in item.original.map { LibraryRenditionTarget(original: $0, destination: nil) } }
+            + remote.map { LibraryRenditionTarget(original: $0.original, destination: $0.destination) }
+        guard targets.count == captures.count + remotes.count else { return }
+        let request = PhotoSaveBatchRequest(operation: .init(rawValue: UUID().uuidString), targets: targets,
+            displayedRevision: snapshot.revision)
+        // Fix the exact mixed set and reserve before the first suspension.
+        pendingPhotoAcceptance = request
+        await submitPhotoAcceptance(request)
+    }
+
+    func reconcilePhotoAcceptance() async {
+        guard !isSubmittingPhotos, let request = pendingPhotoAcceptance else { return }
+        await submitPhotoAcceptance(request)
+    }
+
+    private func submitPhotoAcceptance(_ request: PhotoSaveBatchRequest) async {
+        guard let photoSaves else { return }
+        isSubmittingPhotos = true
+        let result = await photoSaves.submit(request)
+        isSubmittingPhotos = false
+        switch result {
+        case .accepted:
+            pendingPhotoAcceptance = nil
+            photoSaveMessage = "写真保存要求を受け付けました。写真への登録成功ではありません。固定した動画別の処理状況を確認してください。"
+        case .rejected(let reason): pendingPhotoAcceptance = nil; photoSaveMessage = reason
+        case .unknown: photoSaveMessage = "受付結果を確定できません。同じ要求の受付結果を照合してください。自動で新しい追加を開始しません。"
+        }
+        await refresh()
+    }
+
+    func resumePhotoBatch(_ batch: MediaOperationID) async {
+        guard let photoSaves, snapshot?.photoSaveBatches.contains(where: { $0.batch.operation == batch }) == true else { return }
+        await photoSaves.resume(batch); await refresh()
+    }
+    func cancelPhotoBatch(_ batch: MediaOperationID) async {
+        guard let photoSaves, snapshot?.photoSaveBatches.contains(where: { $0.batch.operation == batch }) == true else { return }
+        await photoSaves.cancel(batch)
+        photoSaveMessage = "未着手の取消を要求しました。開始予約や写真への追加結果が未確定の対象は、未確定の記録を保持しています。"
+        await refresh()
+    }
+
+    func canRetryPhoto(_ photo: LibraryPhotoRegistration, source: PhotoSaveSource?) -> Bool {
+        guard !isLoading, failure == nil, !isSubmittingPhotos, photo.isLatestAttempt,
+              photo.record.outcome?.permitsExplicitRetry == true, let source, let photoSaves,
+              source.matches(photo.record.registration) else { return false }
+        return photoSaves.availability(sources: [source], reasons: [nil]) == .available
+    }
+    func retryPhoto(_ photo: LibraryPhotoRegistration, source: PhotoSaveSource?) async {
+        guard canRetryPhoto(photo, source: source), let source, let photoSaves else { return }
+        let action = photoRetryActions[photo.id] ?? .init(rawValue: UUID().uuidString)
+        photoRetryActions[photo.id] = action; isSubmittingPhotos = true
+        let result = await photoSaves.retry(source: source, previous: photo.id, operation: action)
+        isSubmittingPhotos = false
+        switch result {
+        case .accepted: photoRetryActions[photo.id] = nil; photoSaveMessage = "再試行要求を受け付けました。新しい対象別の登録結果を確認してください。"
+        case .rejected(let reason): photoRetryActions[photo.id] = nil; photoSaveMessage = reason
+        case .unknown: photoSaveMessage = "再試行要求の受付結果は未確定です。同じ対象の明示操作で受付結果を照合できます。"
+        }
+        await refresh()
+    }
+
+    func canReconcileRemotePhotos(_ photo: LibraryPhotoRegistration, item: LibraryRemoteItem) -> Bool {
+        photos != nil && !isLoading && failure == nil && photo.canReconcile
+            && !photoReconciliations.contains(photo.id)
+            && snapshot?.remoteItems.first(where: { $0.id == item.id })?.photoRegistrations.contains(photo) == true
+            && PhotoSaveBatchValueValidation.exact(photo.record.registration.intent.rendition.original, item.original)
+            && PhotoSaveBatchValueValidation.exact(photo.record.registration.mediaUse.lease.registration.destination, item.destination)
+    }
+    func reconcileRemotePhotos(_ photo: LibraryPhotoRegistration, item: LibraryRemoteItem) async {
+        guard canReconcileRemotePhotos(photo, item: item) else { return }
+        await performPhotoReconciliation(photo)
+    }
+
+    func item(_ capture: CaptureID) -> LibraryItem? { snapshot?.items.first { $0.id == capture } }
+
+    func canReconcilePhotos(_ photo: LibraryPhotoRegistration, capture: CaptureID) -> Bool {
+        photos != nil && !isLoading && failure == nil && photo.canReconcile
+            && !photoReconciliations.contains(photo.id)
+            && item(capture)?.photoRegistrations.contains(photo) == true
+    }
+
+    /// Called only by the explained, per-record user action. Refresh and capture
+    /// preparation never call the Photos reconciliation port.
+    func reconcilePhotos(_ photo: LibraryPhotoRegistration, capture: CaptureID) async {
+        guard canReconcilePhotos(photo, capture: capture) else { return }
+        await performPhotoReconciliation(photo)
+    }
+
+    private func performPhotoReconciliation(_ photo: LibraryPhotoRegistration) async {
+        guard let photos else { return }
+        photoReconciliations.insert(photo.id)
+        photoReconciliationMessages[photo.id] = nil
+        let action = photoReconciliationActions[photo.id] ?? .init(rawValue: UUID().uuidString)
+        photoReconciliationActions[photo.id] = action
+        let result = await photos.reconcile(photo.record.registration.intent, action: action)
+        photoReconciliations.remove(photo.id)
+        switch result {
+        case .succeeded:
+            photoReconciliationActions[photo.id] = nil
+            photoReconciliationMessages[photo.id] = "写真側の存在の照合結果を記録しました。過去の登録結果とは分けて表示しています。"
+        case .notExecuted:
+            photoReconciliationActions[photo.id] = nil
+            photoReconciliationMessages[photo.id] = "対象の登録記録が更新されているか、照合に必要な識別情報がありません。再読み込みした記録を確認してください。"
+        case .failed:
+            photoReconciliationActions[photo.id] = nil
+            photoReconciliationMessages[photo.id] = "照合結果を保存できませんでした。保存記録を再読み込みしてください。"
+        case .inProgress:
+            photoReconciliationMessages[photo.id] = "この登録記録は照合中です。完了後に再読み込みしてください。"
+        case .unknown:
+            photoReconciliationMessages[photo.id] = "照合結果の保存を確定できません。再読み込みしてから、必要な場合は同じ照合を再試行してください。"
+        }
+        await refresh()
+    }
+
+    func availability(_ action: LibraryAction, captures: Set<CaptureID>) -> LibraryActionAvailability {
+        if action == .transfer, let transfers {
+            guard !isLoading, failure == nil, let snapshot else {
+                return .unavailable("現在の保存記録を読み込んでから操作してください。")
+            }
+            guard !isSubmittingTransfer, pendingTransferAcceptance == nil else {
+                return .unavailable("先の転送要求の受付結果を照合してください。")
+            }
+            let items = snapshot.recordings.filter { captures.contains($0.id) }
+            guard items.count == captures.count, captures.allSatisfy({ capture in
+                items.contains { OriginalUploadAcceptanceValueValidation.exact($0.id, capture) }
+            }) else { return .unavailable("対象が更新されました。選択を保持して再読み込みしてください。") }
+            return transfers.availability(items: items, snapshot: snapshot)
+        }
+        guard !submissions.contains(where: { blocks($0, action: action, captures: captures) }) else {
+            return .unavailable("この対象の開始済み操作を照合しています。結果を再読み込みしてください。")
+        }
+        guard !isLoading, failure == nil, let snapshot else {
+            return .unavailable("現在の保存記録を読み込んでから操作してください。")
+        }
+        guard !captures.isEmpty else { return .unavailable("対象の動画を選択してください。") }
+        guard action.supportsMultiple || captures.count == 1 else {
+            return .unavailable("この操作は1本ずつ行ってください。")
+        }
+        let items = snapshot.items.filter { captures.contains($0.id) }
+        guard items.count == captures.count, items.allSatisfy({ !$0.isDiscardHistory }) else {
+            return .unavailable("通常一覧にある対象を選び直してください。")
+        }
+        return commands.availability(action, items: items)
+    }
+
+    func prepareRemovalReview(_ action: LibraryAction, captures: Set<CaptureID>) -> LibraryRemovalReview? {
+        let current = availability(action, captures: captures)
+        guard [.cleanup, .discard].contains(action), current == .available, let snapshot else {
+            inputIssue = current.reason; return nil
+        }
+        let items = snapshot.items.filter { captures.contains($0.id) }
+        guard items.count == captures.count, items.allSatisfy({ $0.original != nil }) else {
+            inputIssue = "原本の内容と保存記録の対応を確認してください。"; return nil
+        }
+        return .init(id: .init(rawValue: UUID().uuidString), action: action,
+            targets: items.map { .init(capture: $0.id, reference: $0.recording.intent.original, original: $0.original) },
+            displayedRevision: snapshot.revision,
+            information: items.map { $0.removalReviewInformation ?? "対象：\($0.title)。\($0.captureDateDescription)" })
+    }
+
+    func submit(_ review: LibraryRemovalReview) async {
+        await submit(review.action, captures: Set(review.targets.map(\.capture)),
+            discardRiskAcknowledged: review.action == .discard, fixedReview: review)
+    }
+
+    func canReconcileRemoval(_ operation: LibraryRemovalOperation, capture: CaptureID) -> Bool {
+        removals != nil && !isLoading && failure == nil && !removalReconciliations.contains(operation.id)
+            && !submissions.contains(where: { $0.id == operation.batch && $0.phase == .submitting })
+            && item(capture)?.removalOperations.contains(operation) == true
+    }
+
+    func reconcileRemoval(_ operation: LibraryRemovalOperation, capture: CaptureID) async {
+        guard canReconcileRemoval(operation, capture: capture), let removals else { return }
+        removalReconciliations.insert(operation.id)
+        let result = await removals.reconcile(operation)
+        removalReconciliations.remove(operation.id)
+        switch result {
+        case .succeeded: removalReconciliationMessages[operation.id] = "削除結果を照合しました。新しい削除は実行していません。"
+        case .notExecuted: removalReconciliationMessages[operation.id] = "対象が更新されました。再読み込みして確認し直してください。"
+        default: removalReconciliationMessages[operation.id] = "削除結果を確定できません。原本と記録を保持しています。"
+        }
+        await refresh()
+    }
+
+    func submit(_ action: LibraryAction, captures: Set<CaptureID>, discardRiskAcknowledged: Bool = false,
+                fixedReview: LibraryRemovalReview? = nil) async {
+        if action == .transfer, transfers != nil {
+            guard let request = prepareTransfer(captures: captures) else { return }
+            await submitTransfer(request)
+            return
+        }
+        let current = availability(action, captures: captures)
+        guard current == .available, let snapshot else {
+            inputIssue = current.reason
+            return
+        }
+        guard action != .discard || discardRiskAcknowledged else {
+            inputIssue = "対象と消失リスクを確認してから破棄してください。"
+            return
+        }
+        let targets = snapshot.items.filter { captures.contains($0.id) }.map {
+            LibraryCommandTarget(capture: $0.id, reference: $0.recording.intent.original, original: $0.original)
+        }
+        if let fixedReview {
+            guard fixedReview.action == action, fixedReview.targets == targets else {
+                inputIssue = "対象が更新されました。対象と消失リスクを確認し直してください。"
+                return
+            }
+        }
+        let request = LibraryCommandRequest(id: fixedReview?.id ?? .init(rawValue: UUID().uuidString), action: action,
+            targets: fixedReview?.targets ?? targets, displayedRevision: fixedReview?.displayedRevision ?? snapshot.revision,
+            discardRiskAcknowledged: action == .discard && discardRiskAcknowledged)
+        // Set before the first suspension: repeated taps cannot submit a second command.
+        inputIssue = nil
+        submissions.append(.init(request: request, phase: .submitting))
+        let response = await commands.submit(request)
+        guard let index = submissions.firstIndex(where: { $0.id == request.id }) else { return }
+        switch response {
+        case .accepted:
+            // Playback owns a live session, not a durable side-effect result.
+            // Its handler's availability must reflect that session until stop/release.
+            submissions[index].phase = action.isPlayback ? .playbackHandedOff : .awaitingRecordedResult
+        case .rejected(let reason): submissions[index].phase = .rejected(reason)
+        case .unknown: submissions[index].phase = .reconciliationRequired
+        }
+        await refresh()
+    }
+
+    private func prepareTransfer(captures: Set<CaptureID>) -> OriginalUploadAcceptanceRequest? {
+        let available = availability(.transfer, captures: captures)
+        guard available == .available, let snapshot, transfers != nil,
+              let identity = snapshot.storeIdentity, let registration = snapshot.uploadRegistration else {
+            transferMessage = available.reason
+            return nil
+        }
+        let items = snapshot.recordings.filter { captures.contains($0.id) }
+        let bindings = items.compactMap(\.uploadCandidateBinding)
+        guard bindings.count == captures.count, bindings.count == items.count else {
+            transferMessage = "選んだすべての原本の対応を固定できません。選択を保持して再読み込みしてください。"
+            return nil
+        }
+        let request: OriginalUploadAcceptanceRequest
+        do {
+            request = try .init(parent: .init(rawValue: UUID().uuidString.lowercased()), storeIdentity: identity,
+                registration: registration, scope: bindings.count == 1 ? .single : .multiple,
+                targets: bindings.map { .init(operation: .init(rawValue: UUID().uuidString.lowercased()), binding: $0) })
+        } catch {
+            transferMessage = "原本の対象に重複や異なる内容の対応があります。選択を保持して再読み込みしてください。"
+            return nil
+        }
+        // Parent, all children, saved bindings and registration are fixed from
+        // this one revision before the first suspension. No capture-only lookup.
+        pendingTransferAcceptance = request; isSubmittingTransfer = true
+        return request
+    }
+
+    private func submitTransfer(_ request: OriginalUploadAcceptanceRequest) async {
+        guard let transfers else { return }
+        let result = await transfers.accept(request)
+        isSubmittingTransfer = false
+        receiveTransfer(result, request: request)
+        await refresh()
+    }
+
+    func reconcileTransferAcceptance() async {
+        guard !isSubmittingTransfer, let request = pendingTransferAcceptance, let transfers else { return }
+        isSubmittingTransfer = true
+        let result = await transfers.lookupAcceptance(request)
+        isSubmittingTransfer = false
+        receiveTransfer(result, request: request, lookup: true)
+        await refresh()
+    }
+
+    func lookupRecordedTransfer(_ record: StoredOriginalUploadAcceptance) async {
+        guard !isSubmittingTransfer, pendingTransferAcceptance == nil, let transfers,
+              snapshot?.originalUploadAcceptances.contains(where: {
+                  $0.isCommitted && OriginalUploadAcceptanceValueValidation.exact($0.mutation, record.mutation)
+              }) == true else { return }
+        let request = record.plan.request
+        pendingTransferAcceptance = request; isSubmittingTransfer = true
+        let result = await transfers.lookupAcceptance(request)
+        isSubmittingTransfer = false
+        receiveTransfer(result, request: request, lookup: true)
+        await refresh()
+    }
+
+    private func receiveTransfer(_ result: OriginalUploadAcceptanceResult, request: OriginalUploadAcceptanceRequest, lookup: Bool = false) {
+        switch result {
+        case .recorded(let record):
+            guard record.isCommitted, OriginalUploadAcceptanceValueValidation.exact(record.plan.request, request) else {
+                transferMessage = "元の転送要求の記録を確定できません。同じ指示の受付結果を照合してください。"
+                return
+            }
+            pendingTransferAcceptance = nil
+            let accepted = record.children.filter { $0.decision == .accepted }.count
+            if lookup {
+                transferMessage = "転送要求の保存記録を照合しました。受付時の\(record.children.count)本の結果と現在の通信状態を確認してください。この照合から通信は開始していません。"
+            } else {
+                transferMessage = accepted == record.children.count
+                    ? "転送要求を受け付けました。通信はまだ開始していません。固定した動画別の状態を確認してください。"
+                    : "選択した\(record.children.count)本の受付結果を保存しました。転送待ち\(accepted)本と未処理の理由を動画別に確認してください。通信はまだ開始していません。"
+            }
+        case .rejected(let error):
+            pendingTransferAcceptance = nil
+            switch error {
+            case .notOnWiFi: transferMessage = LibraryTransferCommands.wifiReason
+            case .revisionConflict: transferMessage = "保存記録が更新中のため、転送要求を受け付けていません。再読み込みして選択を確認してください。"
+            default: transferMessage = "転送要求を受け付けられません。選択を保持して原本と現在の登録を確認してください。"
+            }
+        case .unknown:
+            transferMessage = "転送要求の受付結果は不明です。選択した\(request.targets.count)本への同じ指示を保持しています。受付結果を照合してください。"
+        }
+    }
+
+    private func blocks(_ submission: LibrarySubmission, action: LibraryAction, captures: Set<CaptureID>) -> Bool {
+        switch submission.phase {
+        case .rejected, .playbackHandedOff: return false
+        default: break
+        }
+        if submission.request.action.isPlayback {
+            // Prevent two simultaneous handoffs; S15 owns ongoing player/session availability.
+            return action.isPlayback && submission.phase == .submitting
+        }
+        let bothRemove = [.cleanup, .discard].contains(action) && [.cleanup, .discard].contains(submission.request.action)
+        guard action == submission.request.action || bothRemove else { return false }
+        // A result for one target never releases an unresolved peer, or blocks a different video.
+        return submission.request.targets.filter { captures.contains($0.capture) }.contains { target in
+            if submission.phase == .submitting { return true }
+            guard let result = item(target.capture)?.operationResults.first(where: {
+                $0.id == submission.request.id && $0.action == submission.request.action
+            }) else { return true }
+            switch result.outcome {
+            case .succeeded, .failed, .notProcessed: return false
+            case .pending, .unknown: return true
+            }
+        }
+    }
+}

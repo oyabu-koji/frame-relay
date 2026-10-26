@@ -1,0 +1,2283 @@
+--- /dev/null
++++ b/backend/app/api/frame_relay_publication.py
+@@ -0,0 +1,123 @@
++"""Canonical product wire; only the normal production authority is wired here."""
++import json
++import sqlite3
++
++from fastapi import APIRouter, Depends, Request
++from fastapi.responses import Response, StreamingResponse
++from pydantic import ValidationError
++from starlette.concurrency import run_in_threadpool
++
++from app.api.deps import require_bearer_token
++from app.api.registrations import require_registration_secret
++from app.core.settings import load_settings
++from app.repositories.frame_relay_publication import PublicationError
++from app.repositories.frame_relay_storage import StorageError
++from app.repositories.registrations import RegistrationError
++from app.services.frame_relay_publication import PublicationService, json_bytes
++from app.services.frame_relay_distribution import open_stream, parse_header_id
++
++
++def response(value, status=200):
++    encoded = value if isinstance(value, bytes) else json_bytes(value)
++    return Response(content=encoded, status_code=status, media_type="application/json", headers={"Cache-Control": "no-store"})
++
++
++def error_response(error):
++    if isinstance(error, PublicationError):
++        code, status = error.code, error.status
++    elif isinstance(error, RegistrationError):
++        code = error.code
++        status = 403 if code == "registration_credentials_invalid" else 409 if code == "destination_mismatch" else 503
++    elif isinstance(error, (ValidationError, ValueError, UnicodeError)):
++        code, status = "publication_request_invalid", 422
++    elif isinstance(error, StorageError):
++        code, status = "publication_artifact_changed", 409
++    else:
++        code, status = "publication_result_unknown", 503
++    return response({"schema_version": "fr-publication-v1", "code": code, "retryable": status == 503}, status)
++
++
++ERRORS = (PublicationError, RegistrationError, ValidationError, StorageError, sqlite3.DatabaseError, OSError, ValueError)
++
++
++def unique_object(pairs):
++    result = {}
++    for key, value in pairs:
++        if key in result:
++            raise ValueError("Duplicate key")
++        result[key] = value
++    return result
++
++
++async def request_json(request):
++    data = bytearray()
++    async for block in request.stream():
++        data.extend(block)
++        if len(data) > 262_144:
++            raise PublicationError("publication_request_too_large", 422)
++    def nonfinite(_value):
++        raise ValueError("Non-finite JSON")
++    return json.loads(data.decode("utf-8"), object_pairs_hook=unique_object, parse_constant=nonfinite)
++
++
++class PinnedResponse(StreamingResponse):
++    def __init__(self, accepted):
++        self.accepted = accepted
++        super().__init__(iter(accepted), status_code=accepted.status_code, headers=accepted.headers)
++
++    async def __call__(self, scope, receive, send):
++        try:
++            await super().__call__(scope, receive, send)
++        finally:
++            # Includes body-not-started, disconnect, iterator exception and task cancellation.
++            self.accepted.close()
++
++
++def create_router(service_provider):
++    """Tests may supply a tests-owned factory; no config or HTTP selects authority."""
++    router = APIRouter(prefix="/frame-relay/v1/publication", tags=["frame-relay-publication"],
++                       dependencies=[Depends(require_bearer_token)])
++
++    def control(method_name):
++        async def endpoint(request: Request, secret: str = Depends(require_registration_secret)):
++            try:
++                payload = await request_json(request)
++                service = service_provider()
++                return response(await run_in_threadpool(getattr(service, method_name), payload, secret))
++            except ERRORS as error:
++                return error_response(error)
++        return endpoint
++
++    for path, method in (("/manifest", "manifest"), ("/distributions", "accept_distribution"),
++            ("/operations/lookup", "lookup"), ("/confirmations", "confirm"),
++            ("/invalidations", "invalidations"), ("/acknowledgements", "acknowledge")):
++        router.add_api_route(path, control(method), methods=["POST"])
++
++    @router.get("/media/{rendition_id}")
++    def media(rendition_id: str, request: Request, secret: str = Depends(require_registration_secret)):
++        try:
++            query = request.query_params
++            if len(query.multi_items()) != len(query) or set(query) != {"destination_id", "registration_id", "registration_generation"}:
++                raise PublicationError("publication_request_invalid", 422)
++            def header(name, *, optional=False):
++                values = request.headers.getlist(name)
++                if len(values) > 1 or (not values and not optional):
++                    raise PublicationError("publication_header_invalid", 422)
++                return values[0] if values else None
++            if header("Accept-Encoding") != "identity":
++                raise PublicationError("publication_encoding_invalid", 422)
++            accepted = open_stream(service_provider(), rendition_id=rendition_id,
++                registration={"destination_id": query["destination_id"], "registration_id": query["registration_id"],
++                              "generation": query["registration_generation"]}, secret=secret,
++                operation_id=parse_header_id(header("X-FrameRelay-Distribution-ID")),
++                gate={"operation_id": parse_header_id(header("X-FrameRelay-Transport-ID")),
++                      "attempt_id": parse_header_id(header("X-FrameRelay-Attempt-ID")),
++                      "access_generation": header("X-FrameRelay-Access-Generation")},
++                range_header=header("Range", optional=True))
++            return PinnedResponse(accepted)
++        except ERRORS as error:
++            return error_response(error)
++    return router
++
++
++router = create_router(lambda: PublicationService(load_settings()))
+--- a/backend/app/db/frame_relay_migrations.py
++++ b/backend/app/db/frame_relay_migrations.py
+@@ -9,11 +9,12 @@
+ VERSION = "001_registrations"
+ STORAGE_SCHEMA = Path(__file__).parent / "frame_relay_schema/002_storage.sql"
+ CONVERSION_SCHEMA = Path(__file__).parent / "frame_relay_schema/003_conversion_candidates.sql"
++PUBLICATION_SCHEMA = Path(__file__).parent / "frame_relay_schema/004_publication.sql"
+ 
+ 
+ def migration_sources():
+     return [(VERSION, SCHEMA), ("002_storage", STORAGE_SCHEMA),
+-            ("003_conversion_candidates", CONVERSION_SCHEMA)]
++            ("003_conversion_candidates", CONVERSION_SCHEMA), ("004_publication", PUBLICATION_SCHEMA)]
+ 
+ 
+ class FrameRelaySchemaError(sqlite3.DatabaseError):
+--- /dev/null
++++ b/backend/app/db/frame_relay_schema/004_publication.sql
+@@ -0,0 +1,111 @@
++CREATE TABLE fr_publication_heads (
++    original_key TEXT PRIMARY KEY,
++    original_json TEXT NOT NULL UNIQUE,
++    current_rendition_id TEXT REFERENCES fr_publication_artifacts(rendition_id),
++    revision INTEGER NOT NULL DEFAULT 0 CHECK (typeof(revision)='integer' AND revision >= 0),
++    last_publication_generation INTEGER NOT NULL DEFAULT 0 CHECK (last_publication_generation >= 0),
++    last_invalidation_generation INTEGER NOT NULL DEFAULT 0 CHECK (last_invalidation_generation >= 0),
++    current_invalidation_generation INTEGER NOT NULL DEFAULT 0 CHECK (current_invalidation_generation >= 0),
++    pending_replacement_id TEXT REFERENCES fr_publication_replacements(replacement_id)
++);
++CREATE TABLE fr_publication_artifacts (
++    rendition_id TEXT PRIMARY KEY,
++    candidate_id TEXT NOT NULL UNIQUE REFERENCES fr_conversion_candidates(candidate_id),
++    evidence_id TEXT NOT NULL REFERENCES fr_storage_evidence(evidence_id),
++    original_key TEXT NOT NULL REFERENCES fr_publication_heads(original_key),
++    publication_generation INTEGER NOT NULL CHECK (publication_generation > 0),
++    identity_json TEXT NOT NULL,
++    path TEXT NOT NULL UNIQUE,
++    sha256 TEXT NOT NULL,
++    byte_count INTEGER NOT NULL CHECK (byte_count > 0),
++    media_type TEXT NOT NULL CHECK (media_type IN ('video/mp4','video/quicktime')),
++    fingerprint_json TEXT NOT NULL,
++    proof_kind TEXT NOT NULL,
++    proof_json TEXT NOT NULL,
++    UNIQUE (original_key, publication_generation)
++);
++CREATE TABLE fr_publication_replacements (
++    replacement_id TEXT PRIMARY KEY,
++    original_key TEXT NOT NULL REFERENCES fr_publication_heads(original_key),
++    previous_rendition_id TEXT NOT NULL REFERENCES fr_publication_artifacts(rendition_id),
++    candidate_rendition_id TEXT NOT NULL UNIQUE REFERENCES fr_publication_artifacts(rendition_id),
++    invalidation_id TEXT NOT NULL UNIQUE,
++    invalidation_generation INTEGER NOT NULL CHECK (invalidation_generation > 0),
++    request_json TEXT NOT NULL,
++    status TEXT NOT NULL CHECK (status IN ('pending','published')),
++    UNIQUE (original_key, invalidation_generation)
++);
++CREATE TABLE fr_publication_operations (
++    kind TEXT NOT NULL CHECK (kind IN ('initial','replacement','publication','distribution','confirmation','acknowledgement')),
++    operation_id TEXT NOT NULL,
++    registration_scope TEXT NOT NULL,
++    original_key TEXT NOT NULL REFERENCES fr_publication_heads(original_key),
++    request_json TEXT NOT NULL,
++    result_json TEXT NOT NULL,
++    previous_revision INTEGER NOT NULL,
++    committed_revision INTEGER NOT NULL CHECK (committed_revision=previous_revision+1),
++    PRIMARY KEY (kind, operation_id, registration_scope)
++);
++CREATE TABLE fr_publication_recipients (
++    rendition_id TEXT NOT NULL REFERENCES fr_publication_artifacts(rendition_id),
++    registration_id TEXT NOT NULL REFERENCES fr_registrations(registration_id),
++    first_distribution_id TEXT NOT NULL,
++    PRIMARY KEY (rendition_id, registration_id)
++);
++CREATE TABLE fr_get_admissions (
++    distribution_operation_id TEXT NOT NULL,
++    rendition_id TEXT NOT NULL REFERENCES fr_publication_artifacts(rendition_id),
++    registration_id TEXT NOT NULL REFERENCES fr_registrations(registration_id),
++    request_json TEXT NOT NULL,
++    publication_revision INTEGER NOT NULL,
++    fingerprint_json TEXT NOT NULL,
++    PRIMARY KEY (registration_id, distribution_operation_id)
++);
++CREATE TABLE fr_invalidation_acks (
++    replacement_id TEXT NOT NULL REFERENCES fr_publication_replacements(replacement_id),
++    registration_id TEXT NOT NULL REFERENCES fr_registrations(registration_id),
++    request_json TEXT NOT NULL,
++    PRIMARY KEY (replacement_id, registration_id)
++);
++CREATE TRIGGER fr_publication_head_identity BEFORE UPDATE OF original_key,original_json ON fr_publication_heads
++BEGIN SELECT RAISE(ABORT,'immutable publication original'); END;
++CREATE TRIGGER fr_publication_head_retained BEFORE DELETE ON fr_publication_heads
++BEGIN SELECT RAISE(ABORT,'publication heads retained'); END;
++CREATE TRIGGER fr_publication_artifact_immutable BEFORE UPDATE ON fr_publication_artifacts
++BEGIN SELECT RAISE(ABORT,'immutable publication artifact'); END;
++CREATE TRIGGER fr_publication_artifact_retained BEFORE DELETE ON fr_publication_artifacts
++BEGIN SELECT RAISE(ABORT,'publication artifacts retained'); END;
++CREATE TRIGGER fr_publication_replacement_identity BEFORE UPDATE OF replacement_id,original_key,previous_rendition_id,candidate_rendition_id,invalidation_id,invalidation_generation,request_json ON fr_publication_replacements
++BEGIN SELECT RAISE(ABORT,'immutable replacement identity'); END;
++CREATE TRIGGER fr_publication_replacement_retained BEFORE DELETE ON fr_publication_replacements
++BEGIN SELECT RAISE(ABORT,'replacement records retained'); END;
++CREATE TRIGGER fr_publication_operation_immutable BEFORE UPDATE ON fr_publication_operations
++BEGIN SELECT RAISE(ABORT,'immutable publication operation'); END;
++CREATE TRIGGER fr_publication_operation_retained BEFORE DELETE ON fr_publication_operations
++BEGIN SELECT RAISE(ABORT,'publication operations retained'); END;
++CREATE TRIGGER fr_publication_recipient_immutable BEFORE UPDATE ON fr_publication_recipients
++BEGIN SELECT RAISE(ABORT,'immutable publication recipient'); END;
++CREATE TRIGGER fr_publication_recipient_retained BEFORE DELETE ON fr_publication_recipients
++BEGIN SELECT RAISE(ABORT,'publication recipients retained'); END;
++CREATE TRIGGER fr_get_admission_immutable BEFORE UPDATE ON fr_get_admissions
++BEGIN SELECT RAISE(ABORT,'immutable GET admission'); END;
++CREATE TRIGGER fr_get_admission_retained BEFORE DELETE ON fr_get_admissions
++BEGIN SELECT RAISE(ABORT,'GET admissions retained'); END;
++CREATE TRIGGER fr_invalidation_ack_immutable BEFORE UPDATE ON fr_invalidation_acks
++BEGIN SELECT RAISE(ABORT,'immutable invalidation acknowledgement'); END;
++CREATE TRIGGER fr_invalidation_ack_retained BEFORE DELETE ON fr_invalidation_acks
++BEGIN SELECT RAISE(ABORT,'invalidation acknowledgements retained'); END;
++CREATE TRIGGER fr_no_legacy_active_pointer BEFORE UPDATE OF active_processed_result_id ON assets
++WHEN NEW.active_processed_result_id IS NOT OLD.active_processed_result_id AND
++    (EXISTS(SELECT 1 FROM fr_upload_states WHERE asset_id=OLD.id) OR
++     EXISTS(SELECT 1 FROM fr_upload_bindings WHERE final_path=OLD.original_path))
++BEGIN SELECT RAISE(ABORT,'FrameRelay requires publication ledger'); END;
++CREATE TRIGGER fr_no_legacy_confirmation BEFORE UPDATE OF review_status ON assets
++WHEN NEW.review_status IS NOT OLD.review_status AND
++    (EXISTS(SELECT 1 FROM fr_upload_states WHERE asset_id=OLD.id) OR
++     EXISTS(SELECT 1 FROM fr_upload_bindings WHERE final_path=OLD.original_path))
++BEGIN SELECT RAISE(ABORT,'FrameRelay requires exact confirmation ledger'); END;
++CREATE TRIGGER fr_no_legacy_result_insert BEFORE INSERT ON processed_results
++WHEN EXISTS(SELECT 1 FROM fr_upload_states WHERE asset_id=NEW.asset_id) OR
++     EXISTS(SELECT 1 FROM assets a JOIN fr_upload_bindings b ON b.final_path=a.original_path WHERE a.id=NEW.asset_id)
++BEGIN SELECT RAISE(ABORT,'FrameRelay requires publication artifacts'); END;
+--- a/backend/app/main.py
++++ b/backend/app/main.py
+@@ -11,6 +11,7 @@
+ from app.api.renditions import router as renditions_router
+ from app.api.registrations import router as registrations_router
+ from app.api.frame_relay_storage import router as storage_router
++from app.api.frame_relay_publication import router as publication_router
+ from app.repositories.frame_relay_storage import StorageError as FrameRelayStorageError
+ from app.repositories.registrations import RegistrationError
+ from app.api.registrations import _error as registration_error_response
+@@ -60,6 +61,7 @@
+ 
+ 
+ app.include_router(storage_router)
++app.include_router(publication_router)
+ 
+ 
+ @app.exception_handler(RequestValidationError)
+--- /dev/null
++++ b/backend/app/repositories/frame_relay_publication.py
+@@ -0,0 +1,278 @@
++"""FR publication ledger. Call mutations only inside a short owned transaction."""
++import hashlib
++import json
++from uuid import UUID
++
++from app.db.frame_relay_migrations import validate_frame_relay_schema
++from app.repositories import frame_relay_conversion as conversion
++from app.repositories import registrations
++from app.repositories.frame_relay_storage import canonical
++from app.schemas import frame_relay_publication as wire
++
++
++MAX_COUNTER = (1 << 63) - 1
++
++
++class PublicationError(Exception):
++    def __init__(self, code, status=409):
++        self.code, self.status = code, status
++        super().__init__(code)
++
++
++def original_key(original):
++    return hashlib.sha256(canonical(original).encode("utf-8")).hexdigest()
++
++
++def registration(conn, identity, secret):
++    registrations.authenticate_registration(conn, destination_id=identity["destination_id"],
++        registration_id=identity["registration_id"], generation=int(identity["generation"]), secret=secret)
++
++
++def public_registration(conn, registration_id):
++    row = conn.execute("SELECT * FROM fr_registrations WHERE registration_id=?", (registration_id,)).fetchone()
++    if row is None:
++        raise PublicationError("publication_registration_missing", 503)
++    return {"destination_id": row["destination_id"], "registration_id": registration_id,
++            "generation": str(row["generation"])}
++
++
++def head(conn, original, *, create=False):
++    validate_frame_relay_schema(conn)
++    key = original_key(original)
++    row = conn.execute("SELECT * FROM fr_publication_heads WHERE original_key=?", (key,)).fetchone()
++    if row is None and create:
++        conn.execute("INSERT INTO fr_publication_heads(original_key,original_json) VALUES(?,?)", (key, canonical(original)))
++        row = conn.execute("SELECT * FROM fr_publication_heads WHERE original_key=?", (key,)).fetchone()
++    if row is not None and row["original_json"] != canonical(original):
++        raise PublicationError("publication_original_conflict")
++    return None if row is None else dict(row)
++
++
++def increment(value):
++    if type(value) is not int or not 0 <= value < MAX_COUNTER:
++        raise PublicationError("publication_generation_exhausted")
++    return value + 1
++
++
++def operation(conn, kind, operation_id, registration_id=""):
++    scope = registration_id
++    row = conn.execute("SELECT * FROM fr_publication_operations WHERE kind=? AND operation_id=? AND registration_scope=?",
++                       (kind, operation_id, scope)).fetchone()
++    return None if row is None else dict(row)
++
++
++def replay(conn, kind, operation_id, request, registration_id=""):
++    row = operation(conn, kind, operation_id, registration_id)
++    if row is None:
++        return None
++    if row["request_json"] != canonical(request):
++        raise PublicationError("publication_operation_conflict")
++    return json.loads(row["result_json"])
++
++
++def record(conn, h, kind, operation_id, request, result, registration_id=""):
++    if not conn.in_transaction:
++        raise PublicationError("publication_transaction_required", 503)
++    next_revision = increment(h["revision"])
++    scope = registration_id
++    conn.execute("""INSERT INTO fr_publication_operations VALUES(?,?,?,?,?,?,?,?)""",
++                 (kind, operation_id, scope, h["original_key"], canonical(request), canonical(result),
++                  h["revision"], next_revision))
++    changed = conn.execute("UPDATE fr_publication_heads SET revision=? WHERE original_key=? AND revision=?",
++                          (next_revision, h["original_key"], h["revision"])).rowcount
++    if changed != 1:
++        raise PublicationError("publication_revision_conflict")
++
++
++def candidate(conn, candidate_id):
++    item = conversion._candidate(conn, candidate_id)
++    job = conn.execute("SELECT * FROM jobs WHERE id=?", (item["job_id"],)).fetchone()
++    if job is None:
++        raise PublicationError("publication_candidate_invalid")
++    binding, evidence = conversion.source(conn, dict(job))
++    if (item["status"] != "candidate_ready" or job["status"] != "done" or
++            item["source_payload"] != job["payload_json"] or item["session_id"] != binding["session_id"] or
++            item["evidence_id"] != evidence["evidence_id"] or item["asset_id"] != evidence["asset_id"]):
++        raise PublicationError("publication_candidate_invalid")
++    output = json.loads(item["output_json"])
++    receipt = output.get("receipt", {})
++    context = receipt.get("context", {})
++    expected = {"candidate_id": candidate_id, "candidate_generation": item["generation"],
++        "evidence_id": evidence["evidence_id"], "session_id": binding["session_id"],
++        "asset_id": evidence["asset_id"], "source_sha256": binding["sha256"], "source_byte_count": binding["byte_count"]}
++    if any(context.get(key) != value for key, value in expected.items()):
++        raise PublicationError("publication_candidate_invalid")
++    original = {"capture_id": binding["capture_id"], "content_generation": binding["content_generation"],
++                "content": {"algorithm": "sha256", "digest": binding["sha256"], "byte_count": str(binding["byte_count"])}}
++    wire.Original.model_validate(original)
++    return item, evidence, output, original
++
++
++def artifact(conn, rendition_id, authority):
++    row = conn.execute("SELECT * FROM fr_publication_artifacts WHERE rendition_id=?", (rendition_id,)).fetchone()
++    if row is None:
++        raise PublicationError("publication_rendition_missing", 404)
++    value = dict(row)
++    try:
++        if str(UUID(rendition_id)) != rendition_id or value["path"] != "publications/frame-relay/" + rendition_id + ".media":
++            raise ValueError()
++        identity = wire.Rendition.model_validate(json.loads(value["identity_json"])).model_dump()
++        if (identity["rendition_id"] != rendition_id or original_key(identity["original"]) != value["original_key"] or
++                int(identity["publication_generation"]) != value["publication_generation"] or
++                identity["delivery_content"] != {"algorithm": "sha256", "digest": value["sha256"], "byte_count": str(value["byte_count"])}):
++            raise ValueError()
++    except (ValueError, TypeError, KeyError):
++        raise PublicationError("publication_artifact_invalid", 503) from None
++    authority.check_artifact(conn, value)
++    return value
++
++
++def install_artifact(conn, h, draft, authority):
++    # Recheck the source and authority inside the commit; bytes were read outside.
++    current = candidate(conn, draft["candidate_id"])
++    if current != draft["source"]:
++        raise PublicationError("publication_candidate_changed")
++    authority.check_candidate(conn, *current)
++    generation = increment(h["last_publication_generation"])
++    identity = {**draft["transform"], "original": current[3], "rendition_id": draft["rendition_id"],
++        "delivery_content": {"algorithm": "sha256", "digest": draft["sha256"], "byte_count": str(draft["byte_count"])},
++        "publication_generation": str(generation)}
++    identity = wire.Rendition.model_validate(identity).model_dump()
++    conn.execute("INSERT INTO fr_publication_artifacts VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
++        (draft["rendition_id"], draft["candidate_id"], current[1]["evidence_id"], h["original_key"], generation,
++         canonical(identity), draft["path"], draft["sha256"], draft["byte_count"], draft["media_type"], canonical(draft["fingerprint"]),
++         draft["proof_kind"], canonical(draft["proof"])))
++    conn.execute("UPDATE fr_publication_heads SET last_publication_generation=? WHERE original_key=?", (generation, h["original_key"]))
++    return artifact(conn, draft["rendition_id"], authority)
++
++
++def identity(item):
++    return json.loads(item["identity_json"])
++
++
++def current_access(conn, rendition, reg, authority):
++    item = artifact(conn, rendition["rendition_id"], authority)
++    h = head(conn, rendition["original"])
++    if identity(item) != rendition or h is None or h["current_rendition_id"] != rendition["rendition_id"]:
++        raise PublicationError("publication_stale_rendition")
++    invalidated = conn.execute("""SELECT 1 FROM fr_invalidation_acks a
++        JOIN fr_publication_replacements r ON r.replacement_id=a.replacement_id
++        WHERE r.previous_rendition_id=? AND a.registration_id=?""",
++        (rendition["rendition_id"], reg["registration_id"])).fetchone()
++    if invalidated:
++        raise PublicationError("publication_invalidated")
++    return h, item
++
++
++def distribution(conn, request, authority):
++    rendition, reg = request["rendition"], request["registration"]
++    # A production process must also reject historical receipts from a fixture DB.
++    artifact(conn, rendition["rendition_id"], authority)
++    previous = replay(conn, "distribution", request["operation_id"], request, reg["registration_id"])
++    if previous is not None:
++        return previous
++    h, item = current_access(conn, rendition, reg, authority)
++    if request["purpose"] == "read":
++        source = operation(conn, "distribution", request["source_operation_id"], reg["registration_id"])
++        source_request = None if source is None else json.loads(source["request_json"])
++        if (source_request is None or source_request["purpose"] != "source" or
++                any(source_request[key] != request[key] for key in ("rendition", "registration", "gate"))):
++            raise PublicationError("publication_source_distribution_mismatch")
++    receipt = {"operation_id": request["operation_id"], "rendition": rendition, "registration": reg,
++               "previous_revision": str(h["revision"]), "committed_revision": str(increment(h["revision"]))}
++    result = {"receipt": receipt, "media_type": item["media_type"]}
++    conn.execute("INSERT OR IGNORE INTO fr_publication_recipients VALUES(?,?,?)",
++                 (rendition["rendition_id"], reg["registration_id"], request["operation_id"]))
++    record(conn, h, "distribution", request["operation_id"], request, result, reg["registration_id"])
++    return result
++
++
++def read_request(conn, operation_id, reg, authority):
++    row = operation(conn, "distribution", operation_id, reg["registration_id"])
++    if row is None:
++        raise PublicationError("publication_operation_not_executed", 404)
++    request = json.loads(row["request_json"])
++    if request["purpose"] != "read" or request["registration"] != reg:
++        raise PublicationError("publication_distribution_mismatch")
++    artifact(conn, request["rendition"]["rendition_id"], authority)
++    return request
++
++
++def admit(conn, request, fingerprint, authority):
++    h, item = current_access(conn, request["rendition"], request["registration"], authority)
++    accepted = read_request(conn, request["operation_id"], request["registration"], authority)
++    if accepted != request or json.loads(item["fingerprint_json"]) != fingerprint:
++        raise PublicationError("publication_distribution_mismatch")
++    if conn.execute("SELECT 1 FROM fr_get_admissions WHERE registration_id=? AND distribution_operation_id=?",
++                    (request["registration"]["registration_id"], request["operation_id"])).fetchone():
++        raise PublicationError("publication_get_consumed")
++    conn.execute("INSERT INTO fr_get_admissions VALUES(?,?,?,?,?,?)",
++        (request["operation_id"], request["rendition"]["rendition_id"], request["registration"]["registration_id"],
++         canonical(request), h["revision"], canonical(fingerprint)))
++
++
++def invalidation(conn, replacement, registration_id, authority):
++    item = artifact(conn, replacement["previous_rendition_id"], authority)
++    return {"invalidation_id": replacement["invalidation_id"], "rendition": identity(item),
++            "registration": public_registration(conn, registration_id),
++            "invalidation_generation": str(replacement["invalidation_generation"])}
++
++
++def pending_invalidations(conn, reg, authority, after, limit):
++    rows = conn.execute("""SELECT r.* FROM fr_publication_replacements r
++        JOIN fr_publication_recipients p ON p.rendition_id=r.previous_rendition_id
++        WHERE r.status='pending' AND p.registration_id=? AND (? IS NULL OR r.invalidation_id COLLATE BINARY > ?) AND NOT EXISTS
++        (SELECT 1 FROM fr_invalidation_acks a WHERE a.replacement_id=r.replacement_id AND a.registration_id=p.registration_id)
++        ORDER BY r.invalidation_id COLLATE BINARY LIMIT ?""", (reg["registration_id"], after, after, limit + 1)).fetchall()
++    return [invalidation(conn, dict(row), reg["registration_id"], authority) for row in rows]
++
++
++def acknowledge(conn, request, authority):
++    reg = request["registration"]
++    record_value = request["acknowledgement"]["invalidation"]
++    if record_value["registration"] != reg:
++        raise PublicationError("publication_ack_mismatch")
++    artifact(conn, record_value["rendition"]["rendition_id"], authority)
++    old = replay(conn, "acknowledgement", record_value["invalidation_id"], request, reg["registration_id"])
++    if old is not None:
++        return old
++    row = conn.execute("SELECT * FROM fr_publication_replacements WHERE invalidation_id=?", (record_value["invalidation_id"],)).fetchone()
++    if row is None or row["status"] != "pending":
++        raise PublicationError("publication_ack_mismatch")
++    replacement = dict(row)
++    expected = invalidation(conn, replacement, reg["registration_id"], authority)
++    recipient = conn.execute("SELECT 1 FROM fr_publication_recipients WHERE rendition_id=? AND registration_id=?",
++        (replacement["previous_rendition_id"], reg["registration_id"])).fetchone()
++    h = head(conn, record_value["rendition"]["original"])
++    if expected != record_value or recipient is None or h["pending_replacement_id"] != replacement["replacement_id"]:
++        raise PublicationError("publication_ack_mismatch")
++    conn.execute("INSERT INTO fr_invalidation_acks VALUES(?,?,?)", (replacement["replacement_id"], reg["registration_id"], canonical(request)))
++    result = {"invalidation_id": record_value["invalidation_id"], "accepted": True}
++    record(conn, h, "acknowledgement", record_value["invalidation_id"], request, result, reg["registration_id"])
++    return result
++
++
++def confirm(conn, request, authority):
++    reg, proof = request["registration"], request["confirmation"]
++    distribution_proof = proof["distribution"]
++    artifact(conn, distribution_proof["rendition"]["rendition_id"], authority)
++    previous = replay(conn, "confirmation", proof["operation_id"], request, reg["registration_id"])
++    if previous is not None:
++        return previous
++    known = operation(conn, "distribution", distribution_proof["operation_id"], reg["registration_id"])
++    if (distribution_proof["registration"] != reg or known is None or
++            json.loads(known["result_json"])["receipt"] != distribution_proof):
++        raise PublicationError("publication_confirmation_mismatch")
++    h, _item = current_access(conn, distribution_proof["rendition"], reg, authority)
++    if int(proof["invalidation_generation"]) != h["current_invalidation_generation"]:
++        raise PublicationError("publication_confirmation_mismatch")
++    result = {"operation_id": proof["operation_id"], "accepted": True}
++    record(conn, h, "confirmation", proof["operation_id"], request, result, reg["registration_id"])
++    return result
++
++
++def all_acknowledged(conn, replacement):
++    return conn.execute("""SELECT 1 FROM fr_publication_recipients p
++        WHERE p.rendition_id=? AND NOT EXISTS(SELECT 1 FROM fr_invalidation_acks a
++        WHERE a.replacement_id=? AND a.registration_id=p.registration_id) LIMIT 1""",
++        (replacement["previous_rendition_id"], replacement["replacement_id"])).fetchone() is None
+--- /dev/null
++++ b/backend/app/schemas/frame_relay_publication.py
+@@ -0,0 +1,177 @@
++"""Explicit publication wire; never accept synthesized Swift enum JSON."""
++from typing import Annotated, Literal
++from uuid import UUID
++from pydantic import AfterValidator, BaseModel, ConfigDict, StringConstraints, model_validator
++
++
++def opaque(value):
++    if not value or "\0" in value or len(value.encode("utf-8")) > 1024:
++        raise ValueError("Invalid opaque identity")
++    return value
++
++
++def unsigned(value):
++    if int(value) > (1 << 64) - 1:
++        raise ValueError("UInt64 overflow")
++    return value
++
++
++ID = Annotated[str, AfterValidator(opaque)]
++UInt = Annotated[str, StringConstraints(pattern=r"^(0|[1-9][0-9]*)$"), AfterValidator(unsigned)]
++Positive = Annotated[str, StringConstraints(pattern=r"^[1-9][0-9]*$"), AfterValidator(unsigned)]
++Digest = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
++VERSION = "fr-publication-v1"
++
++
++def canonical_uuid(value):
++    if str(UUID(value)) != value:
++        raise ValueError("Expected server canonical UUID")
++    return value
++
++
++ServerUUID = Annotated[str, AfterValidator(canonical_uuid)]
++
++
++class Wire(BaseModel):
++    model_config = ConfigDict(extra="forbid", strict=True)
++
++
++class Registration(Wire):
++    destination_id: ID
++    registration_id: ID
++    generation: Positive
++
++
++class Content(Wire):
++    algorithm: Literal["sha256"]
++    digest: Digest
++    byte_count: Positive
++
++
++class Original(Wire):
++    capture_id: ID
++    content_generation: UInt
++    content: Content
++
++
++class Rendition(Wire):
++    original: Original
++    input_log_identity: ID
++    transform_asset_identity: ID
++    transform_asset_version: ID
++    output_configuration_identity: ID
++    conversion_version: ID
++    rendition_id: ServerUUID
++    delivery_content: Content
++    publication_generation: Positive
++
++
++class Gate(Wire):
++    operation_id: ID
++    attempt_id: ID
++    access_generation: UInt
++
++
++class ByteRange(Wire):
++    lower_bound: UInt
++    upper_bound: Positive
++
++    @model_validator(mode="after")
++    def ordered(self):
++        if int(self.lower_bound) >= int(self.upper_bound):
++            raise ValueError("Empty or reversed range")
++        return self
++
++
++class LocalCommit(Wire):
++    previous_revision: UInt
++    committed_revision: UInt
++
++    @model_validator(mode="after")
++    def consecutive(self):
++        if int(self.committed_revision) != int(self.previous_revision) + 1:
++            raise ValueError("Not a committed revision")
++        return self
++
++
++class DistributionReceipt(LocalCommit):
++    operation_id: ID
++    rendition: Rendition
++    registration: Registration
++
++
++class Invalidation(Wire):
++    invalidation_id: ID
++    rendition: Rendition
++    registration: Registration
++    invalidation_generation: Positive
++
++
++class Confirmation(Wire):
++    operation_id: ID
++    playback_session_id: ID
++    distribution: DistributionReceipt
++    invalidation_generation: UInt
++    observation: Literal["played"]
++    local_commit: LocalCommit
++
++
++class Acknowledgement(Wire):
++    invalidation: Invalidation
++    local_commit: LocalCommit
++
++
++class RegisteredRequest(Wire):
++    schema_version: Literal["fr-publication-v1"]
++    registration: Registration
++
++
++class ManifestRequest(RegisteredRequest):
++    original: Original
++
++
++class DistributionRequest(RegisteredRequest):
++    operation_id: ID
++    rendition: Rendition
++    gate: Gate
++    purpose: Literal["source", "read"]
++    kind: Literal["full", "range", "resume"]
++    range: ByteRange | None
++    source_operation_id: ID | None
++
++    @model_validator(mode="after")
++    def consistent(self):
++        if self.purpose == "source":
++            if self.kind != "full" or self.range is not None or self.source_operation_id is not None:
++                raise ValueError("Invalid source distribution")
++        elif self.source_operation_id is None or self.source_operation_id == self.operation_id:
++            raise ValueError("Read requires a separate source distribution")
++        if (self.kind == "full") != (self.range is None):
++            raise ValueError("Range/kind mismatch")
++        if self.range is not None and int(self.range.upper_bound) > int(self.rendition.delivery_content.byte_count):
++            raise ValueError("Range exceeds rendition")
++        return self
++
++
++class LookupRequest(RegisteredRequest):
++    kind: Literal["distribution", "confirmation", "acknowledgement"]
++    operation_id: ID
++
++
++class ConfirmationRequest(RegisteredRequest):
++    confirmation: Confirmation
++
++
++class AcknowledgementRequest(RegisteredRequest):
++    acknowledgement: Acknowledgement
++
++
++class InvalidationsRequest(RegisteredRequest):
++    after_invalidation_id: ID | None
++    limit: Positive
++
++    @model_validator(mode="after")
++    def bounded(self):
++        if int(self.limit) > 8:
++            raise ValueError("Page limit exceeds 8")
++        return self
+--- a/backend/app/services/asset_read.py
++++ b/backend/app/services/asset_read.py
+@@ -1,3 +1,4 @@
++from app.repositories.frame_relay_storage import legacy_entry
+ from collections.abc import Callable
+ from dataclasses import dataclass
+ from typing import Any
+@@ -126,6 +127,7 @@
+     )
+ 
+ 
++@legacy_entry
+ def confirm_preview(
+     settings: Settings,
+     *,
+--- /dev/null
++++ b/backend/app/services/frame_relay_distribution.py
+@@ -0,0 +1,128 @@
++"""One real GET consumes one committed distribution, then streams its pinned FD."""
++import base64
++import binascii
++import json
++import os
++import re
++
++from app.repositories import frame_relay_publication as repository
++from app.repositories.frame_relay_publication import PublicationError
++from app.schemas import frame_relay_publication as wire
++from app.services import frame_relay_files as files
++
++
++def header_id(value):
++    return base64.urlsafe_b64encode(value.encode("utf-8")).rstrip(b"=").decode("ascii")
++
++
++def parse_header_id(value):
++    try:
++        if not isinstance(value, str) or re.fullmatch(r"[A-Za-z0-9_-]+", value) is None:
++            raise ValueError()
++        decoded = base64.urlsafe_b64decode(value + "=" * (-len(value) % 4)).decode("utf-8")
++        wire.opaque(decoded)
++        if header_id(decoded) != value:
++            raise ValueError()
++        return decoded
++    except (ValueError, UnicodeError, binascii.Error):
++        raise PublicationError("publication_header_invalid", 422) from None
++
++
++def request_range(value, byte_count):
++    if value is None:
++        return None
++    matched = re.fullmatch(r"bytes=(0|[1-9][0-9]*)-(0|[1-9][0-9]*)", value)
++    if matched is None:
++        raise PublicationError("publication_range_invalid", 422)
++    lower, inclusive_upper = map(int, matched.groups())
++    if lower > inclusive_upper or inclusive_upper >= byte_count:
++        raise PublicationError("publication_range_invalid", 422)
++    return {"lower_bound": str(lower), "upper_bound": str(inclusive_upper + 1)}
++
++
++class AcceptedStream:
++    """Ownership ends on completion, cancellation, or before-body failure.
++
++    A pre-publication accepted response retains its old artifact. No new GET is
++    authorized by this descriptor. External in-place writes can only be detected
++    and aborted; already delivered bytes cannot be recalled.
++    """
++    def __init__(self, manager, source, fingerprint, settings, item, request):
++        self.manager, self.source, self.fingerprint = manager, source, fingerprint
++        self.settings, self.item, self.request = settings, item, request
++        self.closed = False
++        self.delivered_bytes = 0
++        selected = request["range"]
++        self.lower = 0 if selected is None else int(selected["lower_bound"])
++        self.upper = item["byte_count"] if selected is None else int(selected["upper_bound"])
++        self.status_code = 200 if selected is None else 206
++        rendition = request["rendition"]
++        self.headers = {"Content-Type": item["media_type"], "Content-Length": str(self.upper - self.lower),
++            "Cache-Control": "no-store", "X-FrameRelay-Wire-Version": wire.VERSION,
++            "X-FrameRelay-Distribution-ID": header_id(request["operation_id"]),
++            "X-FrameRelay-Rendition-ID": rendition["rendition_id"],
++            "X-FrameRelay-Publication-Generation": rendition["publication_generation"],
++            "X-FrameRelay-Content-SHA256": item["sha256"], "X-FrameRelay-Content-Bytes": str(item["byte_count"])}
++        if selected is not None:
++            self.headers["Content-Range"] = f"bytes {self.lower}-{self.upper - 1}/{item['byte_count']}"
++
++    def close(self):
++        if not self.closed:
++            self.closed = True
++            self.manager.__exit__(None, None, None)
++
++    def _unchanged(self):
++        if (self.closed or files.fingerprint(os.fstat(self.source.fileno())) != self.fingerprint or
++                files.current_fingerprint(self.settings.media_root, self.item["path"]) != self.fingerprint):
++            raise PublicationError("publication_artifact_changed")
++
++    def __iter__(self):
++        try:
++            self._unchanged()
++            self.source.seek(self.lower)
++            remaining = self.upper - self.lower
++            while remaining:
++                self._unchanged()
++                block = self.source.read(min(65_536, remaining))
++                self._unchanged()
++                if not block:
++                    raise PublicationError("publication_artifact_changed")
++                remaining -= len(block)
++                self.delivered_bytes += len(block)
++                yield block
++        finally:
++            self.close()
++
++
++def open_stream(service, *, rendition_id, registration, secret, operation_id, gate, range_header, fault=None):
++    reg = wire.Registration.model_validate(registration).model_dump()
++    gate = wire.Gate.model_validate(gate).model_dump()
++    with service.database() as conn:
++        repository.registration(conn, reg, secret)
++        request = repository.read_request(conn, operation_id, reg, service.authority)
++        _h, item = repository.current_access(conn, request["rendition"], reg, service.authority)
++        if (request["rendition"]["rendition_id"] != rendition_id or request["gate"] != gate or
++                request["range"] != request_range(range_header, item["byte_count"])):
++            raise PublicationError("publication_distribution_mismatch")
++        if conn.execute("SELECT 1 FROM fr_get_admissions WHERE registration_id=? AND distribution_operation_id=?",
++                        (reg["registration_id"], operation_id)).fetchone():
++            raise PublicationError("publication_get_consumed")
++    manager = files.verified_reader(service.settings.media_root, item["path"], sha256=item["sha256"],
++        byte_count=item["byte_count"], expected_fingerprint=json.loads(item["fingerprint_json"]),
++        fault=None if fault is None else lambda _step: fault("artifact_read_block"))
++    source, fingerprint = manager.__enter__()
++    try:
++        if fault is not None:
++            fault("after_hash")
++        with service.transaction(fault) as conn:
++            repository.registration(conn, reg, secret)
++            if repository.artifact(conn, rendition_id, service.authority) != item:
++                raise PublicationError("publication_artifact_changed")
++            if (files.fingerprint(os.fstat(source.fileno())) != fingerprint or
++                    files.current_fingerprint(service.settings.media_root, item["path"]) != fingerprint):
++                raise PublicationError("publication_artifact_changed")
++            repository.admit(conn, request, fingerprint, service.authority)
++        return AcceptedStream(manager, source, fingerprint, service.settings, item, request)
++    except BaseException:
++        manager.__exit__(None, None, None)
++        raise
+--- a/backend/app/services/frame_relay_files.py
++++ b/backend/app/services/frame_relay_files.py
+@@ -2,6 +2,7 @@
+ from contextlib import contextmanager
+ import hashlib
+ import os
++import re
+ from pathlib import PurePosixPath
+ import stat
+ 
+@@ -9,6 +10,16 @@
+ 
+ 
+ BLOCK = 1024 * 1024
++SEALED_ROOT = ("publications", "frame-relay")
++SEALED_PREFIX = "publications/frame-relay/"
++
++
++def _not_sealed(relative):
++    # Match the same dot/separator normalization as parent(), including the
++    # namespace root. Reserve ASCII case aliases on case-insensitive volumes.
++    parts = PurePosixPath(relative).parts
++    if tuple(component.lower() for component in parts[:2]) == SEALED_ROOT:
++        raise StorageError("publication_artifact_is_sealed")
+ 
+ 
+ @contextmanager
+@@ -47,6 +58,13 @@
+ 
+ @contextmanager
+ def exclusive_writer(root, relative):
++    _not_sealed(relative)
++    with _exclusive_writer(root, relative) as stream:
++        yield stream
++
++
++@contextmanager
++def _exclusive_writer(root, relative):
+     with parent(root, relative, create=True) as (directory, name):
+         descriptor = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                              0o600, dir_fd=directory)
+@@ -55,6 +73,47 @@
+             stream.flush()
+             os.fsync(stream.fileno())
+         os.fsync(directory)
++
++
++@contextmanager
++def sealed_writer(root, relative):
++    """The publication owner creates a fresh inode; it never adopts a hard link.
++
++    This is an application-writer ownership boundary, not protection from an
++    external process with permission to chmod/write the same inode.
++    """
++    if re.fullmatch(r"publications/frame-relay/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.media", relative) is None:
++        raise StorageError("storage_path_invalid")
++    with _exclusive_writer(root, relative) as stream:
++        yield stream
++        stream.flush()
++        os.fsync(stream.fileno())
++        os.fchmod(stream.fileno(), 0o400)
++
++
++@contextmanager
++def verified_reader(root, relative, *, sha256, byte_count, expected_fingerprint, fault=None):
++    """Full read outside the writer; caller retains this FD through commit/body."""
++    with parent(root, relative) as (directory, name):
++        descriptor = os.open(name, os.O_RDONLY | os.O_NOFOLLOW, dir_fd=directory)
++        with os.fdopen(descriptor, "rb") as stream:
++            before = fingerprint(os.fstat(stream.fileno()))
++            if before != expected_fingerprint:
++                raise StorageError("storage_file_changed")
++            digest, count = hashlib.sha256(), 0
++            while block := stream.read(BLOCK):
++                digest.update(block)
++                count += len(block)
++                if fault is not None:
++                    fault("read_block")
++                if count > byte_count:
++                    raise StorageError("storage_file_changed")
++            if (count != byte_count or digest.hexdigest() != sha256 or
++                    before != fingerprint(os.fstat(stream.fileno())) or
++                    before != current_fingerprint(root, relative)):
++                raise StorageError("storage_file_changed")
++            stream.seek(0)
++            yield stream, before
+ 
+ 
+ def read_all(root, relative, *, consume=None, fault=None):
+@@ -79,6 +138,8 @@
+ 
+ 
+ def publish(root, source, target):
++    _not_sealed(source)
++    _not_sealed(target)
+     with parent(root, source) as (source_dir, source_name), parent(root, target, create=True) as (target_dir, target_name):
+         fingerprint(os.stat(source_name, dir_fd=source_dir, follow_symlinks=False))
+         try:
+@@ -93,6 +154,7 @@
+ 
+ 
+ def remove_owned(root, relative):
++    _not_sealed(relative)
+     try:
+         with parent(root, relative) as (directory, name):
+             fingerprint(os.stat(name, dir_fd=directory, follow_symlinks=False))
+--- /dev/null
++++ b/backend/app/services/frame_relay_publication.py
+@@ -0,0 +1,272 @@
++"""Publication orchestration. Production quality evidence is deliberately absent."""
++from contextlib import closing, contextmanager
++import json
++from uuid import uuid4
++
++from app.db.connection import connect
++from app.repositories import frame_relay_publication as repository
++from app.repositories.frame_relay_publication import PublicationError
++from app.services import frame_relay_files as files
++from app.schemas import frame_relay_publication as wire
++
++
++class ProductionPublicationAuthority:
++    """No boolean, legacy is_log, or S26J candidate can replace S26's proof."""
++    def check_candidate(self, conn, candidate, evidence, output, original):
++        raise PublicationError("publication_proof_not_implemented", 503)
++
++    def check_artifact(self, conn, artifact):
++        # Also reject a fixture-populated DB when restarted by normal routers.
++        raise PublicationError("publication_proof_not_implemented", 503)
++
++
++def envelope(request, result):
++    return {"schema_version": wire.VERSION, "request": request, "result": result}
++
++
++def json_bytes(value):
++    return json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")
++
++
++def container_type(prefix, size):
++    """Bounded ISO BMFF container identity only; no codec/Rec.709 claim."""
++    if len(prefix) < 16 or prefix[4:8] != b"ftyp":
++        raise PublicationError("publication_container_unsupported")
++    box_size = int.from_bytes(prefix[:4], "big")
++    if box_size < 16 or box_size > 65_536 or box_size > size or box_size > len(prefix) or box_size % 4:
++        raise PublicationError("publication_container_invalid")
++    brand = prefix[8:12]
++    if brand == b"qt  ":
++        return "video/quicktime"
++    if brand in (b"isom", b"iso2", b"mp41", b"mp42", b"avc1", b"M4V "):
++        return "video/mp4"
++    raise PublicationError("publication_container_unsupported")
++
++
++class PublicationService:
++    def __init__(self, settings, *, authority=None):
++        self.settings = settings
++        self.authority = ProductionPublicationAuthority() if authority is None else authority
++
++    def database(self):
++        return closing(connect(self.settings.database_path, self.settings.sqlite_busy_timeout_ms))
++
++    @contextmanager
++    def transaction(self, fault=None):
++        with self.database() as conn:
++            conn.execute("BEGIN IMMEDIATE")
++            try:
++                yield conn
++                if fault is not None:
++                    fault("before_commit")
++                conn.commit()
++            except BaseException:
++                conn.rollback()
++                raise
++            if fault is not None:
++                fault("after_commit")
++
++    def _draft(self, candidate_id, fault):
++        with self.database() as conn:
++            source = repository.candidate(conn, candidate_id)
++            approved = self.authority.check_candidate(conn, *source)
++        item, _evidence, output, _original = source
++        receipt = output["receipt"]
++        rendition_id = str(uuid4())
++        relative = files.SEALED_PREFIX + rendition_id + ".media"
++        # A new inode, not an alias to the candidate or an open adapter writer.
++        with files.sealed_writer(self.settings.media_root, relative) as target:
++            copied = files.read_all(self.settings.media_root, item["candidate_path"], consume=target.write,
++                                    fault=None if fault is None else lambda _step: fault("candidate_read_block"))
++            if (copied["fingerprint"] != output["fingerprint"] or copied["sha256"] != receipt["sha256"] or
++                    copied["byte_count"] != receipt["byte_count"]):
++                raise PublicationError("publication_candidate_changed")
++        prefix = bytearray()
++        def capture(block):
++            prefix.extend(block[:max(0, 65_536 - len(prefix))])
++        measured = files.read_all(self.settings.media_root, relative, consume=capture,
++            fault=None if fault is None else lambda _step: fault("artifact_read_block"))
++        if measured["sha256"] != copied["sha256"] or measured["byte_count"] != copied["byte_count"]:
++            raise PublicationError("publication_artifact_changed")
++        media_type = container_type(prefix, measured["byte_count"])
++        if media_type != approved["media_type"]:
++            raise PublicationError("publication_container_mismatch")
++        return {"source": source, "candidate_id": candidate_id, "rendition_id": rendition_id,
++                "path": relative, **measured, **approved, "media_type": media_type}
++
++    def _draft_current(self, draft):
++        if files.current_fingerprint(self.settings.media_root, draft["path"]) != draft["fingerprint"]:
++            raise PublicationError("publication_artifact_changed")
++        if files.current_fingerprint(self.settings.media_root, draft["source"][0]["candidate_path"]) != draft["source"][2]["fingerprint"]:
++            raise PublicationError("publication_candidate_changed")
++
++    def _internal_replay(self, kind, operation_id, request):
++        with self.database() as conn:
++            result = repository.replay(conn, kind, operation_id, request)
++            if result is not None:
++                repository.artifact(conn, result["rendition"]["rendition_id"], self.authority)
++            return result
++
++    def publish_initial(self, *, operation_id, candidate_id, expected_revision, fault=None):
++        request = {"operation_id": operation_id, "candidate_id": candidate_id, "expected_revision": expected_revision}
++        previous = self._internal_replay("initial", operation_id, request)
++        if previous is not None:
++            return previous
++        draft = self._draft(candidate_id, fault)
++        with self.transaction(fault) as conn:
++            previous = repository.replay(conn, "initial", operation_id, request)
++            if previous is not None:
++                return previous
++            h = repository.head(conn, draft["source"][3], create=True)
++            if h["current_rendition_id"] is not None or h["revision"] != expected_revision:
++                raise PublicationError("publication_revision_conflict")
++            self._draft_current(draft)
++            item = repository.install_artifact(conn, h, draft, self.authority)
++            result = {"rendition": repository.identity(item), "media_type": item["media_type"],
++                      "previous_revision": str(h["revision"]), "committed_revision": str(repository.increment(h["revision"]))}
++            conn.execute("UPDATE fr_publication_heads SET current_rendition_id=? WHERE original_key=?",
++                         (item["rendition_id"], h["original_key"]))
++            repository.record(conn, h, "initial", operation_id, request, result)
++        return result
++
++    def begin_replacement(self, *, operation_id, candidate_id, invalidation_id, expected_revision, fault=None):
++        request = {"operation_id": operation_id, "candidate_id": candidate_id, "invalidation_id": invalidation_id,
++                   "expected_revision": expected_revision}
++        previous = self._internal_replay("replacement", operation_id, request)
++        if previous is not None:
++            return previous
++        draft = self._draft(candidate_id, fault)
++        with self.transaction(fault) as conn:
++            previous = repository.replay(conn, "replacement", operation_id, request)
++            if previous is not None:
++                return previous
++            h = repository.head(conn, draft["source"][3])
++            if (h is None or h["current_rendition_id"] is None or h["pending_replacement_id"] is not None or
++                    h["revision"] != expected_revision):
++                raise PublicationError("publication_revision_conflict")
++            repository.artifact(conn, h["current_rendition_id"], self.authority)
++            self._draft_current(draft)
++            item = repository.install_artifact(conn, h, draft, self.authority)
++            generation = repository.increment(h["last_invalidation_generation"])
++            conn.execute("INSERT INTO fr_publication_replacements VALUES(?,?,?,?,?,?,?,'pending')",
++                (operation_id, h["original_key"], h["current_rendition_id"], item["rendition_id"],
++                 invalidation_id, generation, repository.canonical(request)))
++            conn.execute("UPDATE fr_publication_heads SET pending_replacement_id=?,last_invalidation_generation=? WHERE original_key=?",
++                         (operation_id, generation, h["original_key"]))
++            result = {"replacement_id": operation_id, "rendition": repository.identity(item), "media_type": item["media_type"],
++                      "invalidation_id": invalidation_id, "invalidation_generation": str(generation)}
++            repository.record(conn, h, "replacement", operation_id, request, result)
++        return result
++
++    def publish_replacement(self, *, operation_id, replacement_id, expected_revision, fault=None):
++        request = {"operation_id": operation_id, "replacement_id": replacement_id, "expected_revision": expected_revision}
++        previous = self._internal_replay("publication", operation_id, request)
++        if previous is not None:
++            return previous
++        with self.database() as conn:
++            row = conn.execute("SELECT * FROM fr_publication_replacements WHERE replacement_id=?", (replacement_id,)).fetchone()
++            if row is None:
++                raise PublicationError("publication_replacement_missing", 404)
++            replacement = dict(row)
++            item = repository.artifact(conn, replacement["candidate_rendition_id"], self.authority)
++        with files.verified_reader(self.settings.media_root, item["path"], sha256=item["sha256"],
++                byte_count=item["byte_count"], expected_fingerprint=json.loads(item["fingerprint_json"]),
++                fault=None if fault is None else lambda _step: fault("artifact_read_block")) as (_stream, fingerprint):
++            with self.transaction(fault) as conn:
++                previous = repository.replay(conn, "publication", operation_id, request)
++                if previous is not None:
++                    return previous
++                h = repository.head(conn, repository.identity(item)["original"])
++                current = conn.execute("SELECT * FROM fr_publication_replacements WHERE replacement_id=?", (replacement_id,)).fetchone()
++                if (dict(current) != replacement or replacement["status"] != "pending" or
++                        h["pending_replacement_id"] != replacement_id or h["revision"] != expected_revision or
++                        h["current_rendition_id"] != replacement["previous_rendition_id"]):
++                    raise PublicationError("publication_revision_conflict")
++                if repository.artifact(conn, item["rendition_id"], self.authority) != item:
++                    raise PublicationError("publication_artifact_changed")
++                if files.current_fingerprint(self.settings.media_root, item["path"]) != fingerprint:
++                    raise PublicationError("publication_artifact_changed")
++                if not repository.all_acknowledged(conn, replacement):
++                    raise PublicationError("publication_awaiting_acknowledgements")
++                conn.execute("""UPDATE fr_publication_heads SET current_rendition_id=?,current_invalidation_generation=?,
++                    pending_replacement_id=NULL WHERE original_key=?""",
++                    (item["rendition_id"], replacement["invalidation_generation"], h["original_key"]))
++                conn.execute("UPDATE fr_publication_replacements SET status='published' WHERE replacement_id=?", (replacement_id,))
++                result = {"rendition": repository.identity(item), "media_type": item["media_type"],
++                    "previous_revision": str(h["revision"]), "committed_revision": str(repository.increment(h["revision"]))}
++                repository.record(conn, h, "publication", operation_id, request, result)
++        return result
++
++    def manifest(self, request, secret):
++        request = wire.ManifestRequest.model_validate(request).model_dump()
++        with self.database() as conn:
++            repository.registration(conn, request["registration"], secret)
++            h = repository.head(conn, request["original"])
++            item = None if h is None or h["current_rendition_id"] is None else repository.artifact(conn, h["current_rendition_id"], self.authority)
++            result = {"current": None if item is None else repository.identity(item),
++                      "media_type": None if item is None else item["media_type"],
++                      "revision": "0" if h is None else str(h["revision"]),
++                      "invalidation_generation": "0" if h is None else str(h["current_invalidation_generation"]),
++                      "replacement_pending": h is not None and h["pending_replacement_id"] is not None}
++        return envelope(request, result)
++
++    def accept_distribution(self, request, secret, *, fault=None):
++        request = wire.DistributionRequest.model_validate(request).model_dump()
++        with self.transaction(fault) as conn:
++            repository.registration(conn, request["registration"], secret)
++            result = repository.distribution(conn, request, self.authority)
++        return envelope(request, result)
++
++    def lookup(self, request, secret):
++        request = wire.LookupRequest.model_validate(request).model_dump()
++        with self.database() as conn:
++            repository.registration(conn, request["registration"], secret)
++            row = repository.operation(conn, request["kind"], request["operation_id"], request["registration"]["registration_id"])
++            if row is None:
++                raise PublicationError("publication_operation_not_executed", 404)
++            original_request, original_result = json.loads(row["request_json"]), json.loads(row["result_json"])
++            if original_request["registration"] != request["registration"]:
++                raise PublicationError("publication_operation_conflict")
++            if request["kind"] == "distribution":
++                rendition = original_request["rendition"]
++            elif request["kind"] == "confirmation":
++                rendition = original_request["confirmation"]["distribution"]["rendition"]
++            else:
++                rendition = original_request["acknowledgement"]["invalidation"]["rendition"]
++            repository.artifact(conn, rendition["rendition_id"], self.authority)
++        return envelope(request, {"original_request": original_request, "original_result": original_result})
++
++    def invalidations(self, request, secret):
++        request = wire.InvalidationsRequest.model_validate(request).model_dump()
++        with self.database() as conn:
++            repository.registration(conn, request["registration"], secret)
++            values = repository.pending_invalidations(conn, request["registration"], self.authority,
++                request["after_invalidation_id"], int(request["limit"]))
++        accepted = []
++        encoded = json_bytes(envelope(request, {"invalidations": [], "next_after": None}))
++        for index, value in enumerate(values[:int(request["limit"])]):
++            more = index + 1 < len(values)
++            candidate = json_bytes(envelope(request, {"invalidations": accepted + [value],
++                "next_after": value["invalidation_id"] if more else None}))
++            if len(candidate) > 196_608:
++                if not accepted:
++                    raise PublicationError("publication_invalidation_too_large", 503)
++                break
++            accepted.append(value)
++            encoded = candidate
++        # Return these exact bytes, not a second serializer's interpretation.
++        return encoded
++
++    def acknowledge(self, request, secret, *, fault=None):
++        request = wire.AcknowledgementRequest.model_validate(request).model_dump()
++        with self.transaction(fault) as conn:
++            repository.registration(conn, request["registration"], secret)
++            result = repository.acknowledge(conn, request, self.authority)
++        return envelope(request, result)
++
++    def confirm(self, request, secret, *, fault=None):
++        request = wire.ConfirmationRequest.model_validate(request).model_dump()
++        with self.transaction(fault) as conn:
++            repository.registration(conn, request["registration"], secret)
++            result = repository.confirm(conn, request, self.authority)
++        return envelope(request, result)
+--- a/backend/app/services/phase2b_migration.py
++++ b/backend/app/services/phase2b_migration.py
+@@ -5,6 +5,7 @@
+ from collections.abc import Callable
+ from dataclasses import dataclass
+ 
++from app.repositories.frame_relay_storage import managed_asset
+ from app.core.settings import Settings
+ from app.db.connection import connect
+ from app.db.phase2b import (
+@@ -55,6 +56,7 @@
+     check_certification(settings)
+ 
+     with connect(settings.database_path, settings.sqlite_busy_timeout_ms) as conn:
++        _reject_frame_relay_migration(conn)
+         already_applied = _validate_schema_state(conn)
+         _require_drained(phase2b_drain_counts(conn))
+         if preflight_only:
+@@ -162,6 +164,7 @@
+ def _execute_phase2b_sql(
+     conn: sqlite3.Connection, *, fault_injector: FaultInjector | None
+ ) -> None:
++    _reject_frame_relay_migration(conn)
+     statement = ""
+     statement_number = 0
+     for line in PHASE2B_SQL_PATH.read_text(encoding="utf-8").splitlines(keepends=True):
+@@ -195,6 +198,8 @@
+         """
+     ).fetchall()
+     for asset in assets:
++        if managed_asset(conn, int(asset["id"])):
++            continue
+         dedup_key = f"phase2b-profile-preview:{asset['id']}"
+         existing = conn.execute(
+             "SELECT 1 FROM jobs WHERE dedup_key = ?", (dedup_key,)
+@@ -264,3 +269,9 @@
+ def _inject(injector: FaultInjector | None, step: str) -> None:
+     if injector is not None:
+         injector(step)
++
++
++def _reject_frame_relay_migration(conn):
++    if conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='fr_upload_bindings'").fetchone():
++        if conn.execute("SELECT 1 FROM fr_upload_bindings LIMIT 1").fetchone():
++            raise Phase2BMigrationError("frame_relay_legacy_migration_forbidden")
+--- a/backend/app/services/preview_stream.py
++++ b/backend/app/services/preview_stream.py
+@@ -1,3 +1,4 @@
++from app.repositories.frame_relay_storage import legacy_entry
+ from pathlib import Path
+ 
+ from fastapi.responses import StreamingResponse
+@@ -31,6 +32,7 @@
+     pass
+ 
+ 
++@legacy_entry
+ def open_preview_stream(
+     *,
+     settings: Settings,
+--- a/backend/app/services/processed_result_delivery.py
++++ b/backend/app/services/processed_result_delivery.py
+@@ -1,3 +1,4 @@
++from app.repositories.frame_relay_storage import legacy_entry
+ from dataclasses import dataclass
+ from typing import Any, Callable
+ 
+@@ -32,6 +33,7 @@
+ FormalPreviewProvenanceValidator = Callable[[dict[str, Any], dict[str, Any], dict[str, Any]], bool]
+ 
+ 
++@legacy_entry
+ def resolve_deliverable_result(
+     *,
+     settings: Settings,
+@@ -61,6 +63,7 @@
+     )
+ 
+ 
++@legacy_entry
+ def resolve_deliverable_result_by_id(
+     *,
+     settings: Settings,
+@@ -110,6 +113,7 @@
+     return None
+ 
+ 
++@legacy_entry
+ def resolve_formal_preview_result(
+     *, settings: Settings, conn, asset: dict[str, Any]
+ ) -> DeliverableProcessedResult | None:
+@@ -126,6 +130,7 @@
+     )
+ 
+ 
++@legacy_entry
+ def has_valid_formal_preview_relation(
+     *,
+     conn,
+--- a/backend/app/services/processed_result_stream.py
++++ b/backend/app/services/processed_result_stream.py
+@@ -1,3 +1,4 @@
++from app.repositories.frame_relay_storage import legacy_entry
+ from typing import BinaryIO
+ 
+ from fastapi.responses import StreamingResponse
+@@ -32,6 +33,7 @@
+         self.total_size = total_size
+ 
+ 
++@legacy_entry
+ def open_processed_result_stream(
+     *,
+     settings: Settings,
+--- /dev/null
++++ b/backend/tests/frame_relay_publication_fixture.py
+@@ -0,0 +1,108 @@
++"""TEST ONLY. Explicit injection, never imported by the production application.
++
++The HTTP supervisor may use this factory only with its reviewed loopback,
++disposable DB/media, isolated secret and fixture-only provenance. The canonical
++wire is exercised; these bytes/proofs are not a Rec.709 conversion result.
++"""
++import asyncio
++from contextlib import closing
++import hashlib
++import json
++
++from app.db.connection import connect
++from app.repositories import frame_relay_publication as repository
++from app.repositories.jobs import claim_next_job
++from app.services import frame_relay_storage as storage
++from app.services.frame_relay_finalize import process_finalize
++from app.services.frame_relay_conversion import CandidateReceipt, process_conversion
++from app.services.frame_relay_publication import PublicationService, container_type
++
++
++class FixturePublicationAuthority:
++    def check_candidate(self, conn, candidate, evidence, output, original):
++        if (output.get("schema_version") != "fr-unpublished-candidate-v1" or
++                output.get("published") is not False or output.get("rec709_verified") is not False or
++                output.get("receipt", {}).get("result_kind") != "unpublished_technical_fixture" or
++                output["receipt"]["adapter_identity"] != "fr-publication-container-fixture-v1"):
++            raise repository.PublicationError("publication_fixture_proof_invalid")
++        return {"proof_kind": "technical_fixture", "media_type": "video/quicktime",
++            "proof": {"fixture_only": True, "candidate_id": candidate["candidate_id"],
++                "evidence_id": evidence["evidence_id"], "output": output},
++            "transform": {"input_log_identity": "fixture-only-input-not-log-detection",
++                "transform_asset_identity": "fixture-only-copy-not-standard-conversion",
++                "transform_asset_version": "fixture-v1", "output_configuration_identity": "fixture-quicktime-not-selected-output",
++                "conversion_version": "fixture-v1"}}
++
++    def check_artifact(self, conn, artifact):
++        source = repository.candidate(conn, artifact["candidate_id"])
++        expected = self.check_candidate(conn, *source)
++        if (artifact["proof_kind"] != "technical_fixture" or json.loads(artifact["proof_json"]) != expected["proof"] or
++                artifact["media_type"] != expected["media_type"]):
++            raise repository.PublicationError("publication_fixture_proof_invalid")
++
++
++class _FixtureCopyAdapter:
++    contract_version = "fr-conversion-adapter-v1"
++    result_kind = "unpublished_technical_fixture"
++    identity = "fr-publication-container-fixture-v1"
++
++    def __init__(self, movie_bytes):
++        if container_type(movie_bytes[:65_536], len(movie_bytes)) != "video/quicktime":
++            raise ValueError("Fixture requires actual QuickTime container identity")
++        self.movie_bytes = movie_bytes
++
++    def accepts_source(self, _context):
++        return True
++
++    def convert(self, *, context, source, destination, progress):
++        value = source.read()
++        if len(value) != context.source_byte_count or hashlib.sha256(value).hexdigest() != context.source_sha256:
++            raise ValueError("Fixture input mismatch")
++        destination.write(self.movie_bytes)
++        progress("fixture_copy_terminal")
++        return CandidateReceipt(context, self.identity, hashlib.sha256(self.movie_bytes).hexdigest(), len(self.movie_bytes))
++
++
++def fixture_service(settings):
++    return PublicationService(settings, authority=FixturePublicationAuthority())
++
++
++def seed_candidate(settings, registration, secret, movie_bytes, capture_id, operation_id, *, source_bytes=None):
++    """Single-owner fixture preparation; do not run beside queued fixture work.
++
++    Repeat with the same capture/source bytes and a new upload operation to get
++    a second candidate for the SAME OriginalContent. movie_bytes may differ;
++    pass the original source_bytes explicitly in that case. No direct DB seed
++    substitutes for S24 receiving/finalization or S26J's fenced conversion.
++    """
++    data = movie_bytes if source_bytes is None else source_bytes
++    request = {"destination_id": registration["destination_id"], "registration_id": registration["registration_id"],
++        "registration_generation": registration["generation"], "operation_id": operation_id, "capture_id": capture_id,
++        "content_generation": "1", "sha256": hashlib.sha256(data).hexdigest(), "byte_count": str(len(data))}
++    value = storage.create(settings, request, secret)
++    async def chunks():
++        for index, start in enumerate(range(0, len(data), value["chunk_size"])):
++            chunk = data[start:start + value["chunk_size"]]
++            async def body():
++                yield chunk
++            await storage.receive_chunk(settings, value["session_id"], request, secret, index,
++                (start, start + len(chunk) - 1, len(data)), hashlib.sha256(chunk).hexdigest(), body())
++    asyncio.run(chunks())
++    storage.finalize(settings, value["session_id"], request, secret)
++    def database():
++        return closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms))
++    with database() as conn:
++        job = claim_next_job(conn, settings.job_lease_seconds, {"fr_upload_finalize"})
++    if job is None or json.loads(job["payload_json"])["session_id"] != value["session_id"]:
++        raise ValueError("Fixture seed is not the sole finalization owner")
++    process_finalize(settings=settings, job=job)
++    with database() as conn:
++        job = claim_next_job(conn, settings.job_lease_seconds, {"fr_conversion"})
++    if job is None or json.loads(job["payload_json"])["session_id"] != value["session_id"]:
++        raise ValueError("Fixture seed is not the sole conversion owner")
++    process_conversion(settings=settings, job=job, adapter=_FixtureCopyAdapter(movie_bytes))
++    with database() as conn:
++        candidate, evidence, _output, original = repository.candidate(conn, job["fr_conversion_candidate"])
++    return {"candidate_id": candidate["candidate_id"], "session_id": value["session_id"],
++        "evidence_id": evidence["evidence_id"], "asset_id": evidence["asset_id"], "original": original,
++        "movie_sha256": hashlib.sha256(movie_bytes).hexdigest(), "media_type": "video/quicktime", "binding": request}
+--- a/backend/tests/test_frame_relay_conversion.py
++++ b/backend/tests/test_frame_relay_conversion.py
+@@ -346,6 +346,10 @@
+ 
+ 
+ def test_v1_fixture_pointer_bytes_and_confirmation_survive_candidate_failure_and_success(monkeypatch,tmp_path):
++    # Preserve a predecessor retention fixture across 004. This is not permission
++    # to migrate/adopt legacy media into the product publication contract.
++    official_sources=migrations.migration_sources
++    monkeypatch.setattr(migrations,"migration_sources",lambda:official_sources()[:3])
+     settings,_request,value=prepared(tmp_path,monkeypatch)
+     # Seed a legacy-shaped V1 directly as a retention fixture, not as G3 proof
+     # or through a forbidden publication API. S26J must never alter this row.
+@@ -360,6 +364,8 @@
+         conn.execute("UPDATE assets SET active_processed_result_id=?,preview_status='preview_ready',review_status='reviewed' WHERE id=?",(result_id,asset_id));conn.commit()
+         before=dict(conn.execute("SELECT * FROM assets WHERE id=?",(asset_id,)).fetchone())
+         before_result=dict(conn.execute("SELECT * FROM processed_results WHERE id=?",(result_id,)).fetchone())
++    monkeypatch.setattr(migrations,"migration_sources",official_sources)
++    with _database(settings) as conn:migrations.run_frame_relay_migrations(conn)
+     assert worker.run_once();retry(settings,value,candidates(settings)[0])
+     assert worker.run_once(conversion_adapter=FixtureAdapter())
+     with _database(settings) as conn:
+@@ -372,7 +378,7 @@
+ def test_003_migration_preserves_001_002_and_rolls_back_candidate_schema(monkeypatch,tmp_path):
+     settings,_request,_value=prepared(tmp_path,monkeypatch)
+     with _database(settings) as conn:
+-        original=[tuple(row) for row in conn.execute("SELECT * FROM fr_schema_migrations WHERE version!='003_conversion_candidates' ORDER BY version")]
++        original=[tuple(row) for row in conn.execute("SELECT * FROM fr_schema_migrations WHERE version IN ('001_registrations','002_storage') ORDER BY version")]
+         # Construct a fresh predecessor with the same official 001/002 files.
+     from app.db.connection import connect
+     from app.db.migrations import run_migrations
+@@ -393,4 +399,6 @@
+     with closing(connect(predecessor,5000)) as conn:
+         migrations.run_frame_relay_migrations(conn)
+         assert conn.execute("SELECT destination_id FROM fr_destination").fetchone()[0]==destination
+-        assert [tuple(row) for row in conn.execute("SELECT * FROM fr_schema_migrations WHERE version!='003_conversion_candidates' ORDER BY version")]==original
++        assert [tuple(row) for row in conn.execute("SELECT * FROM fr_schema_migrations WHERE version IN ('001_registrations','002_storage') ORDER BY version")]==original
++        assert [row[0] for row in conn.execute("SELECT version FROM fr_schema_migrations ORDER BY version")]==[
++            '001_registrations','002_storage','003_conversion_candidates','004_publication']
+--- /dev/null
++++ b/backend/tests/test_frame_relay_publication.py
+@@ -0,0 +1,743 @@
++"""Real SQLite/files and fault/reopen boundaries; fixture authority is not quality proof."""
++from concurrent.futures import ThreadPoolExecutor
++from contextlib import closing
++from copy import deepcopy
++from dataclasses import replace
++import hashlib
++import json
++import os
++import sqlite3
++from threading import Barrier
++from types import SimpleNamespace
++from uuid import uuid4
++
++from fastapi import FastAPI
++from fastapi.testclient import TestClient
++import pytest
++
++from app.api.frame_relay_publication import create_router, PinnedResponse
++from app.db.connection import connect
++from app.db.migrations import run_migrations
++from app.db import frame_relay_migrations as migrations
++from app.repositories import frame_relay_publication as repository
++from app.repositories import registrations
++from app.repositories.frame_relay_publication import PublicationError
++from app.repositories.frame_relay_storage import StorageError
++from app.schemas import frame_relay_publication as wire
++from app.services import frame_relay_files as files
++from app.services.frame_relay_distribution import open_stream, header_id, parse_header_id
++from app.services.frame_relay_publication import PublicationService, container_type, json_bytes
++from frame_relay_publication_fixture import fixture_service, seed_candidate
++from test_frame_relay_storage import _setup, _database, SECRET, Crash
++
++
++PREFIX = "/frame-relay/v1/publication"
++# Container-only unit fixture, deliberately not a playable/Rec.709 movie. The
++# separately reviewed HTTP suite uses the actual QuickTime/PCM movie.
++PAYLOAD = bytes(range(256)) * 1024
++MOV = b"\0\0\0\x14ftypqt  \0\0\0\0qt  " + (len(PAYLOAD)+8).to_bytes(4,"big") + b"mdat" + PAYLOAD
++
++
++def world(tmp_path, monkeypatch):
++    settings, binding, _value = _setup(tmp_path, monkeypatch)
++    settings = replace(settings, upload_session_chunk_size_bytes=65_536, upload_session_max_size_bytes=16*1024*1024)
++    reg = {"destination_id": binding["destination_id"], "registration_id": binding["registration_id"],
++           "generation": binding["registration_generation"]}
++    seed = seed_candidate(settings, reg, SECRET, MOV, "opaque/capture:日本語", str(uuid4()))
++    return SimpleNamespace(settings=settings, reg=reg, seed=seed, service=fixture_service(settings))
++
++
++def publish(w):
++    return w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)["rendition"]
++
++
++def manifest(w, reg=None):
++    return w.service.manifest({"schema_version": wire.VERSION, "registration": reg or w.reg,
++        "original": w.seed["original"]}, SECRET)["result"]
++
++
++def second(w):
++    return seed_candidate(w.settings, w.reg, SECRET, MOV, w.seed["original"]["capture_id"], str(uuid4()))
++
++
++def begin(w, *, invalidation_id=None):
++    candidate = second(w)
++    return w.service.begin_replacement(operation_id=str(uuid4()), candidate_id=candidate["candidate_id"],
++        invalidation_id=invalidation_id or str(uuid4()), expected_revision=int(manifest(w)["revision"]))
++
++
++def source_request(w, rendition, *, reg=None, operation=None):
++    return {"schema_version": wire.VERSION, "operation_id": operation or str(uuid4()), "registration": reg or w.reg,
++        "rendition": rendition, "gate": {"operation_id": "opaque/transport:日本語", "attempt_id": "attempt-1", "access_generation": "1"},
++        "purpose": "source", "kind": "full", "range": None, "source_operation_id": None}
++
++
++def read_request(source, *, operation=None, range_value=None):
++    return {**source, "operation_id": operation or str(uuid4()), "purpose": "read", "kind": "range",
++        "source_operation_id": source["operation_id"], "range": range_value or {"lower_bound": "0", "upper_bound": "32"}}
++
++
++def accepted_read(w, rendition, *, reg=None, source_id=None, read_id=None):
++    source = source_request(w, rendition, reg=reg, operation=source_id)
++    source_response = w.service.accept_distribution(source, SECRET)
++    request = read_request(source, operation=read_id)
++    w.service.accept_distribution(request, SECRET)
++    return source, source_response, request
++
++
++def open_request(w, request, *, fault=None):
++    value = request["range"]
++    range_header = None if value is None else f"bytes={value['lower_bound']}-{int(value['upper_bound'])-1}"
++    return open_stream(w.service, rendition_id=request["rendition"]["rendition_id"], registration=request["registration"],
++        secret=SECRET, operation_id=request["operation_id"], gate=request["gate"], range_header=range_header, fault=fault)
++
++
++def invalidations(w, reg=None, after=None, limit="8"):
++    encoded = w.service.invalidations({"schema_version": wire.VERSION, "registration": reg or w.reg,
++        "after_invalidation_id": after, "limit": limit}, SECRET)
++    assert isinstance(encoded, bytes) and len(encoded) <= 196_608
++    return json.loads(encoded)["result"]
++
++
++def ack_request(w, record, *, reg=None):
++    return {"schema_version": wire.VERSION, "registration": reg or w.reg,
++        "acknowledgement": {"invalidation": record, "local_commit": {"previous_revision": "10", "committed_revision": "11"}}}
++
++
++def confirm_request(w, receipt):
++    return {"schema_version": wire.VERSION, "registration": w.reg, "confirmation": {
++        "operation_id": str(uuid4()), "playback_session_id": "explicit-fixture-user-action",
++        "distribution": receipt, "invalidation_generation": "0", "observation": "played",
++        "local_commit": {"previous_revision": "8", "committed_revision": "9"}}}
++
++
++def finish(w, replacement):
++    return w.service.publish_replacement(operation_id=str(uuid4()), replacement_id=replacement["replacement_id"],
++        expected_revision=int(manifest(w)["revision"]))
++
++
++def new_registration(w):
++    with _database(w.settings) as conn:
++        value = registrations.register(conn, destination_id=w.reg["destination_id"], operation_id=str(uuid4()), secret=SECRET)
++    return {key: value[key] for key in ("destination_id", "registration_id", "generation")}
++
++
++def headers():
++    return {"Authorization": "Bearer storage-test-bootstrap", "X-FrameRelay-Registration-Secret": SECRET}
++
++
++def client(w, *, production=False):
++    app = FastAPI()
++    app.include_router(create_router(lambda: PublicationService(w.settings) if production else fixture_service(w.settings)))
++    return TestClient(app)
++
++
++def get_kwargs(request):
++    reg = request["registration"]
++    values = {**headers(), "Accept-Encoding": "identity",
++        "X-FrameRelay-Distribution-ID": header_id(request["operation_id"]),
++        "X-FrameRelay-Transport-ID": header_id(request["gate"]["operation_id"]),
++        "X-FrameRelay-Attempt-ID": header_id(request["gate"]["attempt_id"]),
++        "X-FrameRelay-Access-Generation": request["gate"]["access_generation"]}
++    if request["range"] is not None:
++        values["Range"] = f"bytes={request['range']['lower_bound']}-{int(request['range']['upper_bound'])-1}"
++    return {"headers": values, "params": {"destination_id": reg["destination_id"], "registration_id": reg["registration_id"],
++                                         "registration_generation": reg["generation"]}}
++
++
++def test_unpublished_initial_commit_does_not_fabricate_previous_or_ack(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    assert manifest(w) == {"current": None, "media_type": None, "revision": "0", "invalidation_generation": "0", "replacement_pending": False}
++    original = w.settings.media_root / ("originals/frame-relay/" + w.seed["session_id"] + ".bin")
++    with _database(w.settings) as conn:
++        original = w.settings.media_root / conn.execute("SELECT final_path FROM fr_upload_bindings WHERE session_id=?", (w.seed["session_id"],)).fetchone()[0]
++    before = original.read_bytes()
++    rendition = publish(w)
++    w.service = fixture_service(w.settings)
++    assert manifest(w)["current"] == rendition and manifest(w)["media_type"] == "video/quicktime"
++    with _database(w.settings) as conn:
++        assert conn.execute("SELECT COUNT(*) FROM fr_invalidation_acks").fetchone()[0] == 0
++        assert conn.execute("SELECT COUNT(*) FROM fr_publication_replacements").fetchone()[0] == 0
++        artifact = repository.artifact(conn, rendition["rendition_id"], w.service.authority)
++        candidate = conn.execute("SELECT candidate_path FROM fr_conversion_candidates WHERE candidate_id=?", (w.seed["candidate_id"],)).fetchone()[0]
++    assert (w.settings.media_root / artifact["path"]).stat().st_ino != (w.settings.media_root / candidate).stat().st_ino
++    assert original.read_bytes() == before and artifact["proof_kind"] == "technical_fixture"
++
++
++@pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
++def test_initial_publication_fault_reopen_and_exact_replay(tmp_path, monkeypatch, stage):
++    w = world(tmp_path, monkeypatch)
++    request = {"operation_id": str(uuid4()), "candidate_id": w.seed["candidate_id"], "expected_revision": 0}
++    def fault(step):
++        if step == stage:
++            raise Crash()
++    with pytest.raises(Crash):
++        w.service.publish_initial(**request, fault=fault)
++    w.service = fixture_service(w.settings)
++    assert (manifest(w)["current"] is not None) == (stage == "after_commit")
++    result = w.service.publish_initial(**request)
++    assert w.service.publish_initial(**request) == result
++    with pytest.raises(PublicationError, match="operation_conflict"):
++        w.service.publish_initial(**{**request, "expected_revision": 9})
++    with _database(w.settings) as conn:
++        assert conn.execute("SELECT COUNT(*) FROM fr_publication_artifacts").fetchone()[0] == 1
++
++
++def test_dynamic_required_recipients_preserve_old_registration_and_reject_old_ack_substitution(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    v1 = publish(w)
++    first = source_request(w, v1)
++    w.service.accept_distribution(first, SECRET)
++    replacement = begin(w)
++    old_record = invalidations(w)["invalidations"][0]
++    reg2 = new_registration(w)
++    w.service.accept_distribution(source_request(w, v1, reg=reg2), SECRET)
++    second_record = invalidations(w, reg2)["invalidations"][0]
++    with pytest.raises(PublicationError, match="ack_mismatch"):
++        w.service.acknowledge(ack_request(w, old_record, reg=reg2), SECRET)
++    w.service.acknowledge(ack_request(w, second_record, reg=reg2), SECRET)
++    with pytest.raises(PublicationError, match="awaiting_acknowledgements"):
++        finish(w, replacement)
++    with pytest.raises(PublicationError, match="invalidated"):
++        w.service.accept_distribution(source_request(w, v1, reg=reg2), SECRET)
++    assert manifest(w)["current"] == v1
++    w.service.acknowledge(ack_request(w, old_record), SECRET)
++    v2 = finish(w, replacement)["rendition"]
++    assert v2 == replacement["rendition"] and v2 != v1
++    with _database(w.settings) as conn:
++        assert conn.execute("SELECT COUNT(*) FROM fr_publication_recipients WHERE rendition_id=?", (v1["rendition_id"],)).fetchone()[0] == 2
++
++
++@pytest.mark.parametrize("mutation", ["range", "kind", "gate", "source", "rendition"])
++def test_same_distribution_operation_requires_entire_payload(tmp_path, monkeypatch, mutation):
++    w = world(tmp_path, monkeypatch)
++    _source, _receipt, request = accepted_read(w, publish(w))
++    changed = deepcopy(request)
++    if mutation == "range": changed["range"]["upper_bound"] = "31"
++    elif mutation == "kind": changed["kind"] = "resume"
++    elif mutation == "gate": changed["gate"]["attempt_id"] = "other"
++    elif mutation == "source": changed["source_operation_id"] = str(uuid4())
++    else: changed["rendition"]["conversion_version"] = "other"
++    with pytest.raises(PublicationError, match="operation_conflict"):
++        w.service.accept_distribution(changed, SECRET)
++
++
++def test_identical_operation_ids_in_two_registrations_have_independent_concurrent_admissions(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    rendition = publish(w)
++    reg2 = new_registration(w)
++    first = accepted_read(w, rendition, source_id="same-source", read_id="same-read")[2]
++    second_request = accepted_read(w, rendition, reg=reg2, source_id="same-source", read_id="same-read")[2]
++    barrier = Barrier(2)
++    def read(request):
++        result = open_request(w, request, fault=lambda step: barrier.wait(timeout=10) if step == "after_hash" else None)
++        return b"".join(result), result.closed
++    with ThreadPoolExecutor(max_workers=2) as executor:
++        futures = [executor.submit(read, value) for value in (first, second_request)]
++        assert [future.result(timeout=20) for future in futures] == [(MOV[:32], True), (MOV[:32], True)]
++    with _database(w.settings) as conn:
++        assert conn.execute("SELECT COUNT(*) FROM fr_get_admissions WHERE distribution_operation_id='same-read'").fetchone()[0] == 2
++
++
++def test_same_registration_concurrent_ticket_consumption_has_one_winner(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    request = accepted_read(w, publish(w))[2]
++    barrier = Barrier(2)
++    def read():
++        try:
++            result = open_request(w, request, fault=lambda step: barrier.wait(timeout=10) if step == "after_hash" else None)
++            return b"".join(result)
++        except PublicationError as error:
++            return error.code
++    with ThreadPoolExecutor(max_workers=2) as executor:
++        futures = [executor.submit(read) for _ in range(2)]
++        results = [future.result(timeout=20) for future in futures]
++    assert results.count(MOV[:32]) == 1 and results.count("publication_get_consumed") == 1
++
++
++@pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
++def test_distribution_response_loss_reopen_returns_exact_request_and_receipt(tmp_path, monkeypatch, stage):
++    w = world(tmp_path, monkeypatch)
++    request = source_request(w, publish(w))
++    def fault(step):
++        if step == stage: raise Crash()
++    with pytest.raises(Crash): w.service.accept_distribution(request, SECRET, fault=fault)
++    w.service = fixture_service(w.settings)
++    query = {"schema_version": wire.VERSION, "registration": w.reg, "kind": "distribution", "operation_id": request["operation_id"]}
++    if stage == "before_commit":
++        with pytest.raises(PublicationError, match="not_executed"): w.service.lookup(query, SECRET)
++    result = w.service.accept_distribution(request, SECRET)
++    lookup = w.service.lookup(query, SECRET)
++    assert lookup["request"] == query
++    assert lookup["result"] == {"original_request": request, "original_result": result["result"]}
++
++
++@pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
++def test_get_commit_loss_and_interrupted_body_require_new_acceptance(tmp_path, monkeypatch, stage):
++    w = world(tmp_path, monkeypatch)
++    source, _receipt, request = accepted_read(w, publish(w))
++    def fault(step):
++        if step == stage: raise Crash()
++    with pytest.raises(Crash): open_request(w, request, fault=fault)
++    if stage == "after_commit":
++        with pytest.raises(PublicationError, match="get_consumed"): open_request(w, request)
++    else:
++        result = open_request(w, request)
++        result.close()  # Body never starts; admission is nevertheless consumed.
++        assert result.closed and result.delivered_bytes == 0
++    next_request = read_request(source)
++    w.service.accept_distribution(next_request, SECRET)
++    result = open_request(w, next_request)
++    iterator = iter(result)
++    assert next(iterator) == MOV[:32]
++    iterator.close()
++    assert result.closed
++    with pytest.raises(PublicationError, match="get_consumed"): open_request(w, next_request)
++
++
++def test_get_whole_hash_is_outside_writer_and_rechecks_publication_before_bytes(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    v1 = publish(w)
++    request = accepted_read(w, v1)[2]
++    replacement = begin(w)
++    observed = []
++    def fault(step):
++        if step == "artifact_read_block" and not observed:
++            with _database(w.settings) as conn:
++                conn.execute("CREATE TABLE publication_other_writer(value INTEGER)")
++                conn.commit()
++            observed.append(step)
++        if step == "after_hash":
++            w.service.acknowledge(ack_request(w, invalidations(w)["invalidations"][0]), SECRET)
++            finish(w, replacement)
++    with pytest.raises(PublicationError, match="stale_rendition"):
++        open_request(w, request, fault=fault)
++    assert observed
++    with _database(w.settings) as conn:
++        assert conn.execute("SELECT COUNT(*) FROM fr_get_admissions").fetchone()[0] == 0
++
++
++def test_accepted_old_response_keeps_its_inode_after_ack_and_publication(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    v1 = publish(w)
++    source, _receipt, request = accepted_read(w, v1)
++    accepted = open_request(w, request)
++    inode = os.fstat(accepted.source.fileno()).st_ino
++    replacement = begin(w)
++    w.service.acknowledge(ack_request(w, invalidations(w)["invalidations"][0]), SECRET)
++    finish(w, replacement)
++    assert os.fstat(accepted.source.fileno()).st_ino == inode
++    assert b"".join(accepted) == MOV[:32] and accepted.closed
++    with pytest.raises(PublicationError, match="stale_rendition"):
++        w.service.accept_distribution(read_request(source), SECRET)
++
++
++@pytest.mark.parametrize("change", ["same_size", "truncate", "replace", "symlink", "hardlink"])
++def test_changed_artifact_after_hash_is_rejected_without_admission(tmp_path, monkeypatch, change):
++    w = world(tmp_path, monkeypatch)
++    request = accepted_read(w, publish(w))[2]
++    with _database(w.settings) as conn:
++        item = repository.artifact(conn, request["rendition"]["rendition_id"], w.service.authority)
++    path = w.settings.media_root / item["path"]
++    def fault(step):
++        if step != "after_hash": return
++        if change in ("same_size", "truncate"):
++            path.chmod(0o600)
++            path.write_bytes(b"x"*len(MOV) if change == "same_size" else MOV[:20])
++        elif change == "replace":
++            other = path.with_suffix(".external"); other.write_bytes(MOV); other.replace(path)
++        elif change == "symlink":
++            other = path.with_suffix(".external"); other.write_bytes(MOV); path.unlink(); path.symlink_to(other)
++        else:
++            os.link(path, path.with_suffix(".external-link"))
++    with pytest.raises((PublicationError, StorageError)):
++        open_request(w, request, fault=fault)
++    with _database(w.settings) as conn:
++        assert conn.execute("SELECT COUNT(*) FROM fr_get_admissions").fetchone()[0] == 0
++
++
++def test_candidate_alias_write_after_hash_does_not_mutate_sealed_inode(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    request = accepted_read(w, publish(w))[2]
++    with _database(w.settings) as conn:
++        path = w.settings.media_root / conn.execute("SELECT candidate_path FROM fr_conversion_candidates WHERE candidate_id=?", (w.seed["candidate_id"],)).fetchone()[0]
++    alias = path.with_suffix(".alias"); os.link(path, alias)
++    def fault(step):
++        if step == "after_hash": alias.write_bytes(b"x"*len(MOV))
++    result = open_request(w, request, fault=fault)
++    assert b"".join(result) == MOV[:32] and result.closed
++
++
++def test_external_inplace_write_after_admission_is_detected_without_claiming_retraction(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    request = accepted_read(w, publish(w))[2]
++    result = open_request(w, request)
++    path = w.settings.media_root / result.item["path"]
++    path.chmod(0o600); path.write_bytes(b"x"*len(MOV))
++    with pytest.raises(PublicationError, match="artifact_changed"): next(iter(result))
++    assert result.closed and result.delivered_bytes == 0
++    # This observes detection before the first block, not prevention of arbitrary
++    # external writes between a subsequent check and a network send.
++
++
++def test_sealed_artifact_cannot_be_written_aliased_or_removed_by_app_helpers(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    rendition = publish(w)
++    with _database(w.settings) as conn:
++        item = repository.artifact(conn, rendition["rendition_id"], w.service.authority)
++        heads = [dict(row) for row in conn.execute("SELECT * FROM fr_publication_heads ORDER BY original_key")]
++        pointer = dict(conn.execute("SELECT active_processed_result_id,review_status FROM assets WHERE id=?", (w.seed["asset_id"],)).fetchone())
++    artifact = w.settings.media_root / item["path"]
++    before = files.current_fingerprint(w.settings.media_root, item["path"])
++    sentinel = tmp_path / "outside-publication-sentinel"
++    sentinel.write_bytes(b"external bytes must remain")
++    sentinel_before = sentinel.stat()
++    with files.exclusive_writer(w.settings.media_root, "tmp/unsealed-source") as stream:
++        stream.write(b"unsealed source must remain")
++    prefixes = ("publications/frame-relay", "./publications/frame-relay", "publications//frame-relay",
++        "publications/./frame-relay", "publications/frame-relay/.", "Publications/Frame-Relay",
++        "PUBLICATIONS/FRAME-RELAY", "./Publications//Frame-Relay/.")
++    for prefix in prefixes:
++        existing = prefix + "/" + artifact.name
++        fresh = prefix + "/" + str(uuid4()) + ".media"
++        for relative in (prefix, existing, fresh):
++            with pytest.raises(StorageError, match="sealed"):
++                with files.exclusive_writer(w.settings.media_root, relative): pass
++            with pytest.raises(StorageError, match="sealed"):
++                files.publish(w.settings.media_root, relative, "tmp/publish-alias")
++            with pytest.raises(StorageError, match="sealed"):
++                files.publish(w.settings.media_root, "tmp/unsealed-source", relative)
++            with pytest.raises(StorageError, match="sealed"):
++                files.remove_owned(w.settings.media_root, relative)
++        assert not (w.settings.media_root / fresh).exists()
++        assert not (w.settings.media_root / "tmp/publish-alias").exists()
++        assert artifact.read_bytes() == MOV
++        assert files.current_fingerprint(w.settings.media_root, item["path"]) == before
++        assert (w.settings.media_root / "tmp/unsealed-source").read_bytes() == b"unsealed source must remain"
++        assert sentinel.read_bytes() == b"external bytes must remain"
++        current = sentinel.stat()
++        assert (current.st_dev, current.st_ino, current.st_size, current.st_mtime_ns, current.st_ctime_ns) == (
++            sentinel_before.st_dev, sentinel_before.st_ino, sentinel_before.st_size, sentinel_before.st_mtime_ns, sentinel_before.st_ctime_ns)
++        with _database(w.settings) as conn:
++            assert [dict(row) for row in conn.execute("SELECT * FROM fr_publication_heads ORDER BY original_key")] == heads
++            assert dict(conn.execute("SELECT active_processed_result_id,review_status FROM assets WHERE id=?", (w.seed["asset_id"],)).fetchone()) == pointer
++
++
++@pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
++def test_confirmation_and_ack_fault_reopen_never_restore_invalidated_confirmation(tmp_path, monkeypatch, stage):
++    w = world(tmp_path, monkeypatch)
++    v1 = publish(w)
++    source = source_request(w, v1)
++    receipt = w.service.accept_distribution(source, SECRET)["result"]["receipt"]
++    confirmation = confirm_request(w, receipt)
++    def fault(step):
++        if step == stage: raise Crash()
++    with pytest.raises(Crash): w.service.confirm(confirmation, SECRET, fault=fault)
++    w.service = fixture_service(w.settings)
++    accepted = w.service.confirm(confirmation, SECRET)
++    replacement = begin(w)
++    ack = ack_request(w, invalidations(w)["invalidations"][0])
++    with pytest.raises(Crash): w.service.acknowledge(ack, SECRET, fault=fault)
++    w.service = fixture_service(w.settings)
++    assert w.service.acknowledge(ack, SECRET)["result"]["accepted"]
++    assert w.service.confirm(confirmation, SECRET) == accepted  # Historical acceptance only.
++    changed = deepcopy(confirmation); changed["confirmation"]["operation_id"] = str(uuid4())
++    with pytest.raises(PublicationError, match="invalidated"): w.service.confirm(changed, SECRET)
++    lookup = {"schema_version": wire.VERSION, "registration": w.reg, "kind": "acknowledgement",
++              "operation_id": ack["acknowledgement"]["invalidation"]["invalidation_id"]}
++    assert w.service.lookup(lookup, SECRET)["result"]["original_request"] == ack
++    finish(w, replacement)
++
++
++def test_candidate_failure_after_invalidation_keeps_tombstone_and_old_pointer(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    v1 = publish(w)
++    _source, _response, request = accepted_read(w, v1)
++    replacement = begin(w)
++    w.service.acknowledge(ack_request(w, invalidations(w)["invalidations"][0]), SECRET)
++    with _database(w.settings) as conn:
++        item = repository.artifact(conn, replacement["rendition"]["rendition_id"], w.service.authority)
++    (w.settings.media_root/item["path"]).unlink()  # External fault, never app cleanup.
++    with pytest.raises(OSError): finish(w, replacement)
++    assert manifest(w)["current"] == v1
++    with pytest.raises(PublicationError, match="invalidated"): open_request(w, request)
++
++
++@pytest.mark.parametrize("entry", ["manifest", "distribution", "get", "lookup", "publish"])
++def test_normal_production_authority_rejects_fixture_database_after_reopen(tmp_path, monkeypatch, entry):
++    w = world(tmp_path, monkeypatch)
++    rendition = publish(w)
++    source, _response, request = accepted_read(w, rendition)
++    w.service = PublicationService(w.settings)
++    with pytest.raises(PublicationError, match="proof_not_implemented"):
++        if entry == "manifest": manifest(w)
++        elif entry == "distribution": w.service.accept_distribution(source, SECRET)
++        elif entry == "get": open_request(w, request)
++        elif entry == "lookup": w.service.lookup({"schema_version": wire.VERSION, "registration": w.reg, "kind": "distribution", "operation_id": source["operation_id"]}, SECRET)
++        else: w.service.publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)
++
++
++def test_boolean_rec709_forgery_does_not_enable_production_authority(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    with _database(w.settings) as conn:
++        row = conn.execute("SELECT output_json FROM fr_conversion_candidates WHERE candidate_id=?", (w.seed["candidate_id"],)).fetchone()
++        value = json.loads(row[0]); value["published"] = True; value["rec709_verified"] = True
++        conn.execute("UPDATE fr_conversion_candidates SET output_json=? WHERE candidate_id=?", (json.dumps(value), w.seed["candidate_id"])); conn.commit()
++    with pytest.raises(PublicationError, match="proof_not_implemented"):
++        PublicationService(w.settings).publish_initial(operation_id=str(uuid4()), candidate_id=w.seed["candidate_id"], expected_revision=0)
++    with _database(w.settings) as conn:
++        assert conn.execute("SELECT COUNT(*) FROM fr_publication_artifacts").fetchone()[0] == 0
++
++
++@pytest.mark.parametrize("operation", ["distribution", "confirmation", "acknowledgement", "publication"])
++def test_sqlite_failure_rolls_back_entire_publication_mutation(tmp_path, monkeypatch, operation):
++    w = world(tmp_path, monkeypatch)
++    v1 = publish(w)
++    source = source_request(w, v1)
++    receipt = w.service.accept_distribution(source, SECRET)["result"]["receipt"]
++    replacement = begin(w)
++    acknowledgement = ack_request(w, invalidations(w)["invalidations"][0])
++    if operation == "publication": w.service.acknowledge(acknowledgement, SECRET)
++    other_reg = new_registration(w) if operation == "distribution" else None
++    before = manifest(w)
++    with _database(w.settings) as conn:
++        conn.execute("CREATE TRIGGER publication_fault BEFORE INSERT ON fr_publication_operations BEGIN SELECT RAISE(ABORT,'injected disk failure'); END;")
++        conn.commit()
++    with pytest.raises(sqlite3.DatabaseError):
++        if operation == "distribution": w.service.accept_distribution(source_request(w, v1, reg=other_reg), SECRET)
++        elif operation == "confirmation": w.service.confirm(confirm_request(w, receipt), SECRET)
++        elif operation == "acknowledgement": w.service.acknowledge(acknowledgement, SECRET)
++        else: finish(w, replacement)
++    w.service = fixture_service(w.settings)
++    assert manifest(w) == before
++    with _database(w.settings) as conn:
++        assert conn.execute("SELECT COUNT(*) FROM fr_invalidation_acks").fetchone()[0] == int(operation == "publication")
++        assert conn.execute("SELECT COUNT(*) FROM fr_publication_recipients").fetchone()[0] == 1
++
++
++def test_new_004_migration_preserves_predecessor_and_rolls_back_all_new_tables(tmp_path, monkeypatch):
++    sources = migrations.migration_sources
++    path = tmp_path/"predecessor.sqlite3"
++    monkeypatch.setattr(migrations, "migration_sources", lambda: sources()[:3])
++    with closing(connect(path, 5000)) as conn:
++        run_migrations(conn); migrations.run_frame_relay_migrations(conn)
++        old = [tuple(row) for row in conn.execute("SELECT * FROM fr_schema_migrations ORDER BY version")]
++        destination = conn.execute("SELECT destination_id FROM fr_destination").fetchone()[0]
++    monkeypatch.setattr(migrations, "migration_sources", sources)
++    official = migrations.PUBLICATION_SCHEMA
++    broken = tmp_path/"broken004.sql"; broken.write_text(official.read_text()+"\nSELECT * FROM nonexistent;\n")
++    monkeypatch.setattr(migrations, "PUBLICATION_SCHEMA", broken)
++    with closing(connect(path, 5000)) as conn:
++        with pytest.raises(sqlite3.DatabaseError): migrations.run_frame_relay_migrations(conn)
++        assert conn.execute("SELECT name FROM sqlite_master WHERE name='fr_publication_heads'").fetchone() is None
++        assert [tuple(row) for row in conn.execute("SELECT * FROM fr_schema_migrations ORDER BY version")] == old
++    monkeypatch.setattr(migrations, "PUBLICATION_SCHEMA", official)
++    with closing(connect(path, 5000)) as conn:
++        migrations.run_frame_relay_migrations(conn)
++        assert [tuple(row) for row in conn.execute("SELECT * FROM fr_schema_migrations ORDER BY version")][:3] == old
++        assert conn.execute("SELECT destination_id FROM fr_destination").fetchone()[0] == destination
++
++
++@pytest.mark.parametrize("path", ["/preview", "/results/unknown", "/preview-confirmation"])
++def test_old_http_entries_without_version_header_never_deliver_or_confirm_fr_asset(tmp_path, monkeypatch, path):
++    w = world(tmp_path, monkeypatch)
++    publish(w)
++    from app.main import app
++    with TestClient(app) as legacy:
++        call = legacy.post if path.endswith("confirmation") else legacy.get
++        result = call(f"/assets/{w.seed['asset_id']}"+path, headers={"Authorization": "Bearer storage-test-bootstrap"})
++    assert result.status_code in (409, 503)
++    assert MOV[:20] not in result.content
++    with _database(w.settings) as conn:
++        asset = conn.execute("SELECT * FROM assets WHERE id=?", (w.seed["asset_id"],)).fetchone()
++        assert asset["active_processed_result_id"] is None and asset["review_status"] != "preview_confirmed"
++
++
++def test_direct_legacy_read_confirmation_and_pointer_helpers_reject_managed_asset(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    from app.services.preview_stream import open_preview_stream
++    from app.services.processed_result_stream import open_processed_result_stream
++    from app.services.asset_read import confirm_preview
++    from app.services.phase2b_migration import _execute_phase2b_sql, Phase2BMigrationError
++    for method, kwargs in ((open_preview_stream, {"range_header": None}),
++            (open_processed_result_stream, {"range_header": None, "result_id": "unknown"}), (confirm_preview, {})):
++        with pytest.raises(StorageError): method(settings=w.settings, asset_id=w.seed["asset_id"], **kwargs)
++    with _database(w.settings) as conn:
++        with pytest.raises(Phase2BMigrationError, match="legacy_migration_forbidden"):
++            _execute_phase2b_sql(conn, fault_injector=None)
++        with pytest.raises(sqlite3.DatabaseError, match="publication ledger"):
++            conn.execute("UPDATE assets SET active_processed_result_id='legacy' WHERE id=?", (w.seed["asset_id"],))
++        conn.rollback()
++        with pytest.raises(sqlite3.DatabaseError, match="confirmation ledger"):
++            conn.execute("UPDATE assets SET review_status='preview_confirmed' WHERE id=?", (w.seed["asset_id"],))
++        conn.rollback()
++
++
++@pytest.mark.parametrize("body", [b'{"schema_version":"fr-publication-v1","schema_version":"fr-publication-v1"}', b'\xff', b'{"x":NaN}', b'[]'])
++def test_wire_rejects_duplicate_non_utf8_nonfinite_and_nonobject_json(tmp_path, monkeypatch, body):
++    w = world(tmp_path, monkeypatch)
++    with client(w) as http: result = http.post(PREFIX+"/manifest", content=body, headers=headers())
++    assert result.status_code == 422
++
++
++@pytest.mark.parametrize("change", ["unknown_json", "duplicate_query", "unknown_query", "padded_header", "changed_gate", "changed_range"])
++def test_wire_exact_requests_reject_normalization_and_substitution(tmp_path, monkeypatch, change):
++    w = world(tmp_path, monkeypatch)
++    request = accepted_read(w, publish(w))[2]
++    kwargs = get_kwargs(request)
++    with client(w) as http:
++        if change == "unknown_json":
++            result = http.post(PREFIX+"/distributions", json={**request, "unknown": True}, headers=headers())
++        else:
++            if change == "duplicate_query": kwargs["params"] = list(kwargs["params"].items()) + [("registration_id", w.reg["registration_id"])]
++            elif change == "unknown_query": kwargs["params"]["ignored"] = "no"
++            elif change == "padded_header": kwargs["headers"]["X-FrameRelay-Distribution-ID"] += "="
++            elif change == "changed_gate": kwargs["headers"]["X-FrameRelay-Attempt-ID"] = header_id("other-attempt")
++            else: kwargs["headers"]["Range"] = "bytes=0-30"
++            result = http.get(PREFIX+"/media/"+request["rendition"]["rendition_id"], **kwargs)
++    assert result.status_code in (409, 422) and MOV[:20] not in result.content
++    with _database(w.settings) as conn: assert conn.execute("SELECT COUNT(*) FROM fr_get_admissions").fetchone()[0] == 0
++
++
++def test_canonical_http_get_single_consumption_and_matching_quicktime_identity(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    request = accepted_read(w, publish(w))[2]
++    with client(w) as http:
++        url = PREFIX+"/media/"+request["rendition"]["rendition_id"]
++        result = http.get(url, **get_kwargs(request))
++        assert result.status_code == 206 and result.content == MOV[:32]
++        assert result.headers["Content-Type"] == "video/quicktime"
++        assert result.headers["X-FrameRelay-Distribution-ID"] == header_id(request["operation_id"])
++        again = http.get(url, **get_kwargs(request))
++        assert again.status_code == 409 and again.json()["code"] == "publication_get_consumed"
++        assert MOV[:20] not in again.content and manifest(w)["current"] == request["rendition"]
++
++
++def test_pinned_response_closes_fd_even_when_asgi_send_fails_before_body(tmp_path, monkeypatch):
++    import asyncio
++    from starlette.requests import ClientDisconnect
++    w = world(tmp_path, monkeypatch)
++    accepted = open_request(w, accepted_read(w, publish(w))[2])
++    response = PinnedResponse(accepted)
++    async def receive(): return {"type": "http.disconnect"}
++    async def send(_message): raise OSError("disconnected before body")
++    with pytest.raises((OSError, ClientDisconnect)):
++        asyncio.run(response({"type": "http", "asgi": {"spec_version": "2.4"}}, receive, send))
++    assert accepted.closed and accepted.source.closed and accepted.delivered_bytes == 0
++
++
++@pytest.mark.parametrize("data", [b"", b"\0\0\0\x14ftypqt  ", b"\0\1\0\x04ftypqt  \0\0\0\0", b"\0\0\0\x13ftypqt  \0\0\0\0xxx", b"\0\0\0\x10ftypnope\0\0\0\0"])
++def test_container_identification_rejects_truncation_length_and_unknown_brand(data):
++    with pytest.raises(PublicationError): container_type(data, len(data))
++
++
++def test_opaque_ids_are_losslessly_encoded_and_noncanonical_headers_rejected():
++    value = " opaque/日本語:\x01 "
++    assert parse_header_id(header_id(value)) == value
++    for changed in (header_id(value)+"=", "a", "***", "YQ==", "YR"):
++        with pytest.raises(PublicationError): parse_header_id(changed)
++
++
++def test_invalidation_pagination_is_bounded_progresses_and_repolls_lower_ids(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    v1 = publish(w); w.service.accept_distribution(source_request(w, v1), SECRET)
++    begin(w, invalidation_id="z-first")
++    first = invalidations(w, limit="1")
++    assert len(first["invalidations"]) == 1 and first["next_after"] is None
++    # Independent original gets its own publication/replacement; old unfinished
++    # registrations do not stop another original's work.
++    seed = seed_candidate(w.settings, w.reg, SECRET, MOV, "another-original", str(uuid4()))
++    other = SimpleNamespace(settings=w.settings, reg=w.reg, seed=seed, service=w.service)
++    v_other = publish(other); other.service.accept_distribution(source_request(other, v_other), SECRET)
++    begin(other, invalidation_id="a-later")
++    assert invalidations(w, after="z-first")["invalidations"] == []
++    page = invalidations(w, limit="1")
++    assert page["invalidations"][0]["invalidation_id"] == "a-later" and page["next_after"] == "a-later"
++    next_page = invalidations(w, after=page["next_after"], limit="1")
++    assert next_page["invalidations"][0]["invalidation_id"] == "z-first" and next_page["next_after"] is None
++    assert invalidations(w, after="z-first")["next_after"] is None
++
++
++def test_maximum_escaped_invalidation_fits_single_page_and_exact_bytes_are_retained(tmp_path, monkeypatch):
++    w = world(tmp_path, monkeypatch)
++    rendition = publish(w)
++    maximum = "\x01"*1024
++    rendition["original"]["capture_id"] = maximum
++    for key in ("input_log_identity", "transform_asset_identity", "transform_asset_version", "output_configuration_identity", "conversion_version"):
++        rendition[key] = maximum
++    record = {"invalidation_id": maximum, "rendition": rendition,
++        "registration": {"destination_id": maximum, "registration_id": maximum, "generation": str((1<<64)-1)},
++        "invalidation_generation": str((1<<64)-1)}
++    wire.Invalidation.model_validate(record)
++    values = [{**deepcopy(record), "invalidation_id": maximum[:-1]+chr(index+2)} for index in range(9)]
++    monkeypatch.setattr(repository, "pending_invalidations", lambda *_args: values)
++    request = {"schema_version": wire.VERSION, "registration": w.reg, "after_invalidation_id": maximum, "limit": "8"}
++    encoded = w.service.invalidations(request, SECRET)
++    assert len(json_bytes({"schema_version": wire.VERSION, "request": request,
++        "result": {"invalidations": [record], "next_after": maximum}})) < 196_608
++    result = json.loads(encoded)["result"]
++    assert 0 < len(result["invalidations"]) < 8 and result["next_after"] == result["invalidations"][-1]["invalidation_id"]
++    from app.api.frame_relay_publication import response
++    assert response(encoded).body is encoded and len(encoded) <= 196_608
++
++
++@pytest.mark.parametrize("stage", ["before_commit", "after_commit"])
++def test_replacement_publication_fault_reopen_and_historical_ack_replay(tmp_path, monkeypatch, stage):
++    w = world(tmp_path, monkeypatch)
++    v1 = publish(w)
++    w.service.accept_distribution(source_request(w, v1), SECRET)
++    replacement = begin(w)
++    ack = ack_request(w, invalidations(w)["invalidations"][0])
++    acknowledged = w.service.acknowledge(ack, SECRET)
++    request = {"operation_id": str(uuid4()), "replacement_id": replacement["replacement_id"],
++               "expected_revision": int(manifest(w)["revision"])}
++    def fault(step):
++        if step == stage: raise Crash()
++    with pytest.raises(Crash): w.service.publish_replacement(**request, fault=fault)
++    w.service = fixture_service(w.settings)
++    expected = v1 if stage == "before_commit" else replacement["rendition"]
++    assert manifest(w)["current"] == expected
++    result = w.service.publish_replacement(**request)
++    assert w.service.publish_replacement(**request) == result
++    assert w.service.acknowledge(ack, SECRET) == acknowledged
++    assert manifest(w)["current"] == replacement["rendition"]
++
++
++@pytest.mark.parametrize("field", ["invalidation_id", "invalidation_generation", "rendition", "local_commit"])
++def test_wrong_or_reused_ack_payload_never_satisfies_required_registration(tmp_path, monkeypatch, field):
++    w = world(tmp_path, monkeypatch)
++    v1 = publish(w); w.service.accept_distribution(source_request(w, v1), SECRET)
++    replacement = begin(w)
++    original = ack_request(w, invalidations(w)["invalidations"][0])
++    changed = deepcopy(original)
++    if field == "local_commit":
++        w.service.acknowledge(original, SECRET)
++        changed["acknowledgement"]["local_commit"] = {"previous_revision": "20", "committed_revision": "21"}
++    elif field == "rendition": changed["acknowledgement"]["invalidation"]["rendition"]["conversion_version"] = "other"
++    else: changed["acknowledgement"]["invalidation"][field] = "999" if field.endswith("generation") else str(uuid4())
++    with pytest.raises(PublicationError): w.service.acknowledge(changed, SECRET)
++    if field != "local_commit":
++        with pytest.raises(PublicationError, match="awaiting_acknowledgements"): finish(w, replacement)
++
++
++def test_sqlite_get_admission_failure_closes_pinned_fd_and_leaves_ticket_unused(tmp_path, monkeypatch):
++    from contextlib import contextmanager
++    w = world(tmp_path, monkeypatch)
++    request = accepted_read(w, publish(w))[2]
++    observed = []
++    real = files.verified_reader
++    @contextmanager
++    def tracked(*args, **kwargs):
++        with real(*args, **kwargs) as value:
++            observed.append(value[0])
++            yield value
++    monkeypatch.setattr(files, "verified_reader", tracked)
++    with _database(w.settings) as conn:
++        conn.execute("CREATE TRIGGER admission_fault BEFORE INSERT ON fr_get_admissions BEGIN SELECT RAISE(ABORT,'injected admission failure'); END;")
++        conn.commit()
++    with pytest.raises(sqlite3.DatabaseError): open_request(w, request)
++    assert len(observed) == 1 and observed[0].closed
++    with _database(w.settings) as conn:
++        assert conn.execute("SELECT COUNT(*) FROM fr_get_admissions").fetchone()[0] == 0
++        conn.execute("DROP TRIGGER admission_fault"); conn.commit()
++    assert b"".join(open_request(w, request)) == MOV[:32]
+--- a/backend/tests/test_frame_relay_storage.py
++++ b/backend/tests/test_frame_relay_storage.py
+@@ -660,7 +660,7 @@
+         migrations.run_frame_relay_migrations(conn)
+         assert tuple(conn.execute("SELECT version,sha256 FROM fr_schema_migrations WHERE version=?",(original[0],)).fetchone()) == original
+         assert conn.execute("SELECT destination_id FROM fr_destination").fetchone()[0] == destination
+-        assert conn.execute("SELECT COUNT(*) FROM fr_schema_migrations").fetchone()[0] == 3
++        assert conn.execute("SELECT COUNT(*) FROM fr_schema_migrations").fetchone()[0] == 4
+ 
+ 
+ def test_worker_standalone_checks_fr_schema_before_recovery_or_claim(monkeypatch,tmp_path):

@@ -1,0 +1,50 @@
+--- DI21/FrameRelayTests/Integration/Storage/BackgroundUploadChunkStoreTests.swift
++++ DI22/FrameRelayTests/Integration/Storage/BackgroundUploadChunkStoreTests.swift
+@@ -239,11 +239,16 @@
+                     id: "chunk-invalidation-" + UUID().uuidString))))
+             default:
+                 _ = try await f.originalChange(.release(attempt.lease))
++                let pending = try await mediaSnapshot(f.store), readers = try await mediaOriginalSnapshot(f.store)
++                #expect(pending.requests[0].transport == .active && pending.backgroundTasks.isEmpty)
++                #expect(readers.originals[0].readers.isEmpty)
+                 try await f.reserveRemoval()
+             }
+             let before = try await mediaSnapshot(f.store)
+-            #expect(chunkStoreIsRejected(await f.store.commit(try await f.mutation(.backgroundTask(
+-                command: .init(rawValue: UUID().uuidString), value: .prepared(attempt.intent))))))
++            let result = await f.store.commit(try await f.mutation(.backgroundTask(
++                command: .init(rawValue: UUID().uuidString), value: .prepared(attempt.intent))))
++            #expect(chunkStoreIsRejected(result))
++            if race == "removal" { #expect(result == .rejected(.deletionUnresolved)) }
+             #expect(try await mediaSnapshot(f.store) == before)
+             #expect(try await mediaSnapshot(f.reopen()) == before)
+             try await f.assertOriginal()
+@@ -488,8 +493,8 @@
+         guard case .committed(let receipt) = await store.commit(mutation) else { throw BackendContractError.notCommitted }
+         return receipt
+     }
+-    func originalChange(_ value: OriginalStoreChange) async throws -> OriginalStoreJournalEntry {
+-        let mutation = OriginalStoreMutation(operation: .init(rawValue: UUID().uuidString),
++    func originalChange(_ value: OriginalStoreChange, operation: MediaOperationID = .init(rawValue: UUID().uuidString)) async throws -> OriginalStoreJournalEntry {
++        let mutation = OriginalStoreMutation(operation: operation,
+             expectedRevision: try await mediaOriginalSnapshot(store).revision, change: value)
+         guard case .committed(let receipt) = await store.commitOriginal(mutation) else { throw BackendContractError.notCommitted }
+         return .init(mutation: mutation, receipt: receipt)
+@@ -578,10 +583,14 @@
+         let target = OriginalRemovalTarget(original: source.original, reference: original.reference, operation: .init(rawValue: UUID().uuidString))
+         let batch = try OriginalRemovalBatch(operation: .init(rawValue: UUID().uuidString), purpose: .discard, targets: [target],
+             authorization: .discardRiskAcknowledged(target))
+-        _ = try await originalChange(.removalBatch(batch))
++        _ = try await originalChange(.removalBatch(batch), operation: batch.operation)
+         let state = try #require(try await mediaOriginalSnapshot(store).logicalOriginals.first)
+-        _ = try await originalChange(.reserveRemoval(batch.intent(for: target), expectedInvalidation: state.invalidationGeneration,
+-            expectedAccess: state.accessGeneration))
++        let intent = batch.intent(for: target)
++        _ = try await originalChange(.reserveRemoval(intent, expectedInvalidation: state.invalidationGeneration,
++            expectedAccess: state.accessGeneration), operation: target.operation)
++        let reserved = try await mediaOriginalSnapshot(store)
++        #expect(reserved.logicalOriginals.first?.removal == intent)
++        #expect(reserved.removalBatches.last?.targets.first?.status == .reserved(intent))
+     }
+ }
+ 

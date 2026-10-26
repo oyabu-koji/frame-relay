@@ -1,0 +1,24 @@
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-candidate-02/source-snapshot/FrameRelayTests/Application/UploadMetadataWireTests.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/UploadMetadataWireTests.swift
+index f416fc9..9796251 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/upload-metadata-candidate-02/source-snapshot/FrameRelayTests/Application/UploadMetadataWireTests.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Application/UploadMetadataWireTests.swift
+@@ -43,7 +43,8 @@ struct UploadMetadataWireTests {
+         let (f, query) = try await metadataWireQuery(lookup: true)
+         let http = try UploadMetadataWire.http(query, connection: metadataHTTPSConnection(f))
+         #expect(http.httpMethod == "GET" && http.httpBody == nil)
+-        let queryItems = try #require(URLComponents(url: try #require(http.url), resolvingAgainstBaseURL: false)?.queryItems)
++        let url = try #require(http.url)
++        let queryItems = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
+         #expect(queryItems.count == 8 && Set(queryItems.map(\.name)).count == 8)
+         #expect(queryItems.first { $0.name == "capture_id" }?.value?.utf8.elementsEqual(f.request.original.capture.rawValue.utf8) == true)
+         let response = try UploadMetadataWire.response(metadataWireData(query, state: "completed"), query: query)
+@@ -61,7 +62,8 @@ struct UploadMetadataWireTests {
+         let session = try #require(try await mediaSnapshot(f.services.store).requests.first?.session)
+         let query = try await metadataBegin(f, kind: .lookup(session))
+         let http = try UploadMetadataWire.http(query, connection: metadataHTTPSConnection(f))
+-        let encoded = try #require(URLComponents(url: try #require(http.url), resolvingAgainstBaseURL: false)?.percentEncodedQuery)
++        let url = try #require(http.url)
++        let encoded = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.percentEncodedQuery)
+         #expect(!encoded.contains("+"))
+         let pairs = try encoded.split(separator: "&").map { item -> (String, String) in
+             let pieces = item.split(separator: "=", omittingEmptySubsequences: false)

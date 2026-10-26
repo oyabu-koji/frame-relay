@@ -1,0 +1,2169 @@
+--- /dev/null
++++ b/backend/app/api/frame_relay_storage.py
+@@ -0,0 +1,66 @@
++from fastapi import APIRouter, Depends, Header, Request, HTTPException
++from fastapi.responses import JSONResponse
++from pydantic import ValidationError
++
++from app.api.deps import require_bearer_token
++from app.api.registrations import require_registration_secret
++from app.core.settings import load_settings
++from app.schemas.frame_relay_storage import StorageBindingRequest
++from app.schemas.upload_sessions import parse_content_range, validate_chunk_sha256
++from app.services import frame_relay_storage as service
++from app.repositories.frame_relay_storage import StorageError
++
++
++router = APIRouter(prefix="/frame-relay/v1/uploads", tags=["frame-relay-storage"],
++    dependencies=[Depends(require_bearer_token)])
++
++
++def response(value):
++    return JSONResponse(content=value, headers={"Cache-Control": "no-store"})
++
++
++def require_binding(request: Request):
++    if len(request.query_params.multi_items()) != len(request.query_params):
++        raise HTTPException(status_code=422, detail="Invalid storage binding")
++    try:
++        return StorageBindingRequest.model_validate(dict(request.query_params))
++    except ValidationError:
++        raise HTTPException(status_code=422, detail="Invalid storage binding") from None
++
++
++@router.post("")
++def create(request: StorageBindingRequest, secret: str = Depends(require_registration_secret)):
++    value = service.create(load_settings(), request.model_dump(), secret)
++    return response({"binding": service.public_binding(value)})
++
++
++@router.get("/{session_id}")
++def lookup(session_id: str, binding: StorageBindingRequest = Depends(require_binding),
++           secret: str = Depends(require_registration_secret)):
++    return response(service.lookup(load_settings(), session_id, binding.model_dump(), secret))
++
++
++@router.post("/{session_id}/finalize")
++def finalize(session_id: str, binding: StorageBindingRequest = Depends(require_binding),
++             secret: str = Depends(require_registration_secret)):
++    return response(service.finalize(load_settings(), session_id, binding.model_dump(), secret))
++
++
++@router.delete("/{session_id}")
++def cancel(session_id: str, binding: StorageBindingRequest = Depends(require_binding),
++           secret: str = Depends(require_registration_secret)):
++    return response(service.cancel(load_settings(), session_id, binding.model_dump(), secret))
++
++
++@router.put("/{session_id}/chunks/{index}")
++async def chunk(session_id: str, index: int, request: Request,
++                binding: StorageBindingRequest = Depends(require_binding), secret: str = Depends(require_registration_secret),
++                content_range: str | None = Header(default=None, alias="Content-Range"),
++                sha256: str | None = Header(default=None, alias="X-Chunk-SHA256")):
++    try:
++        parsed = parse_content_range(content_range)
++        digest = validate_chunk_sha256(sha256)
++    except ValueError:
++        raise StorageError("storage_chunk_request_invalid") from None
++    return response(await service.receive_chunk(load_settings(), session_id, binding.model_dump(), secret,
++        index, parsed, digest, request.stream()))
+--- a/backend/app/db/frame_relay_migrations.py
++++ b/backend/app/db/frame_relay_migrations.py
+@@ -7,6 +7,11 @@
+ 
+ SCHEMA = Path(__file__).parent / "frame_relay_schema/001_registrations.sql"
+ VERSION = "001_registrations"
++STORAGE_SCHEMA = Path(__file__).parent / "frame_relay_schema/002_storage.sql"
++
++
++def migration_sources():
++    return [(VERSION, SCHEMA), ("002_storage", STORAGE_SCHEMA)]
+ 
+ 
+ class FrameRelaySchemaError(sqlite3.DatabaseError):
+@@ -14,19 +19,20 @@
+ 
+ 
+ def validate_frame_relay_schema(conn: sqlite3.Connection) -> None:
+-    digest = hashlib.sha256(SCHEMA.read_bytes()).hexdigest()
++    expected = [(version, hashlib.sha256(path.read_bytes()).hexdigest())
++                for version, path in migration_sources()]
+     versions = [tuple(row) for row in conn.execute(
+         "SELECT version, sha256 FROM fr_schema_migrations ORDER BY version"
+     )]
+-    if versions != [(VERSION, digest)]:
++    if versions != expected:
+         raise FrameRelaySchemaError("Unsupported FrameRelay schema identity")
+ 
+ 
+ def run_frame_relay_migrations(conn: sqlite3.Connection) -> None:
+     if conn.in_transaction:
+         raise RuntimeError("FrameRelay migration requires its own transaction")
+-    sql = SCHEMA.read_text(encoding="utf-8")
+-    digest = hashlib.sha256(sql.encode("utf-8")).hexdigest()
++    sources = [(version, path.read_text(encoding="utf-8")) for version, path in migration_sources()]
++    expected = [(version, hashlib.sha256(sql.encode()).hexdigest()) for version, sql in sources]
+     try:
+         conn.execute("BEGIN IMMEDIATE")
+         conn.execute("""CREATE TABLE IF NOT EXISTS fr_schema_migrations (
+@@ -35,9 +41,9 @@
+         versions = [tuple(row) for row in conn.execute(
+             "SELECT version, sha256 FROM fr_schema_migrations ORDER BY version"
+         )]
+-        if versions and versions != [(VERSION, digest)]:
++        if versions != expected[:len(versions)]:
+             raise FrameRelaySchemaError("Unsupported FrameRelay schema identity")
+-        if not versions:
++        for (version, sql), (_version, digest) in zip(sources[len(versions):], expected[len(versions):]):
+             # executescript would implicitly commit; execute complete statements
+             # individually so DDL, destination and ledger stay in one transaction.
+             statement = ""
+@@ -48,10 +54,11 @@
+                     statement = ""
+             if statement.strip():
+                 raise RuntimeError("Incomplete FrameRelay migration")
+-            conn.execute("INSERT INTO fr_destination (singleton, destination_id) VALUES (1, ?)",
+-                         (str(uuid4()),))
++            if version == VERSION:
++                conn.execute("INSERT INTO fr_destination (singleton, destination_id) VALUES (1, ?)",
++                             (str(uuid4()),))
+             conn.execute("INSERT INTO fr_schema_migrations (version, sha256) VALUES (?, ?)",
+-                         (VERSION, digest))
++                         (version, digest))
+         if conn.execute("SELECT COUNT(*) FROM fr_destination WHERE singleton = 1").fetchone()[0] != 1:
+             raise FrameRelaySchemaError("FrameRelay destination missing; refusing replacement identity")
+         conn.commit()
+--- /dev/null
++++ b/backend/app/db/frame_relay_schema/002_storage.sql
+@@ -0,0 +1,61 @@
++CREATE TABLE fr_upload_bindings (
++    session_id TEXT PRIMARY KEY,
++    destination_id TEXT NOT NULL,
++    registration_id TEXT NOT NULL REFERENCES fr_registrations(registration_id),
++    registration_generation INTEGER NOT NULL CHECK (registration_generation > 0),
++    operation_id TEXT NOT NULL,
++    capture_id TEXT NOT NULL,
++    content_generation TEXT NOT NULL,
++    sha256 TEXT NOT NULL,
++    byte_count INTEGER NOT NULL CHECK (byte_count > 0),
++    chunk_size INTEGER NOT NULL CHECK (chunk_size > 0),
++    final_path TEXT NOT NULL UNIQUE,
++    UNIQUE (destination_id, registration_id, operation_id)
++);
++CREATE TABLE fr_upload_states (
++    session_id TEXT PRIMARY KEY REFERENCES fr_upload_bindings(session_id),
++    status TEXT NOT NULL CHECK (status IN ('receiving','finalizing','failed','cancelled','completed')),
++    finalize_job_id INTEGER UNIQUE REFERENCES jobs(id),
++    asset_id INTEGER UNIQUE REFERENCES assets(id),
++    evidence_id TEXT UNIQUE,
++    failure_code TEXT
++);
++CREATE TABLE fr_upload_chunks (
++    session_id TEXT NOT NULL REFERENCES fr_upload_bindings(session_id),
++    chunk_index INTEGER NOT NULL CHECK (chunk_index >= 0),
++    byte_count INTEGER NOT NULL CHECK (byte_count > 0),
++    sha256 TEXT NOT NULL,
++    path TEXT NOT NULL UNIQUE,
++    PRIMARY KEY (session_id, chunk_index)
++);
++CREATE TABLE fr_job_claims (
++    job_id INTEGER PRIMARY KEY REFERENCES jobs(id),
++    session_id TEXT NOT NULL REFERENCES fr_upload_bindings(session_id),
++    generation INTEGER NOT NULL CHECK (generation > 0),
++    token TEXT NOT NULL UNIQUE
++);
++CREATE TABLE fr_storage_evidence (
++    evidence_id TEXT PRIMARY KEY,
++    session_id TEXT NOT NULL UNIQUE REFERENCES fr_upload_bindings(session_id),
++    asset_id INTEGER NOT NULL UNIQUE REFERENCES assets(id),
++    schema_version TEXT NOT NULL CHECK (schema_version = 'fr-final-read-v1'),
++    sha256 TEXT NOT NULL,
++    byte_count INTEGER NOT NULL CHECK (byte_count > 0),
++    final_path TEXT NOT NULL UNIQUE,
++    fingerprint_json TEXT NOT NULL,
++    claim_generation INTEGER NOT NULL,
++    claim_token TEXT NOT NULL,
++    observed_at TEXT NOT NULL
++);
++CREATE TRIGGER fr_binding_no_update BEFORE UPDATE ON fr_upload_bindings
++BEGIN SELECT RAISE(ABORT, 'immutable FrameRelay binding'); END;
++CREATE TRIGGER fr_binding_no_delete BEFORE DELETE ON fr_upload_bindings
++BEGIN SELECT RAISE(ABORT, 'immutable FrameRelay binding'); END;
++CREATE TRIGGER fr_chunk_no_update BEFORE UPDATE ON fr_upload_chunks
++BEGIN SELECT RAISE(ABORT, 'immutable FrameRelay chunk'); END;
++CREATE TRIGGER fr_chunk_no_delete BEFORE DELETE ON fr_upload_chunks
++BEGIN SELECT RAISE(ABORT, 'immutable FrameRelay chunk'); END;
++CREATE TRIGGER fr_evidence_no_update BEFORE UPDATE ON fr_storage_evidence
++BEGIN SELECT RAISE(ABORT, 'immutable FrameRelay evidence'); END;
++CREATE TRIGGER fr_evidence_no_delete BEFORE DELETE ON fr_storage_evidence
++BEGIN SELECT RAISE(ABORT, 'immutable FrameRelay evidence'); END;
+--- a/backend/app/main.py
++++ b/backend/app/main.py
+@@ -10,6 +10,11 @@
+ from app.api.presets import router as presets_router
+ from app.api.renditions import router as renditions_router
+ from app.api.registrations import router as registrations_router
++from app.api.frame_relay_storage import router as storage_router
++from app.repositories.frame_relay_storage import StorageError as FrameRelayStorageError
++from app.repositories.registrations import RegistrationError
++from app.api.registrations import _error as registration_error_response
++import sqlite3
+ from app.api.upload_sessions import router as upload_sessions_router
+ from app.core.settings import load_settings
+ from app.db.connection import connect
+@@ -37,6 +42,26 @@
+ app = FastAPI(title="MediaVault Backend", lifespan=lifespan)
+ 
+ 
++@app.exception_handler(FrameRelayStorageError)
++async def frame_relay_storage_error(_request: Request, error: FrameRelayStorageError):
++    return JSONResponse(status_code=409, content={"code": error.code, "retryable": False},
++                        headers={"Cache-Control": "no-store"})
++
++
++@app.exception_handler(RegistrationError)
++async def frame_relay_registration_error(_request: Request, error: RegistrationError):
++    return registration_error_response(error)
++
++
++@app.exception_handler(sqlite3.DatabaseError)
++async def frame_relay_database_error(_request: Request, _error: sqlite3.DatabaseError):
++    return JSONResponse(status_code=503, content={"code": "storage_unavailable", "retryable": True},
++                        headers={"Cache-Control": "no-store"})
++
++
++app.include_router(storage_router)
++
++
+ @app.exception_handler(RequestValidationError)
+ async def validation_error_response(_request: Request, _error: RequestValidationError) -> JSONResponse:
+     """Do not reflect upload metadata, paths, or token-adjacent request details."""
+--- /dev/null
++++ b/backend/app/repositories/frame_relay_storage.py
+@@ -0,0 +1,238 @@
++"""Same-DB immutable upload ownership and fenced worker claims; no credentials stored."""
++from contextlib import closing
++from datetime import datetime, timedelta, timezone
++from functools import wraps
++import hashlib
++import inspect
++import json
++import sqlite3
++from uuid import UUID, uuid4
++
++from app.db.connection import connect
++from app.db.frame_relay_migrations import validate_frame_relay_schema
++from app.repositories.registrations import authenticate_registration
++from app.schemas.frame_relay_storage import StorageBindingRequest
++
++
++class StorageError(RuntimeError):
++    def __init__(self, code):
++        self.code = code
++        super().__init__(code)
++
++
++def canonical(value):
++    return json.dumps(value, sort_keys=True, separators=(",", ":"))
++
++
++def now_text():
++    return datetime.now(timezone.utc).isoformat(timespec="microseconds")
++
++
++def available(conn):
++    names = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
++    if "fr_schema_migrations" not in names:
++        if any(name.startswith("fr_") for name in names):
++            raise StorageError("storage_schema_unavailable")
++        return False  # A truly legacy-only database, not a broken FR ledger.
++    validate_frame_relay_schema(conn)
++    if not {"fr_upload_bindings", "fr_upload_states", "fr_upload_chunks",
++            "fr_job_claims", "fr_storage_evidence"}.issubset(names):
++        raise StorageError("storage_schema_unavailable")
++    return True
++
++
++def binding(conn, session_id):
++    if not available(conn):
++        raise StorageError("storage_schema_unavailable")
++    row = conn.execute("SELECT * FROM fr_upload_bindings WHERE session_id=?", (session_id,)).fetchone()
++    if row is None:
++        raise StorageError("storage_binding_missing")
++    value = dict(row)
++    try:
++        StorageBindingRequest.model_validate({key: str(value[key]) if key in
++            ("registration_generation", "byte_count") else value[key]
++            for key in StorageBindingRequest.model_fields})
++        if (type(value["byte_count"]) is not int or type(value["registration_generation"]) is not int or
++                type(value["chunk_size"]) is not int or value["chunk_size"] <= 0 or
++                str(UUID(value["session_id"])) != value["session_id"] or
++                value["final_path"] != "originals/frame-relay/" + value["session_id"] + ".mov"):
++            raise ValueError("Invalid binding storage identity")
++        if conn.execute("SELECT 1 FROM fr_registrations WHERE destination_id=? AND registration_id=? AND generation=?",
++            (value["destination_id"],value["registration_id"],value["registration_generation"])).fetchone() is None:
++            raise ValueError("Binding registration is missing")
++    except (ValueError, TypeError, KeyError):
++        raise StorageError("storage_binding_invalid") from None
++    return value
++
++
++def binding_digest(value):
++    return hashlib.sha256(canonical(value).encode()).hexdigest()
++
++
++def finalize_payload(value):
++    return canonical({"session_id": value["session_id"], "binding_sha256": binding_digest(value)})
++
++
++def authenticate(conn, value, secret):
++    return authenticate_registration(conn, destination_id=value["destination_id"],
++        registration_id=value["registration_id"], generation=int(value["registration_generation"]),
++        secret=secret)
++
++
++def authorize(conn, session_id, requested, secret):
++    value = binding(conn, session_id)
++    authenticate(conn, requested, secret)
++    for key in ("destination_id", "registration_id", "registration_generation", "operation_id",
++                "capture_id", "content_generation", "sha256", "byte_count"):
++        if str(value[key]) != str(requested[key]):
++            raise StorageError("storage_binding_mismatch")
++    return value
++
++
++def allocate_claim(conn, job):
++    """Called inside claim_next_job's transaction, before its commit."""
++    if not conn.in_transaction or job["job_type"] != "fr_upload_finalize":
++        raise StorageError("storage_claim_invalid")
++    try:
++        payload = json.loads(job["payload_json"])
++        value = binding(conn, payload["session_id"])
++    except (TypeError, KeyError, json.JSONDecodeError):
++        raise StorageError("storage_job_payload_invalid") from None
++    state = conn.execute("SELECT * FROM fr_upload_states WHERE session_id=?", (value["session_id"],)).fetchone()
++    if (job["payload_json"] != finalize_payload(value) or state is None or
++            state["finalize_job_id"] != job["id"] or state["status"] != "finalizing"):
++        raise StorageError("storage_job_binding_mismatch")
++    previous = conn.execute("SELECT generation FROM fr_job_claims WHERE job_id=?", (job["id"],)).fetchone()
++    generation = 1 if previous is None else previous[0] + 1
++    if not 1 <= generation < (1 << 63):
++        raise StorageError("storage_claim_exhausted")
++    token = str(uuid4())
++    conn.execute("""INSERT INTO fr_job_claims(job_id,session_id,generation,token) VALUES(?,?,?,?)
++        ON CONFLICT(job_id) DO UPDATE SET generation=excluded.generation, token=excluded.token""",
++        (job["id"], value["session_id"], generation, token))
++    return {**job, "fr_claim_generation": generation, "fr_claim_token": token}
++
++
++def current_claim(conn, job):
++    if not conn.in_transaction:
++        raise StorageError("storage_fence_requires_transaction")
++    available(conn)
++    row = conn.execute("""SELECT j.*, c.session_id, c.generation AS fr_claim_generation,
++        c.token AS fr_claim_token FROM jobs j JOIN fr_job_claims c ON j.id=c.job_id WHERE j.id=?""",
++        (job["id"],)).fetchone()
++    if (row is None or row["status"] != "running" or row["job_type"] != "fr_upload_finalize" or
++            row["lease_expires_at"] is None or row["lease_expires_at"] <= now_text() or
++            any(row[key] != job.get(key) for key in
++                ("fr_claim_generation", "fr_claim_token", "payload_json", "job_type", "dedup_key"))):
++        raise StorageError("storage_stale_claim")
++    value = binding(conn, row["session_id"])
++    state = conn.execute("SELECT * FROM fr_upload_states WHERE session_id=?", (value["session_id"],)).fetchone()
++    if (state is None or state["status"] != "finalizing" or state["finalize_job_id"] != job["id"] or
++            row["payload_json"] != finalize_payload(value)):
++        raise StorageError("storage_job_binding_mismatch")
++    return value
++
++
++def renew_claim(conn, job, seconds):
++    current_claim(conn, job)
++    if type(seconds) is not int or not 1 <= seconds <= 300:
++        raise StorageError("storage_lease_invalid")
++    conn.execute("UPDATE jobs SET lease_expires_at=? WHERE id=?",
++        ((datetime.now(timezone.utc) + timedelta(seconds=seconds)).isoformat(timespec="microseconds"), job["id"]))
++
++
++def deny_legacy_session(conn, session_id):
++    if available(conn) and conn.execute("SELECT 1 FROM fr_upload_bindings WHERE session_id=?", (session_id,)).fetchone():
++        raise StorageError("frame_relay_session_requires_bound_api")
++    if available(conn) and conn.execute("SELECT 1 FROM fr_upload_states WHERE session_id=?", (session_id,)).fetchone():
++        raise StorageError("storage_binding_missing")
++
++
++def managed_asset(conn, asset_id):
++    ready = available(conn)
++    row = conn.execute("SELECT original_path FROM assets WHERE id=?", (asset_id,)).fetchone()
++    path = None if row is None else row[0]
++    found = ready and conn.execute("SELECT 1 FROM fr_upload_bindings WHERE final_path=?", (path,)).fetchone()
++    state = ready and conn.execute("SELECT 1 FROM fr_upload_states WHERE asset_id=?", (asset_id,)).fetchone()
++    if (state or (isinstance(path, str) and path.startswith("originals/frame-relay/"))) and not found:
++        raise StorageError("storage_binding_missing")
++    return bool(found)
++
++
++def deny_legacy_asset(conn, asset_id):
++    if managed_asset(conn, asset_id):
++        # S24 creates only evidence-bound queued work. Conversion/publication are
++        # S26/S27 responsibilities, not an invitation to use legacy early returns.
++        raise StorageError("frame_relay_conversion_not_implemented")
++
++
++def legacy_entry(function):
++    """Guard explicit legacy entry points before their early returns or error writes."""
++    signature = inspect.signature(function)
++
++    def check(conn, values):
++        available(conn)  # Never bypass a broken FR schema.
++        if values.get("session_id") is not None:
++            deny_legacy_session(conn, values["session_id"])
++        if values.get("session") is not None:
++            deny_legacy_session(conn, values["session"]["id"])
++        asset_ids = [values.get("asset_id")]
++        if values.get("asset") is not None:
++            asset_ids.append(values["asset"].get("id"))
++        if values.get("outcome") is not None:
++            asset_ids.append(values["outcome"].asset_id)
++        job = values.get("job")
++        job_id = values.get("job_id") or (job or {}).get("id")
++        if job is not None:
++            asset_ids.append(job.get("asset_id"))
++            if str(job.get("job_type", "")).startswith("fr_"):
++                raise StorageError("frame_relay_job_requires_fenced_worker")
++            try:
++                supplied_payload = json.loads(job.get("payload_json"))
++            except (TypeError, json.JSONDecodeError):
++                supplied_payload = {}
++            if isinstance(supplied_payload, dict) and supplied_payload.get("session_id") is not None:
++                deny_legacy_session(conn, supplied_payload["session_id"])
++        tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
++        for key, table in (("attempt_id", "formal_preview_attempts"), ("rendition_id", "renditions")):
++            if values.get(key) is not None and table in tables:
++                target = conn.execute("SELECT asset_id FROM " + table + " WHERE id=?", (values[key],)).fetchone()
++                if target is not None:
++                    asset_ids.append(target[0])
++        if job_id is not None:
++            row = conn.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
++            if row is not None:
++                if row["job_type"].startswith("fr_"):
++                    raise StorageError("frame_relay_job_requires_fenced_worker")
++                asset_ids.append(row["asset_id"])
++                try:
++                    payload = json.loads(row["payload_json"])
++                except (TypeError, json.JSONDecodeError):
++                    payload = {}
++                if isinstance(payload, dict) and payload.get("session_id") is not None:
++                    deny_legacy_session(conn, payload["session_id"])
++        for asset_id in asset_ids:
++            if asset_id is not None:
++                deny_legacy_asset(conn, asset_id)
++
++    def authorize_call(args, kwargs):
++        values = signature.bind(*args, **kwargs).arguments
++        if values.get("conn") is not None:
++            check(values["conn"], values)
++        else:
++            settings = values["settings"]
++            with closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms)) as conn:
++                check(conn, values)
++
++    if inspect.iscoroutinefunction(function):
++        @wraps(function)
++        async def asynchronous(*args, **kwargs):
++            authorize_call(args, kwargs)
++            return await function(*args, **kwargs)
++        return asynchronous
++
++    @wraps(function)
++    def synchronous(*args, **kwargs):
++        authorize_call(args, kwargs)
++        return function(*args, **kwargs)
++    return synchronous
+--- a/backend/app/repositories/jobs.py
++++ b/backend/app/repositories/jobs.py
+@@ -1,10 +1,11 @@
++from app.repositories.frame_relay_storage import legacy_entry
+ import sqlite3
+ from datetime import datetime, timedelta, timezone
+ from typing import Any, Iterable
+ from uuid import uuid4
+ 
+ 
+-SUPPORTED_JOB_TYPES: set[str] = {"preview", "lut_preview", "upload_finalize", "rendition"}
++SUPPORTED_JOB_TYPES: set[str] = {"preview", "lut_preview", "upload_finalize", "rendition", "fr_upload_finalize"}
+ MAX_ERROR_MESSAGE_LENGTH = 200
+ 
+ 
+@@ -65,6 +66,7 @@
+         if (
+             existing["job_type"] != job_type
+             or existing["asset_id"] != asset_id
++            or (job_type.startswith("fr_") and existing["payload_json"] != payload_json)
+             or (
+                 preview_generation is not None
+                 and existing.get("preview_generation") != preview_generation
+@@ -212,10 +214,15 @@
+             return None
+ 
+         claimed = conn.execute("SELECT * FROM jobs WHERE id = ?", (row["id"],)).fetchone()
+-
+-    return dict(claimed) if claimed is not None else None
+-
+-
++        claimed = dict(claimed) if claimed is not None else None
++        if claimed is not None and claimed["job_type"] == "fr_upload_finalize":
++            from app.repositories.frame_relay_storage import allocate_claim
++            claimed = allocate_claim(conn, claimed)
++
++    return claimed
++
++
++@legacy_entry
+ def mark_job_failed(
+     conn: sqlite3.Connection,
+     job_id: int,
+@@ -242,11 +249,13 @@
+         )
+ 
+ 
++@legacy_entry
+ def mark_job_done(conn: sqlite3.Connection, job_id: int) -> None:
+     with conn:
+         set_job_done_in_transaction(conn, job_id=job_id)
+ 
+ 
++@legacy_entry
+ def set_job_failed_in_transaction(
+     conn: sqlite3.Connection,
+     *,
+@@ -266,6 +275,7 @@
+     )
+ 
+ 
++@legacy_entry
+ def fail_job_and_asset_preview_in_transaction(
+     conn: sqlite3.Connection,
+     *,
+@@ -287,6 +297,7 @@
+     set_job_failed_in_transaction(conn, job_id=job_id, error_message=error_message)
+ 
+ 
++@legacy_entry
+ def set_job_done_in_transaction(conn: sqlite3.Connection, *, job_id: int) -> None:
+     conn.execute(
+         """
+--- a/backend/app/repositories/processed_results.py
++++ b/backend/app/repositories/processed_results.py
+@@ -1,3 +1,4 @@
++from app.repositories.frame_relay_storage import legacy_entry
+ import re
+ import sqlite3
+ from typing import Any
+@@ -190,6 +191,7 @@
+     return row is not None
+ 
+ 
++@legacy_entry
+ def insert_ready_processed_result(
+     conn: sqlite3.Connection,
+     *,
+@@ -274,6 +276,7 @@
+     return inserted, True
+ 
+ 
++@legacy_entry
+ def insert_superseded_processed_result(
+     conn: sqlite3.Connection,
+     *,
+@@ -307,6 +310,7 @@
+     return inserted
+ 
+ 
++@legacy_entry
+ def set_active_processed_result(
+     conn: sqlite3.Connection,
+     *,
+@@ -327,6 +331,7 @@
+         raise ProcessedResultError("asset not found")
+ 
+ 
++@legacy_entry
+ def clear_active_processed_result(
+     conn: sqlite3.Connection,
+     *,
+--- /dev/null
++++ b/backend/app/schemas/frame_relay_storage.py
+@@ -0,0 +1,40 @@
++from typing import Annotated
++
++from pydantic import BaseModel, ConfigDict, Field, field_validator
++
++from app.schemas.registrations import CanonicalID
++
++
++class StorageBindingRequest(BaseModel):
++    model_config = ConfigDict(extra="forbid", strict=True)
++    destination_id: CanonicalID
++    registration_id: CanonicalID
++    registration_generation: str
++    operation_id: CanonicalID
++    capture_id: str
++    content_generation: str
++    sha256: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
++    byte_count: str
++
++    @field_validator("capture_id")
++    @classmethod
++    def opaque_capture_identity(cls, value):
++        # CaptureID is opaque on the device. Never trim, case-fold, parse it as
++        # a UUID, or use it to choose a filesystem path.
++        if not value.strip():
++            raise ValueError("Expected nonblank capture identity")
++        try:
++            value.encode("utf-8")
++        except UnicodeEncodeError:
++            raise ValueError("Expected UTF-8 capture identity") from None
++        return value
++
++    @field_validator("registration_generation", "content_generation", "byte_count")
++    @classmethod
++    def canonical_unsigned(cls, value, info):
++        if not value.isascii() or not value.isdigit() or str(int(value)) != value:
++            raise ValueError("Expected canonical decimal string")
++        maximum = (1 << 63) - 1 if info.field_name == "registration_generation" else (1 << 64) - 1
++        if not 1 <= int(value) <= maximum:
++            raise ValueError("Integer outside explicit wire range")
++        return value
+--- a/backend/app/services/formal_preview_finalizer.py
++++ b/backend/app/services/formal_preview_finalizer.py
+@@ -1,4 +1,6 @@
+ from __future__ import annotations
++
++from app.repositories.frame_relay_storage import legacy_entry
+ 
+ import sqlite3
+ import stat
+@@ -50,6 +52,7 @@
+     sha256: str
+ 
+ 
++@legacy_entry
+ def resolve_verified_original(
+     *, settings: Settings, conn: sqlite3.Connection, asset_id: int
+ ) -> VerifiedOriginal:
+@@ -126,6 +129,7 @@
+     return CandidateIdentity(size_bytes=metadata.st_size, sha256=sha256)
+ 
+ 
++@legacy_entry
+ def finalize_formal_preview_output(
+     *,
+     settings: Settings,
+--- a/backend/app/services/formal_preview_processing.py
++++ b/backend/app/services/formal_preview_processing.py
+@@ -1,4 +1,6 @@
+ from __future__ import annotations
++
++from app.repositories.frame_relay_storage import legacy_entry
+ 
+ import json
+ import sqlite3
+@@ -100,6 +102,7 @@
+     )
+ 
+ 
++@legacy_entry
+ def prepare_formal_preview_attempt(
+     *, settings: Settings, job: dict[str, Any]
+ ) -> dict[str, Any] | None:
+@@ -216,6 +219,7 @@
+             raise
+ 
+ 
++@legacy_entry
+ def process_formal_preview_job(
+     *,
+     settings: Settings,
+--- /dev/null
++++ b/backend/app/services/frame_relay_files.py
+@@ -0,0 +1,102 @@
++"""No-follow, exclusive, server-named files; never replace a saved original."""
++from contextlib import contextmanager
++import hashlib
++import os
++from pathlib import PurePosixPath
++import stat
++
++from app.repositories.frame_relay_storage import StorageError
++
++
++BLOCK = 1024 * 1024
++
++
++@contextmanager
++def parent(root, relative, *, create=False):
++    parts = PurePosixPath(relative).parts
++    if not parts or PurePosixPath(relative).is_absolute() or any(p in (".", "..", "") for p in parts):
++        raise StorageError("storage_path_invalid")
++    descriptors = []
++    try:
++        fd = os.open(root.resolve(strict=True), os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
++        descriptors.append(fd)
++        for component in parts[:-1]:
++            if create:
++                try:
++                    os.mkdir(component, 0o700, dir_fd=fd)
++                except FileExistsError:
++                    pass
++            fd = os.open(component, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
++            descriptors.append(fd)
++        yield fd, parts[-1]
++    finally:
++        for fd in reversed(descriptors):
++            os.close(fd)
++
++
++def fingerprint(metadata):
++    if not stat.S_ISREG(metadata.st_mode):
++        raise StorageError("storage_file_invalid")
++    return [metadata.st_dev, metadata.st_ino, metadata.st_size, metadata.st_mtime_ns, metadata.st_ctime_ns]
++
++
++def current_fingerprint(root, relative):
++    with parent(root, relative) as (directory, name):
++        return fingerprint(os.stat(name, dir_fd=directory, follow_symlinks=False))
++
++
++@contextmanager
++def exclusive_writer(root, relative):
++    with parent(root, relative, create=True) as (directory, name):
++        descriptor = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
++                             0o600, dir_fd=directory)
++        with os.fdopen(descriptor, "wb") as stream:
++            yield stream
++            stream.flush()
++            os.fsync(stream.fileno())
++        os.fsync(directory)
++
++
++def read_all(root, relative, *, consume=None, fault=None):
++    """Open a new FD and read through EOF; count/hash independently of assembly."""
++    with parent(root, relative) as (directory, name):
++        descriptor = os.open(name, os.O_RDONLY | os.O_NOFOLLOW, dir_fd=directory)
++        with os.fdopen(descriptor, "rb") as stream:
++            before = fingerprint(os.fstat(stream.fileno()))
++            digest = hashlib.sha256()
++            count = 0
++            while block := stream.read(BLOCK):
++                count += len(block)
++                digest.update(block)
++                if consume is not None:
++                    consume(block)
++                if fault is not None:
++                    fault("read_block")
++            after = fingerprint(os.fstat(stream.fileno()))
++        if before != after or before != current_fingerprint(root, relative) or count != before[2]:
++            raise StorageError("storage_file_changed")
++    return {"sha256": digest.hexdigest(), "byte_count": count, "fingerprint": before}
++
++
++def publish(root, source, target):
++    with parent(root, source) as (source_dir, source_name), parent(root, target, create=True) as (target_dir, target_name):
++        fingerprint(os.stat(source_name, dir_fd=source_dir, follow_symlinks=False))
++        try:
++            os.link(source_name, target_name, src_dir_fd=source_dir, dst_dir_fd=target_dir,
++                    follow_symlinks=False)
++            created = True
++        except FileExistsError:
++            fingerprint(os.stat(target_name, dir_fd=target_dir, follow_symlinks=False))
++            created = False
++        os.fsync(target_dir)
++        return created
++
++
++def remove_owned(root, relative):
++    try:
++        with parent(root, relative) as (directory, name):
++            fingerprint(os.stat(name, dir_fd=directory, follow_symlinks=False))
++            os.unlink(name, dir_fd=directory)
++            os.fsync(directory)
++    except FileNotFoundError:
++        pass
+--- /dev/null
++++ b/backend/app/services/frame_relay_finalize.py
+@@ -0,0 +1,176 @@
++"""Publish without replacement, independently reread, then atomically commit proof/job."""
++from contextlib import closing
++import hashlib
++import time
++from uuid import uuid4
++
++from app.db.connection import connect
++from app.repositories import frame_relay_storage as repository
++from app.repositories.frame_relay_storage import StorageError
++from app.repositories.jobs import insert_or_return_job
++from app.services import frame_relay_files as files
++
++
++def _connection(settings):
++    return closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms))
++
++
++def _inject(fault, step):
++    if fault is not None:
++        fault(step)
++
++
++def assembly_name(value, job):
++    # Tokens originate only in the persisted claim; callers cannot select paths.
++    return ("tmp/frame-relay/assembly/" + value["session_id"] + "/" +
++            str(job["fr_claim_generation"]) + "-" + job["fr_claim_token"] + ".part")
++
++
++def cleanup_attempt(settings, job):
++    with _connection(settings) as conn:
++        conn.execute("BEGIN IMMEDIATE")
++        try:
++            value = repository.current_claim(conn, job)
++            files.remove_owned(settings.media_root, assembly_name(value, job))
++            conn.commit()
++        except BaseException:
++            conn.rollback()
++            raise
++
++
++def mark_failed(settings, job, code):
++    with _connection(settings) as conn:
++        conn.execute("BEGIN IMMEDIATE")
++        try:
++            value = repository.current_claim(conn, job)
++            files.remove_owned(settings.media_root, assembly_name(value, job))
++            conn.execute("UPDATE fr_upload_states SET status='failed',failure_code=? WHERE session_id=?",
++                         (code, value["session_id"]))
++            conn.execute("UPDATE jobs SET status='failed',error_message=?,claimed_at=NULL,lease_expires_at=NULL WHERE id=?", (code,job["id"]))
++            conn.commit()
++        except BaseException:
++            conn.rollback()
++            raise
++
++
++def process_finalize(*, settings, job, fault=None):
++    try:
++        _process(settings, job, fault)
++    except Exception as error:
++        code = error.code if isinstance(error, StorageError) else "storage_result_unknown"
++        try:
++            mark_failed(settings, job, code)
++        except StorageError:
++            pass  # Lost lease or already committed: no stale failure/cleanup.
++    return True
++
++
++def _process(settings, job, fault):
++    with _connection(settings) as conn:
++        conn.execute("BEGIN IMMEDIATE")
++        try:
++            value = repository.current_claim(conn, job)
++            chunks = [dict(row) for row in conn.execute("SELECT * FROM fr_upload_chunks WHERE session_id=? ORDER BY chunk_index", (value["session_id"],))]
++            conn.commit()
++        except BaseException:
++            conn.rollback()
++            raise
++    assembly = assembly_name(value, job)
++    last_renewal = time.monotonic()
++
++    def progress(step):
++        nonlocal last_renewal
++        _inject(fault, step)
++        if time.monotonic() - last_renewal >= min(30, settings.job_lease_seconds / 3):
++            with _connection(settings) as conn:
++                conn.execute("BEGIN IMMEDIATE")
++                try:
++                    repository.renew_claim(conn, job, min(settings.job_lease_seconds, 300))
++                    conn.commit()
++                except BaseException:
++                    conn.rollback()
++                    raise
++            last_renewal = time.monotonic()
++
++    try:
++        files.current_fingerprint(settings.media_root, value["final_path"])
++    except FileNotFoundError:
++        expected_chunks = (value["byte_count"] + value["chunk_size"] - 1) // value["chunk_size"]
++        if len(chunks) != expected_chunks:
++            raise StorageError("storage_chunks_missing")
++        total, digest = 0, hashlib.sha256()
++        with files.exclusive_writer(settings.media_root, assembly) as output:
++            for index, chunk in enumerate(chunks):
++                expected_size = min(value["chunk_size"], value["byte_count"] - index * value["chunk_size"])
++                expected_path = f"tmp/frame-relay/chunks/{value['session_id']}/{index}.part"
++                if chunk["chunk_index"] != index or chunk["byte_count"] != expected_size or chunk["path"] != expected_path:
++                    raise StorageError("storage_chunk_binding_mismatch")
++
++                def copy(block):
++                    nonlocal total
++                    output.write(block)
++                    digest.update(block)
++                    total += len(block)
++
++                observed = files.read_all(settings.media_root, chunk["path"], consume=copy,
++                                          fault=lambda _: progress("assembly_block"))
++                if observed["byte_count"] != expected_size or observed["sha256"] != chunk["sha256"]:
++                    raise StorageError("storage_chunk_content_invalid")
++        if total != value["byte_count"] or digest.hexdigest() != value["sha256"]:
++            raise StorageError("storage_assembly_content_invalid")
++        _inject(fault, "before_publish")
++        with _connection(settings) as conn:
++            conn.execute("BEGIN IMMEDIATE")
++            try:
++                if repository.current_claim(conn, job) != value:
++                    raise StorageError("storage_binding_mismatch")
++                files.publish(settings.media_root, assembly, value["final_path"])
++                files.remove_owned(settings.media_root, assembly)
++                conn.commit()
++            except BaseException:
++                conn.rollback()
++                raise
++        _inject(fault, "after_publish")
++    # No SQLite transaction spans the independent final-destination read.
++    observed = files.read_all(settings.media_root, value["final_path"], fault=progress)
++    if observed["byte_count"] != value["byte_count"] or observed["sha256"] != value["sha256"]:
++        raise StorageError("storage_final_content_invalid")
++    _inject(fault, "after_read")
++    with _connection(settings) as conn:
++        conn.execute("BEGIN IMMEDIATE")
++        try:
++            if repository.current_claim(conn, job) != value:
++                raise StorageError("storage_binding_mismatch")
++            if files.current_fingerprint(settings.media_root, value["final_path"]) != observed["fingerprint"]:
++                raise StorageError("storage_file_changed")
++            # No legacy file_verified row is adopted. A preexisting path owner is
++            # an inconsistency, not proof that the unfinished commit succeeded.
++            if conn.execute("SELECT 1 FROM assets WHERE original_path=?", (value["final_path"],)).fetchone():
++                raise StorageError("storage_unproven_asset_exists")
++            cursor = conn.execute("""INSERT INTO assets(type,filename,original_path,size_bytes,server_sha256,
++                is_log,transfer_status,verification_status,preview_status,review_status,delete_candidate_status)
++                VALUES('video',?,?,?, ?,0,'uploaded','fr_final_read_verified','not_started','not_reviewed','not_candidate')""",
++                (value["session_id"] + ".mov",value["final_path"],value["byte_count"],value["sha256"]))
++            asset_id = cursor.lastrowid
++            evidence_id = str(uuid4())
++            conn.execute("""INSERT INTO fr_storage_evidence VALUES(?,?,?,'fr-final-read-v1',?,?,?,?,?,?,?)""",
++                (evidence_id,value["session_id"],asset_id,value["sha256"],value["byte_count"],value["final_path"],
++                 repository.canonical(observed["fingerprint"]),job["fr_claim_generation"],job["fr_claim_token"],repository.now_text()))
++            _inject(fault, "after_evidence_insert")
++            conversion_payload = repository.canonical({"evidence_id": evidence_id,
++                "binding_sha256": repository.binding_digest(value), "session_id": value["session_id"],
++                "asset_id": asset_id, "schema_version": "fr-final-read-v1"})
++            conversion, _ = insert_or_return_job(conn, job_type="fr_conversion", asset_id=asset_id,
++                payload_json=conversion_payload, dedup_key="fr-conversion:" + value["session_id"])
++            if conversion["status"] != "queued":
++                raise StorageError("storage_conversion_job_invalid")
++            _inject(fault, "after_job_insert")
++            conn.execute("UPDATE fr_upload_states SET status='completed',asset_id=?,evidence_id=?,failure_code=NULL WHERE session_id=?",
++                (asset_id,evidence_id,value["session_id"]))
++            conn.execute("UPDATE jobs SET status='done',claimed_at=NULL,lease_expires_at=NULL,error_message=NULL WHERE id=?", (job["id"],))
++            _inject(fault, "before_commit")
++            conn.commit()
++        except BaseException:
++            conn.rollback()
++            raise
++    _inject(fault, "after_commit")
+--- /dev/null
++++ b/backend/app/services/frame_relay_storage.py
+@@ -0,0 +1,243 @@
++"""Bound, resumable FR receiving. Transport completion is not storage evidence."""
++from contextlib import closing
++import hashlib
++from uuid import uuid4
++
++from app.core.settings import MAX_UPLOAD_CHUNKS, MAX_UPLOAD_SESSION_SIZE_BYTES
++from app.db.connection import connect
++from app.repositories import frame_relay_storage as repository
++from app.repositories.frame_relay_storage import StorageError
++from app.repositories.jobs import insert_or_return_job
++from app.schemas.frame_relay_storage import StorageBindingRequest
++from app.services import frame_relay_files as files
++
++
++def open_database(settings):
++    return closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms))
++
++
++def create(settings, request, secret):
++    request = StorageBindingRequest.model_validate(request).model_dump()
++    count = int(request["byte_count"])
++    if count > min(settings.upload_session_max_size_bytes, MAX_UPLOAD_SESSION_SIZE_BYTES, (1 << 63) - 1):
++        raise StorageError("storage_size_limit")
++    if (count + settings.upload_session_chunk_size_bytes - 1) // settings.upload_session_chunk_size_bytes > MAX_UPLOAD_CHUNKS:
++        raise StorageError("storage_chunk_limit")
++    with open_database(settings) as conn:
++        conn.execute("BEGIN IMMEDIATE")
++        try:
++            repository.available(conn)
++            repository.authenticate(conn, request, secret)
++            row = conn.execute("""SELECT session_id FROM fr_upload_bindings
++                WHERE destination_id=? AND registration_id=? AND operation_id=?""",
++                (request["destination_id"], request["registration_id"], request["operation_id"])).fetchone()
++            if row is not None:
++                value = repository.authorize(conn, row[0], request, secret)
++                conn.commit()
++                return value
++            active = conn.execute("SELECT COUNT(*) FROM fr_upload_states WHERE status IN ('receiving','finalizing','failed')").fetchone()[0]
++            if active >= settings.upload_session_active_limit:
++                raise StorageError("storage_active_limit")
++            session_id = str(uuid4())
++            value = {**request, "registration_generation": int(request["registration_generation"]),
++                "byte_count": count, "session_id": session_id,
++                "chunk_size": settings.upload_session_chunk_size_bytes,
++                "final_path": "originals/frame-relay/" + session_id + ".mov"}
++            columns = tuple(value)
++            conn.execute("INSERT INTO fr_upload_bindings(" + ",".join(columns) + ") VALUES(" +
++                         ",".join("?" for _ in columns) + ")", tuple(value[key] for key in columns))
++            conn.execute("INSERT INTO fr_upload_states(session_id,status) VALUES(?,'receiving')", (session_id,))
++            conn.commit()
++            return value
++        except BaseException:
++            conn.rollback()
++            raise
++
++
++def _state(conn, session_id):
++    row = conn.execute("SELECT * FROM fr_upload_states WHERE session_id=?", (session_id,)).fetchone()
++    if row is None:
++        raise StorageError("storage_state_missing")
++    return dict(row)
++
++
++def _range(value, index, content_range):
++    if type(index) is not int or index < 0:
++        raise StorageError("storage_chunk_range_invalid")
++    start = index * value["chunk_size"]
++    end = min(start + value["chunk_size"], value["byte_count"]) - 1
++    if start > end or content_range != (start, end, value["byte_count"]):
++        raise StorageError("storage_chunk_range_invalid")
++    return end - start + 1
++
++
++async def receive_chunk(settings, session_id, request, secret, index, content_range, digest, body, *, fault=None):
++    request = StorageBindingRequest.model_validate(request).model_dump()
++    with open_database(settings) as conn:
++        value = repository.authorize(conn, session_id, request, secret)
++        if _state(conn, session_id)["status"] != "receiving":
++            raise StorageError("storage_not_receiving")
++    expected = _range(value, index, content_range)
++    # Each receiver owns exactly this path until its real stream terminates.
++    staging = "tmp/frame-relay/receiving/" + str(uuid4()) + ".part"
++    total, hashed = 0, hashlib.sha256()
++    try:
++        with files.exclusive_writer(settings.media_root, staging) as output:
++            async for block in body:
++                total += len(block)
++                if total > expected:
++                    raise StorageError("storage_chunk_size_invalid")
++                output.write(block)
++                hashed.update(block)
++                if fault is not None:
++                    fault("receive_block")
++        if total != expected or hashed.hexdigest() != digest:
++            raise StorageError("storage_chunk_content_invalid")
++        path = f"tmp/frame-relay/chunks/{session_id}/{index}.part"
++        recovered = None
++        try:
++            recovered = files.read_all(settings.media_root, path)
++        except FileNotFoundError:
++            pass
++        if recovered is not None and (recovered["byte_count"] != total or recovered["sha256"] != digest):
++            raise StorageError("storage_chunk_conflict")
++        with open_database(settings) as conn:
++            conn.execute("BEGIN IMMEDIATE")
++            try:
++                current = repository.authorize(conn, session_id, request, secret)
++                if current != value or _state(conn, session_id)["status"] != "receiving":
++                    raise StorageError("storage_not_receiving")
++                existing = conn.execute("SELECT * FROM fr_upload_chunks WHERE session_id=? AND chunk_index=?", (session_id,index)).fetchone()
++                if existing is not None:
++                    if existing["sha256"] != digest or existing["byte_count"] != total or existing["path"] != path:
++                        raise StorageError("storage_chunk_conflict")
++                    if recovered is None:
++                        raise StorageError("storage_committed_chunk_missing")
++                    if files.current_fingerprint(settings.media_root, path) != recovered["fingerprint"]:
++                        raise StorageError("storage_file_changed")
++                else:
++                    if recovered is not None:
++                        if files.current_fingerprint(settings.media_root, path) != recovered["fingerprint"]:
++                            raise StorageError("storage_file_changed")
++                    else:
++                        try:
++                            files.current_fingerprint(settings.media_root, path)
++                        except FileNotFoundError:
++                            pass
++                        else:
++                            raise StorageError("storage_chunk_retry_required")
++                        if not files.publish(settings.media_root, staging, path):
++                            # A foreign/racing target appeared after our absent
++                            # check. Reopen it independently on a fresh request.
++                            raise StorageError("storage_chunk_retry_required")
++                    if fault is not None:
++                        fault("after_chunk_publish")
++                    conn.execute("INSERT INTO fr_upload_chunks VALUES(?,?,?,?,?)", (session_id,index,total,digest,path))
++                conn.commit()
++            except BaseException:
++                conn.rollback()
++                raise
++        return {"chunk_index": index, "byte_count": str(total), "sha256": digest}
++    finally:
++        files.remove_owned(settings.media_root, staging)
++
++
++def evidence(conn, value):
++    state = _state(conn, value["session_id"])
++    row = conn.execute("SELECT * FROM fr_storage_evidence WHERE session_id=?", (value["session_id"],)).fetchone()
++    if state["status"] != "completed":
++        if row is not None:
++            raise StorageError("storage_evidence_inconsistent")
++        return None
++    if (row is None or state["evidence_id"] != row["evidence_id"] or state["asset_id"] != row["asset_id"] or
++            any(row[key] != value[key] for key in ("sha256", "byte_count", "final_path")) or
++            row["schema_version"] != "fr-final-read-v1"):
++        raise StorageError("storage_evidence_missing")
++    asset = conn.execute("SELECT * FROM assets WHERE id=?", (row["asset_id"],)).fetchone()
++    if (asset is None or asset["original_path"] != value["final_path"] or
++            asset["size_bytes"] != value["byte_count"] or asset["server_sha256"] != value["sha256"]):
++        raise StorageError("storage_evidence_inconsistent")
++    finalize_job = conn.execute("SELECT * FROM jobs WHERE id=?", (state["finalize_job_id"],)).fetchone()
++    claim = conn.execute("SELECT * FROM fr_job_claims WHERE job_id=?", (state["finalize_job_id"],)).fetchone()
++    conversion = conn.execute("SELECT * FROM jobs WHERE dedup_key=?", ("fr-conversion:" + value["session_id"],)).fetchone()
++    expected_payload = repository.canonical({"evidence_id": row["evidence_id"],
++        "binding_sha256": repository.binding_digest(value), "session_id": value["session_id"],
++        "asset_id": row["asset_id"], "schema_version": "fr-final-read-v1"})
++    if (finalize_job is None or finalize_job["status"] != "done" or
++            finalize_job["job_type"] != "fr_upload_finalize" or finalize_job["asset_id"] is not None or
++            finalize_job["dedup_key"] != "fr-finalize:" + value["session_id"] or
++            finalize_job["payload_json"] != repository.finalize_payload(value) or
++            claim is None or claim["session_id"] != value["session_id"] or
++            claim["generation"] != row["claim_generation"] or claim["token"] != row["claim_token"] or
++            conversion is None or conversion["job_type"] != "fr_conversion" or
++            conversion["status"] != "queued" or conversion["asset_id"] != row["asset_id"] or
++            conversion["payload_json"] != expected_payload):
++        raise StorageError("storage_evidence_inconsistent")
++    return {"evidence_id": row["evidence_id"], "schema_version": row["schema_version"],
++        "method": "final_destination_read_back", "committed": True, "final_save_completed": True,
++        "sha256": row["sha256"], "byte_count": str(row["byte_count"]), "observed_at": row["observed_at"]}
++
++
++def lookup(settings, session_id, request, secret):
++    request = StorageBindingRequest.model_validate(request).model_dump()
++    with open_database(settings) as conn:
++        conn.execute("BEGIN")
++        value = repository.authorize(conn, session_id, request, secret)
++        state = _state(conn, session_id)
++        proof = evidence(conn, value)
++        chunks = [row[0] for row in conn.execute("SELECT chunk_index FROM fr_upload_chunks WHERE session_id=? ORDER BY chunk_index", (session_id,))]
++        conn.rollback()
++    return {"binding": public_binding(value), "status": state["status"], "evidence": proof,
++        "chunk_indexes": chunks, "failure_code": state["failure_code"]}
++
++
++def public_binding(value):
++    return {key: (str(item) if key in ("registration_generation", "content_generation", "byte_count", "chunk_size") else item)
++        for key, item in value.items() if key != "final_path"}
++
++
++def finalize(settings, session_id, request, secret):
++    request = StorageBindingRequest.model_validate(request).model_dump()
++    with open_database(settings) as conn:
++        conn.execute("BEGIN IMMEDIATE")
++        try:
++            value = repository.authorize(conn, session_id, request, secret)
++            state = _state(conn, session_id)
++            if state["status"] == "completed":
++                evidence(conn, value)  # Never trust a completed flag alone.
++            elif state["status"] == "cancelled":
++                raise StorageError("storage_cancelled")
++            elif state["status"] != "finalizing":
++                expected = (value["byte_count"] + value["chunk_size"] - 1) // value["chunk_size"]
++                if conn.execute("SELECT COUNT(*) FROM fr_upload_chunks WHERE session_id=?", (session_id,)).fetchone()[0] != expected:
++                    raise StorageError("storage_chunks_missing")
++                job, _ = insert_or_return_job(conn, job_type="fr_upload_finalize", asset_id=None,
++                    payload_json=repository.finalize_payload(value), dedup_key="fr-finalize:" + session_id)
++                if job["status"] not in ("queued", "failed"):
++                    raise StorageError("storage_job_state_invalid")
++                conn.execute("UPDATE jobs SET status='queued',claimed_at=NULL,lease_expires_at=NULL,error_message=NULL WHERE id=?", (job["id"],))
++                conn.execute("UPDATE fr_upload_states SET status='finalizing',finalize_job_id=?,failure_code=NULL WHERE session_id=?", (job["id"],session_id))
++            conn.commit()
++        except BaseException:
++            conn.rollback()
++            raise
++    return lookup(settings, session_id, request, secret)
++
++
++def cancel(settings, session_id, request, secret):
++    request = StorageBindingRequest.model_validate(request).model_dump()
++    with open_database(settings) as conn:
++        conn.execute("BEGIN IMMEDIATE")
++        try:
++            repository.authorize(conn, session_id, request, secret)
++            state = _state(conn, session_id)
++            if state["status"] in ("completed", "finalizing"):
++                raise StorageError("storage_cancel_not_available")
++            conn.execute("UPDATE fr_upload_states SET status='cancelled' WHERE session_id=?", (session_id,))
++            conn.commit()
++        except BaseException:
++            conn.rollback()
++            raise
++    # Retain committed chunks and do not delete active receiver staging. Its
++    # late callback rechecks this state and cleans only its own finished stream.
++    return lookup(settings, session_id, request, secret)
+--- a/backend/app/services/preview.py
++++ b/backend/app/services/preview.py
+@@ -1,3 +1,4 @@
++from app.repositories.frame_relay_storage import legacy_entry
+ import json
+ import logging
+ import sqlite3
+@@ -43,6 +44,7 @@
+         self.asset_id = asset_id
+ 
+ 
++@legacy_entry
+ def process_preview_job(
+     *,
+     settings: Settings,
+--- a/backend/app/services/processed_result_backfill.py
++++ b/backend/app/services/processed_result_backfill.py
+@@ -1,3 +1,5 @@
++from contextlib import closing
++from app.repositories.frame_relay_storage import legacy_entry
+ import sqlite3
+ from dataclasses import dataclass
+ from typing import Literal
+@@ -40,7 +42,7 @@
+     *,
+     settings: Settings,
+ ) -> list[ProcessedResultBackfillOutcome]:
+-    with connect(settings.database_path, settings.sqlite_busy_timeout_ms) as conn:
++    with closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms)) as conn:
+         asset_ids = [asset["id"] for asset, _derived_file in list_phase2a_backfill_candidates(conn)]
+ 
+     outcomes: list[ProcessedResultBackfillOutcome] = []
+@@ -52,12 +54,13 @@
+     return outcomes
+ 
+ 
++@legacy_entry
+ def backfill_processed_result_for_asset(
+     *,
+     settings: Settings,
+     asset_id: int,
+ ) -> ProcessedResultBackfillOutcome | None:
+-    with connect(settings.database_path, settings.sqlite_busy_timeout_ms) as conn:
++    with closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms)) as conn:
+         candidate = get_phase2a_backfill_candidate(conn, asset_id=asset_id)
+     if candidate is None:
+         return None
+@@ -77,7 +80,7 @@
+         )
+ 
+     try:
+-        with connect(settings.database_path, settings.sqlite_busy_timeout_ms) as conn:
++        with closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms)) as conn:
+             conn.execute("BEGIN IMMEDIATE")
+             try:
+                 current_candidate = get_phase2a_backfill_candidate(conn, asset_id=asset_id)
+@@ -128,13 +131,14 @@
+         )
+ 
+ 
++@legacy_entry
+ def persist_backfill_outcome(
+     *,
+     settings: Settings,
+     outcome: ProcessedResultBackfillOutcome,
+ ) -> None:
+     """Finish the current Phase 2A preview job without retrying its lease."""
+-    with connect(settings.database_path, settings.sqlite_busy_timeout_ms) as conn:
++    with closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms)) as conn:
+         conn.execute("BEGIN IMMEDIATE")
+         try:
+             if outcome.status in {"created", "already_active"}:
+--- a/backend/app/services/processed_result_finalizer.py
++++ b/backend/app/services/processed_result_finalizer.py
+@@ -1,3 +1,4 @@
++from app.repositories.frame_relay_storage import legacy_entry
+ import sqlite3
+ from typing import Callable
+ 
+@@ -26,6 +27,7 @@
+     pass
+ 
+ 
++@legacy_entry
+ def finalize_ready_processed_result(
+     *,
+     settings: Settings,
+--- a/backend/app/services/rendition_creation.py
++++ b/backend/app/services/rendition_creation.py
+@@ -1,4 +1,6 @@
+ from __future__ import annotations
++
++from app.repositories.frame_relay_storage import legacy_entry
+ 
+ import json
+ from dataclasses import dataclass
+@@ -60,6 +62,7 @@
+     active_derived_path: str
+ 
+ 
++@legacy_entry
+ def create_rendition(
+     *,
+     settings: Settings,
+@@ -137,6 +140,7 @@
+             raise
+ 
+ 
++@legacy_entry
+ def get_rendition_representation(
+     *, settings: Settings, asset_id: int, rendition_id: str
+ ) -> dict[str, Any]:
+--- a/backend/app/services/rendition_finalizer.py
++++ b/backend/app/services/rendition_finalizer.py
+@@ -1,4 +1,6 @@
+ from __future__ import annotations
++
++from app.repositories.frame_relay_storage import legacy_entry
+ 
+ from dataclasses import dataclass
+ from pathlib import Path
+@@ -45,6 +47,7 @@
+     color_transform_error_code: str | None
+ 
+ 
++@legacy_entry
+ def finalize_rendition_output(
+     *,
+     settings: Settings,
+--- a/backend/app/services/rendition_processing.py
++++ b/backend/app/services/rendition_processing.py
+@@ -1,4 +1,6 @@
+ from __future__ import annotations
++
++from app.repositories.frame_relay_storage import legacy_entry
+ 
+ import hashlib
+ import json
+@@ -46,6 +48,7 @@
+         self.code = code
+ 
+ 
++@legacy_entry
+ def process_rendition_job(*, settings: Settings, job: dict[str, Any]) -> bool:
+     rendition = _prepare_relation(settings=settings, job=job)
+     if rendition is None:
+--- a/backend/app/services/upload_finalize.py
++++ b/backend/app/services/upload_finalize.py
+@@ -1,3 +1,4 @@
++from app.repositories.frame_relay_storage import legacy_entry
+ import hashlib
+ import json
+ from pathlib import Path
+@@ -29,6 +30,7 @@
+         self.retryable = retryable
+ 
+ 
++@legacy_entry
+ def process_upload_finalize_job(*, settings: Settings, job: dict[str, Any]) -> bool:
+     """Finalize exactly one claimed upload job without exposing partial data."""
+     session_id: str | None = None
+--- a/backend/app/services/upload_sessions.py
++++ b/backend/app/services/upload_sessions.py
+@@ -1,3 +1,4 @@
++from app.repositories.frame_relay_storage import legacy_entry
+ import json
+ import hashlib
+ from datetime import timedelta
+@@ -119,6 +120,7 @@
+         ) from exc
+ 
+ 
++@legacy_entry
+ def get_upload_session(*, settings: Settings, session_id: str) -> dict[str, Any]:
+     with connect(settings.database_path, settings.sqlite_busy_timeout_ms) as conn:
+         session = get_session_or_expire(conn, session_id)
+@@ -131,6 +133,7 @@
+     return _session_response(session, verified_chunks)
+ 
+ 
++@legacy_entry
+ async def upload_session_chunk(
+     *,
+     settings: Settings,
+@@ -278,6 +281,7 @@
+     return _session_response(session, verified_chunks)
+ 
+ 
++@legacy_entry
+ def build_finalize_response(
+     *,
+     settings: Settings,
+@@ -299,6 +303,7 @@
+     }
+ 
+ 
++@legacy_entry
+ def finalize_upload_session(*, settings: Settings, session_id: str) -> tuple[dict[str, Any], int | None]:
+     now = utc_now()
+     with connect(settings.database_path, settings.sqlite_busy_timeout_ms) as conn:
+@@ -384,6 +389,7 @@
+             raise
+ 
+ 
++@legacy_entry
+ def cancel_upload_session(*, settings: Settings, session_id: str) -> dict[str, Any]:
+     try:
+         with connect(settings.database_path, settings.sqlite_busy_timeout_ms) as conn:
+--- a/backend/app/workers/worker.py
++++ b/backend/app/workers/worker.py
+@@ -1,9 +1,12 @@
+ import logging
+ import time
++from contextlib import closing
+ 
+ from app.core.settings import SettingsError, load_settings
+ from app.db.connection import connect
+ from app.db.migrations import run_migrations
++from app.db.frame_relay_migrations import run_frame_relay_migrations
++from app.services.frame_relay_finalize import process_finalize
+ from app.db.phase2b import has_valid_phase2b_schema
+ from app.repositories.jobs import (
+     SUPPORTED_JOB_TYPES,
+@@ -33,16 +36,19 @@
+     settings = load_settings()
+     assert_generated_apple_log_conversion_disabled(settings)
+     initialize_storage(settings.media_root)
+-    with connect(settings.database_path, settings.sqlite_busy_timeout_ms) as conn:
++    with closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms)) as conn:
+         run_migrations(conn)
++        run_frame_relay_migrations(conn)
+         recover_expired_jobs(conn)
+         phase2b_enabled = has_valid_phase2b_schema(conn)
+     recover_unreferenced_generated_previews(settings=settings)
+     backfill_eligible_processed_results(settings=settings)
+-    with connect(settings.database_path, settings.sqlite_busy_timeout_ms) as conn:
++    with closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms)) as conn:
+         job = claim_next_job(conn, settings.job_lease_seconds, SUPPORTED_JOB_TYPES)
+         if job is None:
+             return False
++    if job["job_type"] == "fr_upload_finalize":
++        return process_finalize(settings=settings, job=job)
+     if job["job_type"] == "upload_finalize":
+         return process_upload_finalize_job(settings=settings, job=job)
+     if (
+@@ -55,7 +61,7 @@
+         return process_preview_job(settings=settings, job=job)
+     if job["job_type"] == "rendition":
+         return process_rendition_job(settings=settings, job=job)
+-    with connect(settings.database_path, settings.sqlite_busy_timeout_ms) as conn:
++    with closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms)) as conn:
+         fail_unsupported_job(conn, job)
+     return True
+ 
+--- /dev/null
++++ b/backend/tests/test_frame_relay_storage.py
+@@ -0,0 +1,684 @@
++"""Disposable bytes and real SQLite/files/thread barriers; no conversion claims."""
++import asyncio
++from concurrent.futures import ThreadPoolExecutor
++from contextlib import closing
++from dataclasses import replace
++from datetime import datetime, timedelta, timezone
++import hashlib
++import json
++from pathlib import Path
++import sqlite3
++from threading import Barrier, Event
++from uuid import uuid4
++
++from fastapi.testclient import TestClient
++from pydantic import ValidationError
++import pytest
++
++from app.core.settings import load_settings
++from app.db.connection import connect
++from app.db.migrations import run_migrations
++from app.db import frame_relay_migrations as migrations
++from app.main import app
++from app.repositories import frame_relay_storage as repository
++from app.repositories import registrations
++from app.repositories.frame_relay_storage import StorageError
++from app.repositories.jobs import claim_next_job, recover_expired_jobs, insert_or_return_job, SUPPORTED_JOB_TYPES
++from app.schemas.frame_relay_storage import StorageBindingRequest
++from app.services import frame_relay_storage as service
++from app.services import frame_relay_finalize as finalize
++from app.services import frame_relay_files as files
++
++
++SECRET = "a" * 64
++DATA = b"abcdefgh12345678"
++PREFIX = "/frame-relay/v1/uploads"
++
++
++class Crash(BaseException):
++    pass
++
++
++def _database(settings):
++    return closing(connect(settings.database_path, settings.sqlite_busy_timeout_ms))
++
++
++def _setup(tmp_path, monkeypatch, data=DATA):
++    tmp_path.mkdir(parents=True, exist_ok=True)
++    monkeypatch.setenv("MEDIA_ROOT", str(tmp_path / "media"))
++    monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "db.sqlite3"))
++    monkeypatch.setenv("API_TOKEN", "storage-test-bootstrap")
++    settings = replace(load_settings(), upload_session_chunk_size_bytes=4,
++                       upload_session_max_size_bytes=4 * 131_072)
++    settings.media_root.mkdir()
++    with _database(settings) as conn:
++        run_migrations(conn)
++        migrations.run_frame_relay_migrations(conn)
++        destination = registrations.destination_identity(conn)
++        receipt = registrations.register(conn, destination_id=destination, operation_id=str(uuid4()), secret=SECRET)
++    request = {"destination_id":destination,"registration_id":receipt["registration_id"],
++        "registration_generation":receipt["generation"],"operation_id":str(uuid4()),"capture_id":str(uuid4()),
++        "content_generation":"1","sha256":hashlib.sha256(data).hexdigest(),"byte_count":str(len(data))}
++    value = service.create(settings, request, SECRET)
++    return settings,request,value
++
++
++async def _body(data):
++    yield data
++
++
++def _receive(settings, request, value, data=DATA):
++    for index,start in enumerate(range(0,len(data),value["chunk_size"])):
++        chunk = data[start:start+value["chunk_size"]]
++        asyncio.run(service.receive_chunk(settings,value["session_id"],request,SECRET,index,
++            (start,start+len(chunk)-1,len(data)),hashlib.sha256(chunk).hexdigest(),_body(chunk)))
++
++
++def _claim(settings, request, value):
++    service.finalize(settings,value["session_id"],request,SECRET)
++    with _database(settings) as conn:
++        job = claim_next_job(conn,settings.job_lease_seconds,SUPPORTED_JOB_TYPES)
++    assert job is not None and job["job_type"] == "fr_upload_finalize"
++    return job
++
++
++def _reclaim(settings, job):
++    with _database(settings) as conn:
++        with conn:
++            conn.execute("UPDATE jobs SET lease_expires_at=? WHERE id=?",
++                ((datetime.now(timezone.utc)-timedelta(seconds=1)).isoformat(),job["id"]))
++        assert recover_expired_jobs(conn) == 1
++        next_job = claim_next_job(conn,settings.job_lease_seconds,SUPPORTED_JOB_TYPES)
++    assert next_job["fr_claim_generation"] == job["fr_claim_generation"]+1
++    assert next_job["fr_claim_token"] != job["fr_claim_token"]
++    return next_job
++
++
++def _lookup(settings, request, value):
++    return service.lookup(settings,value["session_id"],request,SECRET)
++
++
++def _counts(settings):
++    with _database(settings) as conn:
++        return tuple(conn.execute("SELECT COUNT(*) FROM " + name).fetchone()[0]
++            for name in ("fr_storage_evidence","assets")) + (conn.execute("SELECT COUNT(*) FROM jobs WHERE job_type='fr_conversion'").fetchone()[0],)
++
++
++def _headers(secret=SECRET):
++    return {"Authorization":"Bearer storage-test-bootstrap","X-FrameRelay-Registration-Secret":secret}
++
++
++def test_first_finalization_independently_reads_final_destination_and_atomic_evidence(monkeypatch,tmp_path):
++    settings,request,value = _setup(tmp_path,monkeypatch)
++    _receive(settings,request,value)
++    job = _claim(settings,request,value)
++    calls=[]
++    original=files.read_all
++    def observe(root,path,**kwargs):
++        result=original(root,path,**kwargs)
++        calls.append((path,result["byte_count"],result["sha256"]))
++        return result
++    monkeypatch.setattr(files,"read_all",observe)
++    assert finalize.process_finalize(settings=settings,job=job)
++    assert (value["final_path"],len(DATA),request["sha256"]) in calls
++    result=_lookup(settings,request,value)
++    assert result["status"] == "completed" and result["evidence"]["method"] == "final_destination_read_back"
++    assert result["evidence"]["committed"] and result["evidence"]["byte_count"] == str(len(DATA))
++    assert _counts(settings) == (1,1,1)
++    with _database(settings) as conn:
++        assert conn.execute("SELECT status FROM jobs WHERE id=?",(job["id"],)).fetchone()[0] == "done"
++        assert conn.execute("SELECT status FROM jobs WHERE job_type='fr_conversion'").fetchone()[0] == "queued"
++        assert conn.execute("SELECT preview_status FROM assets").fetchone()[0] == "not_started"
++        assert claim_next_job(conn,300,SUPPORTED_JOB_TYPES) is None
++
++
++def test_existing_final_still_requires_full_read_and_does_not_use_assembly_hash(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    _receive(settings,request,value)
++    with files.exclusive_writer(settings.media_root,value["final_path"]) as output:output.write(DATA)
++    before=files.current_fingerprint(settings.media_root,value["final_path"])
++    job=_claim(settings,request,value)
++    blocks=[]
++    finalize.process_finalize(settings=settings,job=job,fault=lambda step:blocks.append(step))
++    assert "read_block" in blocks and "assembly_block" not in blocks
++    assert files.current_fingerprint(settings.media_root,value["final_path"]) == before
++    assert _counts(settings) == (1,1,1)
++
++
++def test_create_replay_is_bound_to_exact_context_and_never_serializes_secret(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    assert service.create(settings,request,SECRET) == value
++    for field,replacement in (("capture_id",str(uuid4())),("content_generation","2"),("sha256","f"*64),("byte_count","8")):
++        with pytest.raises(StorageError,match="binding_mismatch"):
++            service.create(settings,{**request,field:replacement},SECRET)
++    with _database(settings) as conn:
++        assert SECRET not in json.dumps([dict(row) for row in conn.execute("SELECT * FROM fr_upload_bindings")])
++    _receive(settings,request,value)
++    job=_claim(settings,request,value)
++    assert SECRET not in job["payload_json"]
++
++
++def test_wrong_destination_registration_generation_or_secret_cannot_receive_or_lookup(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    for field,new_value in (("destination_id",str(uuid4())),("registration_id",str(uuid4())),("registration_generation","2")):
++        incorrect={**request,field:new_value}
++        with pytest.raises(registrations.RegistrationError):
++            service.lookup(settings,value["session_id"],incorrect,SECRET)
++        with pytest.raises(registrations.RegistrationError):
++            asyncio.run(service.receive_chunk(settings,value["session_id"],incorrect,SECRET,0,
++                (0,3,16),hashlib.sha256(DATA[:4]).hexdigest(),_body(DATA[:4])))
++    with pytest.raises(registrations.RegistrationError):
++        service.lookup(settings,value["session_id"],request,"b"*64)
++    with pytest.raises(registrations.RegistrationError):
++        asyncio.run(service.receive_chunk(settings,value["session_id"],request,"b"*64,0,
++            (0,3,16),hashlib.sha256(DATA[:4]).hexdigest(),_body(DATA[:4])))
++    assert _lookup(settings,request,value)["chunk_indexes"] == []
++    assert not list(settings.media_root.glob("tmp/frame-relay/receiving/*.part"))
++    assert _counts(settings) == (0,0,0)
++
++
++def test_uint64_generation_is_exact_and_oversize_bytes_rejected_without_truncation(monkeypatch,tmp_path):
++    settings,request,_value=_setup(tmp_path,monkeypatch)
++    large={**request,"operation_id":str(uuid4()),"content_generation":str((1<<64)-1)}
++    value=service.create(settings,large,SECRET)
++    assert value["content_generation"] == str((1<<64)-1)
++    with pytest.raises(StorageError,match="size_limit"):
++        service.create(settings,{**request,"operation_id":str(uuid4()),"byte_count":str((1<<64)-1)},SECRET)
++    for field in ("registration_generation","content_generation","byte_count"):
++        for invalid in (True,1,"01","-1",str(1<<64)):
++            with pytest.raises(ValidationError):StorageBindingRequest.model_validate({**request,field:invalid})
++
++
++def test_capture_id_is_not_used_as_a_file_path(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    assert request["capture_id"] not in value["final_path"]
++    assert value["session_id"] in value["final_path"] and value["session_id"] != request["capture_id"]
++    # The opaque identity can look like a path. It stays exact data, never a
++    # path component, and even surrounding whitespace is not silently removed.
++    opaque={**request,"operation_id":str(uuid4()),"capture_id":"  ../試験/capture?x=1#原本  "}
++    accepted=service.create(settings,opaque,SECRET)
++    assert accepted["capture_id"] == opaque["capture_id"]
++    assert accepted["final_path"] == "originals/frame-relay/"+accepted["session_id"]+".mov"
++    assert _lookup(settings,opaque,accepted)["binding"]["capture_id"] == opaque["capture_id"]
++    with pytest.raises(StorageError,match="binding_mismatch"):
++        service.create(settings,{**opaque,"capture_id":opaque["capture_id"].strip()},SECRET)
++    for invalid in ("", " \t\n", 1, True, "\ud800"):
++        with pytest.raises(ValidationError):StorageBindingRequest.model_validate({**request,"capture_id":invalid})
++
++
++def test_chunk_wrong_digest_size_and_range_never_commit(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    for data,content_range,digest in ((b"abc",(0,3,16),hashlib.sha256(b"abc").hexdigest()),(b"abcd",(0,3,16),"f"*64),(b"abcd",(1,4,16),hashlib.sha256(b"abcd").hexdigest())):
++        with pytest.raises(StorageError):
++            asyncio.run(service.receive_chunk(settings,value["session_id"],request,SECRET,0,content_range,digest,_body(data)))
++    assert _lookup(settings,request,value)["chunk_indexes"] == []
++    assert not list(settings.media_root.glob("tmp/frame-relay/receiving/*.part"))
++
++
++def test_duplicate_chunk_same_payload_is_idempotent_and_other_payload_preserved(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    _receive(settings,request,value)
++    _receive(settings,request,value)
++    path=settings.media_root/f"tmp/frame-relay/chunks/{value['session_id']}/0.part"
++    before=path.read_bytes()
++    with pytest.raises(StorageError,match="chunk_conflict"):
++        asyncio.run(service.receive_chunk(settings,value["session_id"],request,SECRET,0,(0,3,16),hashlib.sha256(b"xxxx").hexdigest(),_body(b"xxxx")))
++    assert path.read_bytes() == before
++
++
++def test_missing_committed_chunk_does_not_acknowledge_a_successful_retry(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    _receive(settings,request,value)
++    path=settings.media_root/f"tmp/frame-relay/chunks/{value['session_id']}/0.part"
++    path.unlink()
++    with pytest.raises(StorageError,match="committed_chunk_missing"):
++        asyncio.run(service.receive_chunk(settings,value["session_id"],request,SECRET,0,
++            (0,3,16),hashlib.sha256(DATA[:4]).hexdigest(),_body(DATA[:4])))
++    assert not path.exists()
++    assert _counts(settings) == (0,0,0)
++
++
++def test_receive_stream_interruption_closes_own_file_without_committing_chunk(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    closed=[]
++    async def interrupted():
++        try:
++            yield DATA[:2]
++            raise asyncio.CancelledError()
++        finally:closed.append(True)
++    with pytest.raises(asyncio.CancelledError):
++        asyncio.run(service.receive_chunk(settings,value["session_id"],request,SECRET,0,
++            (0,3,16),hashlib.sha256(DATA[:4]).hexdigest(),interrupted()))
++    assert closed == [True]
++    assert _lookup(settings,request,value)["chunk_indexes"] == []
++    assert not list(settings.media_root.glob("tmp/frame-relay/receiving/*.part"))
++    _receive(settings,request,value)
++    assert _lookup(settings,request,value)["chunk_indexes"] == [0,1,2,3]
++
++
++def test_chunk_publish_interrupt_reopens_orphan_and_independently_reconciles(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    def crash(step):
++        if step == "after_chunk_publish":raise Crash()
++    with pytest.raises(Crash):
++        asyncio.run(service.receive_chunk(settings,value["session_id"],request,SECRET,0,(0,3,16),hashlib.sha256(DATA[:4]).hexdigest(),_body(DATA[:4]),fault=crash))
++    assert _lookup(settings,request,value)["chunk_indexes"] == []
++    _receive(settings,request,value)
++    assert _lookup(settings,request,value)["chunk_indexes"] == [0,1,2,3]
++
++
++def test_cancel_during_real_stream_preserves_receiver_until_terminal_then_refuses_callback(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    reached,release=Barrier(2),Event()
++    async def delayed():
++        yield DATA[:2]
++        reached.wait(timeout=10)
++        assert release.wait(10)
++        yield DATA[2:4]
++    with ThreadPoolExecutor(max_workers=1) as pool:
++        future=pool.submit(asyncio.run,service.receive_chunk(settings,value["session_id"],request,SECRET,0,(0,3,16),hashlib.sha256(DATA[:4]).hexdigest(),delayed()))
++        try:
++            reached.wait(timeout=10)
++            assert list(settings.media_root.glob("tmp/frame-relay/receiving/*.part"))
++            assert service.cancel(settings,value["session_id"],request,SECRET)["status"] == "cancelled"
++            assert list(settings.media_root.glob("tmp/frame-relay/receiving/*.part"))
++        finally:release.set()
++        with pytest.raises(StorageError,match="not_receiving"):future.result(timeout=10)
++    assert _lookup(settings,request,value)["chunk_indexes"] == []
++    assert not list(settings.media_root.glob("tmp/frame-relay/receiving/*.part"))
++
++
++def test_missing_chunks_cannot_start_finalize(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    with pytest.raises(StorageError,match="chunks_missing"):service.finalize(settings,value["session_id"],request,SECRET)
++    assert _counts(settings) == (0,0,0)
++
++
++def test_final_mismatch_short_file_and_symlink_never_replace_existing_bytes(monkeypatch,tmp_path):
++    for name,data in (("different",b"x"*len(DATA)),("short",DATA[:2]),("symlink",DATA)):
++        settings,request,value=_setup(tmp_path/name,monkeypatch)
++        _receive(settings,request,value)
++        target=settings.media_root/value["final_path"];target.parent.mkdir(parents=True)
++        if name == "symlink":
++            elsewhere=settings.media_root/"held.mov";elsewhere.write_bytes(data);target.symlink_to(elsewhere)
++        else:target.write_bytes(data)
++        before=target.read_bytes()
++        finalize.process_finalize(settings=settings,job=_claim(settings,request,value))
++        assert _counts(settings) == (0,0,0)
++        assert target.read_bytes() == before
++        assert _lookup(settings,request,value)["status"] == "failed"
++
++
++def test_missing_or_changed_chunk_never_publishes_final(monkeypatch,tmp_path):
++    for mode in ("missing","short","digest","symlink"):
++        settings,request,value=_setup(tmp_path/mode,monkeypatch);_receive(settings,request,value)
++        path=settings.media_root/f"tmp/frame-relay/chunks/{value['session_id']}/0.part"
++        if mode == "missing":path.unlink()
++        elif mode == "short":path.write_bytes(b"a")
++        elif mode == "digest":path.write_bytes(b"zzzz")
++        else:
++            other=settings.media_root/"other";other.write_bytes(DATA[:4]);path.unlink();path.symlink_to(other)
++        finalize.process_finalize(settings=settings,job=_claim(settings,request,value))
++        assert not (settings.media_root/value["final_path"]).exists()
++        assert _counts(settings) == (0,0,0)
++
++
++def test_crash_boundaries_reopen_reclaim_and_commit_exactly_one_evidence_job(monkeypatch,tmp_path):
++    for step in ("before_publish","after_publish","read_block","after_read","after_evidence_insert","after_job_insert","before_commit"):
++        settings,request,value=_setup(tmp_path/step,monkeypatch);_receive(settings,request,value);job=_claim(settings,request,value)
++        def crash(observed):
++            if observed == step:raise Crash()
++        with pytest.raises(Crash):finalize.process_finalize(settings=settings,job=job,fault=crash)
++        assert _counts(settings) == (0,0,0)
++        new_job=_reclaim(settings,job)
++        finalize.process_finalize(settings=settings,job=new_job)
++        assert _counts(settings) == (1,1,1)
++        assert _lookup(settings,request,value)["evidence"]["committed"]
++
++
++def test_commit_response_loss_is_recovered_by_exact_query_without_second_job(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch);_receive(settings,request,value);job=_claim(settings,request,value)
++    def crash(step):
++        if step == "after_commit":raise Crash()
++    with pytest.raises(Crash):finalize.process_finalize(settings=settings,job=job,fault=crash)
++    first=_lookup(settings,request,value)
++    assert first["status"] == "completed"
++    assert service.finalize(settings,value["session_id"],request,SECRET) == first
++    assert _counts(settings) == (1,1,1)
++    finalize.process_finalize(settings=settings,job=job)
++    assert _lookup(settings,request,value) == first
++
++
++def test_actual_evidence_or_job_insert_failure_rolls_back_all_database_results(monkeypatch,tmp_path):
++    for table in ("fr_storage_evidence","jobs"):
++        settings,request,value=_setup(tmp_path/table,monkeypatch);_receive(settings,request,value);job=_claim(settings,request,value)
++        with _database(settings) as conn:
++            predicate=" WHEN NEW.job_type='fr_conversion'" if table == "jobs" else ""
++            conn.execute("CREATE TRIGGER fr_test_reject BEFORE INSERT ON "+table+predicate+" BEGIN SELECT RAISE(ABORT,'injected'); END")
++            conn.commit()
++        finalize.process_finalize(settings=settings,job=job)
++        assert _counts(settings) == (0,0,0)
++        assert (settings.media_root/value["final_path"]).read_bytes() == DATA
++        with _database(settings) as conn:conn.execute("DROP TRIGGER fr_test_reject");conn.commit()
++        next_job=_claim(settings,request,value)
++        finalize.process_finalize(settings=settings,job=next_job)
++        assert _counts(settings) == (1,1,1)
++
++
++def test_final_file_replacement_after_read_or_during_read_cannot_commit(monkeypatch,tmp_path):
++    for step in ("read_block","after_read"):
++        settings,request,value=_setup(tmp_path/step,monkeypatch);_receive(settings,request,value);job=_claim(settings,request,value)
++        changed=False
++        def change(observed):
++            nonlocal changed
++            if observed == step and not changed:
++                changed=True
++                target=settings.media_root/value["final_path"]
++                replacement=target.with_suffix(".replacement");replacement.write_bytes(DATA);replacement.replace(target)
++        finalize.process_finalize(settings=settings,job=job,fault=change)
++        assert changed and _counts(settings) == (0,0,0)
++
++
++def test_final_file_truncation_during_read_cannot_commit(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch);_receive(settings,request,value);job=_claim(settings,request,value)
++    def change(step):
++        if step == "read_block":(settings.media_root/value["final_path"]).write_bytes(DATA[:1])
++    finalize.process_finalize(settings=settings,job=job,fault=change)
++    assert _counts(settings) == (0,0,0)
++
++
++def test_independent_hash_releases_writer_and_old_read_claim_cannot_commit(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch);_receive(settings,request,value);old=_claim(settings,request,value)
++    reached,release=Barrier(2),Event()
++    def pause(step):
++        if step == "read_block":
++            reached.wait(timeout=10)
++            assert release.wait(10)
++    with ThreadPoolExecutor(max_workers=1) as pool:
++        future=pool.submit(finalize.process_finalize,settings=settings,job=old,fault=pause)
++        try:
++            reached.wait(timeout=10)
++            with closing(connect(settings.database_path,100)) as conn:
++                # This real independent writer must commit while final read is held.
++                registrations.register(conn,destination_id=request["destination_id"],operation_id=str(uuid4()),secret=SECRET)
++            new=_reclaim(settings,old)
++            finalize.process_finalize(settings=settings,job=new)
++        finally:release.set()
++        assert future.result(timeout=10)
++    assert _counts(settings) == (1,1,1)
++    with _database(settings) as conn:
++        assert conn.execute("SELECT claim_token FROM fr_storage_evidence").fetchone()[0] == new["fr_claim_token"]
++
++
++def test_expired_attempt_cannot_publish_fail_renew_or_cleanup_new_attempt(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch);_receive(settings,request,value);old=_claim(settings,request,value)
++    reached,release=Barrier(2),Event()
++    def pause(step):
++        if step == "before_publish":reached.wait(timeout=10);assert release.wait(10)
++    with ThreadPoolExecutor(max_workers=1) as pool:
++        future=pool.submit(finalize.process_finalize,settings=settings,job=old,fault=pause)
++        try:
++            reached.wait(timeout=10)
++            old_path=settings.media_root/finalize.assembly_name(value,old)
++            assert old_path.exists()
++            new=_reclaim(settings,old)
++            with pytest.raises(StorageError,match="stale_claim"):finalize.cleanup_attempt(settings,old)
++            with pytest.raises(StorageError,match="stale_claim"):finalize.mark_failed(settings,old,"old")
++            with _database(settings) as conn:
++                conn.execute("BEGIN IMMEDIATE")
++                with pytest.raises(StorageError,match="stale_claim"):repository.renew_claim(conn,old,300)
++                conn.rollback()
++            finalize.process_finalize(settings=settings,job=new)
++        finally:release.set()
++        assert future.result(timeout=10)
++    assert old_path.exists() and _counts(settings) == (1,1,1)
++    assert (settings.media_root/value["final_path"]).read_bytes() == DATA
++
++
++def test_unproven_completed_or_legacy_verified_asset_never_becomes_evidence(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    with _database(settings) as conn:
++        conn.execute("UPDATE fr_upload_states SET status='completed' WHERE session_id=?",(value["session_id"],));conn.commit()
++    with pytest.raises(StorageError,match="evidence_missing"):_lookup(settings,request,value)
++    with pytest.raises(StorageError,match="evidence_missing"):service.finalize(settings,value["session_id"],request,SECRET)
++    with _database(settings) as conn:
++        conn.execute("UPDATE fr_upload_states SET status='receiving' WHERE session_id=?",(value["session_id"],))
++        conn.execute("INSERT INTO assets(type,filename,original_path,verification_status) VALUES('video','old',?,'file_verified')",(value["final_path"],));conn.commit()
++    _receive(settings,request,value)
++    finalize.process_finalize(settings=settings,job=_claim(settings,request,value))
++    assert _counts(settings) == (0,1,0)
++
++
++def test_dedup_key_with_changed_fr_payload_is_rejected(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch);_receive(settings,request,value);job=_claim(settings,request,value)
++    with _database(settings) as conn:
++        with pytest.raises(ValueError):
++            insert_or_return_job(conn,job_type=job["job_type"],asset_id=None,payload_json='{}',dedup_key=job["dedup_key"])
++    assert _counts(settings) == (0,0,0)
++
++
++def test_api_bound_upload_query_and_finalization_use_exact_authentication(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    # HTTP settings have the production chunk size; this accepted binding keeps
++    # the explicit test chunk size already committed in the same DB.
++    with TestClient(app) as client:
++        created=client.post(PREFIX,json=request,headers=_headers())
++        assert created.status_code == 200 and created.json()["binding"]["session_id"] == value["session_id"]
++        url=PREFIX+"/"+value["session_id"]
++        assert client.get(url,params=request,headers=_headers("b"*64)).status_code == 403
++        assert client.get(url,params=request).status_code == 401
++        for index,start in enumerate(range(0,len(DATA),4)):
++            chunk=DATA[start:start+4]
++            result=client.put(url+f"/chunks/{index}",params=request,content=chunk,
++                headers={**_headers(),"Content-Range":f"bytes {start}-{start+3}/{len(DATA)}","X-Chunk-SHA256":hashlib.sha256(chunk).hexdigest()})
++            assert result.status_code == 200
++        assert client.post(url+"/finalize",params=request,headers=_headers()).status_code == 200
++        with _database(settings) as conn:job=claim_next_job(conn,300,SUPPORTED_JOB_TYPES)
++        finalize.process_finalize(settings=settings,job=job)
++        result=client.get(url,params=request,headers=_headers())
++        assert result.status_code == 200 and result.json()["evidence"]["committed"]
++        assert SECRET not in result.text
++
++
++def test_legacy_session_get_put_finalize_cancel_cannot_touch_fr_session(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    with TestClient(app) as client:
++        url="/upload-sessions/"+value["session_id"]
++        calls=[client.get(url,headers=_headers()),client.delete(url,headers=_headers()),client.post(url+"/finalize",headers=_headers()),
++            client.put(url+"/chunks/0",content=DATA[:4],headers={**_headers(),"Content-Range":"bytes 0-3/16","X-Chunk-SHA256":hashlib.sha256(DATA[:4]).hexdigest()})]
++        assert all(result.status_code == 409 for result in calls)
++    assert _lookup(settings,request,value)["status"] == "receiving"
++
++
++def test_legacy_processors_early_returns_and_publication_reject_managed_asset(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch);_receive(settings,request,value);job=_claim(settings,request,value)
++    finalize.process_finalize(settings=settings,job=job)
++    with _database(settings) as conn:asset_id=conn.execute("SELECT id FROM assets").fetchone()[0]
++    from app.services.preview import process_preview_job
++    from app.services.formal_preview_processing import process_formal_preview_job
++    from app.services.rendition_processing import process_rendition_job
++    from app.services.rendition_creation import create_rendition
++    from app.services.processed_result_backfill import backfill_processed_result_for_asset
++    from app.services.processed_result_finalizer import finalize_ready_processed_result
++    from app.services.formal_preview_finalizer import resolve_verified_original,finalize_formal_preview_output
++    from app.services.rendition_finalizer import finalize_rendition_output
++    from app.repositories.processed_results import insert_ready_processed_result,insert_superseded_processed_result,set_active_processed_result
++    from app.repositories.jobs import mark_job_done,mark_job_failed,fail_job_and_asset_preview
++    with _database(settings) as conn:
++        fake,_=insert_or_return_job(conn,job_type="preview",asset_id=asset_id,payload_json="{}",dedup_key="legacy-fr-bypass")
++        conn.commit()
++    for processor in (process_preview_job,process_formal_preview_job,process_rendition_job):
++        with pytest.raises(StorageError,match="conversion_not_implemented"):processor(settings=settings,job=fake)
++    with pytest.raises(StorageError):create_rendition(settings=settings,asset_id=asset_id,client_request_id=str(uuid4()),preset_id=None)
++    with pytest.raises(StorageError):backfill_processed_result_for_asset(settings=settings,asset_id=asset_id)
++    with pytest.raises(StorageError):finalize_ready_processed_result(settings=settings,job_id=fake["id"],asset_id=asset_id,preview_relative_path="previews/fake",mime_type="video/mp4",size_bytes=1)
++    candidate=settings.media_root/"retained-candidate.mov";candidate.write_bytes(DATA)
++    with pytest.raises(StorageError):finalize_formal_preview_output(settings=settings,job_id=fake["id"],attempt_id="unrelated",candidate_path=candidate,candidate_identity=None)
++    with pytest.raises(StorageError):finalize_rendition_output(settings=settings,job_id=fake["id"],rendition_id="unrelated",candidate_path=candidate,evidence=None)
++    assert candidate.read_bytes() == DATA
++    with _database(settings) as conn:
++        with pytest.raises(StorageError):resolve_verified_original(settings=settings,conn=conn,asset_id=asset_id)
++        with pytest.raises(StorageError):insert_ready_processed_result(conn,asset_id=asset_id,derived_file_id=1,mime_type="video/mp4",size_bytes=1,sha256="a"*64)
++        with pytest.raises(StorageError):insert_superseded_processed_result(conn,asset_id=asset_id,derived_file_id=1,mime_type="video/mp4",size_bytes=1,sha256="a"*64)
++        with pytest.raises(StorageError):set_active_processed_result(conn,asset_id=asset_id,result_id="a"*32)
++        with pytest.raises(StorageError):mark_job_done(conn,fake["id"])
++        with pytest.raises(StorageError):mark_job_failed(conn,fake["id"],"forged")
++        with pytest.raises(StorageError):fail_job_and_asset_preview(conn,job_id=fake["id"],asset_id=asset_id,error_message="forged")
++        assert conn.execute("SELECT status FROM jobs WHERE id=?",(fake["id"],)).fetchone()[0] == "queued"
++        assert conn.execute("SELECT preview_status FROM assets WHERE id=?",(asset_id,)).fetchone()[0] == "not_started"
++        assert conn.execute("SELECT COUNT(*) FROM processed_results").fetchone()[0] == 0
++
++
++def test_legacy_upload_worker_rejects_bound_session_before_failure_or_cleanup(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch);_receive(settings,request,value)
++    from app.services.upload_finalize import process_upload_finalize_job
++    with _database(settings) as conn:
++        legacy,_=insert_or_return_job(conn,job_type="upload_finalize",asset_id=None,
++            payload_json=json.dumps({"session_id":value["session_id"]}),dedup_key="legacy-session-bypass")
++        conn.commit()
++    with pytest.raises(StorageError,match="requires_bound_api"):
++        process_upload_finalize_job(settings=settings,job=legacy)
++    assert _lookup(settings,request,value)["status"] == "receiving"
++    assert len(list(settings.media_root.glob("tmp/frame-relay/chunks/*/*.part"))) == 4
++    with _database(settings) as conn:
++        assert conn.execute("SELECT status FROM jobs WHERE id=?",(legacy["id"],)).fetchone()[0] == "queued"
++    assert _counts(settings) == (0,0,0)
++
++
++def test_broken_schema_and_missing_binding_never_fall_back_to_legacy(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    from app.services.upload_sessions import get_upload_session
++    with _database(settings) as conn:
++        conn.execute("UPDATE fr_schema_migrations SET sha256='corrupt' WHERE version='002_storage'");conn.commit()
++    with pytest.raises(migrations.FrameRelaySchemaError):get_upload_session(settings=settings,session_id=value["session_id"])
++    with pytest.raises(migrations.FrameRelaySchemaError):_lookup(settings,request,value)
++
++
++def test_missing_persistent_binding_refuses_legacy_session_and_asset_paths(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    from app.services.upload_sessions import get_upload_session
++    with _database(settings) as conn:
++        conn.execute("PRAGMA foreign_keys=OFF")
++        conn.execute("DROP TRIGGER fr_binding_no_delete")
++        conn.execute("DELETE FROM fr_upload_bindings WHERE session_id=?",(value["session_id"],))
++        conn.execute("INSERT INTO assets(type,filename,original_path) VALUES('video','retained',?)",(value["final_path"],))
++        conn.commit()
++    with pytest.raises(StorageError,match="binding_missing"):get_upload_session(settings=settings,session_id=value["session_id"])
++    with pytest.raises(StorageError,match="binding_missing"):_lookup(settings,request,value)
++    with _database(settings) as conn:
++        asset_id=conn.execute("SELECT id FROM assets").fetchone()[0]
++        with pytest.raises(StorageError,match="binding_missing"):repository.deny_legacy_asset(conn,asset_id)
++
++
++def test_missing_conversion_job_does_not_return_completed_evidence(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch);_receive(settings,request,value)
++    finalize.process_finalize(settings=settings,job=_claim(settings,request,value))
++    with _database(settings) as conn:
++        conn.execute("DELETE FROM jobs WHERE job_type='fr_conversion'");conn.commit()
++    with pytest.raises(StorageError,match="evidence_inconsistent"):_lookup(settings,request,value)
++
++
++def test_changed_finalization_job_or_claim_does_not_return_completed_evidence(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch);_receive(settings,request,value)
++    job=_claim(settings,request,value)
++    finalize.process_finalize(settings=settings,job=job)
++    with _database(settings) as conn:
++        conn.execute("UPDATE jobs SET job_type='upload_finalize' WHERE id=?",(job["id"],));conn.commit()
++    with pytest.raises(StorageError,match="evidence_inconsistent"):_lookup(settings,request,value)
++    with _database(settings) as conn:
++        conn.execute("UPDATE jobs SET job_type='fr_upload_finalize' WHERE id=?",(job["id"],))
++        conn.execute("UPDATE fr_job_claims SET token=? WHERE job_id=?",(str(uuid4()),job["id"]))
++        conn.commit()
++    with pytest.raises(StorageError,match="evidence_inconsistent"):_lookup(settings,request,value)
++    assert _counts(settings) == (1,1,1)
++
++
++def test_same_binding_job_with_forged_claim_or_payload_cannot_write_failure(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch);_receive(settings,request,value);job=_claim(settings,request,value)
++    for field,wrong in (("fr_claim_generation",job["fr_claim_generation"]+1),("fr_claim_token",str(uuid4())),("payload_json","{}")):
++        finalize.process_finalize(settings=settings,job={**job,field:wrong})
++        assert _lookup(settings,request,value)["status"] == "finalizing"
++        assert _counts(settings) == (0,0,0)
++    finalize.process_finalize(settings=settings,job=job)
++    assert _counts(settings) == (1,1,1)
++
++
++def test_current_claim_renewal_and_cleanup_preserve_chunks_and_final(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch);_receive(settings,request,value);job=_claim(settings,request,value)
++    with files.exclusive_writer(settings.media_root,finalize.assembly_name(value,job)) as output:output.write(b"partial")
++    with _database(settings) as conn:
++        conn.execute("BEGIN IMMEDIATE");repository.renew_claim(conn,job,300);conn.commit()
++    finalize.cleanup_attempt(settings,job)
++    assert not (settings.media_root/finalize.assembly_name(value,job)).exists()
++    assert len(list(settings.media_root.glob("tmp/frame-relay/chunks/*/*.part"))) == 4
++    finalize.process_finalize(settings=settings,job=job)
++    with pytest.raises(StorageError,match="stale_claim"):finalize.cleanup_attempt(settings,job)
++    assert (settings.media_root/value["final_path"]).read_bytes() == DATA
++
++
++def test_claim_allocates_unique_token_and_generation_in_same_transaction(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch);_receive(settings,request,value);old=_claim(settings,request,value)
++    new=_reclaim(settings,old)
++    with _database(settings) as conn:
++        claim=dict(conn.execute("SELECT * FROM fr_job_claims").fetchone())
++        row=dict(conn.execute("SELECT * FROM jobs WHERE id=?",(old["id"],)).fetchone())
++    assert claim["token"] == new["fr_claim_token"] and claim["generation"] == 2 and row["status"] == "running"
++
++
++def test_invalid_job_binding_rolls_back_running_status_and_claim_allocation(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch);_receive(settings,request,value)
++    service.finalize(settings,value["session_id"],request,SECRET)
++    with _database(settings) as conn:
++        conn.execute("UPDATE jobs SET payload_json='{}' WHERE job_type='fr_upload_finalize'");conn.commit()
++        with pytest.raises(StorageError,match="payload_invalid"):
++            claim_next_job(conn,300,SUPPORTED_JOB_TYPES)
++        assert conn.execute("SELECT status FROM jobs WHERE job_type='fr_upload_finalize'").fetchone()[0] == "queued"
++        assert conn.execute("SELECT COUNT(*) FROM fr_job_claims").fetchone()[0] == 0
++    assert _lookup(settings,request,value)["status"] == "finalizing"
++
++
++def test_ordered_002_migration_keeps_001_digest_destination_and_rolls_back(monkeypatch,tmp_path):
++    path=tmp_path/"migration.sqlite3"
++    original_sources=migrations.migration_sources
++    monkeypatch.setattr(migrations,"migration_sources",lambda:[(migrations.VERSION,migrations.SCHEMA)])
++    with closing(connect(path,5000)) as conn:
++        run_migrations(conn);migrations.run_frame_relay_migrations(conn)
++        destination=conn.execute("SELECT destination_id FROM fr_destination").fetchone()[0]
++        original=tuple(conn.execute("SELECT version,sha256 FROM fr_schema_migrations").fetchone())
++    monkeypatch.setattr(migrations,"migration_sources",original_sources)
++    old_path=migrations.STORAGE_SCHEMA
++    broken=tmp_path/"broken.sql";broken.write_text(old_path.read_text()+"\nSELECT * FROM does_not_exist;\n")
++    monkeypatch.setattr(migrations,"STORAGE_SCHEMA",broken)
++    with closing(connect(path,5000)) as conn:
++        with pytest.raises(sqlite3.DatabaseError):migrations.run_frame_relay_migrations(conn)
++        assert conn.execute("SELECT name FROM sqlite_master WHERE name='fr_upload_bindings'").fetchone() is None
++        assert [tuple(row) for row in conn.execute("SELECT version,sha256 FROM fr_schema_migrations")] == [original]
++    monkeypatch.setattr(migrations,"STORAGE_SCHEMA",old_path)
++    with closing(connect(path,5000)) as conn:
++        migrations.run_frame_relay_migrations(conn)
++        assert tuple(conn.execute("SELECT version,sha256 FROM fr_schema_migrations WHERE version=?",(original[0],)).fetchone()) == original
++        assert conn.execute("SELECT destination_id FROM fr_destination").fetchone()[0] == destination
++        assert conn.execute("SELECT COUNT(*) FROM fr_schema_migrations").fetchone()[0] == 2
++
++
++def test_worker_standalone_checks_fr_schema_before_recovery_or_claim(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch)
++    from app.workers import worker
++    called=[]
++    monkeypatch.setattr(worker,"recover_expired_jobs",lambda *_:called.append("recovery"))
++    monkeypatch.setattr(worker,"claim_next_job",lambda *_:called.append("claim"))
++    with _database(settings) as conn:conn.execute("UPDATE fr_schema_migrations SET sha256='bad' WHERE version='002_storage'");conn.commit()
++    with pytest.raises(migrations.FrameRelaySchemaError):worker.run_once()
++    assert called == []
++
++
++def test_worker_routes_fr_finalize_but_never_claims_conversion(monkeypatch,tmp_path):
++    settings,request,value=_setup(tmp_path,monkeypatch);_receive(settings,request,value)
++    service.finalize(settings,value["session_id"],request,SECRET)
++    from app.workers import worker
++    assert worker.run_once()
++    assert _lookup(settings,request,value)["evidence"]["committed"]
++    assert worker.run_once() is False
++    assert "fr_conversion" not in SUPPORTED_JOB_TYPES
++    with _database(settings) as conn:
++        assert conn.execute("SELECT status FROM jobs WHERE job_type='fr_conversion'").fetchone()[0] == "queued"
+--- a/backend/tests/test_worker_jobs.py
++++ b/backend/tests/test_worker_jobs.py
+@@ -96,7 +96,8 @@
+ 
+ 
+ def test_supported_job_types_include_preview_processors():
+-    assert SUPPORTED_JOB_TYPES == {"preview", "lut_preview", "upload_finalize", "rendition"}
++    assert SUPPORTED_JOB_TYPES == {"preview", "lut_preview", "upload_finalize", "rendition", "fr_upload_finalize"}
++    assert "fr_conversion" not in SUPPORTED_JOB_TYPES
+ 
+ 
+ def test_worker_leaves_unsupported_job_queued(monkeypatch, tmp_path):

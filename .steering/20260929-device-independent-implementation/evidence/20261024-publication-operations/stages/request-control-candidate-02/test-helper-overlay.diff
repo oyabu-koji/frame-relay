@@ -1,0 +1,86 @@
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-candidate-01/source-snapshot/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
+index bf6b5f4..fb6b0e8 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-candidate-01/source-snapshot/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
+@@ -22,6 +22,10 @@ final class MediaRequestControlFlowTests: XCTestCase {
+         expected.name = "media-request-control-independent-expectations"; expected.lifetime = .keepAlways; add(expected)
+         app.launch()
+         try loaded(app)
++        if context.phase == "inspectRemotePauseSeek" {
++            try inspectRemotePauseSeek(context.value, app)
++            return
++        }
+         let firstPhase = context.startPhase ?? context.phase
+         let phases: [String]
+         if context.phase == "all" { phases = Array(requestControlUIPhases.dropFirst()) + ["relaunch"] }
+@@ -105,7 +109,8 @@ final class MediaRequestControlFlowTests: XCTestCase {
+                 try audit(app, context.value.variant + "-" + phase + "-native-controls-before")
+                 let action = isResume ? "resumeIntent" : isCancel ? "cancel" : "pause"
+                 let control = button("library.request." + action + "." + target.requestToken, app)
+-                try reveal(control, app)
++                if local { try reveal(control, app) }
++                else { try rootReveal(control, app) }
+                 try assertControl(control, title: actionTitle(action), enabled: true, app)
+                 attach(app, context.value.variant + "-" + phase + "-armed-prefix-\(nextStage - 1)")
+                 control.tap()
+@@ -149,7 +154,7 @@ final class MediaRequestControlFlowTests: XCTestCase {
+                 || (actual.uuidString == "DB784948-3DA5-454A-9526-29C37B22AB84" && variant == "max" && nonce == "6debb933-100f-4327-835f-5415010a47e7")),
+               value.schema == "fr-s28-media-request-control-ui-v1", UUID(uuidString: value.storeUUID) != nil,
+               value.manifest.bytes > 0, value.manifest.inode > 0, value.manifest.sha256.utf8.count == 64,
+-              requestControlUIPhases.dropFirst().contains(phase) || ["all", "relaunch", "tail"].contains(phase),
++              requestControlUIPhases.dropFirst().contains(phase) || ["all", "relaunch", "tail", "inspectRemotePauseSeek"].contains(phase),
+               value.targets.map(\.role) == ["local", "waiting", "cancelled", "completed", "ended"],
+               Set(value.targets.map(\.operation)).count == 5,
+               value.targets.allSatisfy({ target in
+@@ -165,6 +170,42 @@ final class MediaRequestControlFlowTests: XCTestCase {
+         } else if startPhase != nil { throw RequestControlUIFailure.wrongEnvironment }
+         return (value, phase, startPhase, encoded)
+     }
++    @MainActor private func inspectRemotePauseSeek(_ expected: RequestControlUIExpected, _ app: XCUIApplication) throws {
++        let beforeHistory = try scanRootHistory(app)
++        try requireHistory(beforeHistory, stage: 2, context: expected, afterRelaunch: true)
++        let target = try expected.target("waiting")
++        try rootReveal(element("library.request.identity." + target.requestToken, app), app)
++        try assertRequest(target, intent: "running", app)
++        try assertActions(target, pause: true, cancel: true, resume: false, reason: nil, app)
++        let identifier = "library.request.pause." + target.requestToken
++        let before = button(identifier, app)
++        try reveal(before, app)
++        try assertControl(before, title: actionTitle("pause"), enabled: true, app)
++        XCTAssertEqual(before.identifier, identifier)
++        let beforeFrame = before.frame
++        let beforeCategory = UIApplication.shared.preferredContentSizeCategory.rawValue
++        let observation = "runnerContentSizeCategoryBefore=" + beforeCategory + "\nbeforeFrame=\(beforeFrame)\n" + metadata(before)
++        let initial = XCTAttachment(string: observation)
++        initial.name = expected.variant + "-inspect-remote-pause-before-audit"; initial.lifetime = .keepAlways; add(initial)
++        try audit(app, expected.variant + "-inspect-remote-pause-seek")
++        let after = button(identifier, app)
++        try rootReveal(after, app)
++        try assertControl(after, title: actionTitle("pause"), enabled: true, app)
++        XCTAssertEqual(after.identifier, identifier)
++        let final = XCTAttachment(string: observation + "\nrunnerContentSizeCategoryAfter="
++            + UIApplication.shared.preferredContentSizeCategory.rawValue + "\nafterFrame=\(after.frame)\n" + metadata(after)
++            + "\nRunner text categories are references; native frames, full labels and screenshots are the observed product layout.")
++        final.name = expected.variant + "-inspect-same-remote-pause-after-audit"; final.lifetime = .keepAlways; add(final)
++        attach(app, expected.variant + "-inspect-remote-pause-reacquired-without-tap")
++        let afterHistory = try scanRootHistory(app)
++        try requireHistory(afterHistory, stage: 2, context: expected, afterRelaunch: true)
++        XCTAssertEqual(afterHistory.plans, beforeHistory.plans)
++        XCTAssertEqual(afterHistory.headings, beforeHistory.headings)
++        XCTAssertEqual(afterHistory.identities, beforeHistory.identities)
++        XCTAssertEqual(afterHistory.decisions, beforeHistory.decisions)
++        XCTAssertEqual(afterHistory.stops, beforeHistory.stops)
++        XCTAssertEqual(afterHistory.pending, beforeHistory.pending)
++    }
+     @MainActor private func stage(_ phase: String) throws -> Int {
+         try XCTUnwrap(requestControlUIPhases.firstIndex(of: phase))
+     }
+@@ -403,7 +444,7 @@ final class MediaRequestControlFlowTests: XCTestCase {
+             }
+             app.swipeUp()
+         }
+-        attach(app, "media-request-control-unreachable-" + value.identifier)
++        attach(app, "media-request-control-unreachable-element")
+         throw RequestControlUIFailure.unreachable
+     }
+     @MainActor private func revealControl(_ value: XCUIElement, _ app: XCUIApplication) throws {

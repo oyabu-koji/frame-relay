@@ -1,0 +1,75 @@
+{
+  "state": "ready local acceptance and metadata after control, sequential tasks",
+  "agent": "operation_paths read-only",
+  "scope": "fixed upload request -> metadata session create/lookup -> queued; no media sender",
+  "server": {
+    "POST": "/frame-relay/v1/uploads",
+    "GET": "/frame-relay/v1/uploads/{session_id} same binding query",
+    "binding": [
+      "destination",
+      "registrationID+generation",
+      "operationID",
+      "opaque capture",
+      "content generation",
+      "sha256",
+      "bytes"
+    ],
+    "response": "POST binding echoes all +sessionID+chunk_size; GET binding+state+evidence+chunk_indexes+failure_code; canonical decimal strings",
+    "states": "receiving/finalizing inProgress; cancelled external status; completed does not establish independent final verification without exact fr-final-read-v1 evidence",
+    "idempotency": "same destination/registration/operation POST exact same payload; NO unknown-session read-only operation lookup endpoint"
+  },
+  "sameWriter": [
+    "beginQuery queryID/operation/reg/original/kind/create-or-lookup+session/generation committed BEFORE request",
+    "independent per-request monotonically allocated query generation, not revision/time/arrival order",
+    "observe only exact committed query/echo/known session/generation; stale response rejected",
+    "unknown commit original payload+revision exact lookup; only definite CAS conflict permits new proposal",
+    "unknown POST same binding repeat only while person running, never paused/cancelled; no read-only way to discover unknownsession currently",
+    "restart restores persisted query/intent; no different operation/current-registration rebase"
+  ],
+  "acceptance": "Same-revision immutable saved binding + save commit + no removal reservation + current file existence/stat -> TransferBatch fixedset current registration initialnativeWiFi -> exact samewriter .batch. No fresh fullhash/currentcontent verification claim. Actual sender later acquireRead/openBoundRead fullhash. Capture queued accepted + synchronizeCapture waits, actual SDK final guard separate.",
+  "remote": "reuse PublicationURLSessionRequest bounded response/redirect rejection/terminal lifecycle, read-only Keychain current namespace authorization with before-after registration boundary",
+  "senderGap": "whole-source BackgroundMediaUploadPlan incompatible with server chunk PUT; future chunk source/hash/range/plan separate; native positive strict refuses",
+  "tests": [
+    "exact wire/Unicode/canonical integer limits",
+    "idempotent POST samebinding/pause POST0",
+    "inverse response/query order",
+    "unknown commit/reopen exact",
+    "registration changes",
+    "independent child failures/auth common wait",
+    "actual isolated HTTP metadata only/no media bytes/all owners terminate"
+  ],
+  "notExternalBlockers": [
+    "LUT",
+    "ISO",
+    "Q01"
+  ],
+  "notClaimed": [
+    "ordinary HTTPS UI positive path",
+    "actual media transfer",
+    "formal verification/quality/PRD"
+  ],
+  "acceptancePreviousProposalRetained": "ManagedOriginalAccess.describe fullhash proposal rejected for current acceptance: opens short-lived original FD/fullhash without durable inspection lease or REC cancellation/join; lease0 was not read0.",
+  "queuedAcceptanceRefinement": {
+    "state": "read-only reviewed ready after current controls UI closure",
+    "facts": [
+      "observeFile stat opens short-lived FD but no fullhash/durablelease/copy/SDK",
+      "TransferBatch.requests mutates after personcontrol so cannot reconstruct original acceptance mutation from current batch",
+      "saved receipt revision is capture-local1to2, notstoreglobalrevision",
+      "all target fixed beforefirstawait, no silent shrinking or lateinsertion"
+    ],
+    "proposal": "Add one schema7 originalUploadAcceptance(plan) case preserving legacy .batch replay. Persist fixed all targets/childIDs/savebinding/savecommit, atomic per-child accepted request/notProcessed decision; optional accepted TransferBatch plus separate immutable original acceptance record. Newcase exact UUID/mutation lookup; current requests joined separately. AllnotProcessedchild IDs remain reserved namespace. Await implementation/design consistency review before writing.",
+    "pending": "operation_paths read-only review of additivecase and per-child projection",
+    "confirmedByExplorer": "Additive newcase works; prefer immutable acceptance record +backend.requests only, omit legacy batches to avoid false .batch receipt. Newrequest startCommitted needs dedicated authentic newreceipt acceptance method. Perchild decisions derived at historical eventposition, currentrecordings live guard separate fromreplay.",
+    "namespace": "all fixed child IDs inclnotProcessed reserved; introduced newcommands distinguished from legitimate operation refs; include existing person IDs, queuedPhoto children and nestedlegacybatch; OriginalRemoval separatetypedjournal no receipt borrowing.",
+    "details": [
+      "input selection parent/storeUUID/currentcommittedDeviceRegistration/single-or-multiple/fixedchildIDs+OriginalBinding+savecommit beforefirstawait fromsameLibrary snapshot",
+      "presence stat uses RecordingOriginalFilePort.observeFile; Codable observedvalue frozeninnewjournalplan; not freshfullhash/currentcontent/strictWiFipermit",
+      "same-revision records/original/backend before/afterstat; currentbinding/saveclassification/removal/invalidation/newduplicate request and latestregistration/storeUUID rechecked at finalCAS; onlyoriginal perchild ineligibility becomesnotProcessed",
+      "unknown keeps original envelope revision/payload and exact lookup only; definiteconflict boundedreject ratherthan orphanunknown",
+      "no .batch fake receipt, acceptstart onlyauthentic OriginalUploadAcceptance receipt/member/expectedStartRevision guards; immutable initial record separate from currentrequestjoin",
+      "accepted queue no copy/readlease/network/SDK; observeFile shortFDstat not global read0; actualsender acquireRead/openBoundRead fullhash later",
+      "WiFi initialnativeobservation no reservation whileunknown/cellular/offline; not stricttransportapproval; capturequeuedaccept allowed +samefactory synchronizeCapture only afterknowncommit; actualSDKlatest gate later",
+      "single normaldetail andexistingmultitransferbutton via LibraryTransferCommands; parent/fixedchild pervideo accepted/unprocessed/currentintent shown asqueued/communication notstarted; no successpromotion or rawinternalIDs"
+    ]
+  }
+}

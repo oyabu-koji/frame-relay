@@ -1,0 +1,29 @@
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-candidate-03/source-snapshot/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
+index 0e97fc7..dd7256e 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-candidate-03/source-snapshot/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
+@@ -89,6 +89,7 @@ final class MediaRequestControlFlowTests: XCTestCase {
+                 try assertControl(control, title: "開始指示済みの通信を全件停止", enabled: true, app)
+                 attach(app, context.value.variant + "-allPause-armed-prefix-four")
+                 control.tap()
++                try rootReveal(element("library.request.feedback", app), app)
+                 try wait("Fixed all-pause must commit its whole five-child plan", app) {
+                     let feedback = self.element("library.request.feedback", app)
+                     let allPause = self.button("library.request.allPause", app)
+@@ -115,9 +116,15 @@ final class MediaRequestControlFlowTests: XCTestCase {
+                 attach(app, context.value.variant + "-" + phase + "-armed-prefix-\(nextStage - 1)")
+                 control.tap()
+                 let intent = isResume ? "running" : isCancel ? "cancelled" : "paused"
++                if !local {
++                    try rootReveal(element("library.request.identity." + target.requestToken, app), app)
++                    try reveal(element("library.request.intent." + target.requestToken, app), app)
++                }
+                 try wait("The exact request must retain the new durable person intent", app) {
+-                    self.element("library.request.intent." + target.requestToken, app).label == self.intentText(intent)
++                    let value = self.element("library.request.intent." + target.requestToken, app)
++                    return value.exists && value.label == self.intentText(intent)
+                 }
++                if !local { try rootReveal(element("library.request.identity." + target.requestToken, app), app) }
+                 try assertRequest(target, intent: intent, app)
+                 try assertActions(target, pause: isResume, cancel: !isCancel, resume: !isResume && !isCancel,
+                     reason: isCancel ? "この通信要求は本人取消済みです。" : nil, app)

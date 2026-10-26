@@ -1,0 +1,26 @@
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-candidate-02/source-snapshot/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
+index fb6b0e8..0e97fc7 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/request-control-candidate-02/source-snapshot/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
+@@ -422,6 +422,12 @@ final class MediaRequestControlFlowTests: XCTestCase {
+     }
+ 
+     @MainActor private func rootReveal(_ value: XCUIElement, _ app: XCUIApplication) throws {
++        if value.exists {
++            let upper = app.navigationBars.firstMatch.frame.maxY + 2
++            let viewport = CGRect(x: app.frame.minX, y: upper, width: app.frame.width, height: max(0, app.frame.maxY - upper - 8))
++            let visible = value.frame.intersection(viewport)
++            if !visible.isNull && visible.height >= min(44, value.frame.height) { return }
++        }
+         try top(app)
+         try reveal(value, app)
+     }
+@@ -429,7 +435,7 @@ final class MediaRequestControlFlowTests: XCTestCase {
+         let camera = button("product.capture", app)
+         for _ in 0..<180 {
+             if camera.exists && camera.isHittable && camera.frame.midY > app.navigationBars.firstMatch.frame.maxY + 2 { return }
+-            app.swipeDown()
++            app.swipeDown(velocity: .fast)
+         }
+         throw RequestControlUIFailure.unreachable
+     }

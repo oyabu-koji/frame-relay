@@ -1,0 +1,50 @@
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/photo-final-candidate-02/source-snapshot/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
+index dd7256e..548c21f 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/photo-final-candidate-02/source-snapshot/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelayUITests/Flows/MediaRequestControlFlowTests.swift
+@@ -22,6 +22,10 @@ final class MediaRequestControlFlowTests: XCTestCase {
+         expected.name = "media-request-control-independent-expectations"; expected.lifetime = .keepAlways; add(expected)
+         app.launch()
+         try loaded(app)
++        if context.phase == "inspectFinalPausedWaiting" {
++            try inspectFinalPausedWaiting(context.value, app)
++            return
++        }
+         if context.phase == "inspectRemotePauseSeek" {
+             try inspectRemotePauseSeek(context.value, app)
+             return
+@@ -161,7 +165,7 @@ final class MediaRequestControlFlowTests: XCTestCase {
+                 || (actual.uuidString == "DB784948-3DA5-454A-9526-29C37B22AB84" && variant == "max" && nonce == "6debb933-100f-4327-835f-5415010a47e7")),
+               value.schema == "fr-s28-media-request-control-ui-v1", UUID(uuidString: value.storeUUID) != nil,
+               value.manifest.bytes > 0, value.manifest.inode > 0, value.manifest.sha256.utf8.count == 64,
+-              requestControlUIPhases.dropFirst().contains(phase) || ["all", "relaunch", "tail", "inspectRemotePauseSeek"].contains(phase),
++              requestControlUIPhases.dropFirst().contains(phase) || ["all", "relaunch", "tail", "inspectRemotePauseSeek", "inspectFinalPausedWaiting"].contains(phase),
+               value.targets.map(\.role) == ["local", "waiting", "cancelled", "completed", "ended"],
+               Set(value.targets.map(\.operation)).count == 5,
+               value.targets.allSatisfy({ target in
+@@ -177,6 +181,25 @@ final class MediaRequestControlFlowTests: XCTestCase {
+         } else if startPhase != nil { throw RequestControlUIFailure.wrongEnvironment }
+         return (value, phase, startPhase, encoded)
+     }
++    @MainActor private func inspectFinalPausedWaiting(_ expected: RequestControlUIExpected, _ app: XCUIApplication) throws {
++        let scope = XCTAttachment(string: "Read-only inspection of the already consumed stage-six fixture: local cancelled and waiting paused controls only. "
++            + "The main runner owns writer/history verification. This phase does not scan parent/child history, re-establish receipt counts, "
++            + "tap person-control or metadata actions, or relaunch the App. Native SDK activity is not inventoried here.")
++        scope.name = expected.variant + "-inspect-final-paused-waiting-scope"; scope.lifetime = .keepAlways; add(scope)
++        let local = try expected.target("local")
++        try openLocal(local, app)
++        try assertRequest(local, intent: "cancelled", app)
++        try assertActions(local, pause: false, cancel: false, resume: false,
++            reason: "この通信要求は本人取消済みです。", app)
++        try audit(app, expected.variant + "-inspect-final-local-cancelled-controls")
++        try closeLocal(app)
++        let target = try expected.target("waiting")
++        try rootReveal(element("library.request.identity." + target.requestToken, app), app)
++        try assertRequest(target, intent: "paused", app)
++        try assertActions(target, pause: false, cancel: true, resume: true, reason: nil, app)
++        try audit(app, expected.variant + "-inspect-final-paused-waiting-controls")
++        attach(app, expected.variant + "-inspect-final-paused-waiting-no-business-tap")
++    }
+     @MainActor private func inspectRemotePauseSeek(_ expected: RequestControlUIExpected, _ app: XCUIApplication) throws {
+         let beforeHistory = try scanRootHistory(app)
+         try requireHistory(beforeHistory, stage: 2, context: expected, afterRelaunch: true)

@@ -1,0 +1,76 @@
+{
+  "task": "S23/S28 upload metadata query reservation and exact atomic observation",
+  "status": "Core13 frozen; only App15 writing; Docs4 frozen",
+  "worker": "manifest_projection",
+  "files": [
+    "FrameRelay/Domain/Operations/UploadMetadata.swift",
+    "FrameRelay/Application/Ports/UploadMetadataPorts.swift",
+    "FrameRelay/Platform/LocalStore/UploadMetadataStoreProjection.swift",
+    "FrameRelay/Domain/Operations/BackendCommit.swift",
+    "FrameRelay/Domain/Operations/MediaRequest.swift",
+    "FrameRelay/Domain/Media/VerificationEvidence.swift",
+    "FrameRelay/Application/Ports/MediaOperationStorePort.swift",
+    "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift",
+    "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift",
+    "FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift",
+    "FrameRelayTests/Domain/UploadMetadataTests.swift",
+    "FrameRelayTests/Integration/Storage/UploadMetadataStoreTests.swift",
+    "FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift"
+  ],
+  "before": {
+    "FrameRelay/Domain/Operations/UploadMetadata.swift": null,
+    "FrameRelay/Application/Ports/UploadMetadataPorts.swift": null,
+    "FrameRelay/Platform/LocalStore/UploadMetadataStoreProjection.swift": null,
+    "FrameRelay/Domain/Operations/BackendCommit.swift": "67603c4b6ff97b7173e0013ab6880d9209ea9ad17244e9d88e5e414c5c2274c7",
+    "FrameRelay/Domain/Operations/MediaRequest.swift": "bed184dd8d8a3e8faa80e9772077a38395d9cefb7c4d302259e458e3fbec6bce",
+    "FrameRelay/Domain/Media/VerificationEvidence.swift": "98c089f52d3ece1c82a3a31d6aba8e3084b664a7a85d19af0700e3996021dfcd",
+    "FrameRelay/Application/Ports/MediaOperationStorePort.swift": "9b1f15c4f5515a51d536c84df754b89b33646589ce84859b4a8bce45771e5d32",
+    "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift": "24ce0ea35d237755ce5b0233802f2975f7eee14aeef33d019df6a27e87e57df5",
+    "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift": "0b4f9b2561e5230c0dcc0fbece06feec6bec174b2e091d3d4c96fdf2dc474702",
+    "FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift": "f556813287c28b47f04ddbf4eb936c23aaace8b39f3be9f13c0d52c3f131a12f",
+    "FrameRelayTests/Domain/UploadMetadataTests.swift": null,
+    "FrameRelayTests/Integration/Storage/UploadMetadataStoreTests.swift": null,
+    "FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift": "74f41be39d26d8421f5a2383f87829f169345e8c83fc8a9d11f735b12c3573e5"
+  },
+  "baseline": "DI-SOURCE-20261025-03/477 immutable originalupload acceptance; unrelated two UI helper overlays afterward",
+  "constraints": [
+    "preserve old schema7 cases and nil VerificationEvidence provenance encoding",
+    "new begin+observe authentic receipt keys bind full typed payload fingerprint",
+    "query generation max(lastObservation,allReservations)+1, overflow refuses",
+    "exact UUID/currentcommittedregistration/request immutable identity; no arrival/time/revision proxy",
+    "POSTunknownsession onlyrunning; POSTresponse does not inferstate; GETpaused/cancelled preservespersonintent",
+    "cancelled typed observation no notExecuted mapping; no false canRun",
+    "completed full8field finalread proof joins query/body/fullpayload fingerprint/authentic newreceipt, not fake verificationreceipt",
+    "global namespace all fixedparent/childinclnotProcessed/nestedlegacy inboth directions",
+    "unknown original envelope exactlookup, no rebase",
+    "metadata no media source/leases/copies/SDK/Keychain mutations/fixture repair/reseed/delete",
+    "main owns commands/evidence/steering/finaldiff; no independentvalidation"
+  ],
+  "frozenOtherFeatures": true,
+  "created_UTC": "2026-10-24T17:27:10.702935+00:00",
+  "mainRefinements": [
+    "beginpending generation invalidates old hasReconciled until latest exactobserve; legacy reconcile cannot clearpending",
+    "samewriter synchronous final query dispatch action orders actualmetadataDataTask.resume against person/reg/UUID/newquery changes, defaultfalse"
+  ],
+  "frozenSHA256": {
+    "FrameRelay/Domain/Operations/UploadMetadata.swift": "14ba970dec326c4232ba4a465178bf0bcbc57f906b1f3f599351f0d0219be183",
+    "FrameRelay/Application/Ports/UploadMetadataPorts.swift": "d14bc816368728fde02903c0fc980274b0a26953376309ca0d270a3df389e7a3",
+    "FrameRelay/Platform/LocalStore/UploadMetadataStoreProjection.swift": "9a42073906a9806375b806caf00d58dea0b26be1880bdb0313c486b8093da2f1",
+    "FrameRelay/Domain/Operations/BackendCommit.swift": "aed3266d7f847884b2cdf670f78d5f30c996aa55804caf362bfe0c04ae32d804",
+    "FrameRelay/Domain/Operations/MediaRequest.swift": "3aa33f36498c3532005c3e635edc48f74ee76feffb9eaf2febda231bb809fc1b",
+    "FrameRelay/Domain/Media/VerificationEvidence.swift": "d6534d73600321a0ba8589275322ae83eca18d3fa25f043e6c092ced3738ed79",
+    "FrameRelay/Application/Ports/MediaOperationStorePort.swift": "661e440b2230bb89b4eacac0a9b910d08e8f056576cbaea6e2360ef6982b2577",
+    "FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift": "ff602d9ba432eaafd624e758fb43d62e7cd9f90d2b836b2d7db14bf345515a57",
+    "FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift": "815ad16d3003d4d4365de62ea1583e3f0fb0dfb049d61686e7f6db37b45dace0",
+    "FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift": "0b58b65e97ab60e4dcb6855424044277a87dab90bb6fc69336b9eb4f892ca8c0",
+    "FrameRelayTests/Domain/UploadMetadataTests.swift": "573f89fa38daffe66446af10a766535b1d7e3acd2ad80e16cffe3519fd7dc741",
+    "FrameRelayTests/Integration/Storage/UploadMetadataStoreTests.swift": "777820a8c5403314e10772adc5b0c3d1847d4ab674687d325a75e833b37ca326",
+    "FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift": "02964d03a8e3502d0bd1286f2c9d3895dced3515f3b5e2460aa4488e9d74cc84"
+  },
+  "definedTests": {
+    "suites": 2,
+    "declarations": 18,
+    "expanded": 56,
+    "runtime": "notyet"
+  }
+}

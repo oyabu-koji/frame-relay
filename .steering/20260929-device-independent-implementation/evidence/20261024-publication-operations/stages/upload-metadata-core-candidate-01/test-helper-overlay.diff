@@ -1,0 +1,1594 @@
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Application/Ports/MediaOperationStorePort.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/MediaOperationStorePort.swift
+index abf0ae7..aa4f0af 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Application/Ports/MediaOperationStorePort.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/MediaOperationStorePort.swift
+@@ -23,6 +23,7 @@ nonisolated enum BackendStoreChange: Equatable, Sendable, Codable {
+     case personControl(MediaPersonControlPlan)
+     // Keep sizeable registration/save evidence out of every enum copy's frame.
+     indirect case originalUploadAcceptance(OriginalUploadAcceptancePlan)
++    indirect case uploadMetadata(UploadMetadataChange)
+ 
+     var key: BackendCommitKey {
+         switch self {
+@@ -49,6 +50,7 @@ nonisolated enum BackendStoreChange: Equatable, Sendable, Codable {
+         case .publicationManifest(let value): value.key
+         case .personControl(let plan): .personControl(plan.parent)
+         case .originalUploadAcceptance(let plan): .originalUploadAcceptance(plan.request.parent)
++        case .uploadMetadata(let value): value.key
+         }
+     }
+ }
+@@ -105,6 +107,8 @@ nonisolated struct BackendStoreSnapshot: Equatable, Sendable {
+     var publicationManifests: [StoredPublicationManifest] = []
+     var personControls: [StoredMediaPersonControlPlan] = []
+     var originalUploadAcceptances: [StoredOriginalUploadAcceptance] = []
++    var uploadMetadataQueries: [CommittedUploadMetadataQuery] = []
++    var uploadMetadataObservations: [StoredUploadMetadataObservation] = []
+ }
+ 
+ nonisolated enum BackendStoreLoadResult: Equatable, Sendable {
+@@ -122,9 +126,16 @@ nonisolated protocol MediaOperationStorePort: Sendable {
+     func load() async -> BackendStoreLoadResult
+     func commit(_ mutation: BackendStoreMutation) async -> BackendCommitResult
+     func lookupCommit(_ mutation: BackendStoreMutation) async -> BackendCommitResult
++    /// Executes one short synchronous metadata dispatch under the same writer
++    /// lock as person controls. Task allocation/credentials await outside; the
++    /// action must not await, redispatch, reenter the writer, or read media.
++    func performUploadMetadataIfCurrent(_ query: CommittedUploadMetadataQuery,
++        action: @Sendable () -> Void) async -> Bool
+ }
+ 
+ nonisolated extension MediaOperationStorePort {
++    func performUploadMetadataIfCurrent(_ query: CommittedUploadMetadataQuery,
++        action: @Sendable () -> Void) async -> Bool { false }
+     func establishRegistrationIdentity(expectedRevision: UInt64,
+         expectedIdentity: RegistrationStoreIdentity?) async throws -> RegistrationStoreIdentity {
+         throw BackendContractError.unavailable
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Domain/Media/VerificationEvidence.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Domain/Media/VerificationEvidence.swift
+index ea77687..bb84d75 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Domain/Media/VerificationEvidence.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Domain/Media/VerificationEvidence.swift
+@@ -11,10 +11,13 @@ nonisolated struct StoredVerificationEvidence: Equatable, Sendable, Codable {
+     let expected: RemoteOperationContext
+     let evidence: VerificationEvidence
+     let commit: BackendCommitReceipt
++    /// Nil retains the exact legacy initializer/encoding/receipt authority.
++    var metadataProvenance: UploadMetadataVerificationProvenance? = nil
+ 
+-    var key: BackendCommitKey { .verification(command, evidence.id, expected) }
++    var key: BackendCommitKey { metadataProvenance?.key ?? .verification(command, evidence.id, expected) }
+     var isCommitted: Bool {
+-        expected == evidence.context && commit.matches(key, revision: commit.previousRevision)
++        if let metadataProvenance { return metadataProvenance.matches(self) }
++        return expected == evidence.context && commit.matches(key, revision: commit.previousRevision)
+     }
+ }
+ 
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Domain/Operations/BackendCommit.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Domain/Operations/BackendCommit.swift
+index 977d5cf..22cafa3 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Domain/Operations/BackendCommit.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Domain/Operations/BackendCommit.swift
+@@ -28,6 +28,8 @@ nonisolated enum BackendCommitKey: Hashable, Sendable, Codable {
+     case publicationManifest(MediaOperationID, RegistrationIdentity, OriginalContent)
+     case personControl(MediaOperationID)
+     case originalUploadAcceptance(MediaOperationID)
++    case uploadMetadataQuery(MediaOperationID, String)
++    case uploadMetadataObservation(MediaOperationID, MediaOperationID, String)
+ 
+     /// Opaque command namespace used to reserve new fixed-operation IDs.
+     var commandText: String {
+@@ -44,6 +46,7 @@ nonisolated enum BackendCommitKey: Hashable, Sendable, Codable {
+         case .publicationManifest(let id, _, _): id.rawValue
+         case .personControl(let id): id.rawValue
+         case .originalUploadAcceptance(let id): id.rawValue
++        case .uploadMetadataQuery(let id, _), .uploadMetadataObservation(let id, _, _): id.rawValue
+         }
+     }
+ 
+@@ -70,6 +73,8 @@ nonisolated enum BackendCommitKey: Hashable, Sendable, Codable {
+         case .publicationManifest(let id, _, _): .publicationManifest(id)
+         case .personControl(let id): .personControl(id)
+         case .originalUploadAcceptance(let id): .originalUploadAcceptance(id)
++        case .uploadMetadataQuery(let id, _): .uploadMetadataQuery(id)
++        case .uploadMetadataObservation(let id, _, _): .uploadMetadataObservation(id)
+         }
+     }
+ }
+@@ -91,6 +96,8 @@ nonisolated enum BackendCommitIdentity: Hashable, Sendable, Codable {
+     case publicationManifest(MediaOperationID)
+     case personControl(MediaOperationID)
+     case originalUploadAcceptance(MediaOperationID)
++    case uploadMetadataQuery(MediaOperationID)
++    case uploadMetadataObservation(MediaOperationID)
+ }
+ 
+ nonisolated struct BackendCommitReceipt: Equatable, Sendable, Codable {
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Domain/Operations/MediaRequest.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Domain/Operations/MediaRequest.swift
+index 50253bc..e8f3706 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Domain/Operations/MediaRequest.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Domain/Operations/MediaRequest.swift
+@@ -40,6 +40,10 @@ nonisolated struct MediaRequest: Equatable, Sendable, Codable {
+     private(set) var playbackEnded = false
+     private(set) var hasReconciled = false
+     private(set) var lastObservation: RemoteObservationGeneration?
++    /// Optional for old Codable payloads. An external cancellation is neither
++    /// this person's cancel intent nor permission to execute a fresh attempt.
++    private(set) var uploadMetadataHold: UploadMetadataHold? = nil
++    private(set) var uploadMetadataPending: RemoteObservationGeneration? = nil
+ 
+     init(operation: MediaOperationID, target: MediaTarget, purpose: MediaPurpose,
+          registration: RegistrationIdentity, expectedStartRevision: UInt64) {
+@@ -52,6 +56,7 @@ nonisolated struct MediaRequest: Equatable, Sendable, Codable {
+ 
+     var canRun: Bool {
+         guard startCommitted, intent == .running, waits.isEmpty, !playbackEnded,
++              uploadMetadataHold == nil, uploadMetadataPending == nil,
+               transport != .completed, transport != .active, transport != .stopRequested,
+               hasReconciled else { return false }
+         switch remote {
+@@ -159,6 +164,57 @@ nonisolated struct MediaRequest: Equatable, Sendable, Codable {
+         remote = value.result
+         hasReconciled = true
+     }
++
++    mutating func markAwaitingUploadMetadata(_ committed: CommittedUploadMetadataQuery) throws {
++        let query = committed.query
++        guard committed.isCommitted, query.request.matches(self),
++              lastObservation.map({ query.generation.rawValue > $0.rawValue }) ?? true,
++              uploadMetadataPending.map({ query.generation.rawValue > $0.rawValue }) ?? true else {
++            throw BackendContractError.staleGeneration
++        }
++        uploadMetadataPending = query.generation
++        hasReconciled = false
++    }
++
++    mutating func applyUploadMetadata(_ observation: UploadMetadataObservation) throws {
++        try observation.validate()
++        let query = observation.query.query
++        guard query.request.matches(self),
++              uploadMetadataPending == query.generation,
++              lastObservation.map({ query.generation.rawValue > $0.rawValue }) ?? true,
++              session == nil || UploadMetadataValidation.exact(session, Optional(observation.response.binding.session)) else {
++            throw BackendContractError.staleGeneration
++        }
++        switch observation.response {
++        case .created(let binding):
++            if case .succeeded = remote { throw BackendContractError.wrongStage }
++            session = binding.session; lastObservation = query.generation
++            remote = .unknown; hasReconciled = false
++        case .status(let status):
++            guard UploadMetadataValidation.exact(session, Optional(status.binding.session)) else { throw BackendContractError.identityMismatch }
++            if status.state == .cancelled {
++                session = status.binding.session; lastObservation = query.generation; hasReconciled = true
++                if case .succeeded = remote {} else { remote = .unknown }
++                uploadMetadataHold = .serverCancelled
++            } else {
++                let result: BackendOutcome<EvidenceID>
++                switch status.state {
++                case .receiving, .finalizing: result = .inProgress
++                case .failed: result = .failed(.rejected)
++                case .completed:
++                    guard let evidence = observation.verificationEvidence else { throw BackendContractError.notCommitted }
++                    result = .succeeded(evidence.id)
++                case .cancelled: throw BackendContractError.invalidValue
++                }
++                try reconcile(.init(context: .init(operation: operation, registration: registration, target: target,
++                    session: status.binding.session), observation: query.generation, result: result))
++                hasReconciled = true
++            }
++        }
++        uploadMetadataPending = nil
++        // Intent, environmental waits, attempt and local transport are owned by
++        // their original producers. Metadata never reports a local SDK stop.
++    }
+ }
+ 
+ nonisolated struct BatchTarget: Hashable, Sendable, Codable {
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift
+index b34f585..bf16f4e 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/ExplorationRecordingStores.swift
+@@ -61,6 +61,10 @@ actor AtomicFileRecordingStore: RecordingStorePort, OriginalStorePort, MediaOper
+     func load() -> BackendStoreLoadResult { disk.loadBackend() }
+     func commit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.commitBackend(mutation) }
+     func lookupCommit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.lookupBackend(mutation) }
++    func performUploadMetadataIfCurrent(_ query: CommittedUploadMetadataQuery,
++        action: @Sendable () -> Void) async -> Bool {
++        disk.performUploadMetadataIfCurrent(query, action: action)
++    }
+     func lookupInvalidation(_ acknowledgement: InvalidationAcknowledgement) async -> BackendOutcome<InvalidationID> {
+         disk.lookupInvalidation(acknowledgement)
+     }
+@@ -102,6 +106,10 @@ actor SQLiteRecordingStore: RecordingStorePort, OriginalStorePort, MediaOperatio
+     func load() -> BackendStoreLoadResult { disk.loadBackend() }
+     func commit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.commitBackend(mutation) }
+     func lookupCommit(_ mutation: BackendStoreMutation) -> BackendCommitResult { disk.lookupBackend(mutation) }
++    func performUploadMetadataIfCurrent(_ query: CommittedUploadMetadataQuery,
++        action: @Sendable () -> Void) async -> Bool {
++        disk.performUploadMetadataIfCurrent(query, action: action)
++    }
+     func lookupInvalidation(_ acknowledgement: InvalidationAcknowledgement) async -> BackendOutcome<InvalidationID> {
+         disk.lookupInvalidation(acknowledgement)
+     }
+@@ -434,6 +442,36 @@ nonisolated private final class ExplorationRecordingDisk {
+         catch { return .unavailable(.inaccessible) }
+     }
+ 
++    func performUploadMetadataIfCurrent(_ query: CommittedUploadMetadataQuery, action: @Sendable () -> Void) -> Bool {
++        do {
++            return try transaction(write: false) { document in
++                guard query.isCommitted, document.storeIdentity == query.expectedStoreIdentity,
++                      query.query.request.storeIdentity == document.storeIdentity,
++                      case .committed(let receipt) = document.lookupBackend(query.mutation),
++                      UploadMetadataValidation.exact(receipt, query.commit) else { return false }
++                let projection = try document.replayStore()
++                let index = try projection.uploadMetadataRequestIndex(query.query.request)
++                guard let saved = projection.uploadMetadataQueries.first(where: { $0.query.id == query.query.id }),
++                      UploadMetadataValidation.exact(saved, query),
++                      projection.uploadMetadataQueries.filter({ $0.query.request.operation == query.query.request.operation })
++                        .map({ $0.query.generation.rawValue }).max() == query.query.generation.rawValue,
++                      !projection.uploadMetadataObservations.contains(where: { $0.observation.query.query.id == query.query.id }),
++                      projection.requests[index].uploadMetadataPending == query.query.generation,
++                      projection.requests[index].lastObservation.map({ $0.rawValue < query.query.generation.rawValue }) ?? true else { return false }
++                switch query.query.kind {
++                case .create: try projection.requireUploadMetadataCreate(index: index, source: query.query.request)
++                case .lookup(let session):
++                    guard UploadMetadataValidation.exact(projection.requests[index].session, Optional(session)) else { return false }
++                }
++                // The process-shared writer lock remains held through this
++                // single native suspended-data-task resume. No journal/SDK
++                // completion, reader release or network success is inferred.
++                action()
++                return true
++            }
++        } catch { return false }
++    }
++
+     func lookupInvalidation(_ acknowledgement: InvalidationAcknowledgement) -> BackendOutcome<InvalidationID> {
+         do {
+             return try transaction(write: false) { document in
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift
+index bd37a5f..c8284af 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/MediaOperationStoreAdapter.swift
+@@ -37,6 +37,8 @@ nonisolated struct MediaStoreProjection {
+     var publicationManifests: [StoredPublicationManifest] = []
+     var personControls: [StoredMediaPersonControlPlan] = []
+     var originalUploadAcceptances: [StoredOriginalUploadAcceptance] = []
++    var uploadMetadataQueries: [CommittedUploadMetadataQuery] = []
++    var uploadMetadataObservations: [StoredUploadMetadataObservation] = []
+     var backendCommands = Set<String>()
+ 
+     func snapshot(revision: UInt64, storeIdentity: RegistrationStoreIdentity? = nil) throws -> BackendStoreSnapshot {
+@@ -50,7 +52,8 @@ nonisolated struct MediaStoreProjection {
+             temporaryMedia: temporaryMedia, photoRegistrations: photoRegistrations, photoSaveBatches: try photoSaveBatchSnapshot(),
+             backgroundTasks: backgroundTasks,
+             remoteInventory: remoteInventory, publicationManifests: publicationManifests, personControls: personControls,
+-            originalUploadAcceptances: originalUploadAcceptances)
++            originalUploadAcceptances: originalUploadAcceptances,
++            uploadMetadataQueries: uploadMetadataQueries, uploadMetadataObservations: uploadMetadataObservations)
+     }
+ 
+     mutating func ensureOriginal(_ original: OriginalContent) throws -> Int {
+@@ -143,6 +146,13 @@ extension RecordingStoreDocument {
+             try MediaStoredValueValidation.originalUploadAcceptance(plan)
+             try requireOriginalUploadCurrentRecordings(plan, projection: replayStore())
+         }
++        if case .uploadMetadata(let change) = mutation.change {
++            guard mutation.expectedStoreIdentity == change.request.storeIdentity, storeIdentity == change.request.storeIdentity else {
++                throw BackendContractError.identityMismatch
++            }
++            try MediaStoredValueValidation.uploadMetadata(change)
++            try requireUploadMetadataCurrentRecordings(change)
++        }
+         if case .backgroundTask(_, let change) = mutation.change {
+             guard mutation.expectedStoreIdentity == change.intent.context.storeIdentity,
+                   storeIdentity == change.intent.context.storeIdentity else { throw BackendContractError.identityMismatch }
+@@ -182,7 +192,7 @@ extension RecordingStoreDocument {
+ 
+     nonisolated private func requiresExactBackendMutation(_ mutation: BackendStoreMutation) -> Bool {
+         switch mutation.change {
+-        case .publicationManifest, .photoBatch, .personControl, .originalUploadAcceptance: return true
++        case .publicationManifest, .photoBatch, .personControl, .originalUploadAcceptance, .uploadMetadata: return true
+         case .photo(_, let value):
+             // Include canonically equivalent operation aliases in this test so
+             // an alias cannot borrow a batch child's earlier receipt.
+@@ -243,9 +253,12 @@ extension RecordingStoreDocument {
+                                                projection: inout MediaStoreProjection) throws {
+         let change = entry.mutation.change
+         let receipt = entry.receipt
++        try projection.requireUploadMetadataNamespace(change)
+         try projection.requirePersonControlNamespace(change)
+         try projection.requireOriginalUploadNamespace(change)
+         switch change {
++        case .uploadMetadata(let value):
++            try projection.applyUploadMetadata(value, receipt: receipt, expectedStoreIdentity: entry.mutation.expectedStoreIdentity)
+         case .originalUploadAcceptance(let plan):
+             try projection.applyOriginalUploadAcceptance(plan, receipt: receipt, expectedStoreIdentity: entry.mutation.expectedStoreIdentity)
+         case .personControl(let plan):
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift
+index 2fe1a1f..a77def5 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/MediaStoredValueValidation.swift
+@@ -3,6 +3,10 @@ import Foundation
+ /// Codable reconstructs values but does not establish their invariants. Every
+ /// journal event passes these checks and domain transitions on both write/reopen.
+ nonisolated enum MediaStoredValueValidation {
++    static func uploadMetadata(_ value: UploadMetadataChange) throws {
++        switch value { case .beginQuery(let query): try query.validate(); case .observe(let observation): try observation.validate() }
++        try registration(value.request.registration.server.registration)
++    }
+     static func originalUploadAcceptance(_ plan: OriginalUploadAcceptancePlan) throws {
+         try plan.validate()
+         try registration(plan.request.registration.server.registration)
+diff --git a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift
+index 6ae7cfa..8fe2ac8 100644
+--- a/Users/oyabu/dev/rep/FrameRelay/.steering/20260929-device-independent-implementation/evidence/20261024-publication-operations/stages/original-upload-acceptance-candidate-03/source-snapshot/FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/OriginalRemovalStoreProjection.swift
+@@ -120,6 +120,7 @@ extension RecordingStoreDocument {
+                 related = plan.children.contains { PublicationStoreBoundary.exact($0.target.target.original, original) }
+             case .originalUploadAcceptance(let plan):
+                 related = plan.request.targets.contains { PublicationStoreBoundary.exact($0.binding.original, original) }
++            case .uploadMetadata(let value): related = PublicationStoreBoundary.exact(value.request.original, original)
+             case .backgroundTask(_, let value): related = value.intent.context.target.original == original
+             case .verification(_, let expected, _): related = expected.target.original == original
+             case .batch(let value): related = value.fixedTargets.contains(original)
+diff --git a/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/UploadMetadataPorts.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/UploadMetadataPorts.swift
+new file mode 100644
+index 0000000..1f36ad9
+--- /dev/null
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Application/Ports/UploadMetadataPorts.swift
+@@ -0,0 +1,21 @@
++nonisolated enum UploadMetadataResult: Equatable, Sendable {
++    case recorded(StoredUploadMetadataObservation)
++    case rejected(BackendContractError)
++    case unknown
++}
++
++/// Explicit per-request metadata action, GET-only synchronization, and exact
++/// pending-writer lookup are distinct entry points. No method sends media.
++nonisolated protocol UploadMetadataPort: Sendable {
++    func refresh(_ request: UploadMetadataRequest) async -> UploadMetadataResult
++    func refreshKnownSession(_ request: UploadMetadataRequest) async -> UploadMetadataResult
++    func reconcilePending(_ request: UploadMetadataRequest) async -> UploadMetadataResult
++}
++
++/// A durable query reservation is necessary but is not a dispatch permit.
++/// Implementations recheck the current exact scope after credential awaits and
++/// immediately before dispatch; only a running, session-unknown POST is allowed.
++nonisolated protocol UploadMetadataRemotePort: Sendable {
++    func create(_ query: CommittedUploadMetadataQuery) async -> BackendOutcome<UploadMetadataResponse>
++    func lookup(_ query: CommittedUploadMetadataQuery) async -> BackendOutcome<UploadMetadataResponse>
++}
+diff --git a/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Domain/Operations/UploadMetadata.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Domain/Operations/UploadMetadata.swift
+new file mode 100644
+index 0000000..c7de328
+--- /dev/null
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Domain/Operations/UploadMetadata.swift
+@@ -0,0 +1,304 @@
++import CryptoKit
++import Foundation
++
++/// Immutable request identity. Mutable intent/waits are deliberately excluded
++/// from the payload; they are re-read before POST and never restored by a reply.
++nonisolated struct UploadMetadataRequest: Equatable, Sendable, Codable {
++    let storeIdentity: RegistrationStoreIdentity
++    let registration: DeviceRegistration
++    let operation: MediaOperationID
++    let original: OriginalContent
++    let expectedStartRevision: UInt64
++
++    init(storeIdentity: RegistrationStoreIdentity, registration: DeviceRegistration, operation: MediaOperationID,
++         original: OriginalContent, expectedStartRevision: UInt64) throws {
++        self.storeIdentity = storeIdentity; self.registration = registration; self.operation = operation
++        self.original = original; self.expectedStartRevision = expectedStartRevision
++        try validate()
++    }
++    func validate() throws {
++        try OriginalUploadAcceptanceValueValidation.registration(registration)
++        try UploadMetadataValidation.text(operation.rawValue)
++        try UploadMetadataValidation.original(original)
++    }
++    func matches(_ request: MediaRequest) -> Bool {
++        request.purpose == .upload && request.startCommitted && request.expectedStartRevision == expectedStartRevision
++            && UploadMetadataValidation.exact(request.operation, operation)
++            && UploadMetadataValidation.exact(request.target, MediaTarget.original(original))
++            && UploadMetadataValidation.exact(request.registration, registration.server.registration)
++    }
++}
++
++nonisolated enum UploadMetadataQueryKind: Equatable, Sendable, Codable {
++    case create
++    case lookup(UploadSessionID)
++}
++
++nonisolated struct UploadMetadataQuery: Equatable, Sendable, Codable {
++    let id: MediaOperationID
++    let observationCommand: MediaOperationID
++    let request: UploadMetadataRequest
++    let kind: UploadMetadataQueryKind
++    let generation: RemoteObservationGeneration
++    let fingerprint: String
++
++    init(id: MediaOperationID, observationCommand: MediaOperationID, request: UploadMetadataRequest,
++         kind: UploadMetadataQueryKind, generation: RemoteObservationGeneration) throws {
++        self.id = id; self.observationCommand = observationCommand; self.request = request
++        self.kind = kind; self.generation = generation
++        fingerprint = try UploadMetadataValidation.fingerprint(Payload(id: id, observationCommand: observationCommand,
++            request: request, kind: kind, generation: generation))
++        try validate()
++    }
++    var key: BackendCommitKey { .uploadMetadataQuery(id, fingerprint) }
++    func validate() throws {
++        try request.validate(); try UploadMetadataValidation.text(id.rawValue)
++        try UploadMetadataValidation.text(observationCommand.rawValue)
++        guard id != observationCommand, id != request.operation, observationCommand != request.operation,
++              generation.rawValue > 0 else { throw BackendContractError.invalidValue }
++        if case .lookup(let session) = kind { try UploadMetadataValidation.text(session.rawValue) }
++        guard fingerprint == (try UploadMetadataValidation.fingerprint(Payload(id: id, observationCommand: observationCommand,
++            request: request, kind: kind, generation: generation))) else { throw BackendContractError.identityMismatch }
++    }
++    private struct Payload: Encodable {
++        let id: MediaOperationID
++        let observationCommand: MediaOperationID
++        let request: UploadMetadataRequest
++        let kind: UploadMetadataQueryKind
++        let generation: RemoteObservationGeneration
++    }
++    private enum CodingKeys: String, CodingKey { case id, observationCommand, request, kind, generation, fingerprint }
++    init(from decoder: Decoder) throws {
++        let value = try decoder.container(keyedBy: CodingKeys.self)
++        try self.init(id: value.decode(MediaOperationID.self, forKey: .id),
++            observationCommand: value.decode(MediaOperationID.self, forKey: .observationCommand),
++            request: value.decode(UploadMetadataRequest.self, forKey: .request),
++            kind: value.decode(UploadMetadataQueryKind.self, forKey: .kind),
++            generation: value.decode(RemoteObservationGeneration.self, forKey: .generation))
++        guard try value.decode(String.self, forKey: .fingerprint) == fingerprint else { throw BackendContractError.identityMismatch }
++    }
++}
++
++nonisolated struct CommittedUploadMetadataQuery: Equatable, Sendable, Codable {
++    let query: UploadMetadataQuery
++    let commit: BackendCommitReceipt
++    let expectedStoreIdentity: RegistrationStoreIdentity
++    var isCommitted: Bool {
++        (try? query.validate()) != nil && expectedStoreIdentity == query.request.storeIdentity
++            && commit.matches(query.key, revision: commit.previousRevision)
++            && UploadMetadataValidation.exact(commit.key, query.key)
++    }
++    var mutation: BackendStoreMutation {
++        .init(expectedRevision: commit.previousRevision, change: .uploadMetadata(.beginQuery(query)), expectedStoreIdentity: expectedStoreIdentity)
++    }
++}
++
++/// The complete ten-field server binding, expressed with existing value types.
++nonisolated struct UploadMetadataBinding: Equatable, Sendable, Codable {
++    let registration: RegistrationIdentity
++    let operation: MediaOperationID
++    let original: OriginalContent
++    let session: UploadSessionID
++    let chunkSize: UInt64
++    func validate(for request: UploadMetadataRequest) throws {
++        try UploadMetadataValidation.text(session.rawValue)
++        guard chunkSize > 0, UploadMetadataValidation.exact(registration, request.registration.server.registration),
++              UploadMetadataValidation.exact(operation, request.operation), UploadMetadataValidation.exact(original, request.original) else {
++            throw BackendContractError.identityMismatch
++        }
++    }
++}
++
++nonisolated enum UploadMetadataState: String, Equatable, Sendable, Codable {
++    case receiving, finalizing, completed, failed, cancelled
++}
++
++/// All eight server fields, including the server's finite observation date.
++/// A completed flag or an evidence ID alone cannot construct this authority.
++nonisolated struct UploadFinalReadEvidence: Equatable, Sendable, Codable {
++    let id: EvidenceID
++    let schemaVersion: String
++    let method: String
++    let committed: Bool
++    let finalSaveCompleted: Bool
++    let sha256: String
++    let byteCount: UInt64
++    let observedAt: Date
++    func validate(for original: OriginalContent) throws {
++        try UploadMetadataValidation.text(id.rawValue)
++        guard schemaVersion == "fr-final-read-v1", method == "final_destination_read_back", committed, finalSaveCompleted,
++              sha256.utf8.elementsEqual(original.content.digest.utf8), byteCount == original.content.byteCount,
++              observedAt.timeIntervalSinceReferenceDate.isFinite else { throw BackendContractError.invalidValue }
++    }
++}
++
++nonisolated struct UploadMetadataStatus: Equatable, Sendable, Codable {
++    let binding: UploadMetadataBinding
++    let state: UploadMetadataState
++    let evidence: UploadFinalReadEvidence?
++    let chunkIndexes: [UInt64]
++    let failureCode: String?
++    func validate(for request: UploadMetadataRequest) throws {
++        try binding.validate(for: request)
++        let quotient = request.original.content.byteCount / binding.chunkSize
++        let count = quotient.addingReportingOverflow(request.original.content.byteCount % binding.chunkSize == 0 ? 0 : 1)
++        guard !count.overflow else { throw BackendContractError.invalidValue }
++        var previous: UInt64?
++        for index in chunkIndexes {
++            guard index < count.partialValue, previous.map({ index > $0 }) ?? true else { throw BackendContractError.invalidValue }
++            previous = index
++        }
++        if state == .completed {
++            guard let evidence else { throw BackendContractError.notCommitted }
++            try evidence.validate(for: request.original)
++        } else if evidence != nil { throw BackendContractError.invalidValue }
++    }
++}
++
++nonisolated enum UploadMetadataResponse: Equatable, Sendable, Codable {
++    case created(UploadMetadataBinding)
++    case status(UploadMetadataStatus)
++    var binding: UploadMetadataBinding {
++        switch self { case .created(let value): value; case .status(let value): value.binding }
++    }
++}
++
++nonisolated struct UploadMetadataObservation: Equatable, Sendable, Codable {
++    let command: MediaOperationID
++    let query: CommittedUploadMetadataQuery
++    let response: UploadMetadataResponse
++    let fingerprint: String
++
++    init(command: MediaOperationID, query: CommittedUploadMetadataQuery, response: UploadMetadataResponse) throws {
++        self.command = command; self.query = query; self.response = response
++        fingerprint = try UploadMetadataValidation.fingerprint(Payload(command: command, storeIdentity: query.expectedStoreIdentity,
++            query: query, response: response))
++        try validate()
++    }
++    var key: BackendCommitKey { .uploadMetadataObservation(command, query.query.id, fingerprint) }
++    func validate() throws {
++        guard query.isCommitted, UploadMetadataValidation.exact(command, query.query.observationCommand) else {
++            throw BackendContractError.notCommitted
++        }
++        try response.binding.validate(for: query.query.request)
++        switch (query.query.kind, response) {
++        case (.create, .created): break
++        case (.lookup(let session), .status(let value)):
++            guard UploadMetadataValidation.exact(session, value.binding.session) else { throw BackendContractError.identityMismatch }
++            try value.validate(for: query.query.request)
++        default: throw BackendContractError.identityMismatch
++        }
++        guard fingerprint == (try UploadMetadataValidation.fingerprint(Payload(command: command, storeIdentity: query.expectedStoreIdentity,
++            query: query, response: response))) else { throw BackendContractError.identityMismatch }
++    }
++    var verificationEvidence: VerificationEvidence? {
++        guard (try? validate()) != nil, case .status(let status) = response,
++              status.state == .completed, let proof = status.evidence else { return nil }
++        let request = query.query.request
++        return .init(id: proof.id, context: .init(operation: request.operation, registration: request.registration.server.registration,
++            target: .original(request.original), session: status.binding.session), finalSaveCompleted: proof.finalSaveCompleted,
++            verification: .finalDestinationReadBack(request.original.content), committed: proof.committed,
++            schemaVersion: proof.schemaVersion, observedAt: proof.observedAt)
++    }
++    private struct Payload: Encodable {
++        let command: MediaOperationID
++        let storeIdentity: RegistrationStoreIdentity
++        let query: CommittedUploadMetadataQuery
++        let response: UploadMetadataResponse
++    }
++    private enum CodingKeys: String, CodingKey { case command, query, response, fingerprint }
++    init(from decoder: Decoder) throws {
++        let value = try decoder.container(keyedBy: CodingKeys.self)
++        try self.init(command: value.decode(MediaOperationID.self, forKey: .command),
++            query: value.decode(CommittedUploadMetadataQuery.self, forKey: .query),
++            response: value.decode(UploadMetadataResponse.self, forKey: .response))
++        guard try value.decode(String.self, forKey: .fingerprint) == fingerprint else { throw BackendContractError.identityMismatch }
++    }
++}
++
++nonisolated struct StoredUploadMetadataObservation: Equatable, Sendable, Codable {
++    let observation: UploadMetadataObservation
++    let commit: BackendCommitReceipt
++    let expectedStoreIdentity: RegistrationStoreIdentity
++    var isCommitted: Bool {
++        (try? observation.validate()) != nil && expectedStoreIdentity == observation.query.expectedStoreIdentity
++            && expectedStoreIdentity == observation.query.query.request.storeIdentity
++            && observation.query.commit.committedRevision <= commit.previousRevision
++            && commit.matches(observation.key, revision: commit.previousRevision)
++            && UploadMetadataValidation.exact(commit.key, observation.key)
++    }
++    var mutation: BackendStoreMutation {
++        .init(expectedRevision: commit.previousRevision, change: .uploadMetadata(.observe(observation)), expectedStoreIdentity: expectedStoreIdentity)
++    }
++    var verification: StoredVerificationEvidence? {
++        guard isCommitted, let evidence = observation.verificationEvidence else { return nil }
++        return .init(command: observation.command, expected: evidence.context, evidence: evidence, commit: commit,
++            metadataProvenance: .observation(self))
++    }
++}
++
++/// Box the full immutable provenance, keeping old verification values small.
++/// The payload has no StoredVerificationEvidence back-reference or receipt self-hash.
++nonisolated indirect enum UploadMetadataVerificationProvenance: Equatable, Sendable, Codable {
++    case observation(StoredUploadMetadataObservation)
++    var key: BackendCommitKey {
++        switch self { case .observation(let value): value.observation.key }
++    }
++    func matches(_ value: StoredVerificationEvidence) -> Bool {
++        switch self {
++        case .observation(let source):
++            guard source.isCommitted, let evidence = source.observation.verificationEvidence else { return false }
++            return UploadMetadataValidation.exact(value.command, source.observation.command)
++                && UploadMetadataValidation.exact(value.commit, source.commit)
++                && UploadMetadataValidation.exact(value.expected, evidence.context)
++                && UploadMetadataValidation.exact(value.evidence, evidence)
++        }
++    }
++}
++
++nonisolated indirect enum UploadMetadataChange: Equatable, Sendable, Codable {
++    case beginQuery(UploadMetadataQuery)
++    case observe(UploadMetadataObservation)
++    var key: BackendCommitKey {
++        switch self { case .beginQuery(let value): value.key; case .observe(let value): value.key }
++    }
++    var request: UploadMetadataRequest {
++        switch self { case .beginQuery(let value): value.request; case .observe(let value): value.query.query.request }
++    }
++}
++
++nonisolated enum UploadMetadataHold: String, Equatable, Sendable, Codable { case serverCancelled }
++
++nonisolated enum UploadMetadataGeneration {
++    static func next(lastObservation: RemoteObservationGeneration?, reservations: [RemoteObservationGeneration]) throws -> RemoteObservationGeneration {
++        let maximum = reservations.map(\.rawValue).max().map { max($0, lastObservation?.rawValue ?? 0) } ?? (lastObservation?.rawValue ?? 0)
++        guard maximum < UInt64.max else { throw BackendContractError.staleGeneration }
++        return .init(rawValue: maximum + 1)
++    }
++}
++
++nonisolated enum UploadMetadataValidation {
++    static func text(_ value: String) throws {
++        guard !value.isEmpty else { throw BackendContractError.invalidValue }
++    }
++    static func original(_ value: OriginalContent) throws {
++        try text(value.capture.rawValue)
++        guard value.generation.rawValue > 0, value.content.byteCount > 0, value.content.algorithm == "sha256",
++              value.content.digest.utf8.count == 64,
++              value.content.digest.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }) else {
++            throw BackendContractError.invalidValue
++        }
++    }
++    static func canonicalBytes<T: Encodable>(_ value: T) throws -> Data {
++        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++        encoder.dateEncodingStrategy = .deferredToDate
++        do { return try encoder.encode(value) } catch { throw BackendContractError.invalidValue }
++    }
++    static func fingerprint<T: Encodable>(_ value: T) throws -> String {
++        SHA256.hash(data: try canonicalBytes(value)).map { String(format: "%02x", $0) }.joined()
++    }
++    static func exact<T: Encodable>(_ left: T, _ right: T) -> Bool {
++        guard let lhs = try? canonicalBytes(left), let rhs = try? canonicalBytes(right) else { return false }
++        return lhs == rhs
++    }
++}
+diff --git a/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/UploadMetadataStoreProjection.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/UploadMetadataStoreProjection.swift
+new file mode 100644
+index 0000000..b8d6f86
+--- /dev/null
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelay/Platform/LocalStore/UploadMetadataStoreProjection.swift
+@@ -0,0 +1,145 @@
++import Foundation
++
++extension MediaStoreProjection {
++    /// Reserve both commands before I/O, including against nested commands in
++    /// historical plans. Existing operation references are not introductions.
++    nonisolated func requireUploadMetadataNamespace(_ change: BackendStoreChange) throws {
++        var introduced = [change.key.commandText]
++        switch change {
++        case .batch(let batch): introduced += batch.requests.map { $0.operation.rawValue }
++        case .request(_, let request): introduced.append(request.operation.rawValue)
++        case .photoBatch(_, .accept(let batch)):
++            introduced.append(batch.operation.rawValue); introduced += batch.targets.map { $0.operation.rawValue }
++        case .personControl(let plan): introduced += plan.children.map { $0.command.rawValue }
++        case .originalUploadAcceptance(let plan): introduced += plan.request.targets.map { $0.operation.rawValue }
++        case .uploadMetadata(.beginQuery(let query)): introduced.append(query.observationCommand.rawValue)
++        default: break
++        }
++        for old in uploadMetadataQueries {
++            for id in [old.query.id, old.query.observationCommand] where introduced.contains(id.rawValue) {
++                guard case .uploadMetadata(.observe(let observation)) = change,
++                      UploadMetadataValidation.exact(id, old.query.observationCommand),
++                      UploadMetadataValidation.exact(observation.command, id),
++                      UploadMetadataValidation.exact(observation.query, old) else { throw BackendContractError.identityMismatch }
++            }
++        }
++        guard case .uploadMetadata(.beginQuery(let query)) = change else { return }
++        for id in [query.id, query.observationCommand] {
++            guard !backendCommands.contains(id.rawValue), !requests.contains(where: { $0.operation == id }),
++                  !batches.contains(where: { $0.requests.contains { $0.operation == id } }),
++                  !personControls.contains(where: { $0.plan.parent == id || $0.plan.children.contains { $0.command == id } }),
++                  !originalUploadAcceptances.contains(where: {
++                      $0.plan.request.parent == id || $0.plan.request.targets.contains { $0.operation == id }
++                  }) else { throw BackendContractError.identityMismatch }
++            for b in photoSaveBatches.indices {
++                guard photoSaveBatches[b].batch.operation != id else { throw BackendContractError.identityMismatch }
++                for t in photoSaveBatches[b].targets.indices {
++                    guard photoSaveBatches[b].targets[t].target.operation != id else { throw BackendContractError.identityMismatch }
++                }
++            }
++        }
++    }
++
++    nonisolated mutating func applyUploadMetadata(_ change: UploadMetadataChange, receipt: BackendCommitReceipt,
++        expectedStoreIdentity: RegistrationStoreIdentity?) throws {
++        try MediaStoredValueValidation.uploadMetadata(change)
++        let source = change.request
++        guard expectedStoreIdentity == source.storeIdentity, receipt.matches(change.key, revision: receipt.previousRevision),
++              UploadMetadataValidation.exact(receipt.key, change.key) else { throw BackendContractError.identityMismatch }
++        let index = try uploadMetadataRequestIndex(source)
++        switch change {
++        case .beginQuery(let query):
++            switch query.kind {
++            case .create: try requireUploadMetadataCreate(index: index, source: source)
++            case .lookup(let session):
++                guard UploadMetadataValidation.exact(requests[index].session, Optional(session)) else { throw BackendContractError.identityMismatch }
++            }
++            let generations = uploadMetadataQueries.filter { $0.query.request.operation == source.operation }.map { $0.query.generation }
++            let next = try UploadMetadataGeneration.next(lastObservation: requests[index].lastObservation, reservations: generations)
++            guard query.generation == next else { throw BackendContractError.staleGeneration }
++            let committed = CommittedUploadMetadataQuery(query: query, commit: receipt, expectedStoreIdentity: source.storeIdentity)
++            guard committed.isCommitted else { throw BackendContractError.notCommitted }
++            try requests[index].markAwaitingUploadMetadata(committed)
++            for b in batches.indices where batches[b].requests.contains(where: { $0.operation == source.operation }) {
++                try batches[b].update(requests[index])
++            }
++            uploadMetadataQueries.append(committed)
++        case .observe(let observation):
++            let query = observation.query.query
++            guard let saved = uploadMetadataQueries.first(where: { $0.query.id == query.id }), saved.isCommitted,
++                  UploadMetadataValidation.exact(saved, observation.query),
++                  let latest = uploadMetadataQueries.filter({ $0.query.request.operation == source.operation })
++                    .map({ $0.query.generation.rawValue }).max(), latest == query.generation.rawValue,
++                  requests[index].lastObservation.map({ query.generation.rawValue > $0.rawValue }) ?? true else {
++                throw BackendContractError.staleGeneration
++            }
++            if case .lookup(let session) = query.kind {
++                guard UploadMetadataValidation.exact(requests[index].session, Optional(session)) else { throw BackendContractError.identityMismatch }
++            }
++            if let prior = uploadMetadataObservations.last(where: {
++                $0.observation.query.query.request.operation == source.operation
++                    && $0.observation.response.binding.session == observation.response.binding.session
++            }) {
++                guard UploadMetadataValidation.exact(prior.observation.response.binding, observation.response.binding) else {
++                    throw BackendContractError.identityMismatch
++                }
++            }
++            let record = StoredUploadMetadataObservation(observation: observation, commit: receipt, expectedStoreIdentity: source.storeIdentity)
++            guard record.isCommitted else { throw BackendContractError.notCommitted }
++            try requests[index].applyUploadMetadata(observation)
++            for b in batches.indices where batches[b].requests.contains(where: { $0.operation == source.operation }) {
++                try batches[b].update(requests[index])
++            }
++            uploadMetadataObservations.append(record)
++            if let verification = record.verification {
++                guard verification.isCommitted else { throw BackendContractError.notCommitted }
++                // This is the actual observation authority, not a fabricated
++                // .verification key/receipt or a second future commit.
++                verifications.append(verification)
++            }
++        }
++    }
++
++    nonisolated func uploadMetadataRequestIndex(_ source: UploadMetadataRequest) throws -> Int {
++        try source.validate()
++        try requireOriginalUploadRegistration(source.registration)
++        guard let index = requests.firstIndex(where: { $0.operation == source.operation }), source.matches(requests[index]),
++              originals.contains(where: { UploadMetadataValidation.exact($0.original, source.original) }),
++              !originals.contains(where: {
++                  $0.original.capture == source.original.capture && !UploadMetadataValidation.exact($0.original, source.original)
++              }) else { throw BackendContractError.identityMismatch }
++        return index
++    }
++
++    nonisolated func requireUploadMetadataCreate(index: Int, source: UploadMetadataRequest) throws {
++        let request = requests[index]
++        guard request.intent == .running, request.session == nil, request.transport != .completed,
++              !request.playbackEnded, request.uploadMetadataHold == nil,
++              let state = originals.first(where: { UploadMetadataValidation.exact($0.original, source.original) }),
++              let binding = state.binding, OriginalUploadAcceptanceValueValidation.savedBinding(binding),
++              state.removal == nil, state.invalidation == nil, state.removalResolution != .removed else {
++            throw BackendContractError.wrongStage
++        }
++        if case .succeeded = request.remote { throw BackendContractError.wrongStage }
++    }
++}
++
++extension RecordingStoreDocument {
++    /// New live POST reservations require the current saved recording. GET and
++    /// response replay do not depend on today's recording/file existence.
++    nonisolated func requireUploadMetadataCurrentRecordings(_ change: UploadMetadataChange) throws {
++        guard case .beginQuery(let query) = change, case .create = query.kind else { return }
++        let projection = try replayStore()
++        let index = try projection.uploadMetadataRequestIndex(query.request)
++        try projection.requireUploadMetadataCreate(index: index, source: query.request)
++        guard let binding = projection.originals.first(where: {
++            UploadMetadataValidation.exact($0.original, query.request.original)
++        })?.binding, let current = entries.first(where: {
++            UploadMetadataValidation.exact($0.intent.context.capture, binding.original.capture)
++        }), current.revision == 2,
++            UploadMetadataValidation.exact(current.intent, binding.saveRecord.intent),
++            UploadMetadataValidation.exact(current.result, Optional(binding.saveRecord)),
++            UploadMetadataValidation.exact(current.resultToken, Optional(binding.saveCommit.token)),
++            binding.saveCommit.matches(binding.saveCommit.token, revision: 1) else { throw BackendContractError.identityMismatch }
++    }
++}
+diff --git a/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/UploadMetadataTests.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/UploadMetadataTests.swift
+new file mode 100644
+index 0000000..0e513d1
+--- /dev/null
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Domain/UploadMetadataTests.swift
+@@ -0,0 +1,199 @@
++import Foundation
++import Testing
++@testable import FrameRelay
++
++struct UploadMetadataTests {
++    @Test func beginReceiptBindsTheWholeQueryAndOpaqueUTF8Source() throws {
++        let f = try MetadataDomainFixture(capture: "  capture-\u{00e9}  ")
++        let query = try f.query(.create, generation: 1)
++        let encoded = try UploadMetadataValidation.canonicalBytes(query.query)
++        let decoded = try JSONDecoder().decode(UploadMetadataQuery.self, from: encoded)
++        #expect(UploadMetadataValidation.exact(decoded, query.query) && query.isCommitted)
++        let aliasOriginal = OriginalContent(capture: .init(rawValue: "  capture-e\u{0301}  "),
++            generation: f.source.original.generation, content: f.source.original.content)
++        let aliasSource = try UploadMetadataRequest(storeIdentity: f.source.storeIdentity, registration: f.source.registration,
++            operation: f.source.operation, original: aliasOriginal, expectedStartRevision: f.source.expectedStartRevision)
++        let sources = [aliasSource, try UploadMetadataRequest(storeIdentity: .init(rawValue: UUID()), registration: f.source.registration,
++            operation: f.source.operation, original: f.source.original, expectedStartRevision: f.source.expectedStartRevision)]
++        for source in sources {
++            let changed = try UploadMetadataQuery(id: query.query.id, observationCommand: query.query.observationCommand,
++                request: source, kind: .create, generation: query.query.generation)
++            #expect(changed.fingerprint != query.query.fingerprint)
++            #expect(!CommittedUploadMetadataQuery(query: changed, commit: query.commit, expectedStoreIdentity: source.storeIdentity).isCommitted)
++        }
++        let changedKind = try UploadMetadataQuery(id: query.query.id, observationCommand: query.query.observationCommand,
++            request: f.source, kind: .lookup(.init(rawValue: "session")), generation: query.query.generation)
++        #expect(!CommittedUploadMetadataQuery(query: changedKind, commit: query.commit, expectedStoreIdentity: f.source.storeIdentity).isCommitted)
++        var object = try #require(try JSONSerialization.jsonObject(with: encoded) as? [String: Any])
++        object["generation"] = ["rawValue": 2]
++        #expect(throws: BackendContractError.identityMismatch) {
++            try JSONDecoder().decode(UploadMetadataQuery.self, from: JSONSerialization.data(withJSONObject: object))
++        }
++    }
++
++    @Test func allReservationsParticipateInGenerationAndMaximumNeverWraps() throws {
++        #expect(try UploadMetadataGeneration.next(lastObservation: nil, reservations: []).rawValue == 1)
++        #expect(try UploadMetadataGeneration.next(lastObservation: .init(rawValue: 5),
++            reservations: [.init(rawValue: 9), .init(rawValue: 7)]).rawValue == 10)
++        #expect(try UploadMetadataGeneration.next(lastObservation: .init(rawValue: 11), reservations: [.init(rawValue: 9)]).rawValue == 12)
++        #expect(throws: BackendContractError.staleGeneration) {
++            try UploadMetadataGeneration.next(lastObservation: .init(rawValue: UInt64.max), reservations: [])
++        }
++        #expect(throws: BackendContractError.staleGeneration) {
++            try UploadMetadataGeneration.next(lastObservation: nil, reservations: [.init(rawValue: UInt64.max)])
++        }
++    }
++
++    @Test(arguments: [false, true])
++    func createdSessionNeverInfersStatusOrReversesAnInterveningPersonInstruction(cancel: Bool) throws {
++        let f = try MetadataDomainFixture(), query = try f.query(.create, generation: 1)
++        var request = f.media
++        try request.markAwaitingUploadMetadata(query)
++        request.setWait(.saving, active: true)
++        if cancel { request.cancel() } else { request.pause() }
++        let observation = try UploadMetadataObservation(command: query.query.observationCommand, query: query,
++            response: .created(f.binding()))
++        try request.applyUploadMetadata(observation)
++        #expect(request.session == f.binding().session && request.remote == .unknown && !request.hasReconciled && !request.canRun)
++        #expect(request.intent == (cancel ? .cancelled : .paused) && request.waits == [.saving])
++        #expect(request.transport == .queued && request.attempt == nil && request.uploadMetadataPending == nil)
++        #expect(try f.stored(observation).verification == nil)
++    }
++
++    @Test func awaitingQueryRevokesOldAttemptPermissionUntilTheLatestExactReply() throws {
++        let f = try MetadataDomainFixture(), query = try f.query(.lookup(f.binding().session), generation: 2)
++        var request = f.media
++        try request.reconcile(.init(context: f.context, observation: .init(rawValue: 1), result: .inProgress))
++        #expect(request.canRun)
++        try request.markAwaitingUploadMetadata(query)
++        #expect(!request.canRun && !request.hasReconciled && request.uploadMetadataPending == query.query.generation)
++        #expect(throws: BackendContractError.wrongStage) { try request.beginAttempt(.init(rawValue: "premature")) }
++        let latest = try UploadMetadataObservation(command: query.query.observationCommand, query: query,
++            response: .status(f.status(.receiving)))
++        try request.applyUploadMetadata(latest)
++        #expect(request.canRun && request.uploadMetadataPending == nil)
++        try request.beginAttempt(.init(rawValue: "after-exact-observation"))
++        #expect(request.transport == .active)
++        let newer = try f.query(.lookup(f.binding().session), generation: 3)
++        try request.markAwaitingUploadMetadata(newer)
++        #expect(request.transport == .active && request.attempt?.rawValue == "after-exact-observation")
++        #expect(request.remote == .inProgress && !request.canRun)
++    }
++
++    @Test func aLegacyReconciliationCannotClearPendingOrExternalCancellationHolds() throws {
++        let f = try MetadataDomainFixture(), query = try f.query(.lookup(f.binding().session), generation: 2)
++        var request = f.media
++        try request.reconcile(.init(context: f.context, observation: .init(rawValue: 1), result: .inProgress))
++        try request.markAwaitingUploadMetadata(query)
++        try request.reconcile(.init(context: f.context, observation: .init(rawValue: 2), result: .notExecuted))
++        #expect(request.hasReconciled && request.uploadMetadataPending != nil && !request.canRun)
++        let next = try f.query(.lookup(f.binding().session), generation: 3)
++        try request.markAwaitingUploadMetadata(next)
++        request.setWait(.wiFiUnavailable, active: true)
++        let observation = try UploadMetadataObservation(command: next.query.observationCommand, query: next,
++            response: .status(f.status(.cancelled)))
++        try request.applyUploadMetadata(observation)
++        #expect(request.uploadMetadataHold == .serverCancelled && request.remote == .unknown && request.intent == .running)
++        #expect(request.waits == [.wiFiUnavailable] && request.transport == .queued && !request.canRun)
++        request.setWait(.wiFiUnavailable, active: false)
++        try request.reconcile(.init(context: f.context, observation: .init(rawValue: 4), result: .notExecuted))
++        #expect(request.uploadMetadataHold == .serverCancelled && !request.canRun)
++    }
++
++    @Test func authenticObservationAuthorityBindsEvidenceAndEveryOtherResponseField() throws {
++        let f = try MetadataDomainFixture(), query = try f.query(.lookup(f.binding().session), generation: 1)
++        let observation = try UploadMetadataObservation(command: query.query.observationCommand, query: query,
++            response: .status(f.status(.completed, evidence: f.proof())))
++        let record = try f.stored(observation)
++        let proof = try #require(record.verification)
++        #expect(record.isCommitted && proof.isCommitted && proof.key == observation.key && proof.commit == record.commit)
++        #expect(proof.key != .verification(proof.command, proof.evidence.id, proof.expected))
++        #expect(proof.evidence.verifies(f.source.original, destination: f.source.registration.server.registration.destination,
++            supportedSchemas: ["fr-final-read-v1"]))
++        let altered = try UploadMetadataObservation(command: observation.command, query: query,
++            response: .status(f.status(.completed, evidence: f.proof(), indexes: [0], failure: "opaque-server-detail")))
++        let borrowed = StoredUploadMetadataObservation(observation: altered, commit: record.commit, expectedStoreIdentity: record.expectedStoreIdentity)
++        #expect(observation.fingerprint != altered.fingerprint && !borrowed.isCommitted && borrowed.verification == nil)
++        let injected = StoredVerificationEvidence(command: proof.command, expected: proof.expected, evidence: proof.evidence,
++            commit: proof.commit, metadataProvenance: .observation(borrowed))
++        #expect(!injected.isCommitted)
++        let noSource = StoredVerificationEvidence(command: proof.command, expected: proof.expected, evidence: proof.evidence, commit: proof.commit)
++        #expect(!noSource.isCommitted)
++        let begin = CommittedUploadMetadataQuery(query: query.query,
++            commit: .init(key: query.query.key, previousRevision: query.commit.previousRevision + 1,
++                committedRevision: query.commit.committedRevision + 1), expectedStoreIdentity: query.expectedStoreIdentity)
++        let changedBegin = try UploadMetadataObservation(command: observation.command, query: begin, response: observation.response)
++        #expect(changedBegin.fingerprint != observation.fingerprint)
++        #expect(!StoredUploadMetadataObservation(observation: changedBegin, commit: record.commit, expectedStoreIdentity: record.expectedStoreIdentity).isCommitted)
++    }
++
++    @Test func malformedCompletedEvidenceCannotBeAdoptedAndLegacyNilEncodingIsUnchanged() throws {
++        let f = try MetadataDomainFixture(), query = try f.query(.lookup(f.binding().session), generation: 1)
++        for field in ["schema", "method", "committed", "final-save", "hash", "bytes", "date"] {
++            #expect(throws: BackendContractError.invalidValue) {
++                try UploadMetadataObservation(command: query.query.observationCommand, query: query,
++                    response: .status(f.status(.completed, evidence: f.proof(changing: field))))
++            }
++        }
++        #expect(throws: BackendContractError.notCommitted) {
++            try UploadMetadataObservation(command: query.query.observationCommand, query: query, response: .status(f.status(.completed)))
++        }
++        let evidence = VerificationEvidence(id: .init(rawValue: "legacy-proof"), context: f.context, finalSaveCompleted: true,
++            verification: .finalDestinationReadBack(f.source.original.content), committed: true, schemaVersion: "fr-final-read-v1", observedAt: f.proof().observedAt)
++        let command = MediaOperationID(rawValue: "legacy-verification")
++        let receipt = BackendCommitReceipt(key: .verification(command, evidence.id, f.context), previousRevision: 8, committedRevision: 9)
++        let current = StoredVerificationEvidence(command: command, expected: f.context, evidence: evidence, commit: receipt)
++        let legacy = LegacyMetadataVerification(command: command, expected: f.context, evidence: evidence, commit: receipt)
++        #expect(try UploadMetadataValidation.canonicalBytes(current) == UploadMetadataValidation.canonicalBytes(legacy))
++        let decoded = try JSONDecoder().decode(StoredVerificationEvidence.self, from: UploadMetadataValidation.canonicalBytes(legacy))
++        #expect(decoded.isCommitted && decoded.metadataProvenance == nil && decoded.key == receipt.key)
++        let object = try #require(try JSONSerialization.jsonObject(with: UploadMetadataValidation.canonicalBytes(f.media)) as? [String: Any])
++        #expect(object["uploadMetadataHold"] == nil && object["uploadMetadataPending"] == nil)
++        #expect(try JSONDecoder().decode(MediaRequest.self, from: UploadMetadataValidation.canonicalBytes(f.media)) == f.media)
++    }
++}
++
++nonisolated private struct LegacyMetadataVerification: Encodable {
++    let command: MediaOperationID
++    let expected: RemoteOperationContext
++    let evidence: VerificationEvidence
++    let commit: BackendCommitReceipt
++}
++nonisolated private struct MetadataDomainFixture {
++    let source: UploadMetadataRequest
++    let media: MediaRequest
++    init(capture: String = "opaque-capture") throws {
++        let registration = try BackendOperationFixture().deviceRegistration
++        source = try .init(storeIdentity: .init(rawValue: UUID()), registration: registration,
++            operation: .init(rawValue: "upload-operation"), original: inventoryOriginal(capture), expectedStartRevision: 30)
++        var media = MediaRequest(operation: source.operation, target: .original(source.original), purpose: .upload,
++            registration: registration.server.registration, expectedStartRevision: 30)
++        try media.acceptStartCommit(.init(key: .request(media.operation, media.target, media.registration), previousRevision: 30, committedRevision: 31))
++        self.media = media
++    }
++    var context: RemoteOperationContext { .init(operation: source.operation, registration: source.registration.server.registration,
++        target: .original(source.original), session: binding().session) }
++    func binding() -> UploadMetadataBinding { .init(registration: source.registration.server.registration, operation: source.operation,
++        original: source.original, session: .init(rawValue: "metadata-session"), chunkSize: 1024) }
++    func query(_ kind: UploadMetadataQueryKind, generation: UInt64) throws -> CommittedUploadMetadataQuery {
++        let query = try UploadMetadataQuery(id: .init(rawValue: "query-" + String(generation)),
++            observationCommand: .init(rawValue: "observation-" + String(generation)), request: source, kind: kind, generation: .init(rawValue: generation))
++        return .init(query: query, commit: .init(key: query.key, previousRevision: 40, committedRevision: 41), expectedStoreIdentity: source.storeIdentity)
++    }
++    func status(_ state: UploadMetadataState, evidence: UploadFinalReadEvidence? = nil, indexes: [UInt64] = [], failure: String? = nil) -> UploadMetadataStatus {
++        .init(binding: binding(), state: state, evidence: evidence, chunkIndexes: indexes, failureCode: failure)
++    }
++    func proof(changing field: String? = nil) -> UploadFinalReadEvidence {
++        .init(id: .init(rawValue: "final-read-proof"), schemaVersion: field == "schema" ? "unsupported" : "fr-final-read-v1",
++            method: field == "method" ? "assembly_only" : "final_destination_read_back", committed: field != "committed",
++            finalSaveCompleted: field != "final-save", sha256: field == "hash" ? String(repeating: "b", count: 64) : source.original.content.digest,
++            byteCount: source.original.content.byteCount + (field == "bytes" ? 1 : 0),
++            observedAt: Date(timeIntervalSinceReferenceDate: field == "date" ? .infinity : 12345))
++    }
++    func stored(_ observation: UploadMetadataObservation) throws -> StoredUploadMetadataObservation {
++        let value = StoredUploadMetadataObservation(observation: observation,
++            commit: .init(key: observation.key, previousRevision: 45, committedRevision: 46), expectedStoreIdentity: source.storeIdentity)
++        guard value.isCommitted else { throw BackendContractError.notCommitted }
++        return value
++    }
++}
+diff --git a/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/UploadMetadataStoreTests.swift b/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/UploadMetadataStoreTests.swift
+new file mode 100644
+index 0000000..a6f236b
+--- /dev/null
++++ b/Users/oyabu/dev/rep/FrameRelay/FrameRelayTests/Integration/Storage/UploadMetadataStoreTests.swift
+@@ -0,0 +1,560 @@
++import Foundation
++import os
++import Testing
++@testable import FrameRelay
++
++/// Isolated real disks/MOVs; metadata replies and dispatch callbacks are explicit
++/// test inputs. No HTTP, media sender, PhotoKit, credential or old fixture is used.
++struct UploadMetadataStoreTests {
++    @Test(arguments: StorageCandidate.allCases)
++    func createAndCompletedGetAtomicallyAdoptOnlyTheActualObservationAuthority(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let f = try await MetadataDiskFixture.make(run, candidate: candidate)
++            let created = try await f.createSession()
++            var snapshot = try await mediaSnapshot(f.store)
++            #expect(created.verification == nil && snapshot.verifications.isEmpty)
++            #expect(snapshot.requests[0].session == f.binding().session && snapshot.requests[0].remote == .unknown)
++            #expect(!snapshot.requests[0].hasReconciled && !snapshot.requests[0].canRun)
++            let query = try await f.begin(.lookup(f.binding().session))
++            let before = try await mediaSnapshot(f.store)
++            let observed = try await f.observe(query, .status(f.status(.completed, evidence: f.proof())))
++            snapshot = try await mediaSnapshot(f.store)
++            let verification = try #require(snapshot.verifications.first)
++            #expect(observed.isCommitted && observed.commit.previousRevision == before.revision
++                && snapshot.revision == before.revision + 1)
++            #expect(verification == observed.verification && verification.isCommitted && verification.commit == observed.commit)
++            #expect(verification.key == observed.observation.key && verification.command == observed.observation.command)
++            #expect(verification.key != .verification(verification.command, verification.evidence.id, verification.expected))
++            #expect(snapshot.requests[0].remote == .succeeded(f.proof().id) && !snapshot.requests[0].canRun)
++            #expect(snapshot.requests[0].transport == .queued && snapshot.requests[0].attempt == nil)
++            #expect(snapshot.backgroundTasks.isEmpty && snapshot.outbox.isEmpty && snapshot.batches.isEmpty)
++            let originals = try await mediaOriginalSnapshot(f.store)
++            #expect(originals.logicalOriginals.allSatisfy { $0.readers.isEmpty && $0.mediaReaders.isEmpty })
++            guard case .succeeded(let inventory) = await f.store.loadRemovalTransportInventory(f.source.original) else {
++                throw BackendContractError.unavailable
++            }
++            #expect(inventory.journal.contains { UploadMetadataValidation.exact($0.mutation, query.mutation) })
++            #expect(inventory.journal.contains { UploadMetadataValidation.exact($0.mutation, observed.mutation) })
++            #expect(!inventory.journal.contains { if case .verification = $0.mutation.change { return true }; return false })
++            #expect(!OriginalRemovalTransportHistory.neverStartedForRemoval(f.source.original, backend: snapshot))
++            let reopened = try f.reopen()
++            #expect(try await mediaSnapshot(reopened) == snapshot)
++            #expect(await reopened.lookupCommit(query.mutation) == .committed(query.commit))
++            #expect(await reopened.lookupCommit(observed.mutation) == .committed(observed.commit))
++            try await f.assertBytes()
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases)
++    func newReservationBlocksAnOldAttemptPermitAndOnlyItsLatestReplyClearsPending(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let f = try await MetadataDiskFixture.make(run, candidate: candidate)
++            _ = try await f.createSession()
++            let first = try await f.begin(.lookup(f.binding().session))
++            let previous = try await f.observe(first, .status(f.status(.receiving)))
++            #expect(try await mediaSnapshot(f.store).requests[0].canRun)
++            let late = try await f.begin(.lookup(f.binding().session))
++            var snapshot = try await mediaSnapshot(f.store)
++            #expect(!snapshot.requests[0].canRun && snapshot.requests[0].uploadMetadataPending == late.query.generation)
++            let attempt = try await f.transitionMutation(.beginAttempt(.init(rawValue: UUID().uuidString)))
++            #expect(await f.store.commit(attempt) == .rejected(.wrongStage))
++            // Exact old lookup is still valid; it cannot project the event again.
++            #expect(await f.store.commit(previous.mutation) == .committed(previous.commit))
++            let latest = try await f.begin(.lookup(f.binding().session))
++            let oldReply = try UploadMetadataObservation(command: late.query.observationCommand, query: late, response: .status(f.status(.receiving)))
++            #expect(await f.store.commit(try await f.mutation(.uploadMetadata(.observe(oldReply)))) == .rejected(.staleGeneration))
++            // Even an old producer writing a later scalar reconciliation cannot
++            // clear the metadata reservation or restore an attempt permit.
++            _ = try await f.transition(.reconciled(.init(context: f.context, observation: late.query.generation, result: .notExecuted)))
++            snapshot = try await mediaSnapshot(f.store)
++            #expect(snapshot.requests[0].hasReconciled && !snapshot.requests[0].canRun)
++            _ = try await f.observe(latest, .status(f.status(.finalizing)))
++            #expect(try await mediaSnapshot(f.store).requests[0].canRun)
++            _ = try await f.transition(.beginAttempt(.init(rawValue: UUID().uuidString)))
++            snapshot = try await mediaSnapshot(f.store)
++            #expect(snapshot.requests[0].transport == .active && snapshot.backgroundTasks.isEmpty)
++            #expect(snapshot.uploadMetadataQueries.map { $0.query.generation.rawValue } == [1, 2, 3, 4])
++            let reopened = try f.reopen()
++            #expect(try await mediaSnapshot(reopened) == snapshot)
++            try await f.assertBytes()
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases, [false, true])
++    func anInterveningPersonInstructionBlocksPostButAllowsItsReplyAndKnownSessionGet(candidate: StorageCandidate, cancel: Bool) async throws {
++        try await withStorageRun { run in
++            let f = try await MetadataDiskFixture.make(run, candidate: candidate), query = try await f.begin(.create)
++            _ = try await f.transition(.wait(.saving, active: true))
++            try await f.person(cancel ? .cancel : .pause)
++            let counter = MetadataDispatchCounter()
++            #expect(!(await f.store.performUploadMetadataIfCurrent(query) { counter.increment() }))
++            #expect(counter.value == 0)
++            let forbidden = try await f.proposal(.create)
++            #expect(await f.store.commit(try await f.mutation(.uploadMetadata(.beginQuery(forbidden)))) == .rejected(.wrongStage))
++            _ = try await f.observe(query, .created(f.binding()))
++            let lookup = try await f.begin(.lookup(f.binding().session))
++            #expect(await f.store.performUploadMetadataIfCurrent(lookup) { counter.increment() })
++            let record = try await f.observe(lookup, .status(f.status(.failed, failure: "technical-finalize-failure")))
++            let after = try await mediaSnapshot(f.store)
++            #expect(counter.value == 1 && after.requests[0].intent == (cancel ? .cancelled : .paused))
++            #expect(after.requests[0].waits == [.saving] && after.requests[0].remote == .failed(.rejected))
++            #expect(!after.requests[0].canRun && after.verifications.isEmpty)
++            guard case .status(let status) = record.observation.response else { throw BackendContractError.invalidValue }
++            #expect(status.failureCode == "technical-finalize-failure" && status.state == .failed)
++            #expect(try await mediaSnapshot(f.reopen()) == after)
++            try await f.assertBytes()
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases)
++    func externalCancellationIsTypedAndCannotBeReinterpretedAsNotExecuted(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let f = try await MetadataDiskFixture.make(run, candidate: candidate)
++            _ = try await f.createSession()
++            _ = try await f.transition(.wait(.wiFiUnavailable, active: true))
++            let query = try await f.begin(.lookup(f.binding().session))
++            let record = try await f.observe(query, .status(f.status(.cancelled)))
++            var snapshot = try await mediaSnapshot(f.store)
++            #expect(snapshot.requests[0].intent == .running && snapshot.requests[0].waits == [.wiFiUnavailable])
++            #expect(snapshot.requests[0].remote == .unknown && snapshot.requests[0].uploadMetadataHold == .serverCancelled)
++            #expect(snapshot.requests[0].transport == .queued && snapshot.verifications.isEmpty && record.verification == nil)
++            _ = try await f.transition(.wait(.wiFiUnavailable, active: false))
++            _ = try await f.transition(.reconciled(.init(context: f.context, observation: .init(rawValue: 3), result: .notExecuted)))
++            #expect(!(try await mediaSnapshot(f.store).requests[0].canRun))
++            #expect(await f.store.commit(try await f.transitionMutation(.beginAttempt(.init(rawValue: UUID().uuidString)))) == .rejected(.wrongStage))
++            let next = try await f.begin(.lookup(f.binding().session))
++            #expect(next.query.generation.rawValue == 4)
++            let counter = MetadataDispatchCounter()
++            #expect(await f.store.performUploadMetadataIfCurrent(next) { counter.increment() })
++            _ = try await f.observe(next, .status(f.status(.receiving)))
++            snapshot = try await mediaSnapshot(f.store)
++            #expect(counter.value == 1 && snapshot.requests[0].uploadMetadataHold == .serverCancelled && !snapshot.requests[0].canRun)
++            #expect(try await mediaSnapshot(f.reopen()) == snapshot)
++            try await f.assertBytes()
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases)
++    func overflowAndChangedImmutableScopesNeverReserveOrBorrowQueries(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let f = try await MetadataDiskFixture.make(run, candidate: candidate, operation: .init(rawValue: "upload-\u{00e9}"))
++            for field in ["uuid", "operation-alias", "original", "start-revision", "registration-receipt"] {
++                let source = try metadataChangedSource(f.source, field: field)
++                let query = try UploadMetadataQuery(id: .init(rawValue: UUID().uuidString), observationCommand: .init(rawValue: UUID().uuidString),
++                    request: source, kind: .create, generation: .init(rawValue: 1))
++                #expect(await f.store.commit(try await f.mutation(.uploadMetadata(.beginQuery(query)), identity: source.storeIdentity)) == .rejected(.identityMismatch))
++            }
++            let valid = try await f.proposal(.create)
++            let mutation = try await f.mutation(.uploadMetadata(.beginQuery(valid)))
++            #expect(await f.store.commit(.init(expectedRevision: mutation.expectedRevision, change: mutation.change)) == .rejected(.identityMismatch))
++            #expect(try await mediaSnapshot(f.store).uploadMetadataQueries.isEmpty)
++            _ = try await f.transition(.reconciled(.init(context: .init(operation: f.source.operation, registration: f.source.registration.server.registration,
++                target: .original(f.source.original), session: nil), observation: .init(rawValue: UInt64.max), result: .notExecuted)))
++            let oldGeneration = try UploadMetadataQuery(id: .init(rawValue: UUID().uuidString), observationCommand: .init(rawValue: UUID().uuidString),
++                request: f.source, kind: .create, generation: .init(rawValue: UInt64.max))
++            #expect(await f.store.commit(try await f.mutation(.uploadMetadata(.beginQuery(oldGeneration)))) == .rejected(.staleGeneration))
++            #expect(try await mediaSnapshot(f.store).uploadMetadataQueries.isEmpty)
++            try await f.assertBytes()
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases, ["begin-before", "begin-after", "observe-before", "observe-after"])
++    func lostDiskResponsesRetainExactOriginalEnvelopesAndReopenWithoutResubmission(candidate: StorageCandidate, scenario: String) async throws {
++        try await withStorageRun { run in
++            let phase = scenario.hasPrefix("begin") ? "begin" : "observe", afterCommit = scenario.hasSuffix("after")
++            let id = MediaOperationID(rawValue: "query-\u{00e9}"), command = MediaOperationID(rawValue: "observation-\u{00e9}")
++            let identity: BackendCommitIdentity = phase == "begin" ? .uploadMetadataQuery(id) : .uploadMetadataObservation(command)
++            let fault: RecordingStoreFault = afterCommit ? .afterBackendCommitBeforeReply(identity) : .beforeBackendCommit(identity)
++            let f = try await MetadataDiskFixture.make(run, candidate: candidate, fault: fault)
++            let query = try await f.proposal(.create, id: id, observationCommand: command)
++            let mutation: BackendStoreMutation
++            if phase == "begin" { mutation = try await f.mutation(.uploadMetadata(.beginQuery(query))) }
++            else {
++                let committed = try await f.commitQuery(query)
++                let observation = try UploadMetadataObservation(command: command, query: committed, response: .created(f.binding()))
++                mutation = try await f.mutation(.uploadMetadata(.observe(observation)))
++            }
++            #expect(await f.store.commit(mutation) == (afterCommit ? .unknown : .unavailable(.inaccessible)))
++            let reopened = try f.reopen(), snapshot = try await mediaSnapshot(reopened)
++            #expect(snapshot.uploadMetadataObservations.count == (phase == "observe" && afterCommit ? 1 : 0))
++            if afterCommit {
++                let receipt: BackendCommitReceipt
++                if phase == "begin" {
++                    let stored = try #require(snapshot.uploadMetadataQueries.first)
++                    #expect(UploadMetadataValidation.exact(stored.mutation, mutation)); receipt = stored.commit
++                } else {
++                    let stored = try #require(snapshot.uploadMetadataObservations.first)
++                    #expect(UploadMetadataValidation.exact(stored.mutation, mutation)); receipt = stored.commit
++                }
++                #expect(await reopened.lookupCommit(mutation) == .committed(receipt))
++                #expect(await reopened.lookupCommit(.init(expectedRevision: mutation.expectedRevision + 1, change: mutation.change,
++                    expectedStoreIdentity: f.source.storeIdentity)) == .rejected(.identityMismatch))
++            } else { #expect(await reopened.lookupCommit(mutation) == .unknown) }
++            #expect(try await mediaSnapshot(reopened) == snapshot)
++            #expect(snapshot.backgroundTasks.isEmpty && snapshot.verifications.isEmpty)
++            try await f.assertBytes()
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases, [false, true])
++    func dispatchAndPersonPauseAreOrderedByTheSameDiskWriter(candidate: StorageCandidate, pauseFirst: Bool) async throws {
++        try await withStorageRun { run in
++            let f = try await MetadataDiskFixture.make(run, candidate: candidate), query = try await f.begin(.create)
++            let other = try f.reopen(), counter = MetadataDispatchCounter()
++            if pauseFirst {
++                try await f.person(.pause, store: other)
++                #expect(!(await f.store.performUploadMetadataIfCurrent(query) { counter.increment() }))
++                #expect(counter.value == 0)
++            } else {
++                #expect(await f.store.performUploadMetadataIfCurrent(query) { counter.increment() })
++                try await f.person(.pause, store: other)
++                #expect(counter.value == 1)
++            }
++            #expect(!(await other.performUploadMetadataIfCurrent(query) { counter.increment() }))
++            #expect(counter.value == (pauseFirst ? 0 : 1))
++            let snapshot = try await mediaSnapshot(other)
++            #expect(snapshot.requests[0].intent == .paused && snapshot.requests[0].uploadMetadataPending == query.query.generation)
++            #expect(snapshot.requests[0].transport == .queued && snapshot.backgroundTasks.isEmpty)
++            try await f.assertBytes()
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases)
++    func dispatchRejectsUncommittedObservedSupersededAndChangedRegistrationScopes(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let f = try await MetadataDiskFixture.make(run, candidate: candidate), first = try await f.begin(.create)
++            let counter = MetadataDispatchCounter()
++            let falseReceipt = CommittedUploadMetadataQuery(query: first.query,
++                commit: .init(key: first.query.key, previousRevision: first.commit.previousRevision + 1,
++                    committedRevision: first.commit.committedRevision + 1), expectedStoreIdentity: first.expectedStoreIdentity)
++            #expect(!(await f.store.performUploadMetadataIfCurrent(falseReceipt) { counter.increment() }))
++            let wrongUUID = CommittedUploadMetadataQuery(query: first.query, commit: first.commit, expectedStoreIdentity: .init(rawValue: UUID()))
++            #expect(!(await f.store.performUploadMetadataIfCurrent(wrongUUID) { counter.increment() }))
++            let latest = try await f.begin(.create)
++            #expect(!(await f.store.performUploadMetadataIfCurrent(first) { counter.increment() }))
++            #expect(await f.store.performUploadMetadataIfCurrent(latest) { counter.increment() })
++            _ = try await f.observe(latest, .created(f.binding()))
++            #expect(!(await f.store.performUploadMetadataIfCurrent(latest) { counter.increment() }))
++            let get = try await f.begin(.lookup(f.binding().session))
++            let newer = RegistrationIdentity(destination: f.source.registration.server.registration.destination,
++                id: .init(rawValue: UUID().uuidString.lowercased()), generation: .init(rawValue: 2))
++            _ = try await mediaRegister(f.store, registration: newer)
++            #expect(!(await f.store.performUploadMetadataIfCurrent(get) { counter.increment() }))
++            #expect(counter.value == 1)
++            let response = try UploadMetadataObservation(command: get.query.observationCommand, query: get, response: .status(f.status(.receiving)))
++            #expect(await f.store.commit(try await f.mutation(.uploadMetadata(.observe(response)))) == .rejected(.identityMismatch))
++            try await f.assertBytes()
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases, [false, true])
++    func aRemovalOrInvalidationReservationAndAnUnimplementedPortCannotDispatchPost(candidate: StorageCandidate, invalidation: Bool) async throws {
++        try await withStorageRun { run in
++            let f = try await MetadataDiskFixture.make(run, candidate: candidate), query = try await f.begin(.create)
++            let counter = MetadataDispatchCounter(), unavailable = MetadataDefaultDispatchStore(base: f.store)
++            #expect(!(await unavailable.performUploadMetadataIfCurrent(query) { counter.increment() }))
++            if invalidation { try await f.reserveInvalidation() } else { try await f.reserveRemoval() }
++            #expect(!(await f.store.performUploadMetadataIfCurrent(query) { counter.increment() }))
++            #expect(counter.value == 0)
++            #expect(try await mediaSnapshot(f.store).uploadMetadataQueries == [query])
++            // The removed-state predicate is checked on an isolated memory
++            // projection only. No false deletion result is written to disk.
++            let backend = try await mediaSnapshot(f.store), originals = try await mediaOriginalSnapshot(f.store)
++            var projection = MediaStoreProjection()
++            projection.requests = backend.requests; projection.originals = originals.logicalOriginals
++            projection.originals[0].removal = nil; projection.originals[0].invalidation = nil
++            projection.originals[0].removalResolution = .removed
++            #expect(throws: BackendContractError.wrongStage) { try projection.requireUploadMetadataCreate(index: 0, source: f.source) }
++            try await f.assertBytes()
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases)
++    func theNewReceiptWorksWithExistingCleanupRulesWithoutProvingSDKTermination(candidate: StorageCandidate) async throws {
++        try await withStorageRun { run in
++            let f = try await MetadataDiskFixture.make(run, candidate: candidate)
++            _ = try await f.createSession()
++            let query = try await f.begin(.lookup(f.binding().session))
++            let record = try await f.observe(query, .status(f.status(.completed, evidence: f.proof())))
++            let rendition = statusRendition(f.source.original), registration = f.source.registration.server.registration
++            _ = try await f.backend(.publication(mediaPublication(rendition, registration: registration)))
++            let operation = MediaOperationID(rawValue: UUID().uuidString)
++            // An explicit confirmation contract input, not a native playback
++            // or formal Rec.709 producer. Only receipt integration is tested.
++            let distribution = DistributionReceipt(operation: operation, rendition: rendition, registration: registration,
++                commit: .init(key: .distribution(operation, rendition, registration), previousRevision: 0, committedRevision: 1))
++            let token = try PlaybackToken(distribution: distribution, session: .init(rawValue: "technical-play"),
++                invalidationGeneration: .init(rawValue: 0), observation: .played)
++            _ = try await f.backend(.confirmation(.init(operation: .init(rawValue: UUID().uuidString), playback: token)))
++            let snapshot = try await mediaSnapshot(f.store), state = try #require(snapshot.confirmationStates.first)
++            let verification = try #require(record.verification)
++            #expect(CleanupRules.evaluate(original: f.descriptor, lastVerification: verification, confirmation: state,
++                supportedSchemas: ["fr-final-read-v1"]) == .eligible(f.source.original, state.generation))
++            #expect(!OriginalRemovalTransportHistory.neverStartedForRemoval(f.source.original, backend: snapshot))
++            #expect(OriginalRemovalTransportHistory.stoppedTasks(f.source.original, backend: snapshot) == nil)
++            #expect(snapshot.requests[0].transport == .queued && snapshot.backgroundTasks.isEmpty)
++            #expect(try await mediaSnapshot(f.reopen()).verifications == snapshot.verifications)
++            try await f.assertBytes()
++        }
++    }
++
++    @Test(arguments: StorageCandidate.allCases, ["person-before", "person-after", "upload-before", "upload-after", "legacy-before", "legacy-after", "photo-before", "photo-after"])
++    func bothQueryCommandsAreReservedAgainstEveryFixedPlanAndLegacyNestedOperation(candidate: StorageCandidate, scenario: String) async throws {
++        try await withStorageRun { run in
++            let f = try await MetadataDiskFixture.make(run, candidate: candidate)
++            let kind = String(try #require(scenario.split(separator: "-").first)), metadataFirst = scenario.hasSuffix("after")
++            let other = try await f.otherRequest()
++            let photo: MetadataPhotoFixture?
++            if kind == "photo" { photo = try await MetadataPhotoFixture.make(f) } else { photo = nil }
++            let parent = MediaOperationID(rawValue: "reserved-parent-\u{00e9}"), child = MediaOperationID(rawValue: "reserved-child-\u{00e9}")
++            if metadataFirst {
++                let query = try await f.proposal(.create, id: parent, observationCommand: child)
++                let committed = try await f.commitQuery(query)
++                let before = try await mediaSnapshot(f.store)
++                for alias in ["reserved-parent-e\u{0301}", "reserved-child-e\u{0301}"] {
++                    for parentCollision in [false, true] {
++                        let change = try await f.planChange(kind, parent: .init(rawValue: parentCollision ? alias : UUID().uuidString),
++                            child: .init(rawValue: parentCollision ? UUID().uuidString : alias), other: other, photo: photo)
++                        #expect(await f.store.commit(try await f.mutation(change)) == .rejected(.identityMismatch))
++                    }
++                }
++                #expect(try await mediaSnapshot(f.store) == before)
++                _ = try await f.transition(.wait(.saving, active: true)) // Existing operation reference remains valid.
++                _ = try await f.observe(committed, .created(f.binding()))
++                #expect(try await mediaSnapshot(f.store).requests[0].waits == [.saving])
++            } else {
++                let change = try await f.planChange(kind, parent: parent, child: child, other: other, photo: photo)
++                _ = try await f.backend(change)
++                let before = try await mediaSnapshot(f.store)
++                for alias in ["reserved-parent-e\u{0301}", "reserved-child-e\u{0301}"] {
++                    for queryCollision in [false, true] {
++                        let query = try await f.proposal(.create,
++                            id: .init(rawValue: queryCollision ? alias : UUID().uuidString),
++                            observationCommand: .init(rawValue: queryCollision ? UUID().uuidString : alias))
++                        #expect(await f.store.commit(try await f.mutation(.uploadMetadata(.beginQuery(query)))) == .rejected(.identityMismatch))
++                    }
++                }
++                #expect(try await mediaSnapshot(f.store) == before)
++                _ = try await f.begin(.create)
++            }
++            let after = try await mediaSnapshot(f.store)
++            #expect(after.uploadMetadataQueries.count == 1 && after.uploadMetadataObservations.count == (metadataFirst ? 1 : 0))
++            #expect(try await mediaSnapshot(f.reopen()) == after)
++            if let photo { #expect(try Data(contentsOf: photo.mediaURL) == photo.bytes) }
++            try await f.assertBytes()
++        }
++    }
++}
++
++nonisolated private final class MetadataDispatchCounter: Sendable {
++    private let count = OSAllocatedUnfairLock(initialState: 0)
++    func increment() { count.withLock { $0 += 1 } }
++    var value: Int { count.withLock { $0 } }
++}
++
++private actor MetadataDefaultDispatchStore: MediaOperationStorePort {
++    let base: any MediaOperationStorePort
++    init(base: any MediaOperationStorePort) { self.base = base }
++    func load() async -> BackendStoreLoadResult { await base.load() }
++    func commit(_ mutation: BackendStoreMutation) async -> BackendCommitResult { await base.commit(mutation) }
++    func lookupCommit(_ mutation: BackendStoreMutation) async -> BackendCommitResult { await base.lookupCommit(mutation) }
++}
++
++nonisolated private struct MetadataDiskFixture {
++    let originals: OriginalRemovalFixture
++    let original: OriginalBinding
++    let source: UploadMetadataRequest
++    var store: any MediaDiskStore { originals.store }
++    var context: RemoteOperationContext { .init(operation: source.operation, registration: source.registration.server.registration,
++        target: .original(source.original), session: binding().session) }
++    var descriptor: OriginalDescriptor { .init(original: original.original, reference: original.reference, saveResult: original.saveRecord.result,
++        saveCommit: original.saveCommit, savedReference: original.reference, savedContext: original.saveRecord.intent.context,
++        presence: .present, readiness: .ready) }
++
++    static func make(_ run: ExplorationRunDirectory, candidate: StorageCandidate, fault: RecordingStoreFault? = nil,
++        operation: MediaOperationID = .init(rawValue: UUID().uuidString.lowercased())) async throws -> Self {
++        let store: any MediaDiskStore
++        switch candidate {
++        case .atomicFile: store = try AtomicFileRecordingStore(run: run, mode: .createNew, fault: fault, supportedVerificationSchemas: ["fr-final-read-v1"])
++        case .sqlite: store = try SQLiteRecordingStore(run: run, mode: .createNew, fault: fault, supportedVerificationSchemas: ["fr-final-read-v1"])
++        }
++        let files = ManagedOriginalStore(run: run), access = ManagedOriginalAccess(store: store, originals: files)
++        let originals = OriginalRemovalFixture(run: run, store: store, files: files, access: access, candidate: candidate)
++        let binding = try await originals.original("metadata-" + UUID().uuidString)
++        let registration = try await inventoryRegister(store)
++        let snapshot = try await mediaSnapshot(store), identity = try #require(snapshot.storeIdentity)
++        let request = try OriginalUploadAcceptanceRequest(parent: .init(rawValue: UUID().uuidString), storeIdentity: identity,
++            registration: registration, scope: .single, targets: [.init(operation: operation, binding: binding)])
++        let plan = try OriginalUploadAcceptancePlan(request: request, presences: [.present(byteCount: binding.original.content.byteCount)])
++        guard case .committed = await store.commit(.init(expectedRevision: snapshot.revision, change: .originalUploadAcceptance(plan),
++            expectedStoreIdentity: identity)) else { throw BackendContractError.notCommitted }
++        let queued = try #require(try await mediaSnapshot(store).requests.first)
++        return .init(originals: originals, original: binding,
++            source: try .init(storeIdentity: identity, registration: registration, operation: operation,
++                original: binding.original, expectedStartRevision: queued.expectedStartRevision))
++    }
++    func binding() -> UploadMetadataBinding { .init(registration: source.registration.server.registration, operation: source.operation,
++        original: source.original, session: .init(rawValue: "d2dcdfac-6f18-433f-9f7b-7f2909bf9b10"), chunkSize: 65_536) }
++    func status(_ state: UploadMetadataState, evidence: UploadFinalReadEvidence? = nil, indexes: [UInt64] = [], failure: String? = nil) -> UploadMetadataStatus {
++        .init(binding: binding(), state: state, evidence: evidence, chunkIndexes: indexes, failureCode: failure)
++    }
++    func proof() -> UploadFinalReadEvidence { .init(id: .init(rawValue: "49069278-843e-448c-99f0-4ec714a3516a"), schemaVersion: "fr-final-read-v1",
++        method: "final_destination_read_back", committed: true, finalSaveCompleted: true, sha256: source.original.content.digest,
++        byteCount: source.original.content.byteCount, observedAt: Date(timeIntervalSince1970: 1_700_000_000)) }
++    func proposal(_ kind: UploadMetadataQueryKind, id: MediaOperationID = .init(rawValue: UUID().uuidString),
++        observationCommand: MediaOperationID = .init(rawValue: UUID().uuidString)) async throws -> UploadMetadataQuery {
++        let snapshot = try await mediaSnapshot(store), request = try #require(snapshot.requests.first { $0.operation == source.operation })
++        let generations = snapshot.uploadMetadataQueries.filter { $0.query.request.operation == source.operation }.map { $0.query.generation }
++        return try .init(id: id, observationCommand: observationCommand, request: source, kind: kind,
++            generation: UploadMetadataGeneration.next(lastObservation: request.lastObservation, reservations: generations))
++    }
++    func begin(_ kind: UploadMetadataQueryKind) async throws -> CommittedUploadMetadataQuery {
++        let query = try await proposal(kind)
++        return try await commitQuery(query)
++    }
++    func commitQuery(_ query: UploadMetadataQuery) async throws -> CommittedUploadMetadataQuery {
++        let mutation = try await mutation(.uploadMetadata(.beginQuery(query)))
++        guard case .committed(let receipt) = await store.commit(mutation) else { throw BackendContractError.notCommitted }
++        let value = try #require(try await mediaSnapshot(store).uploadMetadataQueries.last)
++        guard value.isCommitted, value.commit == receipt, UploadMetadataValidation.exact(value.mutation, mutation) else { throw BackendContractError.identityMismatch }
++        return value
++    }
++    func createSession() async throws -> StoredUploadMetadataObservation {
++        let query = try await begin(.create)
++        return try await observe(query, .created(binding()))
++    }
++    func observe(_ query: CommittedUploadMetadataQuery, _ response: UploadMetadataResponse) async throws -> StoredUploadMetadataObservation {
++        let observation = try UploadMetadataObservation(command: query.query.observationCommand, query: query, response: response)
++        let mutation = try await mutation(.uploadMetadata(.observe(observation)))
++        guard case .committed(let receipt) = await store.commit(mutation) else { throw BackendContractError.notCommitted }
++        let value = try #require(try await mediaSnapshot(store).uploadMetadataObservations.last)
++        guard value.isCommitted, value.commit == receipt, UploadMetadataValidation.exact(value.mutation, mutation) else { throw BackendContractError.identityMismatch }
++        return value
++    }
++    func mutation(_ change: BackendStoreChange, identity: RegistrationStoreIdentity? = nil) async throws -> BackendStoreMutation {
++        .init(expectedRevision: try await mediaSnapshot(store).revision, change: change, expectedStoreIdentity: identity ?? source.storeIdentity)
++    }
++    func backend(_ change: BackendStoreChange) async throws -> BackendCommitReceipt {
++        guard case .committed(let receipt) = await store.commit(try await mutation(change)) else { throw BackendContractError.notCommitted }
++        return receipt
++    }
++    func transitionMutation(_ value: MediaRequestTransition) async throws -> BackendStoreMutation {
++        try await mutation(.requestTransition(command: .init(rawValue: UUID().uuidString), operation: source.operation,
++            target: .original(source.original), registration: source.registration.server.registration, value: value))
++    }
++    func transition(_ value: MediaRequestTransition) async throws -> BackendCommitReceipt {
++        guard case .committed(let receipt) = await store.commit(try await transitionMutation(value)) else { throw BackendContractError.notCommitted }
++        return receipt
++    }
++    func person(_ action: MediaPersonControlAction, store override: (any MediaDiskStore)? = nil) async throws {
++        let selected = override ?? store, snapshot = try await mediaSnapshot(selected)
++        let request = try #require(snapshot.requests.first { $0.operation == source.operation })
++        let plan = try MediaPersonControlPlan(parent: .init(rawValue: UUID().uuidString), storeIdentity: source.storeIdentity, scope: .single,
++            action: action, children: [.init(command: .init(rawValue: UUID().uuidString), target: .init(request))])
++        guard case .committed = await selected.commit(.init(expectedRevision: snapshot.revision, change: .personControl(plan),
++            expectedStoreIdentity: source.storeIdentity)) else { throw BackendContractError.notCommitted }
++    }
++    func otherRequest() async throws -> MediaRequest {
++        let request = MediaRequest(operation: .init(rawValue: UUID().uuidString), target: .original(source.original), purpose: .upload,
++            registration: source.registration.server.registration, expectedStartRevision: try await mediaSnapshot(store).revision)
++        _ = try await backend(.request(command: request.operation, value: request))
++        return try #require(try await mediaSnapshot(store).requests.last)
++    }
++    func planChange(_ kind: String, parent: MediaOperationID, child: MediaOperationID, other: MediaRequest,
++        photo: MetadataPhotoFixture?) async throws -> BackendStoreChange {
++        switch kind {
++        case "person":
++            return .personControl(try .init(parent: parent, storeIdentity: source.storeIdentity, scope: .single, action: .pause,
++                children: [.init(command: child, target: .init(other))]))
++        case "upload":
++            let request = try OriginalUploadAcceptanceRequest(parent: parent, storeIdentity: source.storeIdentity, registration: source.registration,
++                scope: .single, targets: [.init(operation: child, binding: original)])
++            return .originalUploadAcceptance(try .init(request: request, presences: [.missing]))
++        case "legacy":
++            let batch = try TransferBatch(id: .init(rawValue: parent.rawValue), originals: [descriptor], operations: [child], onWiFi: true,
++                registration: source.registration, expectedRevision: try await mediaSnapshot(store).revision)
++            return .batch(batch)
++        case "photo":
++            let photo = try #require(photo)
++            let target = try PhotoSaveBatchTarget(source: photo.source, operation: child)
++            let batch = try PhotoSaveBatch(operation: parent, storeIdentity: source.storeIdentity, targets: [target])
++            return .photoBatch(command: parent, value: .accept(batch))
++        default: throw BackendContractError.invalidValue
++        }
++    }
++    func reserveRemoval() async throws {
++        let batch = try originals.discardBatch(original, name: "metadata-removal-" + UUID().uuidString)
++        let snapshot = try await mediaOriginalSnapshot(store)
++        guard case .committed = await store.commitOriginal(.init(operation: batch.operation, expectedRevision: snapshot.revision,
++            change: .removalBatch(batch))) else { throw BackendContractError.notCommitted }
++        let current = try await mediaOriginalSnapshot(store)
++        let state = try #require(current.logicalOriginals.first { UploadMetadataValidation.exact($0.original, source.original) })
++        let intent = batch.intent(for: batch.targets[0])
++        guard case .committed = await store.commitOriginal(.init(operation: intent.operation, expectedRevision: current.revision,
++            change: .reserveRemoval(intent, expectedInvalidation: state.invalidationGeneration, expectedAccess: state.accessGeneration))) else {
++            throw BackendContractError.notCommitted
++        }
++    }
++    func reserveInvalidation() async throws {
++        let rendition = statusRendition(source.original), registration = source.registration.server.registration
++        _ = try await backend(.publication(mediaPublication(rendition, registration: registration)))
++        _ = try await mediaOriginalCommit(store, .reserveInvalidation(.init(statusInvalidation(rendition, registration: registration,
++            id: "new-metadata-invalidation-" + UUID().uuidString))))
++    }
++    func reopen() throws -> any MediaDiskStore {
++        switch originals.candidate {
++        case .atomicFile: try AtomicFileRecordingStore(run: originals.run, mode: .openExisting, supportedVerificationSchemas: ["fr-final-read-v1"])
++        case .sqlite: try SQLiteRecordingStore(run: originals.run, mode: .openExisting, supportedVerificationSchemas: ["fr-final-read-v1"])
++        }
++    }
++    func assertBytes() async throws {
++        let digest = try await originals.files.digest(for: original.reference)
++        #expect(digest.sha256 == source.original.content.digest && digest.byteCount == source.original.content.byteCount)
++    }
++}
++
++nonisolated private struct MetadataPhotoFixture {
++    let temporary: ManagedTemporaryMedia
++    let scope: RenditionMediaScope
++    let source: PhotoSaveSource
++    let mediaURL: URL
++    let bytes: Data
++    static func make(_ f: MetadataDiskFixture) async throws -> Self {
++        let bytes = Data((0..<1024).map { UInt8($0 % 251) }), content = try renditionContent(bytes)
++        let registration = f.source.registration.server.registration
++        let rendition = RenditionIdentity(original: f.source.original, inputLogIdentity: "synthetic-not-log", transformAssetIdentity: "no-quality-proof",
++            transformAssetVersion: "fixture-only", outputConfigurationIdentity: "fixture", conversionVersion: "fixture",
++            rendition: .init(rawValue: UUID().uuidString.lowercased()), deliveryContent: content, publicationGeneration: .init(rawValue: 1))
++        _ = try await f.backend(.publication(mediaPublication(rendition, registration: registration)))
++        let operation = MediaOperationID(rawValue: "technical-distribution-" + UUID().uuidString)
++        let proof = DistributionReceipt(operation: operation, rendition: rendition, registration: registration,
++            commit: .init(key: .distribution(operation, rendition, registration), previousRevision: 0, committedRevision: 1))
++        let retrieve = RetrieveMediaCommand(gate: .init(operation: .init(rawValue: "technical-read"), attempt: .init(rawValue: "technical-attempt"),
++            target: .rendition(rendition), registration: registration, generation: 1), distribution: proof, range: nil)
++        let leases = RenditionReadLeases(store: f.store)
++        let scope = try await RenditionMediaScope.open(original: f.source.original, leases: leases)
++        let root = f.originals.run.url.appendingPathComponent("new-metadata-photo-" + UUID().uuidString, isDirectory: true)
++        let temporary = try await ManagedTemporaryMedia.open(root: root, leases: leases, scope: scope)
++        let receipt = try await temporary.create(command: retrieve, id: .init(rawValue: UUID().uuidString), usageID: .init(rawValue: UUID().uuidString),
++            capturedAt: RenditionFixture.capturedAt, contentType: "video/quicktime")
++        try await temporary.store(bytes, range: .init(lowerBound: 0, upperBound: UInt64(bytes.count)), using: receipt.usage)
++        _ = try await temporary.verify(receipt.usage)
++        let state = try await temporary.stateFor(receipt.id)
++        let source = PhotoSaveSource(storeIdentity: f.source.storeIdentity, registration: registration, rendition: rendition, media: state.id,
++            capturedAt: state.capturedAt, directoryIdentity: state.directoryIdentity, fileIdentity: try #require(state.fileIdentity), leaf: state.leaf,
++            contentType: state.contentType)
++        return .init(temporary: temporary, scope: scope, source: source, mediaURL: root.appendingPathComponent(state.leaf), bytes: bytes)
++    }
++}
++
++nonisolated private func metadataChangedSource(_ source: UploadMetadataRequest, field: String) throws -> UploadMetadataRequest {
++    let actual = source.registration
++    let changedRegistration = DeviceRegistration(server: actual.server, intentCommit: actual.intentCommit,
++        commit: .init(key: actual.commit.key, previousRevision: actual.commit.previousRevision + 1, committedRevision: actual.commit.committedRevision + 1))
++    return try .init(storeIdentity: field == "uuid" ? .init(rawValue: UUID()) : source.storeIdentity,
++        registration: field == "registration-receipt" ? changedRegistration : actual,
++        operation: field == "operation-alias" ? .init(rawValue: "upload-e\u{0301}") : source.operation,
++        original: field == "original" ? .init(capture: source.original.capture, generation: .init(rawValue: source.original.generation.rawValue + 1),
++            content: source.original.content) : source.original,
++        expectedStartRevision: source.expectedStartRevision + (field == "start-revision" ? 1 : 0))
++}
